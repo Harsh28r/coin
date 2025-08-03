@@ -11,7 +11,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const ADMIN_CREDENTIALS = {
   username: 'admin',
-  password: 'Blocki8'
+  password: '123456'
 };
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }): JSX.Element => {

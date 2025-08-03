@@ -5,6 +5,12 @@ import LandingPage from './pages/Landing';
 import BlogPage from './pages/BlogPage';
 import LoginPage from './pages/LoginPage'
 import AdminDashboard from './pages/AdminDashboard'
+import AllNews from './Components/Exnews';
+import PresNews from './Components/PressNews';
+import Exn from './Components/Exn';
+import Advertise from './Components/advertise';
+import Trend from './Components/Trend';
+import MainDashboard from './pages/MainAdminDash';
 
 import { AuthProvider } from './context/AuthContext';
 import { BlogProvider } from './context/BlogContext';
@@ -20,6 +26,15 @@ function App() {
               <Route path="/blog/:id" element={<BlogPage />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/All-exclusive-news" element={<AllNews />} /> 
+              <Route path="/press-news" element={<PresNews />} /> 
+              <Route path="/exclusive-news" element={< Exn/ >} /> 
+              <Route path="/advertise" element={<  Advertise />} /> 
+              <Route path="/All-Trending-news" element={<  Trend />} /> 
+              <Route path="/main-dashboard" element={<   MainDashboard/>} /> 
+
+
+
 
              
             </Routes>

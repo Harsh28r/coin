@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Container, Row, Col, Card, Button, Image } from 'react-bootstrap';
 import { ChevronRight } from 'lucide-react';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import { useNavigate } from 'react-router-dom';
 
 interface PressReleaseItem {
   title: string;
@@ -12,14 +13,16 @@ interface PressReleaseItem {
 }
 
 const PressRelease: React.FC = () => {
+  const navigate = useNavigate();
   const [otherReleases, setOtherReleases] = useState<PressReleaseItem[]>([]);
   const [showAll, setShowAll] = useState(false);
   const [mainArticle, setMainArticle] = useState<PressReleaseItem | null>(null);
+  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5000';
 
   useEffect(() => {
     const fetchReleases = async () => {
       try {
-        const response = await fetch('http://localhost:3000/fetch-another-rss');
+      const response = await fetch(`${API_BASE_URL}/fetch-another-rss`)
         const data = await response.json();
         if (data.success) {
           const formattedReleases = data.data.map((item: any) => ({
@@ -44,7 +47,9 @@ const PressRelease: React.FC = () => {
     <Container fluid className="mt-5 mb-5" style={{ width: '92%', marginBottom: '100px' }}>
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h4 className="m-0" style={{fontWeight: 'bold',letterSpacing: '0.05em'}}>Press Release</h4>
-        <Button variant="link" className="text-warning text-decoration-none" onClick={() => setShowAll(!showAll)}>
+        <Button variant="link" className="text-warning text-decoration-none" onClick={() => {
+          navigate('/press-news');
+        }}>
           {showAll ? 'View Less' : 'View All'} <ChevronRight size={20} />
         </Button>
       </div>

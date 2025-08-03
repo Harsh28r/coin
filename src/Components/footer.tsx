@@ -11,13 +11,13 @@ const Footer: React.FC = () => {
         <Row className="mb-5  " style={{ maxWidth: '100%' }}>
           <Col md={5} className="mb-4 mb-md-0 text-center text-md-start" style={{ textAlign: 'left' }}>
             <img 
-              src="/logo.png" 
+              src="/logo2.png" 
               alt="CoinsCapture Logo" 
               className="mb-4" 
               style={{ width: '250px', height: 'auto' }} 
             />
             <p className="text-light small fs-6" style={{ textAlign: 'left', lineHeight: '1.2' }}>
-              CoinsCapture is a versatile platform that shares the best, real-time, highest quality cryptocurrency market data.
+              CoinClarity is a versatile platform that shares the best, real-time, highest quality cryptocurrency market data.
               With an easy-to-use API, charts, and cryptocurrency glossary.
             </p>
             <p className="text-light mt-4 small fs-6" style={{ textAlign: 'left' }}>© Copyright 2024</p>

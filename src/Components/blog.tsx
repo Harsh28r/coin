@@ -18,17 +18,37 @@ interface BlogPost {
 
 const BlogSection: React.FC = () => {
   const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const postsPerPage = 6; // Number of posts to display at a time
+  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5000';
 
+
+  // Function to handle sliding left
+  const handlePrev = () => {
+    setCurrentIndex(prevIndex => Math.max(prevIndex - postsPerPage, 0));
+  };
+
+  // Function to handle sliding right
+  const handleNext = () => {
+    setCurrentIndex(prevIndex => Math.min(prevIndex + postsPerPage, blogPosts.length - postsPerPage));
+  };
   useEffect(() => {
     const fetchBlogPosts = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/posts');
+        const response = await fetch(`${API_BASE_URL}/api/posts`);
         const result = await response.json();
-        console.log(result);
-        if (Array.isArray(result)) {
-          const formattedPosts = result.map(post => ({
-            ...post,
-            date: new Date(post.date).toLocaleDateString()
+        console.log(result); // ✅ Logs the full object
+  
+        if (result.success && Array.isArray(result.data)) {
+          const formattedPosts = result.data.map((post: any) => ({
+            id: post._id,
+            title: post.title,
+            description: post.description || '', // fallback if undefined
+            author: post.author,
+            date: new Date(post.date).toLocaleDateString(),
+            image: post.image || '', // fallback if undefined
+            imageUrl: post.imageUrl || '',
+            content: post.content
           }));
           setBlogPosts(formattedPosts);
         } else {
@@ -38,9 +58,11 @@ const BlogSection: React.FC = () => {
         console.error('Error fetching blog posts:', error);
       }
     };
-
+  
     fetchBlogPosts();
+    console.log('fetchBlogPosts');
   }, []);
+  
 
   return (
     <Container fluid className="mt-5 mb-5" style={{ width: '92%', fontFamily: 'Inter, sans-serif' }}>
@@ -51,7 +73,7 @@ const BlogSection: React.FC = () => {
         </Button>
       </div>
       <Row xs={1} md={2} lg={3} className="g-4">
-        {blogPosts.map((post, index) => {
+        {blogPosts.slice(currentIndex, currentIndex + postsPerPage).map((post, index) => {
           console.log(post.id);
           return (
             <Col key={index}>
@@ -93,10 +115,10 @@ const BlogSection: React.FC = () => {
         })}
       </Row>
       <div className="d-flex justify-content-center mt-4 gap-2" style={{ marginLeft: '-10px' }}>
-        <Button variant="outline-secondary" size="lg" className="rounded-circle" style={{ width: '50px', height: '50px' }}>
+        <Button variant="outline-secondary" size="lg" className="rounded-circle" style={{ width: '50px', height: '50px' }} onClick={handlePrev} disabled={currentIndex === 0}>
           <ChevronLeft size={24} />
         </Button>
-        <Button variant="outline-secondary" size="lg" className="rounded-circle" style={{ width: '50px', height: '50px' }}>
+        <Button variant="outline-secondary" size="lg" className="rounded-circle" style={{ width: '50px', height: '50px' }} onClick={handleNext} disabled={currentIndex + postsPerPage >= blogPosts.length}>
           <ChevronRight size={24} />
         </Button>
       </div>

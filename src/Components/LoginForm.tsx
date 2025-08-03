@@ -18,7 +18,7 @@ const LoginForm: React.FC = () => {
     const success = await login(credentials);
     setLoading(false);
     if (success) {
-      navigate('/admin');
+      navigate('/Main-dashboard');
     } else {
       setError('Invalid username or password');
     }
@@ -27,14 +27,14 @@ const LoginForm: React.FC = () => {
   return (
     <div className="d-flex justify-content-center align-items-center vh-100">
       <div className="card shadow-lg" style={{ width: '400px' }}>
-        <div className="card-body">
+        <div className="card-body align-items-center">
           <h2 className="mb-4 text-center">Admin Login</h2>
           
           {error && <Alert variant="danger">{error}</Alert>}
           
           <Form onSubmit={handleSubmit}>
-            <Form.Group className="mb-3 text-left">
-              <Form.Label>Username</Form.Label>
+            <Form.Group className="mb-3">
+              <Form.Label className="form-label" style={{ textAlign: 'left' }}>Username</Form.Label>
               <Form.Control
                 type="text"
                 value={credentials.username}
@@ -44,8 +44,8 @@ const LoginForm: React.FC = () => {
               />
             </Form.Group>
 
-            <Form.Group className="mb-3 text-left">
-              <Form.Label>Password</Form.Label>
+            <Form.Group className="mb-3">
+              <Form.Label className="form-label">Password</Form.Label>
               <Form.Control
                 type="password"
                 value={credentials.password}

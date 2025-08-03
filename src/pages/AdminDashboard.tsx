@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Container, Row, Col, Modal } from 'react-bootstrap';
+import { Container, Row, Col, Modal, Button } from 'react-bootstrap';
 import BlogPost from '../Components/BlogPost';
 import BlogForm from '../Components/BlogForm';
 import { useBlog } from '../context/BlogContext';
@@ -37,14 +37,15 @@ const AdminDashboard: React.FC = () => {
 
   return (
     <Container>
-      <div className="admin-header">
+      <div className="admin-header text-center mb-4">
         <Row className="align-items-center">
           <Col>
-            <h1 className="display-6 fw-bold mb-0">Admin Dashboard</h1>
+            <h1 className="display-4 fw-bold">Admin Dashboard</h1>
           </Col>
           <Col xs="auto">
-            <button 
-              className="btn btn-primary d-flex align-items-center gap-2"
+            <Button 
+              variant="success"
+              className="d-flex align-items-center gap-2"
               onClick={() => {
                 setEditingPost(null);
                 setShowModal(true);
@@ -52,23 +53,33 @@ const AdminDashboard: React.FC = () => {
             >
               <PlusCircle size={20} />
               Create New Post
-            </button>
+            </Button>
           </Col>
         </Row>
       </div>
+      
 
       <Row className="justify-content-center">
         <Col lg={8}>
-          {posts.map(post => (
-            <div key={post.id} className="mb-4">
-              <BlogPost 
-                post={post} 
-                isAdmin={true}
-                onEdit={() => handleEdit(post)}
-                onDelete={() => deletePost(post.id)}
-              />
-            </div>
-          ))}
+          {Array.isArray(posts) ? (
+            posts.map((post, index) => (
+              <div key={post._id || index} className="mb-4">
+                <BlogPost 
+                  post={post} 
+                  // isAdmin={true}
+                  onEdit={() => handleEdit(post)}
+                  onDelete={() => {
+                    if (post._id) {
+                      console.log('Deleting post:', post._id);
+                      deletePost(post._id);
+                    }
+                  }}
+                />
+              </div>
+            ))
+          ) : (
+            <p className="text-center text-muted">No posts to show.</p>
+          )}
         </Col>
       </Row>
 
