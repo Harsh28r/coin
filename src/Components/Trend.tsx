@@ -25,11 +25,12 @@ const Exn: React.FC = () => {
   const [newsItems, setNewsItems] = useState<NewsItem[]>([]);
   const [showAll, setShowAll] = useState(false);
   const navigate = useNavigate();
+  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5000';
 
   useEffect(() => {
     const fetchNews = async () => {
       try {
-        const response = await fetch('http://localhost:5000/fetch-newsbtc-rss');
+        const response = await fetch('${API_BASE_URL}/fetch-newsbtc-rss');
         const data = await response.json();
         console.log(data);
         if (data.success && Array.isArray(data.data)) {

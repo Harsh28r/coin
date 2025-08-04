@@ -15,8 +15,10 @@ interface TrendingNewsItem {
 const FeaturedCarousel: React.FC = () => {
   const [activeIndex, setActiveIndex] = useState(0);
   const [trendingNews, setTrendingNews] = useState<TrendingNewsItem[]>([]);
+  const [error, setError] = useState<string | null>(null);
   const scrollableRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
+  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5000';
 
   const handlePrev = () => {
     setActiveIndex((current) =>
@@ -33,24 +35,48 @@ const FeaturedCarousel: React.FC = () => {
   useEffect(() => {
     const fetchTrendingNews = async () => {
       try {
-        const response1 = await fetch('http://localhost:5000/fetch-rss');
+        // Fetch from /fetch-rss
+        const response1 = await fetch(`${API_BASE_URL}/fetch-rss`);
+        if (!response1.ok) {
+          throw new Error(`fetch-rss failed: ${response1.status} ${response1.statusText}`);
+        }
+        const contentType1 = response1.headers.get("content-type");
+        if (!contentType1 || !contentType1.includes("application/json")) {
+          throw new Error("fetch-rss returned non-JSON response");
+        }
         const data1 = await response1.json();
         const news1 = data1.success
           ? data1.data
               .map((item: any) => ({
-                ...item,
-                source: 'Exclusive News',
+                title: item.title || "Untitled",
+                description: item.description || "No description available",
+                creator: item.creator || ["Unknown"],
+                pubDate: item.pubDate || new Date().toISOString(),
+                image_url: item.image_url || "/default.png?height=200&width=400&text=News",
+                source: "Exclusive News",
               }))
               .slice(0, 2)
           : [];
 
+        // Fetch from /fetch-another-rss
         const response2 = await fetch('http://localhost:5000/fetch-another-rss');
+        if (!response2.ok) {
+          throw new Error(`fetch-another-rss failed: ${response2.status} ${response2.statusText}`);
+        }
+        const contentType2 = response2.headers.get("content-type");
+        if (!contentType2 || !contentType2.includes("application/json")) {
+          throw new Error("fetch-another-rss returned non-JSON response");
+        }
         const data2 = await response2.json();
         const news2 = data2.success
           ? data2.data
               .map((item: any) => ({
-                ...item,
-                source: 'Press Release',
+                title: item.title || "Untitled",
+                description: item.description || "No description available",
+                creator: item.creator || ["Unknown"],
+                pubDate: item.pubDate || new Date().toISOString(),
+                image_url: item.image_url || "/default.png?height=200&width=400&text=News",
+                source: "Press Release",
               }))
               .slice(0, 2)
           : [];
@@ -59,7 +85,7 @@ const FeaturedCarousel: React.FC = () => {
           .map((item: any) => ({
             title: item.title,
             excerpt: item.description,
-            author: item.creator[0] || 'Unknown',
+            author: item.creator[0] || "Unknown",
             date: new Date(item.pubDate).toLocaleDateString(),
             image: item.image_url,
             source: item.source,
@@ -81,8 +107,9 @@ const FeaturedCarousel: React.FC = () => {
 
         setTrendingNews(uniqueNews);
         console.log('Fetched trending news:', uniqueNews);
-      } catch (error) {
-        console.error('Error fetching trending news:', error);
+      } catch (error: any) {
+        console.error('Error fetching trending news:', error.message);
+        setError(error.message);
       }
     };
 
@@ -114,7 +141,19 @@ const FeaturedCarousel: React.FC = () => {
   return (
     <Row className="mt-3 mx-auto" style={{ width: '95%' }}>
       <Col lg={7} className="mb-3 mb-lg-0">
-        {trendingNews.length > 0 ? (
+        {error ? (
+          <div
+            className="text-center my-custom-loading"
+            style={{
+              height: '450px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <h5 className="text-danger">Error: {error}</h5>
+          </div>
+        ) : trendingNews.length > 0 ? (
           <Carousel
             className="text-white rounded-5 my-custom-carousel"
             style={{ height: '450px', width: '95%', margin: '0 auto' }}
@@ -424,18 +463,3 @@ const FeaturedCarousel: React.FC = () => {
 };
 
 export default FeaturedCarousel;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

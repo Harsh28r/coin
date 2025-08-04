@@ -22,11 +22,12 @@ const decodeHtml = (html: string) => {
 const AllNews: React.FC = () => {
   const [newsItems, setNewsItems] = useState<NewsItem[]>([]);
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null); // Track expanded item
+  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5000';
 
   useEffect(() => {
     const fetchNews = async () => {
       try {
-        const response = await fetch('http://localhost:5000/fetch-rss');
+        const response = await fetch('${API_BASE_URL}/fetch-rss');
         const data = await response.json();
         if (Array.isArray(data.data)) {
           setNewsItems(data.data);
