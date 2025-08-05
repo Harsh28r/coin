@@ -74,7 +74,7 @@ export const BlogProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const checkUserRole = () => {
     const userRole = getUserRole();
     console.log('Current user role:', userRole);
-    setIsAdmin(userRole === 'admin');
+    // setIsAdmin(userRole === 'admin');
   };
 
   console.log('Rendering BlogContext with isAdmin:', isAdmin);

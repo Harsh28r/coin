@@ -14,6 +14,7 @@ import MainDashboard from './pages/MainAdminDash';
 
 import { AuthProvider } from './context/AuthContext';
 import { BlogProvider } from './context/BlogContext';
+import PressReleaseDetail from './Components/preRealse'
 
 function App() {
   return (
@@ -32,6 +33,7 @@ function App() {
               <Route path="/advertise" element={<  Advertise />} /> 
               <Route path="/All-Trending-news" element={<  Trend />} /> 
               <Route path="/main-dashboard" element={<   MainDashboard/>} /> 
+              {/* <Route path="/press-release-detail" element={<PressReleaseDetail />} /> */}
 
 
 

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Chart } from './Chart';
+import Chart  from './Chart';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChartLine } from '@fortawesome/free-solid-svg-icons';

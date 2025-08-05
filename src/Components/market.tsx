@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { Container, Row, Col, Table, Card, Button, Carousel, Modal } from 'react-bootstrap';
+import { Container, Row, Col, Table, Card, Button, Carousel, Modal, ButtonGroup } from 'react-bootstrap';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { Chart } from './Chart';
+import Chart from './Chart';
 
 interface CryptoData {
   id: string;
@@ -15,7 +15,7 @@ interface CryptoData {
   volume_usd_24h: number;
   price_usd: number;
   change_percent_24h: number;
-  image: string; // CoinGecko provides image URLs
+  image: string;
 }
 
 interface IChart {
@@ -30,42 +30,78 @@ interface CarouselNewsItem {
   date: string;
   author: string;
   excerpt: string;
+  url: string;
 }
 
 const MarketPriceAndNews: React.FC = () => {
   const [showAll, setShowAll] = useState(false);
   const [cryptoData, setCryptoData] = useState<CryptoData[]>([]);
   const [selectedCrypto, setSelectedCrypto] = useState<CryptoData | null>(null);
-  const [historicalData, setHistoricalData] = useState<{ labels: string[], prices: number[] } | null>(null);
+  const [historicalData, setHistoricalData] = useState<{ labels: string[]; prices: number[] } | null>(null);
   const [showChartModal, setShowChartModal] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
-  const [showCarousel, setShowCarousel] = useState(true);
+  const [carouselNews, setCarouselNews] = useState<CarouselNewsItem[]>([]);
+  const [newsLoading, setNewsLoading] = useState(true);
+  const [newsError, setNewsError] = useState<string | null>(null);
+  const [timeRange, setTimeRange] = useState<'1d' | '7d' | '30d'>('1d');
+  const [isLoading, setIsLoading] = useState(false);
 
-  const carouselNews: CarouselNewsItem[] = [
-    {
-      title: "How To Avoid Going Bust In Crypto In 2024",
-      excerpt: "In the midst of a booming market, safeguarding investments becomes paramount...",
-      author: "Tracy D'souza",
-      date: "April 27, 2024",
-      image: "/image.png", // Ensure these paths are valid
-    },
-    {
-      title: "Pro-XRP Lawyer Takes A Dig At Bitcoin, Calls It Overhyped",
-      excerpt: "Pro-XRP lawyer Bill Morgan's recent critique of Bitcoin as overhyped has sparked...",
-      author: "Tracy D'souza",
-      date: "April 27, 2024",
-      image: "/market.png",
-    },
-    {
-      title: "Pro-XRP Lawyer Takes A Dig At Bitcoin, Calls It Overhyped",
-      excerpt: "Pro-XRP lawyer Bill Morgan's recent critique of Bitcoin as overhyped has sparked...",
-      author: "Tracy D'souza",
-      date: "April 27, 2024",
-      image: "/market.png",
-    },
-  ];
+  // Replace with your NewsAPI.org API key
+  const NEWS_API_KEY = 'YOUR_NEWS_API_KEY'; // Obtain from https://newsapi.org/register
+
+  // Fetch news data, optionally filtered by coin name
+  const fetchNewsData = async (coinName?: string) => {
+    setNewsLoading(true);
+    setNewsError(null);
+    try {
+      const query = coinName ? coinName.toLowerCase() : 'cryptocurrency';
+      const response = await fetch(
+        `https://newsapi.org/v2/everything?q=${query}&apiKey=${NEWS_API_KEY}&language=en&sortBy=publishedAt`
+      );
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      const data = await response.json();
+      if (!data.articles || data.articles.length === 0) {
+        throw new Error('No articles found');
+      }
+      const formattedNews: CarouselNewsItem[] = data.articles.slice(0, 5).map((item: any) => ({
+        title: item.title || 'Untitled',
+        excerpt: item.description
+          ? item.description.length > 100
+            ? `${item.description.substring(0, 100)}...`
+            : item.description
+          : 'No description available',
+        author: item.source.name || 'Unknown',
+        date: new Date(item.publishedAt).toLocaleDateString('en-US', {
+          month: 'long',
+          day: 'numeric',
+          year: 'numeric',
+        }),
+        image: item.urlToImage || '/fallback-news-image.png',
+        url: item.url || '#',
+      }));
+      setCarouselNews(formattedNews);
+    } catch (error) {
+      console.error('Error fetching news data:', error);
+      setNewsError('Failed to load news. Please try again later.');
+      setCarouselNews([
+        {
+          title: "Crypto Market Update",
+          excerpt: "Stay tuned for the latest cryptocurrency market updates...",
+          author: "NewsAPI",
+          date: "August 5, 2025",
+          image: "/fallback-news-image.png",
+          url: "#",
+        },
+      ]);
+    } finally {
+      setNewsLoading(false);
+    }
+  };
 
   useEffect(() => {
+    // Fetch market data
     const fetchCryptoData = async () => {
       try {
         const response = await fetch(
@@ -75,7 +111,6 @@ const MarketPriceAndNews: React.FC = () => {
           throw new Error(`HTTP error! Status: ${response.status}`);
         }
         const data = await response.json();
-        // Map CoinGecko data to CryptoData interface
         const formattedData: CryptoData[] = data.map((coin: any) => ({
           id: coin.id,
           rank: coin.market_cap_rank,
@@ -90,7 +125,6 @@ const MarketPriceAndNews: React.FC = () => {
           image: coin.image,
         }));
         setCryptoData(formattedData);
-        console.log('Fetched crypto data:', formattedData);
       } catch (error) {
         console.error('Error fetching crypto data:', error);
         setCryptoData([]);
@@ -98,27 +132,50 @@ const MarketPriceAndNews: React.FC = () => {
     };
 
     fetchCryptoData();
+    fetchNewsData(); // Initial fetch for general crypto news
   }, []);
 
-  const handleCryptoClick = async (crypto: CryptoData) => {
-    setSelectedCrypto(crypto);
+  const fetchHistoricalData = async (crypto: CryptoData, days: number, interval: 'hourly' | 'daily') => {
+    setIsLoading(true);
     try {
       const response = await fetch(
-        `https://api.coingecko.com/api/v3/coins/${crypto.id}/market_chart?vs_currency=usd&days=1&interval=hourly`
+        `https://api.coingecko.com/api/v3/coins/${crypto.id}/market_chart?vs_currency=usd&days=${days}&interval=${interval}`
       );
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
       const data = await response.json();
-      const prices = data.prices.map((item: [number, number]) => item[1]); // Extract price from [timestamp, price]
+      if (!data.prices || data.prices.length === 0) {
+        throw new Error('No price data available');
+      }
+      const prices = data.prices.map((item: [number, number]) => item[1]);
       const labels = data.prices.map((item: [number, number]) =>
-        new Date(item[0]).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      ); // Extract and format timestamp
+        days === 1
+          ? new Date(item[0]).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })
+          : new Date(item[0]).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+      );
       setHistoricalData({ labels, prices });
-      setShowChartModal(true);
     } catch (error) {
-      console.error('Error fetching historical data:', error);
+      console.error(`Error fetching ${days}-day historical data for ${crypto.name}:`, error);
       setHistoricalData(null);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleCryptoClick = async (crypto: CryptoData) => {
+    setSelectedCrypto(crypto);
+    await Promise.all([
+      fetchHistoricalData(crypto, timeRange === '1d' ? 1 : timeRange === '7d' ? 7 : 30, timeRange === '1d' ? 'hourly' : 'daily'),
+      fetchNewsData(crypto.name), // Fetch news for the selected crypto
+    ]);
+    setShowChartModal(true);
+  };
+
+  const handleTimeRangeChange = (range: '1d' | '7d' | '30d') => {
+    setTimeRange(range);
+    if (selectedCrypto) {
+      fetchHistoricalData(selectedCrypto, range === '1d' ? 1 : range === '7d' ? 7 : 30, range === '1d' ? 'hourly' : 'daily');
     }
   };
 
@@ -147,7 +204,6 @@ const MarketPriceAndNews: React.FC = () => {
                     style={{ fontWeight: 'bold', fontSize: '0.8rem', padding: '0.1rem 0.2rem' }}
                     onClick={() => {
                       setShowAll(!showAll);
-                      setShowCarousel(true);
                     }}
                   >
                     {showAll ? 'View Less' : 'View All'}
@@ -167,7 +223,7 @@ const MarketPriceAndNews: React.FC = () => {
                 </thead>
                 <tbody>
                   {cryptoData.slice(0, showAll ? cryptoData.length : 10).map((crypto) => (
-                    <tr key={crypto.id} onClick={() => handleCryptoClick(crypto)} style={{ fontSize: '0.7rem' }}>
+                    <tr key={crypto.id} onClick={() => handleCryptoClick(crypto)} style={{ cursor: 'pointer' }}>
                       <td>{crypto.rank}</td>
                       <td style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap' }}>
                         <img
@@ -195,71 +251,166 @@ const MarketPriceAndNews: React.FC = () => {
         </Col>
         <Col lg={5} className="position-relative">
           <div className="d-flex justify-content-between align-items-center mb-3">
-            <h4 className="m-0" style={{ fontWeight: 'bold', letterSpacing: '0.05em' }}>Market</h4>
+            <h4 className="m-0" style={{ fontWeight: 'bold', letterSpacing: '0.05em' }}>
+              {selectedCrypto ? `${selectedCrypto.name} News` : 'Crypto News'}
+            </h4>
             <div className="ms-auto">
               <Button
                 variant="link"
                 className="text-warning text-decoration-none"
                 style={{ fontWeight: 'bold', fontSize: '0.9rem', padding: '0.1rem 0.2rem' }}
+                href="https://newsapi.org"
+                target="_blank"
               >
                 View All<ChevronRight size={16} className="me-1" />
               </Button>
             </div>
           </div>
-          <Carousel
-            className="bg-dark text-white rounded-5 mt-4"
-            style={{ height: '509px', width: '530px', margin: '20px auto' }}
-            indicators={false}
-            controls={false}
-            activeIndex={activeIndex}
-            onSelect={setActiveIndex}
-          >
-            {carouselNews.map((news, index) => (
-              <Carousel.Item key={index} className="custom-carousel-item rounded-4" style={{ height: '509px' }}>
-                <Card.Img src={news.image} alt={news.title} className="rounded-4" style={{ height: '100%', objectFit: 'cover', width: '100%' }} />
-                <Card.ImgOverlay className="d-flex flex-column justify-content-between rounded-5" style={{ paddingTop: '1rem' }}>
-                  <div className="d-flex justify-content-between align-items-center mt-2">
-                    <div>
-                      <span className="badge news-badge ms-4">Exclusive News</span>
-                      <span className="ms-4 text-white">By {news.author}</span>
-                    </div>
-                    <span className="text-white ms-auto me-4">{news.date}</span>
-                  </div>
-                  <div className="d-flex align-items-center justify-content-center" style={{ height: '100%', fontSize: '2.2rem' }}>
-                    {news.title}
-                  </div>
-                </Card.ImgOverlay>
-              </Carousel.Item>
-            ))}
-            <div className="carousel-controls" style={{ position: 'absolute', bottom: '10px', right: '35px' }}>
-              <Button
-                variant="outline-light"
-                className="rounded-circle me-4"
-                style={{ width: '40px', height: '40px', borderRadius: '50%', marginLeft: '-10px' }}
-                onClick={handlePrev}
-              >
-                <ChevronLeft />
-              </Button>
-              <Button
-                variant="outline-light"
-                className="rounded-circle"
-                style={{ width: '40px', height: '40px', borderRadius: '50%', marginLeft: '-10px' }}
-                onClick={handleNext}
-              >
-                <ChevronRight />
-              </Button>
+          {newsLoading ? (
+            <div style={{ textAlign: 'center', color: '#fff', padding: '20px', backgroundColor: '#1a1a1a', borderRadius: '12px', height: '509px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              Loading news...
             </div>
-          </Carousel>
+          ) : newsError ? (
+            <div style={{ textAlign: 'center', color: '#fff', padding: '20px', backgroundColor: '#1a1a1a', borderRadius: '12px', height: '509px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              {newsError}
+            </div>
+          ) : (
+            <Carousel
+              className="bg-dark text-white rounded-5 mt-4"
+              style={{ height: '509px', width: '530px', margin: '20px auto', borderRadius: '12px' }}
+              indicators={false}
+              controls={false}
+              activeIndex={activeIndex}
+              onSelect={setActiveIndex}
+              interval={5000} // Auto-rotate every 5 seconds
+              pause="hover" // Pause on hover
+            >
+              {carouselNews.map((news, index) => (
+                <Carousel.Item key={index} className="custom-carousel-item rounded-4" style={{ height: '509px' }}>
+                  <a href={news.url} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none' }}>
+                    <Card.Img
+                      src={news.image}
+                      alt={news.title}
+                      className="rounded-4"
+                      style={{ height: '100%', objectFit: 'cover', width: '100%', opacity: 0.7, transition: 'transform 0.3s ease' }}
+                    />
+                    <Card.ImgOverlay
+                      className="d-flex flex-column justify-content-between rounded-5"
+                      style={{ padding: '1rem', transition: 'opacity 0.2s' }}
+                      onMouseOver={(e) => {
+                        e.currentTarget.style.opacity = '0.9';
+                        e.currentTarget.parentElement!.querySelector('img')!.style.transform = 'scale(1.05)';
+                      }}
+                      onMouseOut={(e) => {
+                        e.currentTarget.style.opacity = '1';
+                        e.currentTarget.parentElement!.querySelector('img')!.style.transform = 'scale(1)';
+                      }}
+                    >
+                      <div className="d-flex justify-content-between align-items-center mt-2">
+                        <div>
+                          <span className="badge bg-primary ms-4" style={{ fontWeight: '500', background: 'linear-gradient(45deg, #007bff, #00d4ff)' }}>
+                            {selectedCrypto ? `${selectedCrypto.symbol.toUpperCase()} News` : 'Crypto News'}
+                          </span>
+                          <span className="ms-4 text-white">By {news.author}</span>
+                        </div>
+                        <span className="text-white ms-auto me-4">{news.date}</span>
+                      </div>
+                      <div className="d-flex flex-column align-items-center justify-content-center" style={{ height: '100%' }}>
+                        <h5 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#fff', textAlign: 'center' }}>
+                          {news.title}
+                        </h5>
+                        <p style={{ fontSize: '0.9rem', color: '#ccc', textAlign: 'center', marginTop: '10px' }}>
+                          {news.excerpt}
+                        </p>
+                      </div>
+                    </Card.ImgOverlay>
+                  </a>
+                </Carousel.Item>
+              ))}
+              <div className="carousel-controls" style={{ position: 'absolute', bottom: '10px', right: '35px' }}>
+                <Button
+                  variant="outline-light"
+                  className="rounded-circle me-4"
+                  style={{ width: '40px', height: '40px', borderRadius: '50%', marginLeft: '-10px', borderColor: '#007bff', background: 'rgba(0, 123, 255, 0.1)' }}
+                  onClick={handlePrev}
+                >
+                  <ChevronLeft color="#007bff" />
+                </Button>
+                <Button
+                  variant="outline-light"
+                  className="rounded-circle"
+                  style={{ width: '40px', height: '40px', borderRadius: '50%', marginLeft: '-10px', borderColor: '#007bff', background: 'rgba(0, 123, 255, 0.1)' }}
+                  onClick={handleNext}
+                >
+                  <ChevronRight color="#007bff" />
+                </Button>
+              </div>
+            </Carousel>
+          )}
         </Col>
       </Row>
 
-      <Modal show={showChartModal} onHide={() => setShowChartModal(false)} dialogClassName="modal-fullscreen">
-        <Modal.Header closeButton>
-          <Modal.Title style={{ textAlign: 'left' }}>{selectedCrypto?.name} Price Chart</Modal.Title>
+      <Modal
+        show={showChartModal}
+        onHide={() => setShowChartModal(false)}
+        dialogClassName="modal-lg"
+        centered
+        style={{ backgroundColor: 'rgba(0, 0, 0, 0.8)' }}
+      >
+        <Modal.Header
+          closeButton
+          className="border-0"
+          style={{ backgroundColor: '#1a1a1a', color: '#fff', padding: '20px' }}
+        >
+          <Modal.Title style={{ fontWeight: 'bold', fontSize: '1.5rem' }}>
+            {selectedCrypto?.name} Price Chart
+          </Modal.Title>
         </Modal.Header>
-        <Modal.Body className="p-0">
-          {historicalData && selectedCrypto && (
-            <Chart data={historicalData} title={`${selectedCrypto.name} Price History`} />
+        <Modal.Body style={{ backgroundColor: '#1a1a1a', padding: '20px', borderRadius: '8px' }}>
+          <ButtonGroup className="mb-4" style={{ gap: '10px' }}>
+            {(['1d', '7d', '30d'] as const).map((range) => (
+              <Button
+                key={range}
+                variant={timeRange === range ? 'primary' : 'outline-light'}
+                style={{
+                  backgroundColor: timeRange === range ? '#007bff' : 'transparent',
+                  borderColor: '#007bff',
+                  color: timeRange === range ? '#fff' : '#007bff',
+                  borderRadius: '20px',
+                  padding: '8px 16px',
+                  fontWeight: '500',
+                  transition: 'all 0.2s',
+                }}
+                onMouseOver={(e) => {
+                  if (timeRange !== range) {
+                    e.currentTarget.style.backgroundColor = '#007bff20';
+                  }
+                }}
+                onMouseOut={(e) => {
+                  if (timeRange !== range) {
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                  }
+                }}
+                onClick={() => handleTimeRangeChange(range)}
+              >
+                {range.toUpperCase()}
+              </Button>
+            ))}
+          </ButtonGroup>
+          {isLoading ? (
+            <div style={{ textAlign: 'center', color: '#fff', padding: '20px' }}>
+              Loading chart data...
+            </div>
+          ) : historicalData && selectedCrypto ? (
+            <Chart
+              data={historicalData}
+              title={`${selectedCrypto.name} Price History`}
+              style={{ height: '400px' }}
+            />
+          ) : (
+            <div style={{ textAlign: 'center', color: '#fff', padding: '20px' }}>
+              No data available for {selectedCrypto?.name}.
+            </div>
           )}
         </Modal.Body>
       </Modal>

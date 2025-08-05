@@ -18,7 +18,7 @@ const FeaturedCarousel: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const scrollableRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
-  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5000';
+  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || ' https://c-back-1.onrender.com';
 
   const handlePrev = () => {
     setActiveIndex((current) =>
@@ -59,7 +59,8 @@ const FeaturedCarousel: React.FC = () => {
           : [];
 
         // Fetch from /fetch-another-rss
-        const response2 = await fetch('http://localhost:5000/fetch-another-rss');
+        
+        const response2 = await fetch(`${API_BASE_URL}/fetch-another-rss`);
         if (!response2.ok) {
           throw new Error(`fetch-another-rss failed: ${response2.status} ${response2.statusText}`);
         }
