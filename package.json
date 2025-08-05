@@ -61,6 +61,7 @@
   },
   "devDependencies": {
     "@types/jquery": "^3.5.32",
+    "@types/lodash": "^4.17.20",
     "@types/react": "^18.3.16",
     "@types/react-bootstrap": "^0.32.37",
     "@types/react-dom": "^18.3.5",
