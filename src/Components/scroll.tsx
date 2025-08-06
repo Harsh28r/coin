@@ -1,3 +1,4 @@
+// src/components/ScrollingStats.tsx
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect, useCallback } from 'react';
 import { CryptoStat as CryptoStatComponent } from './CryptoStats';
@@ -5,11 +6,13 @@ import { Nav, NavDropdown } from 'react-bootstrap';
 import React from 'react';
 import 'font-awesome/css/font-awesome.min.css';
 import axios from 'axios';
+import Skeleton from 'react-loading-skeleton';
+import 'react-loading-skeleton/dist/skeleton.css'; // Import skeleton CSS
 // Import Firebase
 import { initializeApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider, signInWithPopup, User } from 'firebase/auth';
 
-// Initialize Firebase (replace with your config)
+// Initialize Firebase
 const firebaseConfig = {
   apiKey: "AIzaSyBihukpSoBFphMnUD4bX6gWBC8zVu_76Bs",
   authDomain: "dazzling-being-395413.firebaseapp.com",
@@ -34,7 +37,7 @@ interface ApiResponse {
   data: CryptoData[];
 }
 
-// Update the CryptoStatComponent prop type to accept React.ReactNode for symbol
+// Update the CryptoStatComponent prop type
 interface CryptoStatProps {
   price: number;
   change: number;
@@ -44,11 +47,13 @@ interface CryptoStatProps {
 export const ScrollingStats = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [scrollingStats, setScrollingStats] = useState<CryptoData[]>([]);
+  const [loading, setLoading] = useState(true); // Add loading state
   const [user, setUser] = useState<User | null>(null);
   const [showProfileCard, setShowProfileCard] = useState(false);
   const itemsToShow = 15;
 
   const fetchCryptoData = useCallback(async () => {
+    setLoading(true);
     try {
       const response = await axios.get<ApiResponse>('https://api.coincap.io/v2/assets/');
       const data = response.data.data.map((item) => ({
@@ -59,6 +64,8 @@ export const ScrollingStats = () => {
       setScrollingStats(data);
     } catch (error) {
       console.error('Error fetching data:', error);
+    } finally {
+      setLoading(false);
     }
   }, []);
 
@@ -66,13 +73,13 @@ export const ScrollingStats = () => {
     fetchCryptoData();
 
     const timer = setInterval(() => {
-      if (scrollingStats.length > 0) {
+      if (scrollingStats.length > 0 && !loading) {
         setCurrentIndex((prev) => (prev + 1) % scrollingStats.length);
       }
     }, 11000);
 
     return () => clearInterval(timer);
-  }, [fetchCryptoData, scrollingStats.length]);
+  }, [fetchCryptoData, scrollingStats.length, loading]);
 
   const handleUserClick = async () => {
     const provider = new GoogleAuthProvider();
@@ -104,44 +111,53 @@ export const ScrollingStats = () => {
   return (
     <div style={{ width: '92%', margin: '0 auto' }} className="relative h-12 bg-gray-50 rounded-lg overflow-hidden flex justify-between items-center">
       <AnimatePresence mode="wait">
-        <motion.div
-          key={currentIndex}
-          initial={{ x: '100%', opacity: 1 }}
-          animate={{ x: '-100%', opacity: 1 }}
-          transition={{ duration: 20, ease: 'linear' }}
-          className="d-flex flex-row"
-        >
-          {scrollingStats.concat(scrollingStats).slice(currentIndex, currentIndex + itemsToShow).map((stat: CryptoData, index) => (
-            <div className="flex-shrink-0 mx-2 fw-bold text-dark" key={index}>
-              <CryptoStatComponent 
-                price={parseFloat(stat.priceUsd)}
-                change={parseFloat(stat.changePercent24Hr)}
-                symbol={stat.symbol}
-              />
-            </div>
-          ))}
-        </motion.div>
+        {loading ? (
+          <motion.div
+            key="skeleton"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="d-flex flex-row"
+          >
+            {Array.from({ length: itemsToShow }).map((_, index) => (
+              <div className="flex-shrink-0 mx-2" key={index}>
+                <Skeleton width={120} height={20} baseColor="#e0e0e0" highlightColor="#f5f5f5" />
+              </div>
+            ))}
+          </motion.div>
+        ) : (
+          <motion.div
+            key={currentIndex}
+            initial={{ x: '100%', opacity: 1 }}
+            animate={{ x: '-100%', opacity: 1 }}
+            transition={{ duration: 20, ease: 'linear' }}
+            className="d-flex flex-row"
+          >
+            {scrollingStats.concat(scrollingStats).slice(currentIndex, currentIndex + itemsToShow).map((stat: CryptoData, index) => (
+              <div className="flex-shrink-0 mx-2 fw-bold text-dark" key={index}>
+                <CryptoStatComponent 
+                  price={parseFloat(stat.priceUsd)}
+                  change={parseFloat(stat.changePercent24Hr)}
+                  symbol={stat.symbol}
+                />
+              </div>
+            ))}
+          </motion.div>
+        )}
       </AnimatePresence>
-      <div className="absolute flex items-center">
+      <div className="absolute right-0 flex items-center">
         <Nav className="flex-nowrap items-center justify-content-end">
-          {/* <NavDropdown title={<span className="text-black" style={{ fontSize: '1em' }}>En</span>} id="language-dropdown" >
-            <NavDropdown.Item>English</NavDropdown.Item>
-            <NavDropdown.Item>Español</NavDropdown.Item>
-            <NavDropdown.Item>Français</NavDropdown.Item>
-            <NavDropdown.Item>Deutsch</NavDropdown.Item>
-          </NavDropdown> */}
-          <NavDropdown title={<span className="text-black" style={{ fontSize: '1em' }}>USD</span>} id="currency-dropdown" >
+          <NavDropdown title={<span className="text-black" style={{ fontSize: '1em' }}>USD</span>} id="currency-dropdown">
             <NavDropdown.Item>USD</NavDropdown.Item>
             <NavDropdown.Item>EUR</NavDropdown.Item>
             <NavDropdown.Item>GBP</NavDropdown.Item>
             <NavDropdown.Item>JPY</NavDropdown.Item>
           </NavDropdown>
-          
           {!user ? (
-            <i className="fa fa-user mt-2 " aria-hidden="true" style={{ fontSize: '1.7em' }} onClick={handleUserClick}></i>
+            <i className="fa fa-user mt-2" aria-hidden="true" style={{ fontSize: '1.7em' }} onClick={handleUserClick}></i>
           ) : (
             <li className="nav-item dropdown hdr-dropdown mt-0 signList" onMouseEnter={toggleProfileCard} onMouseLeave={() => setShowProfileCard(false)}>
-              <a className="nav-link darkmodeText dropdown-toggle" href="" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true" title={user.displayName || 'User'}>
+              <a className="nav-link darkmodeText dropdown-toggle" href="#" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true" title={user.displayName || 'User'}>
                 <img src={user.photoURL ?? ''} alt="User Profile" style={{ borderRadius: '60%', width: '22px' }} />
               </a>
               {showProfileCard && (
@@ -157,7 +173,6 @@ export const ScrollingStats = () => {
             </li>
           )}
         </Nav>
-         
       </div>
     </div>
   );

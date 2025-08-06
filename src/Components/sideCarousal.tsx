@@ -1,7 +1,10 @@
-import React, { useRef, useEffect, useState } from 'react';
+// src/components/FeaturedCarousel.tsx
+import React, { useRef, useState, useEffect } from 'react';
 import { Row, Col, Card, Button, Carousel } from 'react-bootstrap';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import Skeleton from 'react-loading-skeleton';
+import 'react-loading-skeleton/dist/skeleton.css'; // Import skeleton CSS
 
 interface TrendingNewsItem {
   title: string;
@@ -15,10 +18,12 @@ interface TrendingNewsItem {
 const FeaturedCarousel: React.FC = () => {
   const [activeIndex, setActiveIndex] = useState(0);
   const [trendingNews, setTrendingNews] = useState<TrendingNewsItem[]>([]);
+  const [loading, setLoading] = useState(true); // Add loading state
   const [error, setError] = useState<string | null>(null);
   const scrollableRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
-  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || ' https://c-back-1.onrender.com';
+  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://c-back-1.onrender.com';
+  const MOCK_API_BASE_URL = 'http://localhost:5000'; // For db.json
 
   const handlePrev = () => {
     setActiveIndex((current) =>
@@ -34,50 +39,76 @@ const FeaturedCarousel: React.FC = () => {
 
   useEffect(() => {
     const fetchTrendingNews = async () => {
+      setLoading(true);
       try {
+        // Try fetching from db.json first
+        try {
+          const response = await fetch(`${MOCK_API_BASE_URL}/news`);
+          if (!response.ok) {
+            throw new Error(`db.json fetch failed: ${response.status} ${response.statusText}`);
+          }
+          const data = await response.json();
+          const news = data
+            .map((item: any) => ({
+              title: item.title || 'Untitled',
+              excerpt: item.description || 'No description available',
+              author: item.author || 'Unknown',
+              date: new Date(item.pubDate || new Date()).toLocaleDateString(),
+              image: item.image || '/default.png?height=200&width=400&text=News',
+              source: item.source || 'Local News',
+            }))
+            .slice(0, 4);
+
+          setTrendingNews(news);
+          console.log('Fetched trending news from db.json:', news);
+          setLoading(false);
+          return;
+        } catch (error) {
+          console.warn('Failed to fetch from db.json, falling back to API:', error);
+        }
+
         // Fetch from /fetch-rss
         const response1 = await fetch(`${API_BASE_URL}/fetch-rss`);
         if (!response1.ok) {
           throw new Error(`fetch-rss failed: ${response1.status} ${response1.statusText}`);
         }
-        const contentType1 = response1.headers.get("content-type");
-        if (!contentType1 || !contentType1.includes("application/json")) {
-          throw new Error("fetch-rss returned non-JSON response");
+        const contentType1 = response1.headers.get('content-type');
+        if (!contentType1 || !contentType1.includes('application/json')) {
+          throw new Error('fetch-rss returned non-JSON response');
         }
         const data1 = await response1.json();
         const news1 = data1.success
           ? data1.data
               .map((item: any) => ({
-                title: item.title || "Untitled",
-                description: item.description || "No description available",
-                creator: item.creator || ["Unknown"],
+                title: item.title || 'Untitled',
+                description: item.description || 'No description available',
+                creator: item.creator || ['Unknown'],
                 pubDate: item.pubDate || new Date().toISOString(),
-                image_url: item.image_url || "/default.png?height=200&width=400&text=News",
-                source: "Exclusive News",
+                image_url: item.image_url || '/default.png?height=200&width=400&text=News',
+                source: 'Exclusive News',
               }))
               .slice(0, 2)
           : [];
 
         // Fetch from /fetch-another-rss
-        
         const response2 = await fetch(`${API_BASE_URL}/fetch-another-rss`);
         if (!response2.ok) {
           throw new Error(`fetch-another-rss failed: ${response2.status} ${response2.statusText}`);
         }
-        const contentType2 = response2.headers.get("content-type");
-        if (!contentType2 || !contentType2.includes("application/json")) {
-          throw new Error("fetch-another-rss returned non-JSON response");
+        const contentType2 = response2.headers.get('content-type');
+        if (!contentType2 || !contentType2.includes('application/json')) {
+          throw new Error('fetch-another-rss returned non-JSON response');
         }
         const data2 = await response2.json();
         const news2 = data2.success
           ? data2.data
               .map((item: any) => ({
-                title: item.title || "Untitled",
-                description: item.description || "No description available",
-                creator: item.creator || ["Unknown"],
+                title: item.title || 'Untitled',
+                description: item.description || 'No description available',
+                creator: item.creator || ['Unknown'],
                 pubDate: item.pubDate || new Date().toISOString(),
-                image_url: item.image_url || "/default.png?height=200&width=400&text=News",
-                source: "Press Release",
+                image_url: item.image_url || '/default.png?height=200&width=400&text=News',
+                source: 'Press Release',
               }))
               .slice(0, 2)
           : [];
@@ -86,7 +117,7 @@ const FeaturedCarousel: React.FC = () => {
           .map((item: any) => ({
             title: item.title,
             excerpt: item.description,
-            author: item.creator[0] || "Unknown",
+            author: item.creator[0] || 'Unknown',
             date: new Date(item.pubDate).toLocaleDateString(),
             image: item.image_url,
             source: item.source,
@@ -111,6 +142,8 @@ const FeaturedCarousel: React.FC = () => {
       } catch (error: any) {
         console.error('Error fetching trending news:', error.message);
         setError(error.message);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -153,6 +186,23 @@ const FeaturedCarousel: React.FC = () => {
             }}
           >
             <h5 className="text-danger">Error: {error}</h5>
+          </div>
+        ) : loading ? (
+          <div className="my-custom-loading rounded-5" style={{ height: '450px', width: '95%', margin: '0 auto' }}>
+            <Skeleton height={450} width="100%" baseColor="#e0e0e0" highlightColor="#f5f5f5" />
+            <div
+              className="d-flex flex-column justify-content-between"
+              style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, padding: '1rem' }}
+            >
+              <div className="d-flex justify-content-between align-items-center mt-4">
+                <Skeleton width={100} height={20} baseColor="#e0e0e0" highlightColor="#f5f5f5" />
+                <Skeleton width={80} height={20} baseColor="#e0e0e0" highlightColor="#f5f5f5" />
+              </div>
+              <div>
+                <Skeleton width="80%" height={30} baseColor="#e0e0e0" highlightColor="#f5f5f5" />
+                <Skeleton count={3} width="90%" height={20} baseColor="#e0e0e0" highlightColor="#f5f5f5" />
+              </div>
+            </div>
           </div>
         ) : trendingNews.length > 0 ? (
           <Carousel
@@ -275,9 +325,10 @@ const FeaturedCarousel: React.FC = () => {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
+              backgroundColor: '#f8f9fa',
             }}
           >
-            <h5 className="text-dark">Loading trending news...</h5>
+            <h5 className="text-dark">No trending news available.</h5>
           </div>
         )}
       </Col>
@@ -328,7 +379,23 @@ const FeaturedCarousel: React.FC = () => {
                 style={{ height: '360px', width: '100%', cursor: 'pointer' }}
               >
                 <div className="trending-news-container">
-                  {trendingNews.length > 0 ? (
+                  {loading ? (
+                    Array.from({ length: 4 }).map((_, index) => (
+                      <Row key={index} className="mb-4">
+                        <Col xs={8}>
+                          <Skeleton width="80%" height={20} baseColor="#e0e0e0" highlightColor="#f5f5f5" />
+                          <Skeleton count={3} width="90%" height={16} baseColor="#e0e0e0" highlightColor="#f5f5f5" />
+                          <div className="d-flex justify-content-between">
+                            <Skeleton width={100} height={14} baseColor="#e0e0e0" highlightColor="#f5f5f5" />
+                            <Skeleton width={80} height={14} baseColor="#e0e0e0" highlightColor="#f5f5f5" />
+                          </div>
+                        </Col>
+                        <Col xs={4}>
+                          <Skeleton height={103} width="100%" baseColor="#e0e0e0" highlightColor="#f5f5f5" />
+                        </Col>
+                      </Row>
+                    ))
+                  ) : trendingNews.length > 0 ? (
                     trendingNews.map((news, index) => (
                       <Row key={index} className="mb-4">
                         <Col xs={8}>
@@ -456,6 +523,9 @@ const FeaturedCarousel: React.FC = () => {
           }
           .my-custom-loading {
             background-color: #f8f9fa !important;
+          }
+          .skeleton-container {
+            position: relative;
           }
         `}
       </style>
