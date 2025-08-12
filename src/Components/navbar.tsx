@@ -20,6 +20,7 @@ const CoinsNavbar: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
+  const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
   const COINGECKO_API_BASE_URL = 'https://api.coingecko.com/api/v3';
   const mockSuggestions: SearchSuggestion[] = [
     { type: 'coins', name: 'Bitcoin', id: 'bitcoin' },
@@ -37,6 +38,24 @@ const CoinsNavbar: React.FC = () => {
     setError(null);
 
     try {
+      // Try backend proxy first (if implemented)
+      const backendUrl = `${API_BASE_URL}/search-suggestions?query=${encodeURIComponent(query)}`;
+      try {
+        const resp = await fetch(backendUrl, { headers: { 'Content-Type': 'application/json' } });
+        if (resp.ok) {
+          const data = await resp.json();
+          const suggestions = (data?.coins || []).slice(0, 10).map((item: any) => ({
+            type: 'coins' as const,
+            name: item.name,
+            id: item.id,
+          }));
+          setSuggestions(suggestions.length > 0 ? suggestions : mockSuggestions.filter((s) => s.name.toLowerCase().includes(query.toLowerCase())));
+          return;
+        }
+      } catch (_) {
+        // Fallback to CoinGecko directly if backend proxy not available
+      }
+
       const response = await fetch(`${COINGECKO_API_BASE_URL}/search?query=${encodeURIComponent(query)}`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
@@ -45,8 +64,6 @@ const CoinsNavbar: React.FC = () => {
         throw new Error(`CoinGecko search failed: ${response.statusText}`);
       }
       const data = await response.json();
-      console.log('Suggestions response:', data);
-
       const coinSuggestions = data.coins?.slice(0, 5).map((item: any) => ({
         type: 'coins' as const,
         name: item.name,

@@ -87,12 +87,42 @@ const PressRelease: React.FC = () => {
     fetchReleases();
   }, []);
 
+  // Helper: Extract source/domain from link
+  const getSourceName = (url: string): string => {
+    try {
+      const u = new URL(url);
+      return u.hostname.replace('www.', '');
+    } catch {
+      return 'source';
+    }
+  };
+
   return (
-    <Container fluid className="mt-5 mb-5 skeleton-container" style={{ width: '92%', marginBottom: '100px' }}>
+    <Container
+      fluid
+      className="mt-5 mb-5 skeleton-container"
+      style={{
+        width: '92%',
+        marginBottom: '100px',
+      }}
+    >
       <div className="d-flex justify-content-between align-items-center mb-4">
-        <h4 className="m-0" style={{ fontWeight: 'bold', letterSpacing: '0.05em' }}>
-          Press Release
-        </h4>
+        <div>
+          <h4
+            className="m-0"
+            style={{
+              fontWeight: 800,
+              letterSpacing: '0.03em',
+              fontSize: '1.4rem',
+              background: 'linear-gradient(90deg, #667eea 0%, #764ba2 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+            }}
+          >
+            Press Releases
+          </h4>
+          <small style={{ color: '#6b7280' }}>Latest announcements and updates across crypto</small>
+        </div>
         <Button
           variant="link"
           className="text-warning text-decoration-none"
@@ -100,10 +130,12 @@ const PressRelease: React.FC = () => {
             setShowAll(!showAll);
             navigate('/press-news');
           }}
+          style={{ fontWeight: 600 }}
         >
           {showAll ? 'View Less' : 'View All'} <ChevronRight size={20} />
         </Button>
       </div>
+
       {error ? (
         <p className="text-danger">{error}</p>
       ) : isLoading ? (
@@ -148,46 +180,66 @@ const PressRelease: React.FC = () => {
             {mainArticle && (
               <Card
                 className="border-0 rounded-4"
-                style={{ height: 'auto', minHeight: '430px', cursor: 'pointer' }}
+                style={{ height: 'auto', minHeight: '430px', cursor: 'pointer', overflow: 'hidden' }}
                 onClick={() => window.open(mainArticle.link, '_blank')}
               >
-                <Card.Img
-                  variant="top"
-                  src={mainArticle.image}
-                  alt={mainArticle.title}
-                  className="rounded-5"
-                  style={{ height: '428px', objectFit: 'cover' }}
-                  onError={(e) => {
-                    e.currentTarget.src = 'https://via.placeholder.com/300x200?text=No+Image';
-                  }}
-                />
-                <Card.Body>
-                  <div className="d-flex justify-content-between align-items-start">
-                    <Card.Title
-                      className="fs-3 mb-3 text-start"
-                      style={{ fontWeight: 'bold', fontSize: '1.5rem' }}
-                    >
-                      {mainArticle.title}
-                    </Card.Title>
-                  </div>
-                  <Card.Text
-                    className="text-start"
-                    style={{
-                      fontSize: '1rem',
-                      overflow: 'hidden',
-                      display: '-webkit-box',
-                      WebkitBoxOrient: 'vertical',
-                      WebkitLineClamp: 2,
+                <div style={{ position: 'relative', height: '428px', borderRadius: '20px', overflow: 'hidden' }}>
+                  <img
+                    src={mainArticle.image}
+                    alt={mainArticle.title}
+                    style={{ height: '100%', width: '100%', objectFit: 'cover' }}
+                    onError={(e) => {
+                      (e.currentTarget as HTMLImageElement).src = 'https://via.placeholder.com/800x450?text=No+Image';
                     }}
-                  >
-                    {mainArticle.description}
-                  </Card.Text>
-                  <div className="text-start">
-                    <small className="text-muted" style={{ fontSize: '0.8rem' }}>
-                      {mainArticle.date}
-                    </small>
+                  />
+                  {/* Overlay gradient */}
+                  <div
+                    style={{
+                      position: 'absolute',
+                      inset: 0,
+                      background: 'linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.55) 65%, rgba(0,0,0,0.85) 100%)',
+                    }}
+                  />
+                  {/* Content overlay */}
+                  <div style={{ position: 'absolute', bottom: 0, padding: '18px 20px', color: '#fff', width: '100%' }}>
+                    <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+                      <span
+                        style={{
+                          background: 'linear-gradient(135deg, rgba(255,255,255,0.2), rgba(255,255,255,0.12))',
+                          border: '1px solid rgba(255,255,255,0.25)',
+                          color: '#f3f4f6',
+                          padding: '6px 10px',
+                          borderRadius: 999,
+                          fontSize: 12,
+                          backdropFilter: 'blur(6px)',
+                        }}
+                      >
+                        {getSourceName(mainArticle.link)}
+                      </span>
+                    </div>
+                    <div style={{ fontWeight: 800, fontSize: '1.35rem', lineHeight: 1.25, marginBottom: 6 }}>{mainArticle.title}</div>
+                    <div
+                      style={{
+                        color: '#e5e7eb',
+                        fontSize: '0.95rem',
+                        overflow: 'hidden',
+                        display: '-webkit-box',
+                        WebkitBoxOrient: 'vertical',
+                        WebkitLineClamp: 2,
+                        marginBottom: 10,
+                      }}
+                    >
+                      {mainArticle.description}
+                    </div>
+                    <div className="d-flex justify-content-between align-items-center" style={{ color: '#d1d5db', fontSize: 12 }}>
+                      <div>
+                        <span>By </span>
+                        <span style={{ color: '#f59e0b', fontWeight: 600 }}>{mainArticle.author || 'Unknown'}</span>
+                      </div>
+                      <div>{mainArticle.date}</div>
+                    </div>
                   </div>
-                </Card.Body>
+                </div>
               </Card>
             )}
           </Col>
@@ -196,22 +248,48 @@ const PressRelease: React.FC = () => {
               <Card
                 key={index}
                 className="mb-3 border-0 rounded-5"
-                style={{ height: 'auto', minHeight: '150px', cursor: 'pointer' }}
+                style={{
+                  height: 'auto',
+                  minHeight: '150px',
+                  cursor: 'pointer',
+                  boxShadow: '0 6px 16px rgba(0,0,0,0.06)',
+                  transition: 'all 0.25s ease',
+                }}
                 onClick={() => window.open(release.link, '_blank')}
+                onMouseEnter={(e) => {
+                  (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-2px)';
+                  (e.currentTarget as HTMLDivElement).style.boxShadow = '0 12px 24px rgba(0,0,0,0.10)';
+                }}
+                onMouseLeave={(e) => {
+                  (e.currentTarget as HTMLDivElement).style.transform = 'translateY(0)';
+                  (e.currentTarget as HTMLDivElement).style.boxShadow = '0 6px 16px rgba(0,0,0,0.06)';
+                }}
               >
-                <Row className="g-2">
+                <Row className="g-2 align-items-center">
                   <Col xs={8}>
                     <Card.Body className="d-flex flex-column justify-content-between">
-                      <Card.Title
-                        className="h2 text-start"
-                        style={{ fontSize: '0.9rem', fontWeight: 'bold' }}
-                      >
+                      <div className="d-flex align-items-center mb-1" style={{ gap: 6 }}>
+                        <span
+                          style={{
+                            background: 'linear-gradient(135deg, rgba(102,126,234,0.15), rgba(118,75,162,0.15))',
+                            color: '#6b7280',
+                            padding: '4px 10px',
+                            borderRadius: 999,
+                            fontSize: 11,
+                            border: '1px solid rgba(102,126,234,0.25)'
+                          }}
+                        >
+                          {getSourceName(release.link)}
+                        </span>
+                      </div>
+                      <Card.Title className="h2 text-start" style={{ fontSize: '0.98rem', fontWeight: 800 }}>
                         {release.title}
                       </Card.Title>
                       <Card.Text
                         className="small text-start description"
                         style={{
-                          fontSize: '0.9rem',
+                          fontSize: '0.92rem',
+                          color: '#6b7280',
                           overflow: 'hidden',
                           display: '-webkit-box',
                           WebkitBoxOrient: 'vertical',
@@ -220,16 +298,16 @@ const PressRelease: React.FC = () => {
                       >
                         {release.description}
                       </Card.Text>
-                      <div className="d-flex justify-content-between">
+                      <div className="d-flex justify-content-between align-items-center">
                         <div>
-                          <small className="text-muted" style={{ fontSize: '0.9rem' }}>
+                          <small className="text-muted" style={{ fontSize: '0.85rem' }}>
                             By{' '}
                           </small>
-                          <small className="text-warning" style={{ fontSize: '0.9rem' }}>
+                          <small className="text-warning" style={{ fontSize: '0.9rem', fontWeight: 600 }}>
                             {release.author}
                           </small>
                         </div>
-                        <small className="text-muted" style={{ fontSize: '0.7rem' }}>
+                        <small className="text-muted" style={{ fontSize: '0.75rem' }}>
                           {release.date}
                         </small>
                       </div>
@@ -243,7 +321,7 @@ const PressRelease: React.FC = () => {
                       className="h-100 object-fit-cover rounded-3"
                       style={{ height: 'auto', maxHeight: '120px' }}
                       onError={(e) => {
-                        e.currentTarget.src = 'https://via.placeholder.com/300x200?text=No+Image';
+                        (e.currentTarget as HTMLImageElement).src = 'https://via.placeholder.com/300x200?text=No+Image';
                       }}
                     />
                   </Col>

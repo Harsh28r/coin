@@ -1,7 +1,9 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Container, Row, Col, Card, Nav, Button, Carousel } from 'react-bootstrap';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import QuizSection from './QuizSection'; // Adjust the path as necessary
+import Skeleton from 'react-loading-skeleton';
+import 'react-loading-skeleton/dist/skeleton.css';
 
 interface TrendingNewsItem {
   title: string;
@@ -12,25 +14,89 @@ interface TrendingNewsItem {
 }
 
 interface ExploreCard {
-  id: number;
+  id?: number;
+  article_id?: string;
   image: string;
   text: string;
+  title?: string;
+  link?: string;
+  source?: string;
 }
 
 const ExploreSection: React.FC = () => {
   const [activeTab, setActiveTab] = useState('did-you-know');
   const scrollableRef = useRef<HTMLDivElement>(null);
+  const [exploreCards, setExploreCards] = useState<ExploreCard[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const exploreCards: ExploreCard[] = [
+  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://c-back-1.onrender.com';
+
+  // Fallback static explore cards
+  const fallbackExploreCards: ExploreCard[] = [
     { id: 1, image: '/image.png?height=300&width=200&text=Switzerland', text: 'In January of 2016, Chiasso, Switzerland started accepting taxes in Bitcoin' },
     { id: 2, image: '/tr3.png?height=300&width=200&text=Bitcoin', text: '90% of all bitcoin addresses have less than 0.1 BTC' },
-    { id: 3, image: '/trd1.png?height=300&width=200&text=Cryptocurrencies', text: 'There are 1828 cryptocurrencies in the market so far this 2018' },
+    { id: 3, image: '/trd1.png?height=300&width=200&text=Cryptocurrencies', text: 'There are over 10,000 cryptocurrencies in the market today' },
     { id: 4, image: '/web3.png?height=300&width=200&text=Bitcoin Pizza', text: 'Bitcoin Pizza Day: On May 22, 2010 two pizzas cost 10,000 BTC' },
-    { id: 5, image: '/web3_1.png?height=300&width=200&text=Bitcoin Pizza', text: 'Bitcoin Pizza Day: On May 22, 2010 two pizzas cost 10,000 BTC' },
+    { id: 5, image: '/web3_1.png?height=300&width=200&text=Blockchain', text: 'The first blockchain was conceptualized in 2008 by Satoshi Nakamoto' },
     { id: 6, image: '/web3_2.png?height=300&width=200&text=Bitcoin Circulation', text: 'About 1000 people own 40% of total BTC in circulation' },
-    { id: 7, image: '/trd2.png?height=300&width=200&text=Blockchain', text: 'The blockchain technology could redefine cyber-security' },
-    { id: 8, image: '/web3_3.png?height=300&width=200&text=Banks', text: '69% banks are currently experimenting with blockchain technology' },
+    { id: 7, image: '/trd2.png?height=300&width=200&text=Security', text: 'Blockchain technology could revolutionize cybersecurity' },
+    { id: 8, image: '/web3_3.png?height=300&width=200&text=Banks', text: '73% of banks are currently experimenting with blockchain technology' },
   ];
+
+  // Fetch dynamic explore content from RSS feeds
+  useEffect(() => {
+    const fetchExploreContent = async () => {
+      if (activeTab !== 'did-you-know') return;
+      
+      setIsLoading(true);
+      setError(null);
+      
+      try {
+        const response = await fetch(`${API_BASE_URL}/fetch-all-rss?limit=8`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch RSS content');
+        }
+        
+        const data = await response.json();
+        
+        if (data.success && Array.isArray(data.data) && data.data.length > 0) {
+          const dynamicCards = data.data.map((item: any, index: number) => {
+            // Better image URL handling
+            let imageUrl = item.image_url;
+            
+            // If no image, use our fallback (but allow picsum.photos images)
+            if (!imageUrl || (imageUrl.includes('placehold.co') && !imageUrl.includes('picsum.photos'))) {
+              imageUrl = `/web3_${(index % 4) + 1}.png?height=300&width=200&text=${item.source_name || 'Crypto'}`;
+            }
+            
+            return {
+              article_id: item.article_id || `dynamic-${index}`,
+              image: imageUrl,
+              text: `${item.title?.substring(0, 80) || 'Crypto News'}${item.title?.length > 80 ? '...' : ''}`,
+              title: item.title,
+              link: item.link,
+              source: item.source_name || 'Crypto News'
+            };
+          });
+          
+          setExploreCards(dynamicCards);
+          console.log('Fetched dynamic explore content:', dynamicCards);
+          console.log('Sample image URLs:', dynamicCards.slice(0, 3).map((card: ExploreCard) => ({ title: card.text.substring(0, 30), image: card.image })));
+        } else {
+          throw new Error('No valid content received');
+        }
+      } catch (error: any) {
+        console.error('Error fetching explore content:', error);
+        setError('Using fallback content');
+        setExploreCards(fallbackExploreCards);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchExploreContent();
+  }, [activeTab]);
 
   const trendingNews: TrendingNewsItem[] = [
     {
@@ -132,16 +198,69 @@ const ExploreSection: React.FC = () => {
                 <ChevronRight />
               </Button>
             </div>
+            {error && (
+              <div className="alert alert-info alert-dismissible fade show" role="alert">
+                <small>{error}</small>
+              </div>
+            )}
+            {isLoading ? (
             <Row xs={1} sm={2} md={3} lg={4} className="g-4">
-              {exploreCards.map((card) => (
-                <Col key={card.id}>
+                {Array.from({ length: 8 }).map((_, index) => (
+                  <Col key={index}>
                   <Card className="h-10 border-0 shadow-sm rounded-4" style={{ height: '250px' }}>
-                    
-                    <Card.Img variant="top" src={card.image} alt={`Explore card ${card.id}`} className="rounded-4" style={{ height: '300px' }} />
+                      <Skeleton height={250} width="100%" baseColor="#e0e0e0" highlightColor="#f5f5f5" />
+                    </Card>
+                  </Col>
+                ))}
+              </Row>
+            ) : (
+              <Row xs={1} sm={2} md={3} lg={4} className="g-4">
+                {exploreCards.map((card, index) => (
+                  <Col key={card.article_id || card.id || index}>
+                    <Card className="h-10 border-0 shadow-sm rounded-4 position-relative overflow-hidden" style={{ height: '250px' }}>
+                      <Card.Img 
+                        variant="top" 
+                        src={card.image} 
+                        alt={card.title || `Explore card ${index + 1}`}
+                        className="rounded-4" 
+                        style={{ height: '100%', objectFit: 'cover' }}
+                        onError={(e) => {
+                          e.currentTarget.src = `/web3_${(index % 4) + 1}.png?height=300&width=200&text=Crypto`;
+                        }}
+                      />
+                      <Card.ImgOverlay className="d-flex flex-column justify-content-end p-3">
+                        <div 
+                          className="bg-dark bg-opacity-75 text-white p-2 rounded"
+                          style={{ backdropFilter: 'blur(5px)' }}
+                        >
+                          {card.link ? (
+                            <a
+                              href={card.link}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-white text-decoration-none"
+                            >
+                              <small className="fw-bold" style={{ fontSize: '0.9rem', lineHeight: '1.2' }}>
+                                {card.text}
+                              </small>
+                            </a>
+                          ) : (
+                            <small className="fw-bold" style={{ fontSize: '0.9rem', lineHeight: '1.2' }}>
+                              {card.text}
+                            </small>
+                          )}
+                          {card.source && (
+                            <div className="text-warning mt-1" style={{ fontSize: '0.75rem' }}>
+                              {card.source}
+                            </div>
+                          )}
+                        </div>
+                      </Card.ImgOverlay>
                   </Card>
                 </Col>
               ))}
             </Row>
+            )}
           </div>
         );
       case 'learn-a-little':
@@ -149,11 +268,24 @@ const ExploreSection: React.FC = () => {
           <Row className="mt-3 mx-auto" style={{ width: '97%' }}>
             <Col lg={7}>
               <Carousel className="bg-dark text-white rounded-5" style={{ height: '600px', marginBottom: '20px' }} indicators={false} controls={false}>
-                {exploreCards.map((card) => (
-                  <Carousel.Item key={card.id} className="custom-carousel-item" style={{ height: '600px' }}>
-                    <Card.Img src={card.image} alt={`Explore card ${card.id}`} className="rounded-4" style={{ height: '100%', objectFit: 'cover', width: '100%' }} />
+                {(exploreCards.length > 0 ? exploreCards : fallbackExploreCards).map((card, index) => (
+                  <Carousel.Item key={card.article_id || card.id || index} className="custom-carousel-item" style={{ height: '600px' }}>
+                    <Card.Img 
+                      src={card.image} 
+                      alt={card.title || `Explore card ${index + 1}`} 
+                      className="rounded-4" 
+                      style={{ height: '100%', objectFit: 'cover', width: '100%' }}
+                      onError={(e) => {
+                        e.currentTarget.src = `/web3_${(index % 4) + 1}.png?height=600&width=800&text=Crypto`;
+                      }}
+                    />
                     <Card.ImgOverlay className="d-flex flex-column justify-content-end" style={{ padding: '1rem' }}>
-                      {/* <h5 className="text-white">{card.text}</h5> */}
+                      <div className="bg-dark bg-opacity-50 p-3 rounded">
+                        <h5 className="text-white mb-0">{card.text}</h5>
+                        {card.source && (
+                          <small className="text-warning">{card.source}</small>
+                        )}
+                      </div>
                     </Card.ImgOverlay>
                   </Carousel.Item>
                 ))}

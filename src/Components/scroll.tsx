@@ -1,6 +1,6 @@
 // src/components/ScrollingStats.tsx
 import { motion, AnimatePresence } from 'framer-motion';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { CryptoStat as CryptoStatComponent } from './CryptoStats';
 import { Nav, NavDropdown } from 'react-bootstrap';
 import React from 'react';
@@ -37,6 +37,18 @@ interface ApiResponse {
   data: CryptoData[];
 }
 
+interface BackendApiResponse {
+  success: boolean;
+  data: {
+    symbol: string;
+    current_price: number;
+    price_change_percentage_24h: number;
+  }[];
+  fallback?: boolean;
+  message?: string;
+  timestamp: string;
+}
+
 // Update the CryptoStatComponent prop type
 interface CryptoStatProps {
   price: number;
@@ -51,35 +63,72 @@ export const ScrollingStats = () => {
   const [user, setUser] = useState<User | null>(null);
   const [showProfileCard, setShowProfileCard] = useState(false);
   const itemsToShow = 15;
+  const didInitRef = useRef(false);
+
+  const formatPrice = (p: string) => {
+    const n = Number(p);
+    if (Number.isNaN(n)) return p;
+    return n >= 1 ? `$${n.toLocaleString(undefined, { maximumFractionDigits: 2 })}` : `$${n.toFixed(6)}`;
+  };
+  const formatChange = (c: string) => {
+    const n = Number(c);
+    if (Number.isNaN(n)) return c;
+    return `${n.toFixed(2)}%`;
+  };
 
   const fetchCryptoData = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await axios.get<ApiResponse>('https://api.coincap.io/v2/assets/');
+      const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5000';
+      const response = await axios.get<BackendApiResponse>(`${API_BASE_URL}/crypto-prices?limit=20`);
+      
+      if (response.data.success && Array.isArray(response.data.data)) {
       const data = response.data.data.map((item) => ({
-        symbol: item.symbol,
-        priceUsd: item.priceUsd,
-        changePercent24Hr: item.changePercent24Hr,
+          symbol: item.symbol.toUpperCase(),
+          priceUsd: item.current_price.toString(),
+          changePercent24Hr: item.price_change_percentage_24h.toString(),
       }));
       setScrollingStats(data);
+      } else {
+        throw new Error('Invalid response format');
+      }
     } catch (error) {
-      console.error('Error fetching data:', error);
+      // Fallback data for scrolling
+      const fallbackData = [
+        { symbol: 'BTC', priceUsd: '45000.00', changePercent24Hr: '2.5' },
+        { symbol: 'ETH', priceUsd: '3200.00', changePercent24Hr: '1.8' },
+        { symbol: 'BNB', priceUsd: '320.00', changePercent24Hr: '0.8' },
+        { symbol: 'ADA', priceUsd: '0.48', changePercent24Hr: '-1.2' },
+        { symbol: 'SOL', priceUsd: '24.50', changePercent24Hr: '3.2' },
+        { symbol: 'DOT', priceUsd: '7.20', changePercent24Hr: '-0.5' },
+        { symbol: 'DOGE', priceUsd: '0.085', changePercent24Hr: '4.1' },
+        { symbol: 'AVAX', priceUsd: '15.30', changePercent24Hr: '2.8' },
+        { symbol: 'MATIC', priceUsd: '0.92', changePercent24Hr: '1.5' },
+        { symbol: 'LINK', priceUsd: '12.80', changePercent24Hr: '-0.8' }
+      ];
+      setScrollingStats(fallbackData);
     } finally {
       setLoading(false);
     }
   }, []);
 
+  // Fetch once on mount (guard StrictMode double-invoke)
   useEffect(() => {
+    if (didInitRef.current) return;
+    didInitRef.current = true;
     fetchCryptoData();
+  }, [fetchCryptoData]);
 
+  // Independent ticker timer (do not re-create on every render)
+  useEffect(() => {
     const timer = setInterval(() => {
-      if (scrollingStats.length > 0 && !loading) {
-        setCurrentIndex((prev) => (prev + 1) % scrollingStats.length);
-      }
-    }, 11000);
-
+      setCurrentIndex((prev) => {
+        const len = Math.max(scrollingStats.length, 1);
+        return (prev + 1) % len;
+      });
+    }, 70000);
     return () => clearInterval(timer);
-  }, [fetchCryptoData, scrollingStats.length, loading]);
+  }, [scrollingStats.length]);
 
   const handleUserClick = async () => {
     const provider = new GoogleAuthProvider();
@@ -87,9 +136,8 @@ export const ScrollingStats = () => {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
       setUser(user);
-      console.log('User signed in:', user);
     } catch (error) {
-      console.error('Error signing in:', error);
+      // no-op
     }
   };
 
@@ -98,9 +146,8 @@ export const ScrollingStats = () => {
       await auth.signOut();
       setUser(null);
       setShowProfileCard(false);
-      console.log('User signed out');
     } catch (error) {
-      console.error('Error signing out:', error);
+      // no-op
     }
   };
 
@@ -109,7 +156,17 @@ export const ScrollingStats = () => {
   };
 
   return (
-    <div style={{ width: '92%', margin: '0 auto' }} className="relative h-12 bg-gray-50 rounded-lg overflow-hidden flex justify-between items-center">
+    <div style={{ width: '92%', margin: '0 auto' }} className="relative h-12 bg-white rounded-lg overflow-hidden d-flex align-items-center">
+      {/* Edge fades */}
+      <div style={{
+        position: 'absolute', left: 0, top: 0, bottom: 0, width: '60px',
+        background: 'linear-gradient(90deg, rgba(255,255,255,1) 0%, rgba(255,255,255,0) 100%)', zIndex: 2
+      }} />
+      <div style={{
+        position: 'absolute', right: 0, top: 0, bottom: 0, width: '60px',
+        background: 'linear-gradient(270deg, rgba(255,255,255,1) 0%, rgba(255,255,255,0) 100%)', zIndex: 2
+      }} />
+
       <AnimatePresence mode="wait">
         {loading ? (
           <motion.div
@@ -118,10 +175,11 @@ export const ScrollingStats = () => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="d-flex flex-row"
+            style={{ paddingLeft: '70px', paddingRight: '70px' }}
           >
             {Array.from({ length: itemsToShow }).map((_, index) => (
               <div className="flex-shrink-0 mx-2" key={index}>
-                <Skeleton width={120} height={20} baseColor="#e0e0e0" highlightColor="#f5f5f5" />
+                <Skeleton width={140} height={28} baseColor="#eee" highlightColor="#f8f8f8" />
               </div>
             ))}
           </motion.div>
@@ -130,23 +188,44 @@ export const ScrollingStats = () => {
             key={currentIndex}
             initial={{ x: '100%', opacity: 1 }}
             animate={{ x: '-100%', opacity: 1 }}
-            transition={{ duration: 20, ease: 'linear' }}
+            transition={{ duration: 70, ease: 'linear' }}
             className="d-flex flex-row"
+            style={{ paddingLeft: '70px', paddingRight: '70px' }}
           >
-            {scrollingStats.concat(scrollingStats).slice(currentIndex, currentIndex + itemsToShow).map((stat: CryptoData, index) => (
-              <div className="flex-shrink-0 mx-2 fw-bold text-dark" key={index}>
-                <CryptoStatComponent 
-                  price={parseFloat(stat.priceUsd)}
-                  change={parseFloat(stat.changePercent24Hr)}
-                  symbol={stat.symbol}
-                />
+            {scrollingStats.concat(scrollingStats).slice(currentIndex, currentIndex + itemsToShow).map((stat: CryptoData, index) => {
+              const isUp = Number(stat.changePercent24Hr) >= 0;
+              return (
+                <div className="flex-shrink-0 mx-2" key={index}>
+                  <div
+                    className="d-flex align-items-center"
+                    style={{
+                      gap: '10px',
+                      padding: '6px 10px',
+                      borderRadius: '999px',
+                      background: '#f8f9fa',
+                      border: '1px solid #eee',
+                      boxShadow: '0 1px 2px rgba(0,0,0,0.04)'
+                    }}
+                  >
+                    <span style={{ fontWeight: 700, letterSpacing: '0.02em', minWidth: 42 }}>{stat.symbol}</span>
+                    <span style={{ color: '#111' }}>{formatPrice(stat.priceUsd)}</span>
+                    <span
+                      className={`badge ${isUp ? 'bg-success' : 'bg-danger'}`}
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: 6, borderRadius: '999px' }}
+                    >
+                      <i className={`fa ${isUp ? 'fa-caret-up' : 'fa-caret-down'}`}></i>
+                      {formatChange(stat.changePercent24Hr)}
+                    </span>
+                  </div>
               </div>
-            ))}
+              );
+            })}
           </motion.div>
         )}
       </AnimatePresence>
-      <div className="absolute right-0 flex items-center">
-        <Nav className="flex-nowrap items-center justify-content-end">
+
+      <div className="position-absolute end-0 d-flex align-items-center" style={{ zIndex: 3 }}>
+        <Nav className="flex-nowrap align-items-center justify-content-end">
           <NavDropdown title={<span className="text-black" style={{ fontSize: '1em' }}>USD</span>} id="currency-dropdown">
             <NavDropdown.Item>USD</NavDropdown.Item>
             <NavDropdown.Item>EUR</NavDropdown.Item>

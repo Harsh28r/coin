@@ -61,7 +61,7 @@ const ExclusiveNews: React.FC = () => {
         }
 
         // Fetch from /fetch-rss
-        const response = await fetch(`${API_BASE_URL}/fetch-rss`);
+        const response = await fetch(`${API_BASE_URL}/fetch-decrypt-rss`);
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }

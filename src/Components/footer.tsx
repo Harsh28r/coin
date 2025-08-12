@@ -1,14 +1,62 @@
-import React from 'react';
-import { Container, Row, Col, Form, Button } from 'react-bootstrap';
+import React, { useState } from 'react';
+import { Container, Row, Col, Form, Button, Alert, InputGroup } from 'react-bootstrap';
 import { FacebookIcon as Facebook, Twitter, PinIcon as Pinterest, Instagram, Youtube, DiscIcon as Discord } from 'lucide-react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import '@fontsource/inter';
 
 const Footer: React.FC = () => {
+  const [email, setEmail] = useState('');
+  const [name, setName] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  const handleSubscribe = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!email.trim()) {
+      setMessage({ type: 'error', text: 'Please enter your email address' });
+      return;
+    }
+
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setMessage({ type: 'error', text: 'Please enter a valid email address' });
+      return;
+    }
+
+    setIsSubmitting(true);
+    setMessage(null);
+
+    try {
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/subscribe`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email: email.trim(), name: name.trim() }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setMessage({ type: 'success', text: data.message });
+        setEmail('');
+        setName('');
+      } else {
+        setMessage({ type: 'error', text: data.message || 'Subscription failed. Please try again.' });
+      }
+    } catch (error) {
+      setMessage({ type: 'error', text: 'Network error. Please check your connection and try again.' });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <footer className="text-light py-5 mt-5" style={{ backgroundColor: '#333333' }}>
-      <Container   style={{ width: '100%', maxWidth: '1440px' }}>
-        <Row className="mb-5  " style={{ maxWidth: '100%' }}>
+      <Container style={{ width: '100%', maxWidth: '1440px' }}>
+        <Row className="mb-5" style={{ maxWidth: '100%' }}>
           <Col md={5} className="mb-4 mb-md-0 text-center text-md-start" style={{ textAlign: 'left' }}>
             <img 
               src="/logo2.png" 
@@ -55,28 +103,64 @@ const Footer: React.FC = () => {
               <a href="#" className="text-light hover-opacity"><Youtube size={30} /></a>
             </div>
             <div className="d-flex justify-content-start mt-5 me-md-0">
-              <Form className="d-flex">
-                <Form.Group className="mb-0 me-0" controlId="formBasicEmail">
+              <Form onSubmit={handleSubscribe} className="d-flex flex-column" style={{ width: '100%' }}>
+                {message && (
+                  <Alert 
+                    variant={message.type === 'success' ? 'success' : 'danger'} 
+                    className="mb-3"
+                    style={{ fontSize: '0.9rem' }}
+                  >
+                    {message.text}
+                  </Alert>
+                )}
+                
+                <InputGroup className="mb-1">
                   <Form.Control 
                     type="email" 
                     placeholder="Enter your email" 
-                    className="bg-dark text-light border-secondary border-5 shadow border-dark" 
-                    style={{ color: 'white', fontSize: '1rem', borderRadius: '1rem 0.25rem 0.25rem 1rem', height: '50px', width: '240px' }}
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    className="bg-dark text-light border-secondary border-2" 
+                    style={{ 
+                      color: 'white', 
+                      fontSize: '1rem', 
+                      height: '40px',
+                      borderColor: '#6c757d !important'
+                    }}
                   />
-                </Form.Group>
-                <Button variant="warning" type="submit" className="footer-button d-flex align-items-center justify-content-center" 
-                  style={{ 
-                    borderRadius: '0 0.7rem 0.7rem 0', 
-                    backgroundColor: 'orange', 
-                    fontSize: '1.1rem', 
-                    color: 'white', 
-                    height: '50px', 
-                    border: '5px solid transparent', 
-                    width: '100%' 
-                  }}>
-                  <span>Subscribe</span>
-                  <i className="bi bi-envelope-fill"></i>
-                </Button>
+                  <Button 
+                    variant="warning" 
+                    type="submit" 
+                    disabled={isSubmitting}
+                    className="footer-button d-flex align-items-center justify-content-center" 
+                    style={{ 
+                      backgroundColor: 'orange', 
+                      fontSize: '1.1rem', 
+                      color: 'white', 
+                      height: '40px', 
+                      border: '2px solid transparent', 
+                      transition: 'all 0.3s ease'
+                    }}
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <div className="spinner-border spinner-border-sm me-2" role="status">
+                          <span className="visually-hidden">Loading...</span>
+                        </div>
+                        Subscribing...
+                      </>
+                    ) : (
+                      <>
+                        <span>Subscribe</span>
+                        <i className="bi bi-envelope-fill ms-2"></i>
+                      </>
+                    )}
+                  </Button>
+                </InputGroup>
+                <small className="text-light mt-2" style={{ fontSize: '0.8rem', opacity: 0.8 }}>
+                  Get the latest crypto news and market updates delivered to your inbox
+                </small>
               </Form>
             </div>
           </Col>
@@ -95,6 +179,15 @@ const Footer: React.FC = () => {
           }
           .bg-dark.text-light::placeholder {
             color: rgba(255, 255, 255, 0.7);
+          }
+          .footer-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+          }
+          .footer-button:disabled {
+            opacity: 0.7;
+            transform: none;
+            box-shadow: none;
           }
           @media (max-width: 576px) {
             .footer-button {
