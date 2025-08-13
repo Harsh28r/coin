@@ -16,7 +16,7 @@ import { AuthProvider } from './context/AuthContext';
 import { BlogProvider } from './context/BlogContext';
 import PressReleaseDetail from './Components/preRealse'
 import SearchPage from './Components/SearchPage';
-// import NewsDetail from './Components/NewsDetail';
+import NewsDetail from './Components/NewsDetail';
 
 function App() {
   return (
