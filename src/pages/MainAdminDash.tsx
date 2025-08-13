@@ -69,13 +69,22 @@ const MainDashboard: React.FC = () => {
                       <BlogPost 
                         post={post} 
                         isAdmin={true}
-                        onEdit={() => handleEdit(post)}
-                        onDelete={() => {
+                        onEdit={async (post: BlogPostType) => {
+                          handleEdit(post);
+                          return { success: true, message: 'Edit mode activated' };
+                        }}
+                        onDelete={async (id: string) => {
                           if (post._id) {
                             console.log('Attempting to delete post with ID:', post._id);
-                            deletePost(post._id);
+                            try {
+                              const result = await deletePost(post._id);
+                              return result;
+                            } catch (error) {
+                              return { success: false, message: 'Failed to delete post' };
+                            }
                           } else {
                             console.error('Post ID is undefined for post:', post);
+                            return { success: false, message: 'Post ID not found' };
                           }
                         }}
                       />

@@ -82,50 +82,197 @@ const BlogSection: React.FC = () => {
 
   return (
     <Container fluid className="mt-5 mb-5" style={{ width: '92%', fontFamily: 'Inter, sans-serif' }}>
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <h4 className="m-0 text-center" style={{ fontWeight: 'bold', letterSpacing: '0.05em' }}>
-          Blogs
-        </h4>
-        {/* Fix: Use Link directly instead of Button with as={Link} */}
-        <Link to="/blogs" className="text-warning text-decoration-none d-flex align-items-center">
-          View All <ChevronRight size={20} className="ms-1" />
+      {/* Enhanced Header Section */}
+      <div className="d-flex justify-content-between align-items-center mb-5">
+        <div>
+          <h2 
+            className="m-0 mb-2" 
+            style={{ 
+              fontWeight: '800', 
+              letterSpacing: '0.02em',
+              fontSize: '2.2rem',
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text'
+            }}
+          >
+            Latest Blog Posts
+          </h2>
+          <p className="text-muted mb-0" style={{ fontSize: '1.1rem', fontWeight: '400' }}>
+            Discover insights, tutorials, and updates from our crypto experts
+          </p>
+        </div>
+        <Link 
+          to="/blogs" 
+          className="text-decoration-none d-flex align-items-center px-4 py-3 rounded-4"
+          style={{
+            background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+            color: 'white',
+            fontWeight: '600',
+            fontSize: '1rem',
+            transition: 'all 0.3s ease',
+            boxShadow: '0 4px 15px rgba(245, 158, 11, 0.3)'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = 'translateY(-2px)';
+            e.currentTarget.style.boxShadow = '0 8px 25px rgba(245, 158, 11, 0.4)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = 'translateY(0)';
+            e.currentTarget.style.boxShadow = '0 4px 15px rgba(245, 158, 11, 0.3)';
+          }}
+        >
+          View All Posts <ChevronRight size={20} className="ms-2" />
         </Link>
       </div>
+
+      {/* Enhanced Blog Cards Grid */}
       <Row xs={1} md={2} lg={3} className="g-4">
         {blogPosts.slice(currentIndex, currentIndex + postsPerPage).map((post) => (
           <Col key={post.id}>
             <Link to={`/blog/${post.id}`} className="text-decoration-none">
-              <Card className="h-100 border-0 shadow hover-effect rounded-5">
-                <Card.Img
-                  variant="top"
-                  src={post.imageUrl}
-                  alt={post.title}
-                  className="object-fit-cover rounded-4"
-                  style={{ height: '253px' }}
-                />
-                <Card.Body className="d-flex flex-column text-center">
-                  <Card.Title className="h5 mb-3 text-start" style={{ fontWeight: 'bold' }}>
+              <Card 
+                className="h-100 border-0 shadow-sm hover-effect rounded-4 overflow-hidden"
+                style={{
+                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
+                  border: '1px solid rgba(0, 0, 0, 0.05)'
+                }}
+              >
+                {/* Enhanced Image Section */}
+                <div className="position-relative">
+                  <Card.Img
+                    variant="top"
+                    src={post.imageUrl}
+                    alt={post.title}
+                    className="object-fit-cover"
+                    style={{ 
+                      height: '220px',
+                      transition: 'transform 0.3s ease'
+                    }}
+                    onError={(e) => {
+                      e.currentTarget.src = 'https://placehold.co/400x220?text=Blog+Post';
+                    }}
+                  />
+                  {/* Gradient Overlay */}
+                  <div 
+                    className="position-absolute w-100 h-100"
+                    style={{
+                      background: 'linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.1) 100%)',
+                      top: 0,
+                      left: 0
+                    }}
+                  />
+                  {/* Category Badge */}
+                  <div 
+                    className="position-absolute top-0 start-0 m-3 px-3 py-1 rounded-pill"
+                    style={{
+                      background: 'rgba(255, 255, 255, 0.95)',
+                      backdropFilter: 'blur(10px)',
+                      fontSize: '0.75rem',
+                      fontWeight: '600',
+                      color: '#6b7280'
+                    }}
+                  >
+                    Blog
+                  </div>
+                </div>
+
+                {/* Enhanced Card Body */}
+                <Card.Body className="d-flex flex-column p-4">
+                  <Card.Title 
+                    className="h5 mb-3 text-start" 
+                    style={{ 
+                      fontWeight: '700',
+                      fontSize: '1.1rem',
+                      lineHeight: '1.4',
+                      color: '#1f2937',
+                      minHeight: '3rem'
+                    }}
+                  >
                     {post.title}
                   </Card.Title>
+                  
                   <Card.Text
-                    className="text-muted small flex-grow-1 text-start overflow-hidden"
+                    className="text-muted flex-grow-1 text-start mb-4"
                     style={{
+                      fontSize: '0.9rem',
+                      lineHeight: '1.6',
+                      color: '#6b7280',
                       overflow: 'hidden',
                       display: '-webkit-box',
                       WebkitBoxOrient: 'vertical',
-                      WebkitLineClamp: 2,
-                      textOverflow: 'ellipsis',
-                      fontSize: '0.8rem',
+                      WebkitLineClamp: 3,
+                      minHeight: '4.5rem'
                     }}
                   >
                     {post.description}
                   </Card.Text>
-                  <div className="d-flex justify-content-between">
-                    <div>
-                      <small className="text-muted">By </small>
-                      <small className="text-warning">{post.author}</small>
+
+                  {/* Enhanced Footer */}
+                  <div className="mt-auto">
+                    <div className="d-flex justify-content-between align-items-center mb-3">
+                      <div className="d-flex align-items-center">
+                        <div 
+                          className="rounded-circle me-2"
+                          style={{
+                            width: '24px',
+                            height: '24px',
+                            background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                          }}
+                        >
+                          <span style={{ color: 'white', fontSize: '0.7rem', fontWeight: '600' }}>
+                            {post.author.charAt(0).toUpperCase()}
+                          </span>
+                        </div>
+                        <div>
+                          <small className="text-muted d-block" style={{ fontSize: '0.75rem' }}>
+                            By
+                          </small>
+                          <small 
+                            className="fw-semibold" 
+                            style={{ 
+                              fontSize: '0.85rem',
+                              color: '#f59e0b'
+                            }}
+                          >
+                            {post.author}
+                          </small>
+                        </div>
+                      </div>
+                      <div className="text-end">
+                        <small className="text-muted d-block" style={{ fontSize: '0.75rem' }}>
+                          Published
+                        </small>
+                        <small 
+                          className="fw-semibold" 
+                          style={{ 
+                            fontSize: '0.85rem',
+                            color: '#6b7280'
+                          }}
+                        >
+                          {post.date}
+                        </small>
+                      </div>
                     </div>
-                    <small className="text-muted">{post.date}</small>
+                    
+                    {/* Read More Button */}
+                    <div 
+                      className="w-100 py-2 px-3 rounded-3 text-center"
+                      style={{
+                        background: 'linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%)',
+                        color: '#374151',
+                        fontSize: '0.85rem',
+                        fontWeight: '600',
+                        transition: 'all 0.2s ease'
+                      }}
+                    >
+                      Read Full Article →
+                    </div>
                   </div>
                 </Card.Body>
               </Card>
@@ -133,36 +280,76 @@ const BlogSection: React.FC = () => {
           </Col>
         ))}
       </Row>
-      <div className="d-flex justify-content-center mt-4 gap-2" style={{ marginLeft: '-10px' }}>
-        <Button
-          variant="outline-secondary"
-          size="lg"
-          className="rounded-circle"
-          style={{ width: '50px', height: '50px' }}
-          onClick={handlePrev}
-          disabled={currentIndex === 0}
-        >
-          <ChevronLeft size={24} />
-        </Button>
-        <Button
-          variant="outline-secondary"
-          size="lg"
-          className="rounded-circle"
-          style={{ width: '50px', height: '50px' }}
-          onClick={handleNext}
-          disabled={currentIndex + postsPerPage >= blogPosts.length}
-        >
-          <ChevronRight size={24} />
-        </Button>
-      </div>
 
-      {/* Fix: Move styles to a separate CSS file or inline styles */}
+      {/* Enhanced Navigation */}
+      {blogPosts.length > postsPerPage && (
+        <div className="d-flex justify-content-center align-items-center mt-5 gap-3">
+          <Button
+            variant="outline-warning"
+            size="lg"
+            className="rounded-circle border-2"
+            style={{ 
+              width: '56px', 
+              height: '56px',
+              borderWidth: '2px',
+              transition: 'all 0.2s ease'
+            }}
+            onClick={handlePrev}
+            disabled={currentIndex === 0}
+          >
+            <ChevronLeft size={24} />
+          </Button>
+          
+          <div className="d-flex align-items-center gap-2">
+            <span className="text-muted fw-semibold" style={{ fontSize: '1rem' }}>
+              Page
+            </span>
+            <span 
+              className="px-3 py-2 rounded-3 fw-bold"
+              style={{
+                background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+                color: 'white',
+                fontSize: '1.1rem'
+              }}
+            >
+              {Math.floor(currentIndex / postsPerPage) + 1}
+            </span>
+            <span className="text-muted fw-semibold" style={{ fontSize: '1rem' }}>
+              of {Math.ceil(blogPosts.length / postsPerPage)}
+            </span>
+          </div>
+          
+          <Button
+            variant="outline-warning"
+            size="lg"
+            className="rounded-circle border-2"
+            style={{ 
+              width: '56px', 
+              height: '56px',
+              borderWidth: '2px',
+              transition: 'all 0.2s ease'
+            }}
+            onClick={handleNext}
+            disabled={currentIndex + postsPerPage >= blogPosts.length}
+          >
+            <ChevronRight size={24} />
+          </Button>
+        </div>
+      )}
+
+      {/* Enhanced Hover Effects */}
       <style>{`
-        .hover-effect {
-          transition: transform 0.2s ease-in-out;
-        }
         .hover-effect:hover {
-          transform: translateY(-5px);
+          transform: translateY(-8px);
+          box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15) !important;
+        }
+        
+        .hover-effect:hover img {
+          transform: scale(1.05);
+        }
+        
+        .hover-effect .position-relative {
+          overflow: hidden;
         }
       `}</style>
     </Container>

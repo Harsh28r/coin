@@ -183,7 +183,7 @@ const PressRelease: React.FC = () => {
                 style={{ height: 'auto', minHeight: '430px', cursor: 'pointer', overflow: 'hidden' }}
                 onClick={() => window.open(mainArticle.link, '_blank')}
               >
-                <div style={{ position: 'relative', height: '428px', borderRadius: '20px', overflow: 'hidden' }}>
+                <div style={{ position: 'relative', height: '628px', borderRadius: '20px', overflow: 'hidden' }}>
                   <img
                     src={mainArticle.image}
                     alt={mainArticle.title}

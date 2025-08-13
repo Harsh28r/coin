@@ -7,6 +7,7 @@ import Skeleton from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css'; // Import skeleton CSS
 
 interface TrendingNewsItem {
+  article_id?: string;
   title: string;
   excerpt: string;
   author: string;
@@ -408,7 +409,9 @@ const FeaturedCarousel: React.FC = () => {
                               whiteSpace: 'normal',
                               wordWrap: 'break-word',
                               textAlign: 'left',
+                              cursor: 'pointer',
                             }}
+                            onClick={() => window.location.href = `/news/${news.article_id || encodeURIComponent(news.title)}`}
                           >
                             {news.title}
                           </h6>

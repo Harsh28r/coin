@@ -25,9 +25,10 @@ const AdminDashboard: React.FC = () => {
     }
   };
 
-  const handleEdit = (post: BlogPostType) => {
+  const handleEdit = async (post: BlogPostType): Promise<{ success: boolean; message: string }> => {
     setEditingPost(post);
     setShowModal(true);
+    return { success: true, message: 'Edit mode activated' };
   };
 
   const handleCancel = () => {
@@ -68,11 +69,17 @@ const AdminDashboard: React.FC = () => {
                   post={post} 
                   // isAdmin={true}
                   onEdit={() => handleEdit(post)}
-                  onDelete={() => {
+                  onDelete={async (id: string) => {
                     if (post._id) {
                       console.log('Deleting post:', post._id);
-                      deletePost(post._id);
+                      try {
+                        const result = await deletePost(post._id);
+                        return result;
+                      } catch (error) {
+                        return { success: false, message: 'Failed to delete post' };
+                      }
                     }
+                    return { success: false, message: 'Post ID not found' };
                   }}
                 />
               </div>

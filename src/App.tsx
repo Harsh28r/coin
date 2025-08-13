@@ -16,6 +16,7 @@ import { AuthProvider } from './context/AuthContext';
 import { BlogProvider } from './context/BlogContext';
 import PressReleaseDetail from './Components/preRealse'
 import SearchPage from './Components/SearchPage';
+// import NewsDetail from './Components/NewsDetail';
 
 function App() {
   return (
@@ -33,6 +34,7 @@ function App() {
               <Route path="/exclusive-news" element={< Exn/ >} /> 
               <Route path="/advertise" element={<  Advertise />} /> 
               <Route path="/All-Trending-news" element={<  Trend />} /> 
+              <Route path="/news/:id" element={<NewsDetail />} />
               <Route path="/main-dashboard" element={<   MainDashboard/>} /> 
               {/* <Route path="/press-release-detail" element={<PressReleaseDetail />} /> */}
               <Route path="/search" element={<SearchPage />} />

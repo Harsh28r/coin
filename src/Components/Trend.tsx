@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 
 
 interface NewsItem {
+  article_id?: string;
   title: string;
   description: string;
   creator: string[];
@@ -67,7 +68,11 @@ const Exn: React.FC = () => {
               <Card.Img variant="top rounded-4" src={item.image_url} alt={item.title} />
               <Card.Body className="d-flex flex-column">
                 <Card.Title className="fs-6 mb-3 text-start custom-text" style={{ fontWeight: 'bold', color: 'black', overflow: 'hidden', display: '-webkit-box', WebkitBoxOrient: 'vertical', WebkitLineClamp: 2, maxHeight: '3em' }}>
-                  <a href={item.link} target="_blank" rel="noopener noreferrer" className="text-black text-decoration-none">
+                  <a 
+                    href={`/news/${item.article_id || encodeURIComponent(item.title)}`}
+                    className="text-black text-decoration-none"
+                    style={{ cursor: 'pointer' }}
+                  >
                     {item.title}
                   </a>
                 </Card.Title>
@@ -85,8 +90,7 @@ const Exn: React.FC = () => {
                 </div>
                 <Button 
                   variant="warning"
-                //   onClick={() => navigate(`/All-exclusive-news/${item.link}`)}
-                onClick={() => navigate(`/All-exclusive-news`)}
+                  onClick={() => navigate(`/news/${item.article_id || encodeURIComponent(item.title)}`)}
                   className="mt-3"
                 >
                   Read More

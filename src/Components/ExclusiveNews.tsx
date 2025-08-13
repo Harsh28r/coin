@@ -8,6 +8,7 @@ import Skeleton from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css'; // Import skeleton CSS
 
 interface NewsItem {
+  article_id?: string;
   title: string;
   description: string;
   creator: string[];
@@ -52,7 +53,7 @@ const ExclusiveNews: React.FC = () => {
             image_url: item.image || 'https://via.placeholder.com/300x200?text=No+Image',
             link: item.link || '#',
           }));
-          setNewsItems(formattedNews.slice(0, 4));
+          setNewsItems(formattedNews.slice(0, 6));
           console.log('Fetched news from db.json:', formattedNews);
           setIsLoading(false);
           return;
@@ -67,7 +68,7 @@ const ExclusiveNews: React.FC = () => {
         }
         const data = await response.json();
         if (Array.isArray(data.data)) {
-          setNewsItems(data.data.slice(0, 4));
+          setNewsItems(data.data.slice(0, 6));
           console.log('Fetched news from API:', data.data);
         } else {
           throw new Error('Fetched data is not an array');
@@ -83,8 +84,18 @@ const ExclusiveNews: React.FC = () => {
     fetchNews();
   }, []);
 
-  // Fallback image URL
-  const fallbackImage = 'https://via.placeholder.com/300x200?text=No+Image';
+  // Fallback image URLs for different cards
+  const getFallbackImage = (index: number): string => {
+    const images = [
+      '/image.png?height=300&width=200&text=Bitcoin',
+      '/tr3.png?height=300&width=200&text=Ethereum',
+      '/web3.png?height=300&width=200&text=Crypto',
+      '/web3_1.png?height=300&width=200&text=Blockchain',
+      '/web3_2.png?height=300&width=200&text=DeFi',
+      '/web3_3.png?height=300&width=200&text=NFT'
+    ];
+    return images[index % images.length];
+  };
 
   // Format date consistently
   const formatDate = (dateString: string): string => {
@@ -117,12 +128,17 @@ const ExclusiveNews: React.FC = () => {
       </div>
 
       {error && <p className="text-danger">{error}</p>}
-      {isLoading ? (
-        <Row xs={1} md={2} lg={4} className="g-4">
-          {Array.from({ length: 4 }).map((_, index) => (
-            <Col key={index}>
-              <Card className="h-100 border-0 shadow-sm rounded-4">
-                <Skeleton height={200} width="100%" baseColor="#e0e0e0" highlightColor="#f5f5f5" />
+             {isLoading ? (
+                  <Row xs={1} md={2} lg={3} className="g-4">
+           {Array.from({ length: 6 }).map((_, index) => (
+                         <Col key={index}>
+               <Card className="h-100 border-0 shadow-sm rounded-4">
+                 <img 
+                   src={getFallbackImage(index)} 
+                   alt={`Loading card ${index + 1}`}
+                   className="img-fluid rounded-4"
+                   style={{ height: '200px', width: '100%', objectFit: 'cover' }}
+                 />
                 <Card.Body className="d-flex flex-column">
                   <Skeleton width="80%" height={20} baseColor="#e0e0e0" highlightColor="#f5f5f5" />
                   <Skeleton count={2} width="90%" height={16} baseColor="#e0e0e0" highlightColor="#f5f5f5" className="mt-2" />
@@ -138,19 +154,19 @@ const ExclusiveNews: React.FC = () => {
       ) : newsItems.length === 0 && !error ? (
         <p>No news available.</p>
       ) : (
-        <Row xs={1} md={2} lg={4} className="g-4">
-          {newsItems.slice(0, 4).map((item) => (
+                 <Row xs={1} md={2} lg={4} className="g-4">
+           {newsItems.slice(0, 4).map((item, index) => (
             <Col key={item.link}>
               <Card className="h-100 border-0 shadow-sm rounded-4">
-                <Card.Img
-                  variant="top"
-                  className="rounded-4"
-                  src={item.image_url || fallbackImage}
-                  alt={item.title}
-                  onError={(e) => {
-                    e.currentTarget.src = fallbackImage;
-                  }}
-                />
+                                 <Card.Img
+                   variant="top"
+                   className="rounded-4"
+                   src={item.image_url || getFallbackImage(index)}
+                   alt={item.title}
+                   onError={(e) => {
+                     e.currentTarget.src = getFallbackImage(index);
+                   }}
+                 />
                 <Card.Body className="d-flex flex-column">
                   <Card.Title
                     className="fs-6 mb-3 text-start custom-text"
@@ -164,15 +180,14 @@ const ExclusiveNews: React.FC = () => {
                       maxHeight: '3em',
                     }}
                   >
-                    <a
-                      href={item.link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-black text-decoration-none"
-                      aria-label={item.title}
-                    >
-                      {decodeHtml(item.title)}
-                    </a>
+                                         <a
+                       href={`/news/${item.article_id || encodeURIComponent(item.title)}`}
+                       className="text-black text-decoration-none"
+                       aria-label={item.title}
+                       style={{ cursor: 'pointer' }}
+                     >
+                       {decodeHtml(item.title)}
+                     </a>
                   </Card.Title>
                   <Card.Text
                     className="text-muted small flex-grow-1 text-start custom-text fs-7"

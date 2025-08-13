@@ -1,11 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Container, Row, Col, Card, Nav, Button, Carousel } from 'react-bootstrap';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
-import QuizSection from './QuizSection'; // Adjust the path as necessary
+import { Container, Row, Col, Card, Nav, Button, Carousel, Badge, ProgressBar } from 'react-bootstrap';
+import { ChevronLeft, ChevronRight, Sparkles, Zap, Brain, Lightbulb, Target, Trophy, Star, Heart, Share2, Bookmark, Eye } from 'lucide-react';
+import QuizSection from './QuizSection';
 import Skeleton from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
+import './ExploreCards.css';
 
 interface TrendingNewsItem {
+  article_id?: string;
   title: string;
   excerpt: string;
   author: string;
@@ -29,22 +31,121 @@ const ExploreSection: React.FC = () => {
   const [exploreCards, setExploreCards] = useState<ExploreCard[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [hoveredCard, setHoveredCard] = useState<number | null>(null);
+  const [likedCards, setLikedCards] = useState<Set<number>>(new Set());
+  const [bookmarkedCards, setBookmarkedCards] = useState<Set<number>>(new Set());
+  const [viewCounts, setViewCounts] = useState<Map<number, number>>(new Map());
+  const [particleEffect, setParticleEffect] = useState(false);
+  const [achievementUnlocked, setAchievementUnlocked] = useState<string | null>(null);
 
   const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://c-back-1.onrender.com';
 
-  // Fallback static explore cards
+  // Fallback static explore cards with enhanced content
   const fallbackExploreCards: ExploreCard[] = [
-    { id: 1, image: '/image.png?height=300&width=200&text=Switzerland', text: 'In January of 2016, Chiasso, Switzerland started accepting taxes in Bitcoin' },
-    { id: 2, image: '/tr3.png?height=300&width=200&text=Bitcoin', text: '90% of all bitcoin addresses have less than 0.1 BTC' },
-    { id: 3, image: '/trd1.png?height=300&width=200&text=Cryptocurrencies', text: 'There are over 10,000 cryptocurrencies in the market today' },
-    { id: 4, image: '/web3.png?height=300&width=200&text=Bitcoin Pizza', text: 'Bitcoin Pizza Day: On May 22, 2010 two pizzas cost 10,000 BTC' },
-    { id: 5, image: '/web3_1.png?height=300&width=200&text=Blockchain', text: 'The first blockchain was conceptualized in 2008 by Satoshi Nakamoto' },
-    { id: 6, image: '/web3_2.png?height=300&width=200&text=Bitcoin Circulation', text: 'About 1000 people own 40% of total BTC in circulation' },
-    { id: 7, image: '/trd2.png?height=300&width=200&text=Security', text: 'Blockchain technology could revolutionize cybersecurity' },
-    { id: 8, image: '/web3_3.png?height=300&width=200&text=Banks', text: '73% of banks are currently experimenting with blockchain technology' },
+    { 
+      id: 1, 
+      image: '/image.png?height=300&width=200&text=Switzerland', 
+      text: '🚀 In January of 2016, Chiasso, Switzerland started accepting taxes in Bitcoin! This marked a historic moment for crypto adoption.',
+      title: 'Switzerland Bitcoin Tax Revolution',
+      source: 'Crypto History'
+    },
+    { 
+      id: 2, 
+      image: '/tr3.png?height=300&width=200&text=Bitcoin', 
+      text: '💎 90% of all bitcoin addresses have less than 0.1 BTC - showing the concentration of wealth in the crypto space.',
+      title: 'Bitcoin Wealth Distribution',
+      source: 'Crypto Analytics'
+    },
+    { 
+      id: 3, 
+      image: '/web3.png?height=300&width=200&text=Cryptocurrencies', 
+      text: '🌍 There are over 10,000 cryptocurrencies in the market today! The crypto ecosystem is exploding with innovation.',
+      title: 'Crypto Market Explosion',
+      source: 'Market Research'
+    },
+    { 
+      id: 4, 
+      image: '/web3_1.png?height=300&width=200&text=Bitcoin Pizza', 
+      text: '🍕 Bitcoin Pizza Day: On May 22, 2010 two pizzas cost 10,000 BTC - worth over $400 million today!',
+      title: 'The Most Expensive Pizza Ever',
+      source: 'Crypto Legends'
+    },
+    { 
+      id: 5, 
+      image: '/web3_2.png?height=300&width=200&text=Blockchain', 
+      text: '🔗 The first blockchain was conceptualized in 2008 by Satoshi Nakamoto, revolutionizing digital trust forever.',
+      title: 'Birth of Blockchain',
+      source: 'Tech History'
+    },
+    { 
+      id: 6, 
+      image: '/web3_3.png?height=300&width=200&text=Bitcoin Circulation', 
+      text: '👑 About 1000 people own 40% of total BTC in circulation - creating a new digital aristocracy.',
+      title: 'Bitcoin Whales',
+      source: 'Wealth Analysis'
+    },
+    { 
+      id: 7, 
+      image: '/trd1.png?height=300&width=200&text=Security', 
+      text: '🛡️ Blockchain technology could revolutionize cybersecurity with its immutable and transparent nature.',
+      title: 'Future of Security',
+      source: 'Tech Innovation'
+    },
+    { 
+      id: 8, 
+      image: '/trd2.png?height=300&width=200&text=Banks', 
+      text: '🏦 73% of banks are currently experimenting with blockchain technology - the future is here!',
+      title: 'Banks Embrace Blockchain',
+      source: 'Financial News'
+    },
   ];
 
-  // Fetch dynamic explore content from RSS feeds
+  // Enhanced trending news with better content
+  const trendingNews: TrendingNewsItem[] = [
+    {
+      title: "🚀 AI Revolution: ChatGPT-5 Breaks All Records",
+      excerpt: "OpenAI's latest breakthrough shatters previous AI benchmarks, opening new possibilities for human-AI collaboration...",
+      author: "Dr. Sarah Chen",
+      date: "2 hours ago",
+      image: "/image.png"
+    },
+    {
+      title: "💎 Bitcoin Surges Past $50K: What's Next?",
+      excerpt: "The king of crypto makes a spectacular comeback, with analysts predicting even higher gains in the coming weeks...",
+      author: "Mike Rodriguez",
+      date: "4 hours ago",
+      image: "/web3_1.png"
+    },
+    {
+      title: "🌱 Green Energy Breakthrough: Solar Efficiency Hits 50%",
+      excerpt: "Revolutionary solar panel technology could make renewable energy the dominant power source worldwide...",
+      author: "Dr. Emily Watson",
+      date: "6 hours ago",
+      image: "/web3_2.png"
+    },
+    {
+      title: "🎮 Metaverse Gaming: The Future of Entertainment",
+      excerpt: "Virtual reality gaming platforms are attracting billions in investment, reshaping how we play and socialize...",
+      author: "Alex Thompson",
+      date: "8 hours ago",
+      image: "/web3.png"
+    },
+    {
+      title: "🔬 Quantum Computing: Google's New Milestone",
+      excerpt: "Quantum supremacy achieved again as Google demonstrates unprecedented computational power...",
+      author: "Dr. James Wilson",
+      date: "10 hours ago",
+      image: "/image.png"
+    },
+    {
+      title: "🌍 Climate Tech: Carbon Capture Innovation",
+      excerpt: "Startup develops revolutionary technology to remove CO2 from atmosphere at scale...",
+      author: "Lisa Park",
+      date: "12 hours ago",
+      image: "/image.png"
+    },
+  ];
+
   useEffect(() => {
     const fetchExploreContent = async () => {
       if (activeTab !== 'did-you-know') return;
@@ -62,10 +163,8 @@ const ExploreSection: React.FC = () => {
         
         if (data.success && Array.isArray(data.data) && data.data.length > 0) {
           const dynamicCards = data.data.map((item: any, index: number) => {
-            // Better image URL handling
             let imageUrl = item.image_url;
             
-            // If no image, use our fallback (but allow picsum.photos images)
             if (!imageUrl || (imageUrl.includes('placehold.co') && !imageUrl.includes('picsum.photos'))) {
               imageUrl = `/web3_${(index % 4) + 1}.png?height=300&width=200&text=${item.source_name || 'Crypto'}`;
             }
@@ -81,14 +180,12 @@ const ExploreSection: React.FC = () => {
           });
           
           setExploreCards(dynamicCards);
-          console.log('Fetched dynamic explore content:', dynamicCards);
-          console.log('Sample image URLs:', dynamicCards.slice(0, 3).map((card: ExploreCard) => ({ title: card.text.substring(0, 30), image: card.image })));
         } else {
           throw new Error('No valid content received');
         }
       } catch (error: any) {
         console.error('Error fetching explore content:', error);
-        setError('Using fallback content');
+        setError('Using enhanced fallback content');
         setExploreCards(fallbackExploreCards);
       } finally {
         setIsLoading(false);
@@ -98,55 +195,54 @@ const ExploreSection: React.FC = () => {
     fetchExploreContent();
   }, [activeTab]);
 
-  const trendingNews: TrendingNewsItem[] = [
-    {
-      title: "New Developments in AI Technology",
-      excerpt: "AI technology is evolving rapidly, with new breakthroughs every day...",
-      author: "John Doe",
-      date: "April 28, 2024",
-      image: "/image.png"
-    },
-    {
-      title: "Global Markets React to Economic Changes",
-      excerpt: "The global markets are experiencing fluctuations due to recent economic changes...",
-      author: "Jane Smith",
-      date: "April 28, 2024",
-      image: "/web3_1.png"
-    },
-    {
-      title: "Exploring the Future of Renewable Energy",
-      excerpt: "Renewable energy sources are becoming more viable and essential for sustainability...",
-      author: "Alice Johnson",
-      date: "April 28, 2024",
-      image: "/web3_2.png"
-    },
-    {
-        title: "Exploring the Future of Renewable Energy",
-        excerpt: "Renewable energy sources are becoming more viable and essential for sustainability...",
-        author: "Alice Johnson",
-        date: "April 28, 2024",
-        image: "/web3.png"
-      },
-      {
-        title: "Global Markets React to Economic Changes",
-        excerpt: "The global markets are experiencing fluctuations due to recent economic changes...",
-        author: "Jane Smith",
-        date: "April 28, 2024",
-        image: "/image.png"
-      },
-      {
-        title: "Exploring the Future of Renewable Energy",
-        excerpt: "Renewable energy sources are becoming more viable and essential for sustainability...",
-        author: "Alice Johnson",
-        date: "April 28, 2024",
-        image: "/image.png"
-      },
-      
-  ];
+  // Interactive functions
+  const handleCardLike = (cardId: number) => {
+    setLikedCards(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(cardId)) {
+        newSet.delete(cardId);
+      } else {
+        newSet.add(cardId);
+        triggerParticleEffect();
+        checkAchievements();
+      }
+      return newSet;
+    });
+  };
 
- 
+  const handleCardBookmark = (cardId: number) => {
+    setBookmarkedCards(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(cardId)) {
+        newSet.delete(cardId);
+      } else {
+        newSet.add(cardId);
+        triggerParticleEffect();
+      }
+      return newSet;
+    });
+  };
 
-  // Function to handle mouse down event
+  const handleCardView = (cardId: number) => {
+    setViewCounts(prev => {
+      const newMap = new Map(prev);
+      newMap.set(cardId, (newMap.get(cardId) || 0) + 1);
+      return newMap;
+    });
+  };
+
+  const triggerParticleEffect = () => {
+    setParticleEffect(true);
+    setTimeout(() => setParticleEffect(false), 1000);
+  };
+
+  const checkAchievements = () => {
+    if (likedCards.size === 5) {
+      setAchievementUnlocked('🎉 Like Master! You\'ve liked 5 cards!');
+      setTimeout(() => setAchievementUnlocked(null), 3000);
+    }
+  };
+
   const handleMouseDown = (e: React.MouseEvent) => {
     const scrollable = scrollableRef.current;
     if (scrollable) {
@@ -168,18 +264,30 @@ const ExploreSection: React.FC = () => {
       window.addEventListener('mouseup', handleMouseUp);
     }
   };
+
   const renderTrendingNews = () => {
     return (
       <Row xs={1} sm={2} md={3} lg={4} className="g-4">
         {trendingNews.map((newsItem, index) => (
           <Col key={index}>
-            <Card className="h-100 border-0 shadow-sm rounded-4">
-              
+            <Card className="h-100 border-0 shadow-sm rounded-4 news-card-interactive">
               <Card.Img variant="top" src={newsItem.image} alt={newsItem.title} className="rounded-5" />
               <Card.Body>
-                <Card.Title>{newsItem.title}</Card.Title>
-                <Card.Text>{newsItem.excerpt}</Card.Text>
-                <Card.Text className="text-muted">{newsItem.author} - {newsItem.date}</Card.Text>
+                <Card.Title className="news-title-interactive">{newsItem.title}</Card.Title>
+                <Card.Text className="news-excerpt-interactive">{newsItem.excerpt}</Card.Text>
+                <Card.Text className="text-muted news-meta-interactive">
+                  <span className="author-badge">{newsItem.author}</span> - {newsItem.date}
+                </Card.Text>
+                <div className="news-actions-interactive">
+                  <Button variant="outline-primary" size="sm" className="action-btn">
+                    <Eye size={16} className="me-1" />
+                    Read
+                  </Button>
+                  <Button variant="outline-warning" size="sm" className="action-btn">
+                    <Bookmark size={16} className="me-1" />
+                    Save
+                  </Button>
+                </div>
               </Card.Body>
             </Card>
           </Col>
@@ -193,21 +301,30 @@ const ExploreSection: React.FC = () => {
       case 'did-you-know':
         return (
           <div className="position-relative">
-            <div className="d-flex justify-content-end mb-2">
-              <Button variant="link" className="text-warning text-decoration-none">View More
-                <ChevronRight />
+            <div className="d-flex justify-content-between align-items-center mb-4">
+              <div className="d-flex align-items-center gap-3">
+                <Badge bg="warning" className="trending-badge">
+                  <Sparkles size={16} className="me-1" />
+                  Trending Facts
+                </Badge>
+                <span className="text-muted">Discover amazing crypto insights!</span>
+              </div>
+              <Button variant="outline-warning" className="view-more-btn">
+                View More <ChevronRight size={16} />
               </Button>
             </div>
+            
             {error && (
               <div className="alert alert-info alert-dismissible fade show" role="alert">
                 <small>{error}</small>
               </div>
             )}
+            
             {isLoading ? (
-            <Row xs={1} sm={2} md={3} lg={4} className="g-4">
+              <Row xs={1} sm={2} md={3} lg={4} className="g-4">
                 {Array.from({ length: 8 }).map((_, index) => (
                   <Col key={index}>
-                  <Card className="h-10 border-0 shadow-sm rounded-4" style={{ height: '250px' }}>
+                    <Card className="h-10 border-0 shadow-sm rounded-4 skeleton-card">
                       <Skeleton height={250} width="100%" baseColor="#e0e0e0" highlightColor="#f5f5f5" />
                     </Card>
                   </Col>
@@ -217,57 +334,115 @@ const ExploreSection: React.FC = () => {
               <Row xs={1} sm={2} md={3} lg={4} className="g-4">
                 {exploreCards.map((card, index) => (
                   <Col key={card.article_id || card.id || index}>
-                    <Card className="h-10 border-0 shadow-sm rounded-4 position-relative overflow-hidden" style={{ height: '250px' }}>
+                    <Card 
+                      className={`h-10 border-0 shadow-sm rounded-4 position-relative overflow-hidden interactive-card ${
+                        hoveredCard === index ? 'card-hovered' : ''
+                      }`} 
+                      style={{ height: '300px' }}
+                      onMouseEnter={() => setHoveredCard(index)}
+                      onMouseLeave={() => setHoveredCard(null)}
+                      onClick={() => handleCardView(card.id || index)}
+                    >
                       <Card.Img 
                         variant="top" 
                         src={card.image} 
                         alt={card.title || `Explore card ${index + 1}`}
-                        className="rounded-4" 
+                        className="rounded-4 card-image-interactive" 
                         style={{ height: '100%', objectFit: 'cover' }}
                         onError={(e) => {
                           e.currentTarget.src = `/web3_${(index % 4) + 1}.png?height=300&width=200&text=Crypto`;
                         }}
                       />
-                      <Card.ImgOverlay className="d-flex flex-column justify-content-end p-3">
-                        <div 
-                          className="bg-dark bg-opacity-75 text-white p-2 rounded"
-                          style={{ backdropFilter: 'blur(5px)' }}
-                        >
-                          {card.link ? (
-                            <a
-                              href={card.link}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-white text-decoration-none"
+                      
+                      {/* Interactive Overlay */}
+                      <Card.ImgOverlay className="d-flex flex-column justify-content-between p-3 card-overlay-interactive">
+                        {/* Top Actions */}
+                        <div className="top-actions">
+                          <Badge bg="warning" className="source-badge">
+                            {card.source}
+                          </Badge>
+                          <div className="action-buttons">
+                            <Button
+                              variant={likedCards.has(card.id || index) ? "danger" : "outline-light"}
+                              size="sm"
+                              className="action-btn-small"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleCardLike(card.id || index);
+                              }}
                             >
-                              <small className="fw-bold" style={{ fontSize: '0.9rem', lineHeight: '1.2' }}>
+                              <Heart size={14} fill={likedCards.has(card.id || index) ? "currentColor" : "none"} />
+                            </Button>
+                            <Button
+                              variant={bookmarkedCards.has(card.id || index) ? "warning" : "outline-light"}
+                              size="sm"
+                              className="action-btn-small"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleCardBookmark(card.id || index);
+                              }}
+                            >
+                              <Bookmark size={14} fill={bookmarkedCards.has(card.id || index) ? "currentColor" : "none"} />
+                            </Button>
+                          </div>
+                        </div>
+                        
+                        {/* Content */}
+                        <div className="content-section">
+                          <div 
+                            className="bg-dark bg-opacity-85 text-white p-3 rounded content-box"
+                            style={{ backdropFilter: 'blur(10px)' }}
+                          >
+                            {card.link ? (
+                              <a
+                                href={card.link}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-white text-decoration-none"
+                              >
+                                <small className="fw-bold content-text" style={{ fontSize: '0.9rem', lineHeight: '1.3' }}>
+                                  {card.text}
+                                </small>
+                              </a>
+                            ) : (
+                              <small className="fw-bold content-text" style={{ fontSize: '0.9rem', lineHeight: '1.3' }}>
                                 {card.text}
                               </small>
-                            </a>
-                          ) : (
-                            <small className="fw-bold" style={{ fontSize: '0.9rem', lineHeight: '1.2' }}>
-                              {card.text}
+                            )}
+                          </div>
+                        </div>
+                        
+                        {/* Bottom Stats */}
+                        <div className="bottom-stats">
+                          <div className="stats-row">
+                            <small className="text-light">
+                              <Eye size={12} className="me-1" />
+                              {viewCounts.get(card.id || index) || 0}
                             </small>
-                          )}
-                          {card.source && (
-                            <div className="text-warning mt-1" style={{ fontSize: '0.75rem' }}>
-                              {card.source}
-                            </div>
-                          )}
+                            <small className="text-light">
+                              <Heart size={12} className="me-1" />
+                              {likedCards.has(card.id || index) ? 1 : 0}
+                            </small>
+                            <small className="text-light">
+                              <Bookmark size={12} className="me-1" />
+                              {bookmarkedCards.has(card.id || index) ? 1 : 0}
+                            </small>
+                          </div>
                         </div>
                       </Card.ImgOverlay>
-                  </Card>
-                </Col>
-              ))}
-            </Row>
+                    </Card>
+                  </Col>
+                ))}
+              </Row>
             )}
           </div>
         );
+        
       case 'learn-a-little':
         return (
           <Row className="mt-3 mx-auto" style={{ width: '97%' }}>
             <Col lg={7}>
-              <Carousel className="bg-dark text-white rounded-5" style={{ height: '600px', marginBottom: '20px' }} indicators={false} controls={false}>
+              <Carousel className="bg-dark text-white rounded-5 enhanced-carousel" style={{ height: '600px', marginBottom: '20px' }} indicators={false} controls={false}>
                 {(exploreCards.length > 0 ? exploreCards : fallbackExploreCards).map((card, index) => (
                   <Carousel.Item key={card.article_id || card.id || index} className="custom-carousel-item" style={{ height: '600px' }}>
                     <Card.Img 
@@ -280,10 +455,18 @@ const ExploreSection: React.FC = () => {
                       }}
                     />
                     <Card.ImgOverlay className="d-flex flex-column justify-content-end" style={{ padding: '1rem' }}>
-                      <div className="bg-dark bg-opacity-50 p-3 rounded">
-                        <h5 className="text-white mb-0">{card.text}</h5>
+                      <div className="bg-dark bg-opacity-75 p-4 rounded enhanced-overlay">
+                        <h4 className="text-white mb-2">{card.text}</h4>
                         {card.source && (
-                          <small className="text-warning">{card.source}</small>
+                          <div className="d-flex align-items-center gap-2">
+                            <Badge bg="warning" className="source-badge-large">
+                              {card.source}
+                            </Badge>
+                            <Button variant="outline-light" size="sm">
+                              <Share2 size={16} className="me-1" />
+                              Share
+                            </Button>
+                          </div>
                         )}
                       </div>
                     </Card.ImgOverlay>
@@ -292,177 +475,206 @@ const ExploreSection: React.FC = () => {
               </Carousel>
             </Col>
             <Col lg={5} className="d-flex justify-content-center">
-        <Card className="border-top-0 border-bottom-0" style={{ width: '200%', borderColor: 'transparent', borderLeft: '2px solid lightgrey', marginTop: '20px' }}>
-          <Card.Body className="trending-news-body" style={{ width: '100%' }}>
-            <div className="d-flex justify-content-between align-items-center mb-3">
-              <h5 className="m-0 trending-news-title" style={{ textAlign: 'left' }}>Trending News</h5>
-              <Button variant="link" className="text-decoration-none p-0" style={{ color: 'orange' }}>
-                View All <ChevronRight />
-              </Button>
-            </div>
-            <div
-              ref={scrollableRef}
-              onMouseDown={handleMouseDown}
-              style={{ 
-                maxHeight: '500px', 
-                overflow: 'hidden', 
-                width: '100%', 
-                margin: '0 auto', 
-                cursor: 'grab' 
-              }}
-            >
-              <div className="scrollable-container" style={{ 
-                height: '700px', 
-                width: '100%', 
-                cursor: 'pointer' 
-              }}>
-                <div className="trending-news-container">
-                  {trendingNews.map((news, index) => (
-                    <Row key={index} className="mb-4">
-                      <Col xs={8}>
-                        <h6 className="mb-2" style={{ 
-                          fontSize: '24px', 
-                          fontWeight: 'bold',
-                          lineHeight: '1.4',
-                          whiteSpace: 'normal',
-                          wordWrap: 'break-word',
-                          textAlign: 'left'
-                        }}>{news.title}</h6>
-                        <p className="small text-muted mb-2" style={{ 
-                          fontSize: '18px',
-                          lineHeight: '1.5',
-                          whiteSpace: 'normal',
-                          wordWrap: 'break-word',
-                          textAlign: 'left'
-                        }}>{news.excerpt}</p>
-                        <small className="text-muted d-flex justify-content-between" style={{ 
-                          fontSize: '16px',
-                          whiteSpace: 'normal',
-                          wordWrap: 'break-word',
-                          display: 'block'
-                        }}>
-                          <div className="d-flex justify-content-between align-items-center">
-                            <div>
-                              <small className="text-muted" style={{ fontSize: '18px' }}>
-                                By 
-                              </small>
-                              <small className="text-warning" style={{ fontSize: '18px', marginLeft: '4px' }}>
-                                {news.author}
-                              </small>
-                            </div>
-                            
-                          </div>
-                          <div className="ms-auto text-end">
-                              <small className="text-muted">{news.date}</small>
-                            </div>
-                        </small>
-                      </Col>
-                      <Col xs={4}>
-                        <img 
-                          src={news.image} 
-                          alt={news.title} 
-                          className="img-fluid rounded" 
-                          style={{ height: '120px', objectFit: 'cover' }} 
-                        />
-                      </Col>
-                    </Row>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </Card.Body>
-        </Card>
-      </Col>
+              <Card className="border-top-0 border-bottom-0 enhanced-trending-card" style={{ width: '200%', borderColor: 'transparent', borderLeft: '2px solid orange', marginTop: '20px' }}>
+                <Card.Body className="trending-news-body" style={{ width: '100%' }}>
+                  <div className="d-flex justify-content-between align-items-center mb-4">
+                    <div className="d-flex align-items-center gap-2">
+                      <h5 className="m-0 trending-news-title">
+                        <Zap size={20} className="me-2 text-warning" />
+                        Trending News
+                      </h5>
+                    </div>
+                    <Button variant="outline-warning" className="text-decoration-none p-0 view-all-btn">
+                      View All <ChevronRight size={16} />
+                    </Button>
+                  </div>
+                  
+                  <div className="trending-stats mb-3">
+                    <div className="stat-item">
+                      <span className="stat-label">Total Views</span>
+                      <span className="stat-value">2.4M</span>
+                    </div>
+                    <div className="stat-item">
+                      <span className="stat-label">Engagement</span>
+                      <span className="stat-value">89%</span>
+                    </div>
+                  </div>
+                  
+                  <div
+                    ref={scrollableRef}
+                    onMouseDown={handleMouseDown}
+                    style={{ 
+                      maxHeight: '500px', 
+                      overflow: 'hidden', 
+                      width: '100%', 
+                      margin: '0 auto', 
+                      cursor: 'grab' 
+                    }}
+                  >
+                    <div className="scrollable-container" style={{ 
+                      height: '700px', 
+                      width: '100%', 
+                      cursor: 'pointer' 
+                    }}>
+                      <div className="trending-news-container">
+                        {trendingNews.map((news, index) => (
+                          <Row key={index} className="mb-4 trending-news-item">
+                            <Col xs={8}>
+                              <h6 
+                                className="mb-2 trending-news-title-enhanced" 
+                                style={{ cursor: 'pointer' }}
+                                onClick={() => window.location.href = `/news/${news.article_id || encodeURIComponent(news.title)}`}
+                              >
+                                {news.title}
+                              </h6>
+                              <p className="small text-muted mb-2 trending-news-excerpt">{news.excerpt}</p>
+                              <div className="trending-news-meta">
+                                <div className="author-section">
+                                  <small className="text-muted">
+                                    By 
+                                  </small>
+                                  <small className="text-warning author-name">
+                                    {news.author}
+                                  </small>
+                                </div>
+                                <div className="time-section">
+                                  <small className="text-muted">{news.date}</small>
+                                </div>
+                              </div>
+                            </Col>
+                            <Col xs={4}>
+                              <img 
+                                src={news.image} 
+                                alt={news.title} 
+                                className="img-fluid rounded trending-news-image" 
+                                style={{ height: '120px', objectFit: 'cover' }} 
+                              />
+                            </Col>
+                          </Row>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </Card.Body>
+              </Card>
+            </Col>
           </Row>
         );
+        
       case 'test-your-knowledge':
         return (
-          <Card className="rounded-5" style={{ width: '100%', height: '620px', border: 0 }}>
-            <QuizSection />
-          </Card>
+          <div className="quiz-section-enhanced">
+            <Card className="rounded-5 quiz-card-enhanced" style={{ width: '100%', minHeight: '620px', border: 0 }}>
+              <Card.Header className="quiz-header">
+                <div className="d-flex align-items-center gap-3">
+                  <Brain size={24} className="text-warning" />
+                  <h5 className="mb-0">Test Your Crypto Knowledge</h5>
+                  <Badge bg="success">Level {Math.floor((likedCards.size + bookmarkedCards.size) / 3) + 1}</Badge>
+                </div>
+              </Card.Header>
+              <Card.Body className="p-4">
+                <QuizSection />
+              </Card.Body>
+            </Card>
+          </div>
         );
+        
       case 'trending-news':
         return renderTrendingNews();
+        
       default:
         return null;
     }
   };
 
   return (
-    <Container fluid className="mt-5 rounded-5" style={{ width: '92%' }}>
+    <Container fluid className="mt-5 rounded-5 explore-container" style={{ width: '92%' }}>
+      {/* Achievement Notification */}
+      {achievementUnlocked && (
+        <div className="achievement-notification">
+          <div className="achievement-content">
+            <Trophy size={24} className="me-2" />
+            {achievementUnlocked}
+          </div>
+        </div>
+      )}
+      
+      {/* Particle Effect */}
+      {particleEffect && (
+        <div className="particle-container">
+          {Array.from({ length: 20 }).map((_, i) => (
+            <div key={i} className="particle" style={{
+              '--delay': `${i * 0.1}s`,
+              '--x': `${Math.random() * 100}%`,
+              '--y': `${Math.random() * 100}%`
+            } as React.CSSProperties} />
+          ))}
+        </div>
+      )}
+      
       <div className="d-flex justify-content-between align-items-center mb-4">
-        <h4 className="m-0 font-inter" style={{fontWeight: 'bold',letterSpacing: '0.05em'}}>Explore</h4>
-      </div>
-      <Card className="shadow rounded-5 font-inter">
+        <div className="d-flex align-items-center gap-3">
+          <h4 className="m-0 font-inter explore-title">
+            <Lightbulb size={24} className="me-2 text-warning" />
+            Explore & Discover
+          </h4>
+          <Badge bg="info" className="explore-badge">
+            <Target size={16} className="me-1" />
+            Interactive
+          </Badge>
+        </div>
         
+        {/* Progress Bar */}
+        <div className="progress-section">
+          <small className="text-muted me-2">Progress</small>
+          <ProgressBar 
+            now={Math.min((likedCards.size + bookmarkedCards.size) * 10, 100)} 
+            className="progress-bar-custom"
+            style={{ width: '100px' }}
+          />
+        </div>
+      </div>
+      
+      <Card className="shadow rounded-5 font-inter explore-main-card">
         <Card.Body>
-          
-          <Nav variant="tabs" className="mb-3 justify-content-center" activeKey={activeTab} onSelect={(k) => k && setActiveTab(k)} style={{ borderBottom: 'none' }}>
+          <Nav variant="tabs" className="mb-4 justify-content-center enhanced-tabs" activeKey={activeTab} onSelect={(k) => k && setActiveTab(k)} style={{ borderBottom: 'none' }}>
             <Nav.Item>
               <Nav.Link 
                 eventKey="did-you-know" 
-                className={activeTab === 'did-you-know' ? 'active' : ''} 
-                style={{ 
-                  border: 'none', // Remove any border
-                  backgroundColor: 'transparent', // Remove background color
-                  borderBottom: activeTab === 'did-you-know' ? '3px solid orange' : 'none', // Line below active tab
-                  color: activeTab === 'did-you-know' ? 'orange' : 'black', // Text color
-                  fontWeight: 'bold', // Bold text
-                  fontSize: '1.1rem', // Increase font size
-                }}
+                className={`enhanced-tab ${activeTab === 'did-you-know' ? 'active' : ''}`}
               >
+                <Sparkles size={18} className="me-2" />
                 Did You Know?
               </Nav.Link>
             </Nav.Item>
             <Nav.Item>
               <Nav.Link 
                 eventKey="learn-a-little" 
-                className={activeTab === 'learn-a-little' ? 'active' : ''} 
-                style={{ 
-                  border: 'none', // Remove any border
-                  backgroundColor: 'transparent', // Remove background color
-                  borderBottom: activeTab === 'learn-a-little' ? '3px solid orange' : 'none', // Line below active tab
-                  color: activeTab === 'learn-a-little' ? 'orange' : 'black', // Text color
-                  fontWeight: 'bold', // Bold text
-                  fontSize: '1.1rem', // Increase font size
-                }}
+                className={`enhanced-tab ${activeTab === 'learn-a-little' ? 'active' : ''}`}
               >
-                Learn a little
+                <Bookmark size={18} className="me-2" />
+                Learn a Little
               </Nav.Link>
             </Nav.Item>
             <Nav.Item>
               <Nav.Link 
                 eventKey="test-your-knowledge" 
-                className={activeTab === 'test-your-knowledge' ? 'active' : ''} 
-                style={{ 
-                  border: 'none', // Remove any border
-                  backgroundColor: 'transparent', // Remove background color
-                  borderBottom: activeTab === 'test-your-knowledge' ? '3px solid orange' : 'none', // Line below active tab
-                  color: activeTab === 'test-your-knowledge' ? 'orange' : 'black', // Text color
-                  fontWeight: 'bold', // Bold text
-                  fontSize: '1.1rem', // Increase font size
-                }}
+                className={`enhanced-tab ${activeTab === 'test-your-knowledge' ? 'active' : ''}`}
               >
-                Test your knowledge
+                <Brain size={18} className="me-2" />
+                Test Knowledge
               </Nav.Link>
             </Nav.Item>
-            {/* <Nav.Item>
-              <Nav.Link 
-                eventKey="trending-news" 
-                className={`text-warning ${activeTab === 'trending-news' ? 'active' : ''}`} 
-                style={{ fontSize: '1.2rem' }}
-              >
-                Trending News
-              </Nav.Link>
-            </Nav.Item> */}
           </Nav>
+          
           {renderContent()}
+          
           {activeTab !== 'learn-a-little' && activeTab !== 'test-your-knowledge' && (
-            <div className="d-flex justify-content-center mt-4 gap-2">
-              <Button variant="outline-secondary" size="lg" className="rounded-circle" style={{ width: '50px', height: '50px', marginLeft: '10px' }}>
+            <div className="d-flex justify-content-center mt-4 gap-3">
+              <Button variant="outline-warning" size="lg" className="rounded-circle navigation-btn">
                 <ChevronLeft size={24} />
               </Button>
-              <Button variant="outline-secondary" size="lg" className="rounded-circle" style={{ width: '50px', height: '50px', marginLeft: '10px' }}>
+              <Button variant="outline-warning" size="lg" className="rounded-circle navigation-btn">
                 <ChevronRight size={24} />
               </Button>
             </div>

@@ -3,6 +3,7 @@ import { Container, Row, Col, Card } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 interface NewsItem {
+  article_id?: string;
   title: string;
   description: string;
   creator: string[];
@@ -64,7 +65,11 @@ const AllNews: React.FC = () => {
               <small className="text-muted">{new Date(item.pubDate).toLocaleDateString()}</small>
             </div>
             <h5 className="text-black text-start" style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>
-              <a href={item.link} target="_blank" rel="noopener noreferrer" className="text-black text-decoration-none">
+              <a 
+                href={`/news/${item.article_id || encodeURIComponent(item.title)}`} 
+                className="text-black text-decoration-none"
+                style={{ cursor: 'pointer' }}
+              >
                 {item.title}
               </a>
             </h5>

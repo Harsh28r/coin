@@ -712,7 +712,13 @@ export function TopNav() {
           <ListGroup variant="flush">
             {news.length > 0 ? (
               news.map(article => (
-                <ListGroup.Item key={article.id}>{article.title}</ListGroup.Item>
+                <ListGroup.Item 
+                  key={article.id}
+                  style={{ cursor: 'pointer' }}
+                  onClick={() => window.location.href = `/news/${article.id}`}
+                >
+                  {article.title}
+                </ListGroup.Item>
               ))
             ) : (
               <ListGroup.Item>No news available</ListGroup.Item>
