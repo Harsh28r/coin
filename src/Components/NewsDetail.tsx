@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Container, Row, Col, Card, Badge, Button } from 'react-bootstrap';
+import { useLanguage } from '../context/LanguageContext';
+import { useNewsTranslation } from '../hooks/useNewsTranslation';
 import { ArrowLeft, Share2, Bookmark, Eye, Calendar, User, ExternalLink } from 'lucide-react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './NewsDetail.css';
@@ -25,7 +27,26 @@ const NewsDetail: React.FC = () => {
   const [newsItem, setNewsItem] = useState<NewsItem | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5000';
+  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://c-back-2.onrender.com';
+  const { currentLanguage } = useLanguage();
+  const { displayItems: translatedItems, isTranslating } = useNewsTranslation(newsItem ? [newsItem] : []);
+  const effectiveItem = (translatedItems && translatedItems[0]) || newsItem;
+
+  // Compute a simple estimated reading time based on content length
+  const getReadingTime = (html?: string): number => {
+    if (!html || typeof html !== 'string') return 1;
+    const text = html
+      .replace(/<[^>]*>/g, ' ')
+      .replace(/&nbsp;/g, ' ')
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"')
+      .replace(/\s+/g, ' ')
+      .trim();
+    const words = text ? text.split(/\s+/).length : 0;
+    return Math.max(1, Math.round(words / 200));
+  };
 
   useEffect(() => {
     const fetchNewsDetail = async () => {
@@ -33,47 +54,53 @@ const NewsDetail: React.FC = () => {
       
       try {
         setLoading(true);
-        // Try to fetch from different RSS collections
-        const collections = ['rssfeeds', 'cryptoslate_feeds', 'decrypt_feeds', 'coindesk_feeds'];
+        // First try the dedicated endpoint
+        try {
+          const byIdRes = await fetch(`${API_BASE_URL}/news-by-id?id=${encodeURIComponent(id)}`);
+          if (byIdRes.ok) {
+            const byIdData = await byIdRes.json();
+            if (byIdData.success && byIdData.data) {
+              setNewsItem(byIdData.data);
+              setLoading(false);
+              return;
+            }
+          }
+        } catch (e) {
+          // fallback chain continues
+        }
         
-        for (const collection of collections) {
-          try {
-            const response = await fetch(`${API_BASE_URL}/fetch-rss?collection=${collection}&limit=50`);
-            const data = await response.json();
-            
-            if (data.success && data.data) {
-              const foundItem = data.data.find((item: NewsItem) => 
-                item.article_id === id || item.link.includes(id)
-              );
-              
-              if (foundItem) {
-                setNewsItem(foundItem);
+        // Fallback search if direct fetch didn’t find it
+        try {
+          const searchResponse = await fetch(`${API_BASE_URL}/search-db-news?query=${encodeURIComponent(id)}`);
+          const searchData = await searchResponse.json();
+          if (searchData.success && searchData.data && Array.isArray(searchData.data)) {
+            const foundItem = searchData.data.find((item: NewsItem) => 
+              item.article_id === id || (item.link && item.link.includes(id))
+            );
+            if (foundItem) {
+              setNewsItem(foundItem);
+              setLoading(false);
+              return;
+            }
+          }
+        } catch (e) {}
+        
+        // Fallback: attempt fetch from Defiant endpoint latest items and match
+        try {
+          const defiantRes = await fetch(`${API_BASE_URL}/fetch-defiant-rss?limit=20`);
+          if (defiantRes.ok) {
+            const defiantData = await defiantRes.json();
+            if (defiantData.success && Array.isArray(defiantData.data)) {
+              const match = defiantData.data.find((it: any) => it.article_id === id || (it.link && it.link.includes(id)));
+              if (match) {
+                setNewsItem(match);
                 setLoading(false);
                 return;
               }
             }
-          } catch (err) {
-            console.log(`Failed to fetch from ${collection}:`, err);
-            continue;
           }
-        }
-        
-        // If not found in RSS feeds, try searching in all collections
-        const searchResponse = await fetch(`${API_BASE_URL}/search-news?q=${encodeURIComponent(id)}&limit=100`);
-        const searchData = await searchResponse.json();
-        
-        if (searchData.success && searchData.data) {
-          const foundItem = searchData.data.find((item: NewsItem) => 
-            item.article_id === id || item.link.includes(id)
-          );
-          
-          if (foundItem) {
-            setNewsItem(foundItem);
-            setLoading(false);
-            return;
-          }
-        }
-        
+        } catch (e) {}
+
         setError('News article not found');
         setLoading(false);
       } catch (err) {
@@ -127,7 +154,7 @@ const NewsDetail: React.FC = () => {
     );
   }
 
-  if (error || !newsItem) {
+  if (error || !effectiveItem) {
     return (
       <Container className="mt-5">
         <div className="text-center">
@@ -145,70 +172,84 @@ const NewsDetail: React.FC = () => {
   return (
     <Container className="mt-4 news-detail-container">
       <Row>
-        <Col lg={8} className="mx-auto">
-          {/* Back Button */}
-          <Button 
-            onClick={handleBack} 
-            variant="outline-secondary" 
-            className="mb-4"
-            size="sm"
-          >
-            <ArrowLeft className="me-2" size={16} />
-            Back to News
-          </Button>
+        <Col lg={10} className="mx-auto">
+          {/* Breadcrumb / Back */}
+          <div className="d-flex align-items-center justify-content-between mb-3">
+            <Button onClick={handleBack} variant="outline-secondary" size="sm">
+              <ArrowLeft className="me-2" size={16} /> Back
+            </Button>
+            {effectiveItem && effectiveItem.source_name && (
+              <Badge bg="light" text="dark" className="rounded-pill">
+                {effectiveItem.source_name}
+              </Badge>
+            )}
+          </div>
 
           {/* Article Header */}
           <div className="article-header mb-4">
-            <div className="source-badge mb-3">
-              <Badge bg="primary" className="me-2">
-                {newsItem.source_name || 'Crypto News'}
-              </Badge>
-              {newsItem.category && newsItem.category.map((cat, index) => (
-                <Badge key={index} bg="secondary" className="me-1">
-                  {cat}
-                </Badge>
-              ))}
-            </div>
-            
-            <h1 className="article-title mb-3">{newsItem.title}</h1>
-            
-            <div className="article-meta mb-4">
-              <div className="d-flex align-items-center flex-wrap gap-3">
-                <div className="d-flex align-items-center">
+            {/* Title */}
+            <h1 className="article-title mb-1" style={{ fontWeight: 700, lineHeight: 1.2 }}>
+              {effectiveItem.title}
+            </h1>
+            {isTranslating && currentLanguage !== 'en' && (
+              <small className="text-muted d-block mb-2">Translating to {currentLanguage.toUpperCase()}…</small>
+            )}
+            {/* Meta */}
+            <div className="article-meta mb-3">
+              <div className="d-flex align-items-center flex-wrap gap-3 text-muted">
+                <div className="d-flex align-items-center small">
                   <User className="me-2" size={16} />
-                  <span className="text-muted">
-                    {newsItem.creator?.[0] || 'Unknown Author'}
-                  </span>
+                  {effectiveItem.creator?.[0] || 'Unknown Author'}
                 </div>
-                
-                <div className="d-flex align-items-center">
+                <div className="vr" />
+                <div className="d-flex align-items-center small">
                   <Calendar className="me-2" size={16} />
-                  <span className="text-muted">
-                    {new Date(newsItem.pubDate).toLocaleDateString('en-US', {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit'
-                    })}
-                  </span>
+                  {(() => {
+                    const ds = effectiveItem.pubDate;
+                    let d = new Date(ds);
+                    if (isNaN(d.getTime())) {
+                      const isoCandidate = ds.replace(' ', 'T') + 'Z';
+                      d = new Date(isoCandidate);
+                    }
+                    return isNaN(d.getTime())
+                      ? ds
+                      : d.toLocaleDateString('en-US', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        });
+                  })()}
                 </div>
-                
-                <div className="d-flex align-items-center">
+                <div className="vr" />
+                <div className="d-flex align-items-center small">
                   <Eye className="me-2" size={16} />
-                  <span className="text-muted">Crypto News</span>
+                  {getReadingTime(effectiveItem?.content)} min read
                 </div>
+                {effectiveItem && effectiveItem.category && effectiveItem.category.length > 0 && (
+                  <>
+                    <div className="vr" />
+                    <div className="d-flex align-items-center gap-1">
+                      {effectiveItem.category.slice(0, 3).map((cat: string, idx: number) => (
+                        <Badge key={idx} bg="light" text="dark" className="rounded-pill">
+                          {cat}
+                        </Badge>
+                      ))}
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           </div>
 
           {/* Featured Image */}
-          {newsItem.image_url && (
+          {effectiveItem.image_url && (
             <div className="featured-image-container mb-4">
               <img
-                src={newsItem.image_url}
-                alt={newsItem.title}
-                className="img-fluid rounded featured-image"
+                src={effectiveItem.image_url}
+                alt={effectiveItem.title}
+                className="img-fluid rounded shadow-sm featured-image"
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
                   target.src = 'https://via.placeholder.com/800x400?text=News+Image';
@@ -219,19 +260,18 @@ const NewsDetail: React.FC = () => {
 
           {/* Article Content */}
           <div className="article-content mb-4">
-            {newsItem.description && (
+            {effectiveItem.description && (
               <div className="article-excerpt mb-4">
-                <p className="lead text-muted">{newsItem.description}</p>
+                <p className="lead text-muted" style={{ fontStyle: 'italic' }}>{effectiveItem.description}</p>
               </div>
             )}
             
-            {newsItem.content && (
+            {effectiveItem.content && (
               <div className="article-body">
-                <div 
+                <div
                   className="content-html"
-                  dangerouslySetInnerHTML={{ 
-                    __html: newsItem.content.replace(/\n/g, '<br>') 
-                  }}
+                  style={{ fontSize: '1.04rem', lineHeight: 1.8 }}
+                  dangerouslySetInnerHTML={{ __html: effectiveItem.content.replace(/\n/g, '<br>') }}
                 />
               </div>
             )}
@@ -241,30 +281,25 @@ const NewsDetail: React.FC = () => {
           <div className="article-footer">
             <hr className="my-4" />
             
-            <div className="d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div className="d-flex justify-content-between align-items-center flex-wrap gap-2">
               <div className="d-flex gap-2">
                 <Button onClick={handleShare} variant="outline-primary" size="sm">
-                  <Share2 className="me-2" size={16} />
-                  Share
+                  <Share2 className="me-2" size={16} /> Share
                 </Button>
-                
                 <Button variant="outline-secondary" size="sm">
-                  <Bookmark className="me-2" size={16} />
-                  Bookmark
+                  <Bookmark className="me-2" size={16} /> Save
                 </Button>
               </div>
-              
               <Button onClick={handleExternalLink} variant="primary" size="sm">
-                <ExternalLink className="me-2" size={16} />
-                Read on {newsItem.source_name || 'Original Source'}
+                <ExternalLink className="me-2" size={16} /> Read on {effectiveItem.source_name || 'Original Source'}
               </Button>
             </div>
             
-            {newsItem.keywords && newsItem.keywords.length > 0 && (
+            {effectiveItem && effectiveItem.keywords && effectiveItem.keywords.length > 0 && (
               <div className="keywords-section mt-4">
                 <h6 className="text-muted mb-2">Tags:</h6>
                 <div className="d-flex flex-wrap gap-2">
-                  {newsItem.keywords.slice(0, 10).map((keyword, index) => (
+                  {effectiveItem.keywords.slice(0, 10).map((keyword: string, index: number) => (
                     <Badge key={index} bg="light" text="dark" className="px-2 py-1">
                       {keyword}
                     </Badge>

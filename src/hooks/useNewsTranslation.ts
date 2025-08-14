@@ -12,6 +12,11 @@ export const useNewsTranslation = (newsItems: NewsItem[]) => {
   const { currentLanguage } = useLanguage();
   const [translatedItems, setTranslatedItems] = useState<NewsItem[]>([]);
   const [isTranslating, setIsTranslating] = useState<boolean>(false);
+  
+  // Create a stable signature for items to avoid effect loops due to new array refs
+  const itemsSignature = JSON.stringify(
+    (newsItems || []).map((item) => `${item['article_id'] || ''}|${item.title || ''}|${item['link'] || ''}`)
+  );
 
   // Function to translate news items when language changes
   const translateNewsItems = async (items: NewsItem[], targetLanguage: Language) => {
@@ -34,12 +39,47 @@ export const useNewsTranslation = (newsItems: NewsItem[]) => {
     }
   };
 
-  // Effect to translate news when language changes
+  // Effect to translate news when language or content changes
   useEffect(() => {
-    if (newsItems.length > 0) {
-      translateNewsItems(newsItems, currentLanguage);
-    }
-  }, [currentLanguage, newsItems]);
+    let isCancelled = false;
+    
+    const run = async () => {
+      if (!newsItems || newsItems.length === 0) {
+        // Clear translations when no items
+        setTranslatedItems([]);
+        setIsTranslating(false);
+        return;
+      }
+      
+      // For English, show original items without triggering translation churn
+      if (currentLanguage === 'en') {
+        setTranslatedItems([]);
+        setIsTranslating(false);
+        return;
+      }
+      
+      setIsTranslating(true);
+      try {
+        const translated = await Promise.all(
+          newsItems.map(item => translateNewsItem(item, currentLanguage))
+        );
+        if (!isCancelled) {
+          setTranslatedItems(translated);
+        }
+      } catch (e) {
+        if (!isCancelled) {
+          setTranslatedItems(newsItems);
+        }
+      } finally {
+        if (!isCancelled) {
+          setIsTranslating(false);
+        }
+      }
+    };
+    
+    run();
+    return () => { isCancelled = true; };
+  }, [currentLanguage, itemsSignature]);
 
   // Use translated news items for display
   const displayItems = translatedItems.length > 0 ? translatedItems : newsItems;

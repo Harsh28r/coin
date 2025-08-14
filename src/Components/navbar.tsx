@@ -119,31 +119,20 @@ const CoinsNavbar: React.FC = () => {
   return (
     <Navbar bg="white" expand="lg" className="border-bottom py-3" style={{ boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)' }}>
       <Container fluid style={{ maxWidth: '90%', margin: '0 auto' }}>
-        <Navbar.Brand as={Link} to="/home">
+        <Navbar.Brand as={Link} to="/">
           <img src="/logo2.png" style={{ width: '150px', height: '55px' }} alt="CoinsCapture logo" />
         </Navbar.Brand>
         <Navbar.Toggle aria-controls="basic-navbar-nav" />
         <Navbar.Collapse id="basic-navbar-nav">
           <Nav className="me-auto gap-2" style={linkStyles}>
             <NavDropdown title="News" id="news-dropdown">
-              <NavDropdown.Item as={Link} to="/news/latest">Latest News</NavDropdown.Item>
-              <NavDropdown.Item as={Link} to="/news/trending">Trending</NavDropdown.Item>
-              <NavDropdown.Item as={Link} to="/news/categories">Categories</NavDropdown.Item>
+              <NavDropdown.Item as={Link} to="/exclusive-news">Exclusive News</NavDropdown.Item>
+              <NavDropdown.Item as={Link} to="/All-Trending-news">Trending</NavDropdown.Item>
+              <NavDropdown.Item as={Link} to="/press-news">Press News</NavDropdown.Item>
             </NavDropdown>
-            <Nav.Link as={Link} to="/market" className="d-lg-none">
-              Market
-            </Nav.Link>
-            <Nav.Link as={Link} to="/exchanges" className="d-lg-none">
-              Exchanges
-            </Nav.Link>
-            <NavDropdown title="Explore" id="explore-dropdown">
-              <NavDropdown.Item as={Link} to="/explore/cryptocurrencies">Cryptocurrencies</NavDropdown.Item>
-              <NavDropdown.Item as={Link} to="/explore/nfts">NFTs</NavDropdown.Item>
-              <NavDropdown.Item as={Link} to="/explore/defi">DeFi</NavDropdown.Item>
-            </NavDropdown>
-            <Nav.Link as={Link} to="/press-release">Press Release</Nav.Link>
-            <Nav.Link as={Link} to="/exchanges">Exchanges</Nav.Link>
-            <Nav.Link as={Link} to="/blog">Blog</Nav.Link>
+            <Nav.Link as={Link} to="/search">Search</Nav.Link>
+            <Nav.Link as={Link} to="/advertise">Advertise</Nav.Link>
+            <Nav.Link as={Link} to="/login">Login</Nav.Link>
           </Nav>
           <Form className="d-flex justify-content-center me-2" onSubmit={handleSearch}>
             <div className="position-relative search-container">

@@ -75,34 +75,28 @@ const Footer: React.FC = () => {
           <Col md={2} className="mb-2 mb-md-0 text-center text-md-start" style={{ textAlign: 'left' }} >
             <h6 className="text-white mb-3 fs-5" style={{ fontSize: '1.4rem' }}>Our Company</h6>
             <ul className="list-unstyled" style={{ paddingLeft: '0' }}>
-              <li style={{ marginBottom: '5px' }}><a href="#" className="text-light small text-decoration-none hover-underline" style={{ fontSize: '1.1rem' }}>{t('footer.aboutUs')}</a></li>
-              <li style={{ marginBottom: '5px' }}><a href="#" className="text-light small text-decoration-none hover-underline" style={{ fontSize: '1.1rem' }}>{t('footer.contactUs')}</a></li>
-              <li style={{ marginBottom: '5px' }}><a href="#" className="text-light small text-decoration-none hover-underline" style={{ fontSize: '1.1rem' }}>{t('footer.faq')}</a></li>
-              <li style={{ marginBottom: '5px' }}><a href="#" className="text-light small text-decoration-none hover-underline" style={{ fontSize: '1.1rem' }}>{t('footer.privacyPolicy')}</a></li>
-              <li style={{ marginBottom: '5px' }}><a href="#" className="text-light small text-decoration-none hover-underline" style={{ fontSize: '1.1rem' }}>{t('footer.disclaimer')}</a></li>
+              <li style={{ marginBottom: '5px' }}><a href="/" className="text-light small text-decoration-none hover-underline" style={{ fontSize: '1.1rem' }}>{t('nav.home')}</a></li>
+              <li style={{ marginBottom: '5px' }}><a href="/exclusive-news" className="text-light small text-decoration-none hover-underline" style={{ fontSize: '1.1rem' }}>{t('news.exclusive')}</a></li>
+              <li style={{ marginBottom: '5px' }}><a href="/All-Trending-news" className="text-light small text-decoration-none hover-underline" style={{ fontSize: '1.1rem' }}>{t('news.trending')}</a></li>
+              <li style={{ marginBottom: '5px' }}><a href="/press-news" className="text-light small text-decoration-none hover-underline" style={{ fontSize: '1.1rem' }}>{t('news.press')}</a></li>
+              <li style={{ marginBottom: '5px' }}><a href="/search" className="text-light small text-decoration-none hover-underline" style={{ fontSize: '1.1rem' }}>{t('common.search')}</a></li>
             </ul>
           </Col>
           <Col md={2} className="mb-2 mb-md-0 text-center text-md-start" style={{ textAlign: 'left' }}>
             <h6 className="text-white mb-3 fs-5" style={{ fontSize: '1.4rem' }}>Interesting</h6>
             <ul className="list-unstyled" >
-              <li style={{ marginBottom: '5px' }}><a href="#" className="text-light small text-decoration-none hover-underline" style={{ fontSize: '1.1rem' }}>{t('footer.didYouKnow')}</a></li>
-              <li style={{ marginBottom: '5px' }}><a href="#" className="text-light small text-decoration-none hover-underline" style={{ fontSize: '1.1rem' }}>{t('footer.learnMore')}</a></li>
-              <li style={{ marginBottom: '5px' }}><a href="#" className="text-light small text-decoration-none hover-underline" style={{ fontSize: '1.1rem' }}>{t('footer.newFeature')}</a></li>
-              <li style={{ marginBottom: '5px' }}><a href="#" className="text-light small text-decoration-none hover-underline" style={{ fontSize: '1.1rem' }}>{t('footer.trending')}</a></li>
-              <li style={{ marginBottom: '5px' }}><a href="#" className="text-light small text-decoration-none hover-underline" style={{ fontSize: '1.1rem' }}>{t('footer.events')}</a></li>
+              <li style={{ marginBottom: '5px' }}><a href="/explore/cryptocurrencies" className="text-light small text-decoration-none hover-underline" style={{ fontSize: '1.1rem' }}>{t('explore.didYouKnow')}</a></li>
+              <li style={{ marginBottom: '5px' }}><a href="/explore/defi" className="text-light small text-decoration-none hover-underline" style={{ fontSize: '1.1rem' }}>{t('explore.learnALittle')}</a></li>
+              <li style={{ marginBottom: '5px' }}><a href="/explore/nfts" className="text-light small text-decoration-none hover-underline" style={{ fontSize: '1.1rem' }}>{t('explore.testKnowledge')}</a></li>
             </ul>
           </Col>
           <Col md={2} className="mb-4 mb-md-0 text-center text-md-start" style={{ textAlign: 'left' }}>
             <h6 className="text-white mb-4 fs-5" style={{ fontSize: '1.4rem' }}>{t('footer.joinCommunity')}</h6>
             <div className="d-flex flex-wrap gap-4 justify-content-center justify-content-md-start">
-              <a href="#" className="text-light hover-opacity"><Facebook size={30} /></a>
-              <a href="#" className="text-light hover-opacity"><Twitter size={30} /></a>
-              <a href="#" className="text-light hover-opacity"><Pinterest size={30} /></a>
-              <a href="#" className="text-light hover-opacity"><Instagram size={30} /></a>
-              <a href="#" className="text-light hover-opacity"><Youtube size={30} /></a>
-              <a href="#" className="text-light hover-opacity"><Discord size={30} /></a>
-              <a href="#" className="text-light hover-opacity"><Twitter size={30} /></a>
-              <a href="#" className="text-light hover-opacity"><Youtube size={30} /></a>
+              <a href="https://x.com" target="_blank" rel="noreferrer" className="text-light hover-opacity"><Twitter size={30} /></a>
+              <a href="https://instagram.com" target="_blank" rel="noreferrer" className="text-light hover-opacity"><Instagram size={30} /></a>
+              <a href="https://youtube.com" target="_blank" rel="noreferrer" className="text-light hover-opacity"><Youtube size={30} /></a>
+              <a href="https://discord.com" target="_blank" rel="noreferrer" className="text-light hover-opacity"><Discord size={30} /></a>
             </div>
             <div className="d-flex justify-content-start mt-5 me-md-0">
               <Form onSubmit={handleSubscribe} className="d-flex flex-column" style={{ width: '100%' }}>

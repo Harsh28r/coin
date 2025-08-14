@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Container, Row, Col, Table, Card, Button, Modal, ButtonGroup, Alert } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { Line } from 'react-chartjs-2';
@@ -37,37 +37,117 @@ interface IChart {
   style?: React.CSSProperties;
 }
 
-// Chart component using react-chartjs-2
-const Chart: React.FC<IChart> = ({ data, title, style }) => (
-  <div style={style} className="bg-light rounded">
-    <Line
-      data={{
-        labels: data.labels,
-        datasets: [
-          {
-            label: title,
-            data: data.prices,
-            borderColor: '#007bff',
-            backgroundColor: 'rgba(0, 123, 255, 0.1)',
-            fill: true,
-            tension: 0.4,
-          },
-        ],
-      }}
-      options={{
-        responsive: true,
-        plugins: {
-          legend: { position: 'top' },
-          title: { display: true, text: title, font: { size: 16 } },
+// Chart component using react-chartjs-2 with 3D-like aesthetic
+const Chart: React.FC<IChart> = ({ data, title, style }) => {
+  const shadowPlugin = useMemo(() => ({
+    id: 'lineShadow',
+    beforeDatasetDraw(chart: any, args: any) {
+      const { ctx } = chart;
+      ctx.save();
+      ctx.shadowColor = 'rgba(0,0,0,0.25)';
+      ctx.shadowBlur = 14;
+      ctx.shadowOffsetY = 8;
+    },
+    afterDatasetDraw(chart: any) {
+      chart.ctx.restore();
+    },
+  }), []);
+
+  const glossyBackground = useMemo(() => ({
+    id: 'glossyBackground',
+    beforeDraw(chart: any) {
+      const { ctx, chartArea } = chart;
+      const { top, bottom, left, right } = chartArea || {};
+      if (!top) return;
+      const grd = ctx.createLinearGradient(0, top, 0, bottom);
+      grd.addColorStop(0, 'rgba(255,255,255,0.95)');
+      grd.addColorStop(1, 'rgba(245,247,250,0.95)');
+      ctx.save();
+      ctx.fillStyle = grd;
+      ctx.fillRect(left, top, right - left, bottom - top);
+      ctx.restore();
+    },
+  }), []);
+
+  const chartData: any = useMemo(() => ({
+    labels: data.labels,
+    datasets: [
+      {
+        label: title,
+        data: data.prices,
+        borderColor: (context: any) => {
+          const { ctx, chartArea } = context.chart;
+          if (!chartArea) return '#fb923c';
+          const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+          gradient.addColorStop(0, '#fb923c');
+          gradient.addColorStop(1, '#f59e0b');
+          return gradient;
         },
-        scales: {
-          x: { title: { display: true, text: 'Time' } },
-          y: { title: { display: true, text: 'Price (USD)' } },
+        backgroundColor: (context: any) => {
+          const { ctx, chartArea } = context.chart;
+          if (!chartArea) return 'rgba(251, 146, 60, 0.25)';
+          const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+          gradient.addColorStop(0, 'rgba(251, 146, 60, 0.35)');
+          gradient.addColorStop(1, 'rgba(251, 146, 60, 0.02)');
+          return gradient;
         },
-      }}
-    />
-  </div>
-);
+        fill: true,
+        borderWidth: 3,
+        tension: 0.45,
+        pointRadius: 0,
+        pointHoverRadius: 4,
+        pointHitRadius: 10,
+        borderJoinStyle: 'round',
+        borderCapStyle: 'round',
+      },
+    ],
+  }), [data.labels, data.prices, title]);
+
+  const options = {
+    responsive: true,
+    maintainAspectRatio: false,
+    interaction: { intersect: false, mode: 'index' as const },
+    plugins: {
+      legend: { display: false },
+      title: { display: true, text: title, font: { size: 16 } },
+      tooltip: {
+        backgroundColor: 'rgba(17,24,39,0.9)',
+        borderColor: 'rgba(255,255,255,0.1)',
+        borderWidth: 1,
+        titleColor: '#fff',
+        bodyColor: '#e5e7eb',
+        displayColors: false,
+        padding: 10,
+      },
+    },
+    scales: {
+      x: {
+        title: { display: true, text: 'Time' },
+        grid: { color: 'rgba(0,0,0,0.06)', drawBorder: false },
+        ticks: { color: '#6b7280' },
+      },
+      y: {
+        title: { display: true, text: 'Price (USD)' },
+        grid: { color: 'rgba(0,0,0,0.06)', drawBorder: false },
+        ticks: { color: '#6b7280' },
+      },
+    },
+    animation: {
+      duration: 900,
+      easing: 'easeOutCubic',
+    },
+    elements: {
+      line: { tension: 0.45 },
+      point: { radius: 0, hoverRadius: 4, hitRadius: 10 },
+    },
+  } as const;
+
+  return (
+    <div style={style} className="bg-white rounded position-relative" >
+      <Line data={chartData} options={options} plugins={[glossyBackground, shadowPlugin]} />
+    </div>
+  );
+};
 
 const MarketPriceAndNews: React.FC = () => {
   const [showAllCrypto, setShowAllCrypto] = useState(false);

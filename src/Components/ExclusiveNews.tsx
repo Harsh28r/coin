@@ -36,88 +36,127 @@ const ExclusiveNews: React.FC = () => {
   // Use the translation hook
   const { displayItems, isTranslating, currentLanguage } = useNewsTranslation(newsItems);
 
-  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://c-back-1.onrender.com';
+  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://c-back-2.onrender.com';
   const MOCK_API_BASE_URL = 'http://localhost:5000'; // For db.json
+
+  // Helpers to improve images and excerpts
+  const extractImageFromHtml = (html?: string): string | null => {
+    if (!html || typeof html !== 'string') return null;
+    const patterns = [
+      /<img[^>]+src=["']([^"']+)["'][^>]*>/gi,
+      /src=["']([^"']*\.(jpg|jpeg|png|gif|webp|svg|avif)[^"']*)["']/gi,
+      /https?:\/\/[^"'\s]+\.(jpg|jpeg|png|gif|webp|svg|avif)/gi
+    ];
+    for (const pattern of patterns) {
+      const match = pattern.exec(html);
+      if (match && match[1]) {
+        const url = match[1].startsWith('http') ? match[1] : null;
+        if (url) return url;
+      }
+    }
+    return null;
+  };
+
+  const isValidImageUrl = (url?: string): boolean => {
+    if (!url) return false;
+    if (!/^https?:\/\//i.test(url)) return false;
+    const extOk = /(jpg|jpeg|png|gif|webp|svg|avif)(\?|#|$)/i.test(url);
+    return extOk || url.includes('/media/') || url.includes('/uploads/') || url.includes('cdn');
+  };
+
+  const stripHtmlTags = (html?: string): string => {
+    if (!html) return '';
+    return html
+      .replace(/<[^>]*>/g, ' ')
+      .replace(/&nbsp;/g, ' ')
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"')
+      .replace(/\s+/g, ' ')
+      .trim();
+  };
+
+  const buildExcerpt = (htmlOrText?: string, maxLen: number = 160): string => {
+    const text = stripHtmlTags(htmlOrText) || '';
+    if (text.length <= maxLen) return text;
+    const cut = text.slice(0, maxLen);
+    const lastSpace = cut.lastIndexOf(' ');
+    return (lastSpace > 40 ? cut.slice(0, lastSpace) : cut) + '…';
+  };
 
   useEffect(() => {
     const fetchNews = async () => {
       setIsLoading(true);
       setError(null);
       try {
-        // Try fetching from db.json first
-        try {
-          const response = await fetch(`${MOCK_API_BASE_URL}/news`);
-          if (!response.ok) {
-            throw new Error(`db.json fetch failed: ${response.status} ${response.statusText}`);
-          }
-          const data = await response.json();
-          const formattedNews = data.map((item: any) => ({
-            title: item.title || 'Untitled',
-            description: item.description || 'No description available',
-            creator: [item.author || 'Unknown'],
-            pubDate: item.pubDate || new Date().toISOString(),
-            image_url: item.image || 'https://via.placeholder.com/300x200?text=No+Image',
-            link: item.link || '#',
-          }));
-          setNewsItems(formattedNews.slice(0, 6));
-          console.log('Fetched news from db.json:', formattedNews);
-          setIsLoading(false);
-          return;
-        } catch (error) {
-          console.warn('Failed to fetch from db.json, falling back to API:', error);
+        // Try multiple sources in order until we have enough items
+        const endpoints = [
+          `${API_BASE_URL}/fetch-all-rss?limit=24`,
+          `${API_BASE_URL}/fetch-defiant-rss?limit=24`,
+          `${API_BASE_URL}/fetch-coindesk-rss?limit=24`,
+          `${API_BASE_URL}/fetch-cryptoslate-rss?limit=24`,
+          `${API_BASE_URL}/fetch-decrypt-rss?limit=24`,
+          `${API_BASE_URL}/fetch-newsbtc-rss?limit=24`,
+          `${API_BASE_URL}/fetch-bitcoinmagazine-rss?limit=24`,
+          `${API_BASE_URL}/fetch-ambcrypto-rss?limit=24`,
+          `${API_BASE_URL}/fetch-dailycoin-rss?limit=24`,
+          `${API_BASE_URL}/fetch-beincrypto-rss?limit=24`,
+          `${API_BASE_URL}/fetch-cryptopotato-rss?limit=24`,
+          `${API_BASE_URL}/fetch-utoday-rss?limit=24`
+        ];
+
+        let items: any[] = [];
+        for (const url of endpoints) {
+          try {
+            const res = await fetch(url);
+            if (!res.ok) continue;
+            const data = await res.json();
+            if (data && Array.isArray(data.data) && data.data.length) {
+              items = items.concat(data.data);
+            }
+          } catch (e) {}
+          if (items.length >= 12) break;
         }
 
-        // Fetch from /fetch-rss
-        const response = await fetch(`${API_BASE_URL}/fetch-decrypt-rss`);
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const data = await response.json();
-        if (Array.isArray(data.data)) {
-          setNewsItems(data.data.slice(0, 6));
-          console.log('Fetched news from API:', data.data);
+        if (items.length) {
+          const normalizedRaw = items.map((item: any, i: number) => {
+            let imageUrl = item.image_url || item.image || '';
+            if (!isValidImageUrl(imageUrl)) {
+              imageUrl = extractImageFromHtml(item.description) || extractImageFromHtml(item.content) || '';
+            }
+            if (!isValidImageUrl(imageUrl)) {
+              imageUrl = getFallbackImage(i);
+            }
+            return {
+              article_id: item.article_id,
+              title: item.title || 'Untitled',
+              description: item.excerpt || buildExcerpt(item.description || item.content, 160) || 'No description available',
+              creator: Array.isArray(item.creator) ? item.creator : [item.creator || item.author || 'Unknown'],
+              pubDate: item.pubDate || new Date().toISOString(),
+              image_url: imageUrl,
+              link: item.link || '#',
+            } as NewsItem;
+          });
+
+          // De-duplicate and take top 6
+          const seen = new Set<string>();
+          const deduped: NewsItem[] = [];
+          for (const n of normalizedRaw) {
+            const key = n.article_id || n.link || n.title;
+            if (!seen.has(key)) {
+              seen.add(key);
+              deduped.push(n);
+            }
+          }
+          deduped.sort((a, b) => new Date(b.pubDate).getTime() - new Date(a.pubDate).getTime());
+          setNewsItems(deduped.slice(0, 6));
         } else {
-          throw new Error('Fetched data is not an array');
+          throw new Error('No items fetched from available sources');
         }
       } catch (error: any) {
         console.error('Error fetching news:', error);
-        // Fallback to sample news data for demonstration
-        const sampleNews = [
-          {
-            title: 'Bitcoin Reaches New All-Time High as Institutional Adoption Grows',
-            description: 'Bitcoin has surged to unprecedented levels, driven by increasing institutional investment and growing mainstream acceptance of cryptocurrency as a legitimate asset class.',
-            creator: ['Crypto Analyst'],
-            pubDate: new Date().toISOString(),
-            image_url: '/image.png?height=300&width=200&text=Bitcoin',
-            link: '#',
-          },
-          {
-            title: 'Ethereum 2.0 Upgrade Shows Promising Results for DeFi Ecosystem',
-            description: 'The transition to proof-of-stake consensus mechanism is demonstrating improved scalability and reduced energy consumption, benefiting the entire DeFi ecosystem.',
-            creator: ['Blockchain Reporter'],
-            pubDate: new Date(Date.now() - 86400000).toISOString(),
-            image_url: '/tr3.png?height=300&width=200&text=Ethereum',
-            link: '#',
-          },
-          {
-            title: 'NFT Market Sees Explosive Growth with Major Brands Entering Space',
-            description: 'Traditional companies are increasingly adopting NFT technology, creating new opportunities for digital collectibles and blockchain-based loyalty programs.',
-            creator: ['Digital Asset Expert'],
-            pubDate: new Date(Date.now() - 172800000).toISOString(),
-            image_url: '/web3.png?height=300&width=200&text=NFT',
-            link: '#',
-          },
-          {
-            title: 'DeFi Protocols Continue Innovation with Cross-Chain Solutions',
-            description: 'Decentralized finance platforms are developing interoperability solutions that allow users to access services across multiple blockchain networks seamlessly.',
-            creator: ['DeFi Researcher'],
-            pubDate: new Date(Date.now() - 259200000).toISOString(),
-            image_url: '/web3_1.png?height=300&width=200&text=DeFi',
-            link: '#',
-          }
-        ];
-        setNewsItems(sampleNews);
-        console.log('Using sample news data for demonstration');
+        setError('Failed to load news');
       } finally {
         setIsLoading(false);
       }
@@ -139,16 +178,23 @@ const ExclusiveNews: React.FC = () => {
     return images[index % images.length];
   };
 
-  // Format date consistently
+  // Format date consistently with fallback for backend format "YYYY-MM-DD HH:mm:ss"
   const formatDate = (dateString: string): string => {
     try {
-      return new Date(dateString).toLocaleDateString('en-US', {
+      if (!dateString) return 'Unknown Date';
+      let d = new Date(dateString);
+      if (isNaN(d.getTime())) {
+        const isoCandidate = dateString.replace(' ', 'T') + 'Z';
+        d = new Date(isoCandidate);
+      }
+      if (isNaN(d.getTime())) return dateString; // show raw if still unparseable
+      return d.toLocaleDateString('en-US', {
         year: 'numeric',
         month: 'short',
         day: 'numeric',
       });
     } catch {
-      return 'Unknown Date';
+      return dateString || 'Unknown Date';
     }
   };
 
@@ -157,7 +203,7 @@ const ExclusiveNews: React.FC = () => {
       <div className="d-flex justify-content-between align-items-center mb-4">
         <div>
           <h4 className="m-0" style={{ fontWeight: 'bold', letterSpacing: '0.05em' }}>
-            {t('news.exclusiveTitle')}
+            {/* {t('news.exclusiveTitle')} */}ExclusiveNews
           </h4>
           {isTranslating && (
             <small className="text-muted">
@@ -178,7 +224,7 @@ const ExclusiveNews: React.FC = () => {
           onClick={() => navigate('/exclusive-news')}
           aria-label="View all news"
         >
-          {t('news.viewAll')}
+          {/* {t('news.viewAll')} */}viewAll
           <ChevronRight className="ms-2" size={16} />
         </Button>
       </div>
@@ -212,7 +258,7 @@ const ExclusiveNews: React.FC = () => {
       ) : (
                  <Row xs={1} md={2} lg={4} className="g-4">
            {displayItems.slice(0, 4).map((item, index) => (
-            <Col key={item.link}>
+            <Col key={item.article_id || item.link || `${item.title}-${index}`}>
               <Card className="h-100 border-0 shadow-sm rounded-4">
                                  <Card.Img
                    variant="top"

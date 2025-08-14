@@ -1,10 +1,48 @@
-import React from 'react';
-import { Container, Row, Col } from 'react-bootstrap';
+import React, { useState } from 'react';
+import { Container, Row, Col, Form, Button, Alert, InputGroup } from 'react-bootstrap';
 import BlogPost from '../Components/BlogPost';
 import { useBlog } from '../context/BlogContext';
 
 const HomePage: React.FC = () => {
   const { posts } = useBlog();
+  const [email, setEmail] = useState('');
+  const [name, setName] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  const handleSubscribe = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email.trim()) {
+      setMessage({ type: 'error', text: 'Please enter your email address' });
+      return;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setMessage({ type: 'error', text: 'Please enter a valid email address' });
+      return;
+    }
+    setIsSubmitting(true);
+    setMessage(null);
+    try {
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/subscribe`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email.trim(), name: name.trim() }),
+      });
+      const data = await response.json();
+      if (data.success) {
+        setMessage({ type: 'success', text: data.message || 'Subscribed successfully!' });
+        setEmail('');
+        setName('');
+      } else {
+        setMessage({ type: 'error', text: data.message || 'Subscription failed. Please try again.' });
+      }
+    } catch (_) {
+      setMessage({ type: 'error', text: 'Network error. Please check your connection and try again.' });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <>
@@ -202,24 +240,45 @@ const HomePage: React.FC = () => {
                 <p className="mb-4 opacity-90">
                   Get notified when we publish new articles and insights
                 </p>
-                <div className="d-flex justify-content-center gap-2">
-                  <input
-                    type="email"
-                    placeholder="Enter your email"
-                    className="form-control"
-                    style={{
-                      maxWidth: '300px',
-                      border: 'none',
-                      borderRadius: '25px',
-                      padding: '12px 20px'
-                    }}
-                  />
-                  <button
-                    className="btn btn-light px-4 py-2 rounded-pill fw-semibold"
-                    style={{ borderRadius: '25px' }}
-                  >
-                    Subscribe
-                  </button>
+                <div className="d-flex flex-column align-items-center gap-2" style={{ maxWidth: '520px', margin: '0 auto' }}>
+                  {message && (
+                    <Alert 
+                      variant={message.type === 'success' ? 'success' : 'danger'} 
+                      className="w-100 text-start mb-2"
+                    >
+                      {message.text}
+                    </Alert>
+                  )}
+                  <Form onSubmit={handleSubscribe} className="w-100">
+                    <InputGroup className="mb-2">
+                      <Form.Control 
+                        type="text"
+                        placeholder="Your name (optional)"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        style={{ borderRadius: '25px', padding: '12px 20px' }}
+                      />
+                    </InputGroup>
+                    <InputGroup>
+                      <Form.Control 
+                        type="email"
+                        placeholder="Enter your email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        required
+                        style={{ borderRadius: '25px 0 0 25px', padding: '12px 20px' }}
+                      />
+                      <Button 
+                        type="submit"
+                        variant="light"
+                        disabled={isSubmitting}
+                        className="px-4 py-2 fw-semibold"
+                        style={{ borderRadius: '0 25px 25px 0' }}
+                      >
+                        {isSubmitting ? 'Subscribing...' : 'Subscribe'}
+                      </Button>
+                    </InputGroup>
+                  </Form>
                 </div>
               </div>
             </Col>

@@ -10,6 +10,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { useNewsTranslation } from '../hooks/useNewsTranslation';
 
 interface PressReleaseItem {
+  article_id?: string;
   title: string;
   description: string;
   author: string;
@@ -29,9 +30,31 @@ const PressRelease: React.FC = () => {
   
   // Use the translation hook
   const { displayItems: displayReleases, isTranslating, currentLanguage } = useNewsTranslation(otherReleases);
+  // Use translated releases everywhere if available
+  const effectiveReleases: PressReleaseItem[] = (displayReleases.length > 0 ? (displayReleases as any) : otherReleases) as PressReleaseItem[];
+  const effectiveMainArticle: PressReleaseItem | null = React.useMemo(() => {
+    if (!effectiveReleases || effectiveReleases.length === 0) return null;
+    if (!mainArticle) return effectiveReleases[effectiveReleases.length - 1] || null;
+    const byId = mainArticle.article_id ? effectiveReleases.find(r => r.article_id === mainArticle.article_id) : undefined;
+    if (byId) return byId;
+    const byTitle = effectiveReleases.find(r => (r.title || '').toLowerCase().trim() === (mainArticle.title || '').toLowerCase().trim());
+    return byTitle || effectiveReleases[effectiveReleases.length - 1] || null;
+  }, [effectiveReleases, mainArticle]);
   
   const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://c-back-1.onrender.com';
   const MOCK_API_BASE_URL = 'http://localhost:5000'; // For db.json
+
+  const formatMDY = (input: string | Date) => {
+    try {
+      const d = new Date(input);
+      if (isNaN(d.getTime())) return String(input);
+      return d
+        .toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+        .replace(/,/g, '');
+    } catch {
+      return String(input);
+    }
+  };
 
   useEffect(() => {
     const fetchReleases = async () => {
@@ -46,10 +69,11 @@ const PressRelease: React.FC = () => {
           }
           const data = await response.json();
           const formattedReleases = data.map((item: any) => ({
+            article_id: item.article_id,
             title: item.title || 'Untitled',
             description: item.description || 'No description available',
             author: item.author || 'Unknown',
-            date: new Date(item.pubDate || new Date()).toLocaleDateString(),
+            date: formatMDY(item.pubDate || new Date()),
             image: item.image || 'https://via.placeholder.com/300x200?text=No+Image',
             link: item.link || '#',
           }));
@@ -70,10 +94,11 @@ const PressRelease: React.FC = () => {
         const data = await response.json();
         if (data.success && Array.isArray(data.data)) {
           const formattedReleases = data.data.map((item: any) => ({
+            article_id: item.article_id,
             title: item.title || 'Untitled',
             description: item.description || 'No description available',
             author: item.creator?.join(', ') || 'Unknown',
-            date: new Date(item.pubDate || new Date()).toLocaleDateString(),
+            date: formatMDY(item.pubDate || new Date()),
             image: item.image_url || 'https://via.placeholder.com/300x200?text=No+Image',
             link: item.link || item.url || '#',
           }));
@@ -118,12 +143,10 @@ const PressRelease: React.FC = () => {
           <h4
             className="m-0"
             style={{
-              fontWeight: 800,
+              fontWeight: 900,
               letterSpacing: '0.03em',
               fontSize: '1.4rem',
-              background: 'linear-gradient(90deg, #667eea 0%, #764ba2 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
+             
             }}
           >
             Press Releases
@@ -191,21 +214,24 @@ const PressRelease: React.FC = () => {
             ))}
           </Col>
         </Row>
-              ) : !mainArticle && displayReleases.length === 0 ? (
+      ) : !effectiveMainArticle && effectiveReleases.length === 0 ? (
         <p>No press releases available.</p>
       ) : (
         <Row>
           <Col lg={7}>
-            {mainArticle && (
+            {effectiveMainArticle && (
               <Card
                 className="border-0 rounded-4"
                 style={{ height: 'auto', minHeight: '430px', cursor: 'pointer', overflow: 'hidden' }}
-                onClick={() => window.open(mainArticle.link, '_blank')}
+                onClick={() => {
+                  const target = effectiveMainArticle.article_id || effectiveMainArticle.title;
+                  window.location.href = `/news/${encodeURIComponent(target)}`;
+                }}
               >
                 <div style={{ position: 'relative', height: '628px', borderRadius: '20px', overflow: 'hidden' }}>
                   <img
-                    src={mainArticle.image}
-                    alt={mainArticle.title}
+                    src={effectiveMainArticle.image}
+                    alt={effectiveMainArticle.title}
                     style={{ height: '100%', width: '100%', objectFit: 'cover' }}
                     onError={(e) => {
                       (e.currentTarget as HTMLImageElement).src = 'https://via.placeholder.com/800x450?text=No+Image';
@@ -224,19 +250,19 @@ const PressRelease: React.FC = () => {
                     <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
                       <span
                         style={{
-                          background: 'linear-gradient(135deg, rgba(255,255,255,0.2), rgba(255,255,255,0.12))',
-                          border: '1px solid rgba(255,255,255,0.25)',
-                          color: '#f3f4f6',
+                          background: 'linear-gradient(135deg, rgba(249,115,22,0.25), rgba(251,146,60,0.2))',
+                          border: '1px solid rgba(249,115,22,0.35)',
+                          color: '#ffedd5',
                           padding: '6px 10px',
                           borderRadius: 999,
                           fontSize: 12,
                           backdropFilter: 'blur(6px)',
                         }}
                       >
-                        {getSourceName(mainArticle.link)}
+                        {getSourceName(effectiveMainArticle.link)}
                       </span>
                     </div>
-                    <div style={{ fontWeight: 800, fontSize: '1.35rem', lineHeight: 1.25, marginBottom: 6 }}>{mainArticle.title}</div>
+                    <div style={{ fontWeight: 800, fontSize: '1.35rem', lineHeight: 1.25, marginBottom: 6 }}>{effectiveMainArticle.title}</div>
                     <div
                       style={{
                         color: '#e5e7eb',
@@ -248,14 +274,14 @@ const PressRelease: React.FC = () => {
                         marginBottom: 10,
                       }}
                     >
-                      {mainArticle.description}
+                      {effectiveMainArticle.description}
                     </div>
                     <div className="d-flex justify-content-between align-items-center" style={{ color: '#d1d5db', fontSize: 12 }}>
                       <div>
                         <span>By </span>
-                        <span style={{ color: '#f59e0b', fontWeight: 600 }}>{mainArticle.author || 'Unknown'}</span>
+                        <span style={{ color: '#f59e0b', fontWeight: 600 }}>{effectiveMainArticle.author || 'Unknown'}</span>
                       </div>
-                      <div>{mainArticle.date}</div>
+                      <div>{effectiveMainArticle.date}</div>
                     </div>
                   </div>
                 </div>
@@ -263,7 +289,7 @@ const PressRelease: React.FC = () => {
             )}
           </Col>
           <Col lg={5}>
-                            {(showAll ? displayReleases : displayReleases.slice(0, 3)).map((release, index) => (
+            {(showAll ? effectiveReleases : effectiveReleases.slice(0, 3)).map((release, index) => (
               <Card
                 key={index}
                 className="mb-3 border-0 rounded-5"
@@ -274,7 +300,10 @@ const PressRelease: React.FC = () => {
                   boxShadow: '0 6px 16px rgba(0,0,0,0.06)',
                   transition: 'all 0.25s ease',
                 }}
-                onClick={() => window.open(release.link, '_blank')}
+                onClick={() => {
+                  const target = release.article_id || release.title;
+                  window.location.href = `/news/${encodeURIComponent(target)}`;
+                }}
                 onMouseEnter={(e) => {
                   (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-2px)';
                   (e.currentTarget as HTMLDivElement).style.boxShadow = '0 12px 24px rgba(0,0,0,0.10)';
@@ -290,12 +319,12 @@ const PressRelease: React.FC = () => {
                       <div className="d-flex align-items-center mb-1" style={{ gap: 6 }}>
                         <span
                           style={{
-                            background: 'linear-gradient(135deg, rgba(102,126,234,0.15), rgba(118,75,162,0.15))',
-                            color: '#6b7280',
+                            background: 'linear-gradient(135deg, rgba(251,146,60,0.18), rgba(249,115,22,0.18))',
+                            color: '#b45309',
                             padding: '4px 10px',
                             borderRadius: 999,
                             fontSize: 11,
-                            border: '1px solid rgba(102,126,234,0.25)'
+                            border: '1px solid rgba(249,115,22,0.35)'
                           }}
                         >
                           {getSourceName(release.link)}

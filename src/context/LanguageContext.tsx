@@ -29,7 +29,7 @@ const translations = {
     'footer.enterEmail': 'Enter your email',
     'footer.subscribing': 'Subscribing...',
     'footer.subscriptionText': 'Get the latest crypto news and market updates delivered to your inbox',
-    'footer.copyright': '© Copyright 2024',
+    'footer.copyright': '© Copyright 2025',
     'footer.companyDescription': 'CoinClarity is a versatile platform that shares the best, real-time, highest quality cryptocurrency market data. With an easy-to-use API, charts, and cryptocurrency glossary.',
     
     // Common translations
@@ -128,7 +128,7 @@ const translations = {
     'footer.enterEmail': 'अपना ईमेल दर्ज करें',
     'footer.subscribing': 'सदस्यता ले रहे हैं...',
     'footer.subscriptionText': 'अपने इनबॉक्स में नवीनतम क्रिप्टो समाचार और बाजार अपडेट प्राप्त करें',
-    'footer.copyright': '© कॉपीराइट 2024',
+    'footer.copyright': '© कॉपीराइट 2025',
     'footer.companyDescription': 'कॉइनक्लैरिटी एक बहुमुखी प्लेटफॉर्म है जो सर्वोत्तम, रीयल-टाइम, उच्चतम गुणवत्ता वाले क्रिप्टोकरेंसी बाजार डेटा साझा करता है। आसान-से-उपयोग API, चार्ट और क्रिप्टोकरेंसी शब्दकोश के साथ।',
     
     // Common translations in Hindi
@@ -251,7 +251,7 @@ const translations = {
     'footer.enterEmail': 'Ingresa tu email',
     'footer.subscribing': 'Suscribiendo...',
     'footer.subscriptionText': 'Recibe las últimas noticias de cripto y actualizaciones del mercado en tu bandeja de entrada',
-    'footer.copyright': '© Copyright 2024',
+    'footer.copyright': '© Copyright 2025',
     'footer.companyDescription': 'CoinClarity es una plataforma versátil que comparte los mejores datos del mercado de criptomonedas en tiempo real y de la más alta calidad. Con una API fácil de usar, gráficos y glosario de criptomonedas.',
     
     'news.exclusiveTitle': 'Noticias Exclusivas',
@@ -310,7 +310,7 @@ const translations = {
     'footer.enterEmail': 'Entrez votre email',
     'footer.subscribing': 'Abonnement...',
     'footer.subscriptionText': 'Recevez les dernières nouvelles crypto et mises à jour du marché dans votre boîte de réception',
-    'footer.copyright': '© Copyright 2024',
+    'footer.copyright': '© Copyright 2025',
     'footer.companyDescription': 'CoinClarity est une plateforme polyvalente qui partage les meilleures données de marché de cryptomonnaies en temps réel et de la plus haute qualité. Avec une API facile à utiliser, des graphiques et un glossaire de cryptomonnaies.',
     
     'news.exclusiveTitle': 'Actualités Exclusives',
@@ -369,7 +369,7 @@ const translations = {
     'footer.enterEmail': 'E-Mail eingeben',
     'footer.subscribing': 'Abonniere...',
     'footer.subscriptionText': 'Erhalten Sie die neuesten Krypto-Nachrichten und Markt-Updates in Ihrem Posteingang',
-    'footer.copyright': '© Copyright 2024',
+    'footer.copyright': '© Copyright 2025',
     'footer.companyDescription': 'CoinClarity ist eine vielseitige Plattform, die die besten, Echtzeit-Daten des Kryptowährungsmarktes in höchster Qualität teilt. Mit einer einfach zu bedienenden API, Charts und einem Kryptowährungs-Glossar.',
     
     'news.exclusiveTitle': 'Exklusive Nachrichten',
@@ -428,7 +428,7 @@ const translations = {
     'footer.enterEmail': '输入您的邮箱',
     'footer.subscribing': '订阅中...',
     'footer.subscriptionText': '在您的收件箱中获取最新的加密货币新闻和市场更新',
-    'footer.copyright': '© 版权所有 2024',
+    'footer.copyright': '© 版权所有 2025',
     'footer.companyDescription': 'CoinClarity是一个多功能平台，分享最佳、实时、最高质量的加密货币市场数据。具有易于使用的API、图表和加密货币词汇表。',
     
     'news.exclusiveTitle': '独家新闻',
@@ -487,7 +487,7 @@ const translations = {
     'footer.enterEmail': 'メールアドレスを入力',
     'footer.subscribing': '購読中...',
     'footer.subscriptionText': '最新の暗号通貨ニュースと市場の更新情報をメールボックスで受け取る',
-    'footer.copyright': '© 著作権 2024',
+    'footer.copyright': '© 著作権 2025',
     'footer.companyDescription': 'CoinClarityは、最高品質のリアルタイム暗号通貨市場データを共有する多機能プラットフォームです。使いやすいAPI、チャート、暗号通貨用語集を備えています。',
     
     'news.exclusiveTitle': '独占ニュース',
@@ -546,7 +546,7 @@ const translations = {
     'footer.enterEmail': '이메일을 입력하세요',
     'footer.subscribing': '구독 중...',
     'footer.subscriptionText': '최신 암호화폐 뉴스와 시장 업데이트를 받은 편지함에서 받으세요',
-    'footer.copyright': '© 저작권 2024',
+    'footer.copyright': '© 저작권 2025',
     'footer.companyDescription': 'CoinClarity는 최고 품질의 실시간 암호화폐 시장 데이터를 공유하는 다목적 플랫폼입니다. 사용하기 쉬운 API, 차트, 암호화폐 용어집을 제공합니다.',
     
     'news.exclusiveTitle': '독점 뉴스',
@@ -605,7 +605,7 @@ const translations = {
     'footer.enterEmail': 'أدخل بريدك الإلكتروني',
     'footer.subscribing': 'جاري الاشتراك...',
     'footer.subscriptionText': 'احصل على أحدث أخبار العملات المشفرة وتحديثات السوق في صندوق الوارد الخاص بك',
-    'footer.copyright': '© حقوق النشر 2024',
+    'footer.copyright': '© حقوق النشر 2025',
     'footer.companyDescription': 'CoinClarity هي منصة متعددة الاستخدامات تشارك أفضل بيانات سوق العملات المشفرة في الوقت الفعلي وأعلى جودة. مع واجهة برمجة تطبيقات سهلة الاستخدام والرسوم البيانية وقاموس العملات المشفرة.',
     
     'news.exclusiveTitle': 'أخبار حصرية',

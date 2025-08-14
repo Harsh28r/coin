@@ -30,21 +30,22 @@ const Exn: React.FC = () => {
   const navigate = useNavigate();
   
   // Use the translation hook
-  const { displayItems, isTranslating, currentLanguage } = useNewsTranslation(newsItems);
+  const { displayItems } = useNewsTranslation(newsItems);
   
-  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5000';
+  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://c-back-1.onrender.com';
 
   useEffect(() => {
     const fetchNews = async () => {
       try {
-        const response = await fetch('${API_BASE_URL}/fetch-newsbtc-rss');
+        const response = await fetch(`${API_BASE_URL}/fetch-another-rss?limit=8`);
         const data = await response.json();
         console.log(data);
         if (data.success && Array.isArray(data.data)) {
-          setNewsItems(data.data.map((item: NewsItem) => ({
+          setNewsItems(data.data.map((item: any) => ({
+            article_id: item.article_id,
             title: item.title,
             description: item.description,
-            creator: item.creator,
+            creator: Array.isArray(item.creator) ? item.creator : [item.creator || 'Unknown'],
             pubDate: item.pubDate,
             image_url: item.image_url,
             link: item.link,
@@ -66,18 +67,6 @@ const Exn: React.FC = () => {
         <h4 className="m-0" style={{ fontWeight: 'bold', letterSpacing: '0.05em', borderBottom: '2px solid orange', marginBottom: '1rem' }}>
           {t('news.trendingTitle') || 'Trending News'}
         </h4>
-        {isTranslating && (
-          <small className="text-muted">
-            🔄 Translating trending news to {currentLanguage === 'hi' ? 'Hindi' : 
-              currentLanguage === 'es' ? 'Spanish' :
-              currentLanguage === 'fr' ? 'French' :
-              currentLanguage === 'de' ? 'German' :
-              currentLanguage === 'zh' ? 'Chinese' :
-              currentLanguage === 'ja' ? 'Japanese' :
-              currentLanguage === 'ko' ? 'Korean' :
-              currentLanguage === 'ar' ? 'Arabic' : currentLanguage}...
-          </small>
-        )}
       </div>
       <Row xs={1} md={2} lg={4} className="g-4">
         {Array.isArray(displayItems) && displayItems.map((item, index) => (
@@ -87,7 +76,7 @@ const Exn: React.FC = () => {
               <Card.Body className="d-flex flex-column">
                 <Card.Title className="fs-6 mb-3 text-start custom-text" style={{ fontWeight: 'bold', color: 'black', overflow: 'hidden', display: '-webkit-box', WebkitBoxOrient: 'vertical', WebkitLineClamp: 2, maxHeight: '3em' }}>
                   <a 
-                    href={`/news/${item.article_id || encodeURIComponent(item.title)}`}
+                    href={`/news/${item.article_id || encodeURIComponent(item.link || item.title)}`}
                     className="text-black text-decoration-none"
                     style={{ cursor: 'pointer' }}
                   >
@@ -108,7 +97,7 @@ const Exn: React.FC = () => {
                 </div>
                 <Button 
                   variant="warning"
-                  onClick={() => navigate(`/news/${item.article_id || encodeURIComponent(item.title)}`)}
+                  onClick={() => navigate(`/news/${item.article_id || encodeURIComponent(item.link || item.title)}`)}
                   className="mt-3"
                 >
                   {t('news.readMore') || 'Read More'}

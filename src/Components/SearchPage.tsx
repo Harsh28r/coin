@@ -1,8 +1,9 @@
 // src/components/pages/SearchPage.tsx
-import React, { useState, useEffect } from 'react';
-import { Container, Spinner, Alert, Card, Button } from 'react-bootstrap';
-import { useLocation } from 'react-router-dom';
+import React, { useMemo, useState, useEffect } from 'react';
+import { Container, Spinner, Alert, Card, Button, Row, Col, Badge, ButtonGroup, Placeholder } from 'react-bootstrap';
+import { useLocation, useNavigate } from 'react-router-dom';
 import _ from 'lodash';
+import { CircleDollarSign, Landmark, Newspaper, Layers, Image as ImageIcon } from 'lucide-react';
 
 interface SearchResult {
   type: 'news' | 'coins' | 'exchanges' | 'nfts';
@@ -23,7 +24,9 @@ const SearchPage: React.FC = () => {
   const [results, setResults] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [filter, setFilter] = useState<'all' | 'coins' | 'exchanges' | 'news' | 'nfts'>('all');
   const location = useLocation();
+  const navigate = useNavigate();
   const query = new URLSearchParams(location.search).get('query') || '';
 
   const COINGECKO_API_BASE_URL = 'https://api.coingecko.com/api/v3';
@@ -265,54 +268,176 @@ const SearchPage: React.FC = () => {
     fetchResults(query);
   }, [query]);
 
+  const filteredResults = useMemo(() => {
+    if (filter === 'all') return results;
+    return results.filter((r) => r.type === filter);
+  }, [results, filter]);
+
+  const compactCurrency = (value: number) =>
+    new Intl.NumberFormat(undefined, { style: 'currency', currency: 'USD', notation: 'compact', maximumFractionDigits: 2 }).format(value);
+
+  const renderTypeBadge = (type: SearchResult['type']) => {
+    const map: Record<SearchResult['type'], { variant: string; label: string; Icon: any }> = {
+      coins: { variant: 'warning', label: 'Coin', Icon: CircleDollarSign },
+      exchanges: { variant: 'info', label: 'Exchange', Icon: Landmark },
+      news: { variant: 'secondary', label: 'News', Icon: Newspaper },
+      nfts: { variant: 'primary', label: 'NFT', Icon: Layers },
+    };
+    const cfg = map[type];
+    const IconComp = cfg.Icon;
+    return (
+      <Badge bg={cfg.variant} className="d-inline-flex align-items-center gap-1" style={{ fontWeight: 600 }}>
+        <IconComp size={14} /> {cfg.label}
+      </Badge>
+    );
+  };
+
+  const handleInternalNavigate = (item: SearchResult) => {
+    if (item.type === 'coins') {
+      navigate(`/search?query=${encodeURIComponent(item.name || item.symbol || '')}`);
+      return;
+    }
+    if (item.type === 'exchanges') {
+      navigate(`/search?query=${encodeURIComponent(item.name || '')}`);
+      return;
+    }
+    if (item.type === 'nfts') {
+      navigate(`/search?query=${encodeURIComponent(item.collection?.slug || item.name || '')}`);
+      return;
+    }
+    // news: route to in-app search using title keywords to keep SPA
+    navigate(`/search?query=${encodeURIComponent(item.title || '')}`);
+  };
+
+  const renderCard = (item: SearchResult, index: number) => {
+    return (
+      <Col key={`${item.type}-${index}`} xs={12} sm={6} md={4} lg={3} className="d-flex">
+        <Card className="mb-3 shadow-sm border-0 rounded-4 flex-fill" style={{ overflow: 'hidden', cursor: 'pointer' }} onClick={() => handleInternalNavigate(item)}>
+          <div style={{ position: 'relative', paddingTop: '56%', backgroundColor: '#f8f9fa' }}>
+            {item.image_url || item.image ? (
+              <img
+                src={item.image_url || item.image || ''}
+                alt={item.name || item.title || 'Untitled'}
+                style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
+                onError={(e) => {
+                  const img = e.currentTarget as HTMLImageElement;
+                  img.onerror = null;
+                  img.src = 'https://placehold.co/600x400?text=Image';
+                }}
+              />
+            ) : (
+              <div className="d-flex align-items-center justify-content-center text-muted" style={{ position: 'absolute', inset: 0 }}>
+                <ImageIcon size={24} className="me-2" /> No image
+              </div>
+            )}
+            <div style={{ position: 'absolute', top: 8, left: 8 }}>{renderTypeBadge(item.type)}</div>
+          </div>
+          <Card.Body className="d-flex flex-column">
+            <Card.Title className="fs-6 fw-bold" style={{ minHeight: '2.5rem' }}>
+              {item.name || item.title || 'Untitled'}
+            </Card.Title>
+            <Card.Text className="text-muted" style={{ flexGrow: 1 }}>
+              {item.type === 'coins' && (
+                <>
+                  <div>Symbol: <strong>{item.symbol || 'N/A'}</strong></div>
+                  <div>Price: <strong>{item.priceUsd && item.priceUsd !== 'N/A' ? `$${item.priceUsd}` : 'N/A'}</strong></div>
+                </>
+              )}
+              {item.type === 'exchanges' && (
+                <>
+                  <div>
+                    24h Volume: <strong>{item.volumeUsd24Hr ? compactCurrency(parseFloat(item.volumeUsd24Hr)) : 'N/A'}</strong>
+                  </div>
+                  <div className="text-truncate" title={item.exchangeUrl || ''}>{item.exchangeUrl || ''}</div>
+                </>
+              )}
+              {item.type === 'nfts' && (
+                <>
+                  <div>Collection: <strong>{item.collection?.slug || 'Unknown'}</strong></div>
+                </>
+              )}
+              {item.type === 'news' && (
+                <>
+                  <div className="text-truncate" title={item.description || ''}>{item.description || 'No description available'}</div>
+                </>
+              )}
+            </Card.Text>
+            <div className="d-flex">
+              <Button
+                variant="outline-dark"
+                className="w-100"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleInternalNavigate(item);
+                }}
+              >
+                View Details
+              </Button>
+            </div>
+          </Card.Body>
+        </Card>
+      </Col>
+    );
+  };
+
   const renderResults = () => {
     if (loading) {
       return (
-        <div className="text-center my-4">
-          <Spinner animation="border" variant="primary" />
-        </div>
+        <Container className="my-4">
+          <Row className="g-3">
+            {Array.from({ length: 8 }).map((_, idx) => (
+              <Col key={idx} xs={12} sm={6} md={4} lg={3}>
+                <Card className="shadow-sm border-0 rounded-4">
+                  <Placeholder as={Card.Img} variant="top" style={{ height: 160 }} />
+                  <Card.Body>
+                    <Placeholder as={Card.Title} animation="glow">
+                      <Placeholder xs={8} />
+                    </Placeholder>
+                    <Placeholder as={Card.Text} animation="glow">
+                      <Placeholder xs={6} /> <Placeholder xs={4} />
+                    </Placeholder>
+                    <Placeholder.Button variant="secondary" xs={6} />
+                  </Card.Body>
+                </Card>
+              </Col>
+            ))}
+          </Row>
+        </Container>
       );
     }
     if (error) {
       return <Alert variant="danger" className="my-4">{error}</Alert>;
     }
     if (results.length === 0) {
-      return <Alert variant="info" className="my-4">No results found for "{query}".</Alert>;
+      return (
+        <div className="my-5 text-center">
+          <div className="mb-2">
+            <img src="/logo2.png" alt="Logo" style={{ height: 40, opacity: 0.6 }} />
+          </div>
+          <h5 className="fw-bold mb-2">No results found</h5>
+          <div className="text-muted">We couldn't find anything for "{query}". Try different keywords.</div>
+        </div>
+      );
     }
 
     return (
       <Container className="my-4">
-        <h5>Search Results for "{query}"</h5>
-        <div className="d-flex flex-wrap gap-3">
-          {results.map((item, index) => (
-            <Card key={`${item.type}-${index}`} style={{ width: '18rem' }}>
-              <Card.Img
-                variant="top"
-                src={item.image_url || item.image || 'https://placehold.co/300x200?text=Image'}
-                alt={item.name || item.title || 'Untitled'}
-              />
-              <Card.Body>
-                <Card.Title>
-                  {item.name || item.title || 'Untitled'} <small>({item.type})</small>
-                </Card.Title>
-                <Card.Text>
-                  {item.type === 'coins'
-                    ? `Price: $${item.priceUsd || 'N/A'} | Symbol: ${item.symbol || 'N/A'}`
-                    : item.type === 'exchanges'
-                    ? `Volume (24h): $${parseFloat(item.volumeUsd24Hr || '0').toFixed(2)}`
-                    : item.type === 'nfts'
-                    ? `Collection: ${item.collection?.slug || 'Unknown'}`
-                    : item.description?.substring(0, 100) + '...' || 'No description available'}
-                </Card.Text>
-                {(item.link || item.exchangeUrl) && (
-                  <Button variant="primary" href={item.link || item.exchangeUrl} target="_blank">
-                    View Details
-                  </Button>
-                )}
-              </Card.Body>
-            </Card>
-          ))}
+        <div className="d-flex flex-wrap align-items-center justify-content-between mb-3 gap-2">
+          <h5 className="m-0">Search Results for "{query}"</h5>
+          <div className="d-flex align-items-center gap-2">
+            <small className="text-muted">{filteredResults.length} of {results.length}</small>
+            <ButtonGroup>
+              {(['all','coins','exchanges','news','nfts'] as const).map((t) => (
+                <Button key={t} variant={filter === t ? 'dark' : 'outline-secondary'} size="sm" onClick={() => setFilter(t)}>
+                  {t.toUpperCase()}
+                </Button>
+              ))}
+            </ButtonGroup>
+          </div>
         </div>
+        <Row className="g-3">
+          {filteredResults.map((item, index) => renderCard(item, index))}
+        </Row>
       </Container>
     );
   };

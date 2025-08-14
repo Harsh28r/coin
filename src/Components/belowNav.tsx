@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Navbar, Container, Nav, NavDropdown, Card, ListGroup, Badge } from 'react-bootstrap';
+import { useCurrency } from '../context/CurrencyContext';
 
 // Define types for translations, currency rates, and news
 interface Translation {
@@ -42,6 +43,7 @@ export function TopNav() {
 
   const [language, setLanguage] = useState<Language>('en');
   const [currency, setCurrency] = useState<Currency>('USD');
+  const { formatPrice, setCurrency: setGlobalCurrency, setLocale } = useCurrency();
   const [translations, setTranslations] = useState<Translations>({
     en: { comp: 'COMP', btcDominance: 'BTC Dominance', fearGreed: 'Fear & Greed Index', gas: 'Gas' },
     bn: { comp: 'কম্প', btcDominance: 'বিটিসি আধিপত্য', fearGreed: 'ভয় ও লোভ সূচক', gas: 'গ্যাস' },
@@ -64,8 +66,9 @@ export function TopNav() {
   // Language change handler - translations are now static
   useEffect(() => {
     console.log('Language changed to:', language);
-    // No need to fetch translations, they are now static
-  }, [language]);
+    const langToLocale: Record<string, string> = { en: 'en-US', de: 'de-DE', fr: 'fr-FR', es: 'es-ES', bn: 'en-IN' };
+    setLocale(langToLocale[language] || 'en-US');
+  }, [language, setLocale]);
 
   // Fetch currency rates
   useEffect(() => {
@@ -207,6 +210,7 @@ export function TopNav() {
     if (eventKey && allowedCurrencies.includes(eventKey as Currency)) {
       console.log('Selected currency:', eventKey);
       setCurrency(eventKey as Currency);
+      setGlobalCurrency(eventKey as Currency);
     } else {
       console.warn('Invalid currency selected:', eventKey);
     }
@@ -215,8 +219,8 @@ export function TopNav() {
   // Format value based on currency
   const formatCurrency = (value: number) => {
     const rate = currencyRates[currency] || 1;
-    const convertedValue = (value * rate).toFixed(2);
-    return `${convertedValue} ${currency}`;
+    const convertedValue = value * rate;
+    return formatPrice(convertedValue, currency);
   };
 
   // Get translated text or fallback to English

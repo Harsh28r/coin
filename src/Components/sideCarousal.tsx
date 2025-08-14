@@ -16,6 +16,7 @@ interface TrendingNewsItem {
   date: string;
   image: string;
   source: string;
+  link?: string;
 }
 
 const FeaturedCarousel: React.FC = () => {
@@ -30,12 +31,13 @@ const FeaturedCarousel: React.FC = () => {
   
   // Use the translation hook - convert TrendingNewsItem to NewsItem format
   const newsItemsForTranslation = React.useMemo(() => trendingNews.map(item => ({
+    article_id: item.article_id,
     title: item.title,
     description: item.excerpt,
     creator: [item.author],
     pubDate: item.date,
     image_url: item.image,
-    link: '#',
+    link: item.link || '#',
     source: item.source
   })), [trendingNews]);
   
@@ -53,17 +55,25 @@ const FeaturedCarousel: React.FC = () => {
   
   const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://c-back-1.onrender.com';
   const MOCK_API_BASE_URL = 'http://localhost:5000'; // For db.json
+  const formatMDY = (input: string | Date) => {
+    try {
+      const d = new Date(input);
+      if (isNaN(d.getTime())) return String(input);
+      return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).replace(/,/g, '');
+    } catch {
+      return String(input);
+    }
+  };
+
 
   const handlePrev = () => {
-    setActiveIndex((current) =>
-      current === 0 ? trendingNews.length - 1 : current - 1
-    );
+    const len = (displayTrendingNews.length > 0 ? displayTrendingNews.length : trendingNews.length) || 1;
+    setActiveIndex((current) => (current === 0 ? len - 1 : current - 1));
   };
 
   const handleNext = () => {
-    setActiveIndex((current) =>
-      current === trendingNews.length - 1 ? 0 : current + 1
-    );
+    const len = (displayTrendingNews.length > 0 ? displayTrendingNews.length : trendingNews.length) || 1;
+    setActiveIndex((current) => (current === len - 1 ? 0 : current + 1));
   };
 
   useEffect(() => {
@@ -79,12 +89,14 @@ const FeaturedCarousel: React.FC = () => {
           const data = await response.json();
           const news = data
             .map((item: any) => ({
+              article_id: item.article_id,
               title: item.title || 'Untitled',
               excerpt: item.description || 'No description available',
               author: item.author || 'Unknown',
               date: new Date(item.pubDate || new Date()).toLocaleDateString(),
               image: item.image || '/default.png?height=200&width=400&text=News',
               source: item.source || 'Local News',
+              link: item.link || '#',
             }))
             .slice(0, 4);
 
@@ -109,12 +121,14 @@ const FeaturedCarousel: React.FC = () => {
         const news1 = data1.success
           ? data1.data
               .map((item: any) => ({
+                article_id: item.article_id,
                 title: item.title || 'Untitled',
                 description: item.description || 'No description available',
                 creator: item.creator || ['Unknown'],
                 pubDate: item.pubDate || new Date().toISOString(),
                 image_url: item.image_url || '/default.png?height=200&width=400&text=News',
                 source: 'Exclusive News',
+                link: item.link || '#',
               }))
               .slice(0, 2)
           : [];
@@ -132,39 +146,38 @@ const FeaturedCarousel: React.FC = () => {
         const news2 = data2.success
           ? data2.data
               .map((item: any) => ({
+                article_id: item.article_id,
                 title: item.title || 'Untitled',
                 description: item.description || 'No description available',
                 creator: item.creator || ['Unknown'],
                 pubDate: item.pubDate || new Date().toISOString(),
                 image_url: item.image_url || '/default.png?height=200&width=400&text=News',
                 source: 'Press Release',
+                link: item.link || '#',
               }))
               .slice(0, 2)
           : [];
 
-        const formattedNews = [...news1, ...news2]
-          .map((item: any) => ({
+        const formattedNews: TrendingNewsItem[] = [...news1, ...news2]
+          .map((item: any): TrendingNewsItem => ({
+            article_id: item.article_id,
             title: item.title,
             excerpt: item.description,
             author: item.creator[0] || 'Unknown',
             date: new Date(item.pubDate).toLocaleDateString(),
             image: item.image_url,
             source: item.source,
+            link: item.link,
           }))
           .filter(
             (item: TrendingNewsItem) => item.image && item.image.trim() !== ''
           );
 
-        const uniqueNews = Array.from(
-          new Set(formattedNews.map((news: TrendingNewsItem) => news.title))
+        const uniqueNews: TrendingNewsItem[] = Array.from(
+          new Set(formattedNews.map((n) => n.title))
         )
-          .map((title) =>
-            formattedNews.find((news: TrendingNewsItem) => news.title === title)
-          )
-          .filter(
-            (news: TrendingNewsItem | undefined): news is TrendingNewsItem =>
-              news !== undefined
-          );
+          .map((title) => formattedNews.find((n) => n.title === title))
+          .filter((n): n is TrendingNewsItem => !!n);
 
         setTrendingNews(uniqueNews);
         console.log('Fetched trending news:', uniqueNews);
@@ -203,21 +216,7 @@ const FeaturedCarousel: React.FC = () => {
 
   return (
     <>
-      {/* Subtle translation indicator at the top - only show when actively translating */}
-      {showTranslationIndicator && (
-        <div className="text-center mb-2">
-          <small className="text-muted">
-            🔄 Translating to {currentLanguage === 'hi' ? 'Hindi' : 
-              currentLanguage === 'es' ? 'Spanish' :
-              currentLanguage === 'fr' ? 'French' :
-              currentLanguage === 'de' ? 'German' :
-              currentLanguage === 'zh' ? 'Chinese' :
-              currentLanguage === 'ja' ? 'Japanese' :
-              currentLanguage === 'ko' ? 'Korean' :
-              currentLanguage === 'ar' ? 'Arabic' : currentLanguage}
-          </small>
-        </div>
-      )}
+      
       <Row className="mt-3 mx-auto" style={{ width: '95%' }}>
         <Col lg={7} className="mb-3 mb-lg-0">
         {error ? (
@@ -259,64 +258,73 @@ const FeaturedCarousel: React.FC = () => {
               activeIndex={activeIndex}
               onSelect={setActiveIndex}
             >
-              {displayTrendingNews.map((news, index) => (
+              {displayTrendingNews.map((news: any, index: number) => (
                 <Carousel.Item
                   key={index}
                   className="custom-carousel-item rounded-4"
-                  style={{ height: '450px' }}
+                  style={{ height: '450px', cursor: 'pointer' }}
+                  onClick={() => {
+                    const id = news.article_id || encodeURIComponent(((news.link as string | undefined) || news.title));
+                    navigate(`/news/${id}`);
+                  }}
                 >
                   <Card.Img
-                    src={news.image_url}
+                    src={news.image_url || news.image || '/image.png?height=450&width=800&text=News'}
                     alt={news.title}
                     className="rounded-4"
-                    style={{ height: '100%', objectFit: 'cover', width: '100%' }}
+                    style={{ height: '100%', objectFit: 'cover', width: '100%', cursor: 'pointer' }}
+                    onClick={() => {
+                      const id = news.article_id || encodeURIComponent(((news.link as string | undefined) || news.title));
+                      navigate(`/news/${id}`);
+                    }}
+                    onError={(e) => {
+                      (e.currentTarget as HTMLImageElement).src = '/image.png?height=450&width=800&text=News';
+                    }}
                   />
                   <Card.ImgOverlay
-                    className="d-flex flex-column justify-content-between rounded-5"
-                    style={{ padding: '1rem' }}
+                    className="d-flex flex-column justify-content-end rounded-5"
+                    style={{ padding: '1rem', cursor: 'pointer' }}
+                    onClick={() => {
+                      const id = news.article_id || encodeURIComponent(((news.link as string | undefined) || news.title));
+                      navigate(`/news/${id}`);
+                    }}
                   >
-                    <div className="d-flex justify-content-between align-items-center mt-4">
-                      <div>
-                        <span className="badge news-badge ms-4">
-                          {news.source}
-                        </span>
-                        <span className="ms-4 text-white">By {news.creator[0]}</span>
-                      </div>
-                      <span className="text-white ms-auto me-4">
-                        {news.pubDate}
-                      </span>
-                    </div>
+                    {/* content stack */}
                     <div
                       className="d-flex align-items-start flex-column"
                       style={{ paddingLeft: '0', width: '100%' }}
                     >
                       <div
-                        className="fs-2 fw-bold mb-2 card-title h5 text-truncate"
+                        className="fw-bold mb-2 card-title"
                         style={{
                           textAlign: 'left',
                           fontFamily: 'Inter, sans-serif',
-                          fontWeight: 500,
-                          fontSize: '1.5rem',
-                          lineHeight: '1.2',
-                          letterSpacing: '0.04em',
+                          fontWeight: 700,
+                          fontSize: 'clamp(1.25rem, 3vw, 2.5rem)',
+                          lineHeight: 1.2,
+                          letterSpacing: '0.02em',
                           maxWidth: '100%',
                           overflowWrap: 'break-word',
+                          textShadow: '0 2px 10px rgba(0,0,0,0.45)',
+                          color: '#ffffff'
                         }}
                       >
                         {news.title}
                       </div>
                       <small
-                        className="text fs-4"
+                        className="text"
                         style={{
-                          fontSize: '1rem',
+                          fontSize: 'clamp(0.95rem, 1.5vw, 1.25rem)',
                           fontWeight: 500,
                           display: '-webkit-box',
                           overflow: 'hidden',
                           WebkitBoxOrient: 'vertical',
-                          WebkitLineClamp: 3,
-                          lineHeight: '1.5',
-                          maxHeight: '7.5em',
+                          WebkitLineClamp: 4,
+                          lineHeight: 1.6,
+                          maxHeight: '8.8em',
                           marginBottom: '1rem',
+                          textShadow: '0 1px 6px rgba(0,0,0,0.35)',
+                          color: '#ffffff'
                         }}
                       >
                         {news.description}
@@ -336,7 +344,7 @@ const FeaturedCarousel: React.FC = () => {
                     <Button
                       variant="outline-light"
                       className="rounded-circle me-4"
-                      onClick={handlePrev}
+                      onClick={(e) => { e.stopPropagation(); handlePrev(); }}
                       style={{
                         width: '40px',
                         height: '40px',
@@ -349,7 +357,7 @@ const FeaturedCarousel: React.FC = () => {
                     <Button
                       variant="outline-light"
                       className="rounded-circle"
-                      onClick={handleNext}
+                      onClick={(e) => { e.stopPropagation(); handleNext(); }}
                       style={{
                         width: '40px',
                         height: '40px',
@@ -410,6 +418,9 @@ const FeaturedCarousel: React.FC = () => {
                 View All <ChevronRight />
               </Button>
             </div>
+            {showTranslationIndicator && (
+              <small className="text-muted mb-2 d-block">Translating to {currentLanguage.toUpperCase()}…</small>
+            )}
             <div
               ref={scrollableRef}
               onMouseDown={handleMouseDown}
@@ -442,8 +453,8 @@ const FeaturedCarousel: React.FC = () => {
                         </Col>
                       </Row>
                     ))
-                  ) : trendingNews.length > 0 ? (
-                    trendingNews.map((news, index) => (
+                  ) : (displayTrendingNews.length > 0 ? displayTrendingNews : trendingNews).length > 0 ? (
+                    (displayTrendingNews.length > 0 ? displayTrendingNews : trendingNews).map((news: any, index: number) => (
                       <Row key={index} className="mb-4">
                         <Col xs={8}>
                           <h6
@@ -457,7 +468,10 @@ const FeaturedCarousel: React.FC = () => {
                               textAlign: 'left',
                               cursor: 'pointer',
                             }}
-                            onClick={() => window.location.href = `/news/${news.article_id || encodeURIComponent(news.title)}`}
+                            onClick={() => {
+                              const id = news.article_id || encodeURIComponent(((news.link as string | undefined) || news.title));
+                              navigate(`/news/${id}`);
+                            }}
                           >
                             {news.title}
                           </h6>
@@ -475,7 +489,7 @@ const FeaturedCarousel: React.FC = () => {
                               WebkitBoxOrient: 'vertical',
                             }}
                           >
-                            {news.excerpt}
+                            {news.description || news.excerpt}
                           </p>
                           <small
                             className="text-muted d-flex justify-content-between"
@@ -498,26 +512,26 @@ const FeaturedCarousel: React.FC = () => {
                                   className="text-warning"
                                   style={{ marginLeft: '1px', fontSize: '12px' }}
                                 >
-                                  <strong>{news.author}</strong>
+                                  <strong>{news.author || (Array.isArray(news.creator) ? news.creator[0] : 'Unknown')}</strong>
                                 </small>
                               </div>
                             </div>
                             <div className="ms-auto text-end">
-                              <small
-                                className="text-muted"
-                                style={{ fontSize: '12px' }}
-                              >
-                                {news.date}
+                              <small className="text-muted" style={{ fontSize: '12px' }}>
+                                {formatMDY(news.date || news.pubDate)}
                               </small>
                             </div>
                           </small>
                         </Col>
                         <Col xs={4}>
                           <img
-                            src={news.image}
+                            src={news.image || news.image_url || '/image.png?height=103&width=160&text=News'}
                             alt={news.title}
                             className="img-fluid rounded"
                             style={{ height: '103px', objectFit: 'cover' }}
+                            onError={(e) => {
+                              (e.currentTarget as HTMLImageElement).src = '/image.png?height=103&width=160&text=News';
+                            }}
                           />
                         </Col>
                       </Row>

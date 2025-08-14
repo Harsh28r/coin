@@ -16,11 +16,24 @@ interface NewsItem {
   content: string;
 }
 
-// Utility function to decode HTML entities
+// Utility functions to clean and format text
 const decodeHtml = (html: string) => {
   const txt = document.createElement("textarea");
   txt.innerHTML = html;
   return txt.value;
+};
+
+const stripHtmlTags = (html?: string): string => {
+  if (!html) return '';
+  return html
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/\s+/g, ' ')
+    .trim();
 };
 
 // Utility function to format date
@@ -158,16 +171,23 @@ const PresNews: React.FC = () => {
             {displayItems.map((item, index) => (
               <Card key={index} className="news-card mb-4 shadow-sm">
                 <div className="news-image-container">
-                  <Card.Img 
-                    variant="top" 
-                    src={item.image_url} 
-                    alt={item.title}
-                    className="news-image"
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement;
-                      target.src = 'https://via.placeholder.com/400x250?text=News+Image';
-                    }}
-                  />
+              <a
+                    href={`/news/${item.article_id || encodeURIComponent(item.title)}`}
+                    aria-label={item.title}
+                    className="text-decoration-none"
+                    style={{ cursor: 'pointer' }}
+                  >
+                    <Card.Img 
+                      variant="top" 
+                      src={item.image_url} 
+                      alt={item.title}
+                      className="news-image"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.src = 'https://via.placeholder.com/400x250?text=News+Image';
+                      }}
+                    />
+                  </a>
                   <div className="news-overlay">
                     <Badge bg="primary" className="news-badge">
                       {item.creator[0] || 'Unknown Author'}
@@ -200,10 +220,10 @@ const PresNews: React.FC = () => {
                   </Card.Title>
                   
                   <Card.Text className="news-content">
-                    {expandedIndex === index 
-                      ? decodeHtml(item.content)
-                      : truncateText(decodeHtml(item.content), 120)
-                    }
+                    {(() => {
+                      const plain = stripHtmlTags(item.content || item.description || '');
+                      return expandedIndex === index ? plain : truncateText(plain, 120);
+                    })()}
                   </Card.Text>
                   
                   <div className="news-actions">
