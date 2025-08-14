@@ -15,6 +15,7 @@ import MainDashboard from './pages/MainAdminDash';
 import { AuthProvider } from './context/AuthContext';
 import { BlogProvider } from './context/BlogContext';
 import { LanguageProvider } from './context/LanguageContext';
+import { CurrencyProvider } from './context/CurrencyContext';
 import PressReleaseDetail from './Components/preRealse'
 import SearchPage from './Components/SearchPage';
 import NewsDetail from './Components/NewsDetail';
@@ -24,30 +25,32 @@ function App() {
     <LanguageProvider>
       <AuthProvider>
         <BlogProvider>
-          <Router>
-            <div className="App">
-              <Routes>
-                <Route path="/" element={<LandingPage />} />
-                <Route path="/blog/:id" element={<BlogPage />} />
-                <Route path="/login" element={<LoginPage />} />
-                <Route path="/admin" element={<AdminDashboard />} />
-                <Route path="/All-exclusive-news" element={<AllNews />} /> 
-                <Route path="/press-news" element={<PresNews />} /> 
-                <Route path="/exclusive-news" element={< Exn/ >} /> 
-                <Route path="/advertise" element={<  Advertise />} /> 
-                <Route path="/All-Trending-news" element={<  Trend />} /> 
-                <Route path="/news/:id" element={<NewsDetail />} />
-                <Route path="/main-dashboard" element={<   MainDashboard/>} /> 
-                {/* <Route path="/press-release-detail" element={<PressReleaseDetail />} /> */}
-                <Route path="/search" element={<SearchPage />} />
+          <CurrencyProvider>
+            <Router>
+              <div className="App">
+                <Routes>
+                  <Route path="/" element={<LandingPage />} />
+                  <Route path="/blog/:id" element={<BlogPage />} />
+                  <Route path="/login" element={<LoginPage />} />
+                  <Route path="/admin" element={<AdminDashboard />} />
+                  <Route path="/All-exclusive-news" element={<AllNews />} /> 
+                  <Route path="/press-news" element={<PresNews />} /> 
+                  <Route path="/exclusive-news" element={< Exn/ >} /> 
+                  <Route path="/advertise" element={<  Advertise />} /> 
+                  <Route path="/All-Trending-news" element={<  Trend />} /> 
+                  <Route path="/news/:id" element={<NewsDetail />} />
+                  <Route path="/main-dashboard" element={<   MainDashboard/>} /> 
+                  {/* <Route path="/press-release-detail" element={<PressReleaseDetail />} /> */}
+                  <Route path="/search" element={<SearchPage />} />
 
 
 
 
-               
-              </Routes>
-            </div>
-          </Router>
+                 
+                </Routes>
+              </div>
+            </Router>
+          </CurrencyProvider>
         </BlogProvider>
       </AuthProvider>
     </LanguageProvider>

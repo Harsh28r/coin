@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Navbar, Container, Nav, NavDropdown, Card, ListGroup, Badge } from 'react-bootstrap';
-// import { useCurrency } from '../context/CurrencyContext';
+import { useCurrency } from '../context/CurrencyContext';
 
 // Define types for translations, currency rates, and news
 interface Translation {
