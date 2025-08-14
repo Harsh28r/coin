@@ -6,6 +6,8 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import { useNavigate } from 'react-router-dom';
 import Skeleton from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css'; // Import skeleton CSS
+import { useLanguage } from '../context/LanguageContext';
+import { useNewsTranslation } from '../hooks/useNewsTranslation';
 
 interface PressReleaseItem {
   title: string;
@@ -17,12 +19,17 @@ interface PressReleaseItem {
 }
 
 const PressRelease: React.FC = () => {
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [otherReleases, setOtherReleases] = useState<PressReleaseItem[]>([]);
   const [showAll, setShowAll] = useState(false);
   const [mainArticle, setMainArticle] = useState<PressReleaseItem | null>(null);
   const [isLoading, setIsLoading] = useState(true); // Add loading state
   const [error, setError] = useState<string | null>(null);
+  
+  // Use the translation hook
+  const { displayItems: displayReleases, isTranslating, currentLanguage } = useNewsTranslation(otherReleases);
+  
   const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://c-back-1.onrender.com';
   const MOCK_API_BASE_URL = 'http://localhost:5000'; // For db.json
 
@@ -122,6 +129,18 @@ const PressRelease: React.FC = () => {
             Press Releases
           </h4>
           <small style={{ color: '#6b7280' }}>Latest announcements and updates across crypto</small>
+          {isTranslating && (
+            <small className="text-muted d-block mt-1">
+              🔄 Translating press releases to {currentLanguage === 'hi' ? 'Hindi' : 
+                currentLanguage === 'es' ? 'Spanish' :
+                currentLanguage === 'fr' ? 'French' :
+                currentLanguage === 'de' ? 'German' :
+                currentLanguage === 'zh' ? 'Chinese' :
+                currentLanguage === 'ja' ? 'Japanese' :
+                currentLanguage === 'ko' ? 'Korean' :
+                currentLanguage === 'ar' ? 'Arabic' : currentLanguage}...
+            </small>
+          )}
         </div>
         <Button
           variant="link"
@@ -172,7 +191,7 @@ const PressRelease: React.FC = () => {
             ))}
           </Col>
         </Row>
-      ) : !mainArticle && otherReleases.length === 0 ? (
+              ) : !mainArticle && displayReleases.length === 0 ? (
         <p>No press releases available.</p>
       ) : (
         <Row>
@@ -244,7 +263,7 @@ const PressRelease: React.FC = () => {
             )}
           </Col>
           <Col lg={5}>
-            {(showAll ? otherReleases : otherReleases.slice(0, 3)).map((release, index) => (
+                            {(showAll ? displayReleases : displayReleases.slice(0, 3)).map((release, index) => (
               <Card
                 key={index}
                 className="mb-3 border-0 rounded-5"

@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { Container, Row, Col, Card, Badge, Spinner } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './PressNews.css';
+import { useLanguage } from '../context/LanguageContext';
+import { useNewsTranslation } from '../hooks/useNewsTranslation';
 
 interface NewsItem {
   article_id?: string;
@@ -36,10 +38,15 @@ const formatDate = (dateString: string) => {
 };
 
 const PresNews: React.FC = () => {
+  const { t } = useLanguage();
   const [newsItems, setNewsItems] = useState<NewsItem[]>([]);
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  // Use the translation hook
+  const { displayItems, isTranslating, currentLanguage } = useNewsTranslation(newsItems);
+  
   const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5000';
 
   useEffect(() => {
@@ -125,8 +132,22 @@ const PresNews: React.FC = () => {
       <Row className="mb-4">
         <Col>
           <div className="text-center mb-4">
-            <h2 className="section-title">Latest Press & News</h2>
-            <p className="section-subtitle text-muted">Stay updated with the latest developments and announcements</p>
+            <h2 className="section-title">{t('news.latestPressNews') || 'Latest Press & News'}</h2>
+            <p className="section-subtitle text-muted">{t('news.stayUpdated') || 'Stay updated with the latest developments and announcements'}</p>
+            
+            {/* Translation indicator */}
+            {isTranslating && (
+              <div className="alert alert-info alert-dismissible fade show" role="alert" style={{ margin: '10px' }}>
+                🔄 Translating press news to {currentLanguage === 'hi' ? 'Hindi' : 
+                  currentLanguage === 'es' ? 'Spanish' :
+                  currentLanguage === 'fr' ? 'French' :
+                  currentLanguage === 'de' ? 'German' :
+                  currentLanguage === 'zh' ? 'Chinese' :
+                  currentLanguage === 'ja' ? 'Japanese' :
+                  currentLanguage === 'ko' ? 'Korean' :
+                  currentLanguage === 'ar' ? 'Arabic' : currentLanguage}...
+              </div>
+            )}
           </div>
         </Col>
       </Row>
@@ -134,7 +155,7 @@ const PresNews: React.FC = () => {
       <Row>
         <Col>
           <div className="news-grid">
-            {newsItems.map((item, index) => (
+            {displayItems.map((item, index) => (
               <Card key={index} className="news-card mb-4 shadow-sm">
                 <div className="news-image-container">
                   <Card.Img 
@@ -193,12 +214,12 @@ const PresNews: React.FC = () => {
                       {expandedIndex === index ? (
                         <>
                           <i className="fas fa-compress-alt me-1"></i>
-                          Show Less
+                          {t('news.showLess') || 'Show Less'}
                         </>
                       ) : (
                         <>
                           <i className="fas fa-expand-alt me-1"></i>
-                          Read More
+                          {t('news.readMore') || 'Read More'}
                         </>
                       )}
                     </button>
@@ -208,7 +229,7 @@ const PresNews: React.FC = () => {
                       className="btn btn-primary btn-sm ms-2"
                     >
                       <i className="fas fa-newspaper me-1"></i>
-                      Read Full Article
+                      {t('news.readFullArticle') || 'Read Full Article'}
                     </a>
                   </div>
                 </Card.Body>

@@ -3,8 +3,11 @@ import { Container, Row, Col, Form, Button, Alert, InputGroup } from 'react-boot
 import { FacebookIcon as Facebook, Twitter, PinIcon as Pinterest, Instagram, Youtube, DiscIcon as Discord } from 'lucide-react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import '@fontsource/inter';
+import { useLanguage } from '../context/LanguageContext';
+import LanguageSelector from './LanguageSelector';
 
 const Footer: React.FC = () => {
+  const { t } = useLanguage();
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -65,33 +68,32 @@ const Footer: React.FC = () => {
               style={{ width: '250px', height: 'auto' }} 
             />
             <p className="text-light small fs-6" style={{ textAlign: 'left', lineHeight: '1.2' }}>
-              CoinClarity is a versatile platform that shares the best, real-time, highest quality cryptocurrency market data.
-              With an easy-to-use API, charts, and cryptocurrency glossary.
+              {t('footer.companyDescription')}
             </p>
-            <p className="text-light mt-4 small fs-6" style={{ textAlign: 'left' }}>© Copyright 2024</p>
+            <p className="text-light mt-4 small fs-6" style={{ textAlign: 'left' }}>{t('footer.copyright')}</p>
           </Col>
           <Col md={2} className="mb-2 mb-md-0 text-center text-md-start" style={{ textAlign: 'left' }} >
             <h6 className="text-white mb-3 fs-5" style={{ fontSize: '1.4rem' }}>Our Company</h6>
             <ul className="list-unstyled" style={{ paddingLeft: '0' }}>
-              <li style={{ marginBottom: '5px' }}><a href="#" className="text-light small text-decoration-none hover-underline" style={{ fontSize: '1.1rem' }}>About Us</a></li>
-              <li style={{ marginBottom: '5px' }}><a href="#" className="text-light small text-decoration-none hover-underline" style={{ fontSize: '1.1rem' }}>Contact Us</a></li>
-              <li style={{ marginBottom: '5px' }}><a href="#" className="text-light small text-decoration-none hover-underline" style={{ fontSize: '1.1rem' }}>FAQ</a></li>
-              <li style={{ marginBottom: '5px' }}><a href="#" className="text-light small text-decoration-none hover-underline" style={{ fontSize: '1.1rem' }}>Privacy Policy</a></li>
-              <li style={{ marginBottom: '5px' }}><a href="#" className="text-light small text-decoration-none hover-underline" style={{ fontSize: '1.1rem' }}>Disclaimer</a></li>
+              <li style={{ marginBottom: '5px' }}><a href="#" className="text-light small text-decoration-none hover-underline" style={{ fontSize: '1.1rem' }}>{t('footer.aboutUs')}</a></li>
+              <li style={{ marginBottom: '5px' }}><a href="#" className="text-light small text-decoration-none hover-underline" style={{ fontSize: '1.1rem' }}>{t('footer.contactUs')}</a></li>
+              <li style={{ marginBottom: '5px' }}><a href="#" className="text-light small text-decoration-none hover-underline" style={{ fontSize: '1.1rem' }}>{t('footer.faq')}</a></li>
+              <li style={{ marginBottom: '5px' }}><a href="#" className="text-light small text-decoration-none hover-underline" style={{ fontSize: '1.1rem' }}>{t('footer.privacyPolicy')}</a></li>
+              <li style={{ marginBottom: '5px' }}><a href="#" className="text-light small text-decoration-none hover-underline" style={{ fontSize: '1.1rem' }}>{t('footer.disclaimer')}</a></li>
             </ul>
           </Col>
           <Col md={2} className="mb-2 mb-md-0 text-center text-md-start" style={{ textAlign: 'left' }}>
             <h6 className="text-white mb-3 fs-5" style={{ fontSize: '1.4rem' }}>Interesting</h6>
             <ul className="list-unstyled" >
-              <li style={{ marginBottom: '5px' }}><a href="#" className="text-light small text-decoration-none hover-underline" style={{ fontSize: '1.1rem' }}>Did You Know</a></li>
-              <li style={{ marginBottom: '5px' }}><a href="#" className="text-light small text-decoration-none hover-underline" style={{ fontSize: '1.1rem' }}>Learn More</a></li>
-              <li style={{ marginBottom: '5px' }}><a href="#" className="text-light small text-decoration-none hover-underline" style={{ fontSize: '1.1rem' }}>New Feature</a></li>
-              <li style={{ marginBottom: '5px' }}><a href="#" className="text-light small text-decoration-none hover-underline" style={{ fontSize: '1.1rem' }}>Trending</a></li>
-              <li style={{ marginBottom: '5px' }}><a href="#" className="text-light small text-decoration-none hover-underline" style={{ fontSize: '1.1rem' }}>Events</a></li>
+              <li style={{ marginBottom: '5px' }}><a href="#" className="text-light small text-decoration-none hover-underline" style={{ fontSize: '1.1rem' }}>{t('footer.didYouKnow')}</a></li>
+              <li style={{ marginBottom: '5px' }}><a href="#" className="text-light small text-decoration-none hover-underline" style={{ fontSize: '1.1rem' }}>{t('footer.learnMore')}</a></li>
+              <li style={{ marginBottom: '5px' }}><a href="#" className="text-light small text-decoration-none hover-underline" style={{ fontSize: '1.1rem' }}>{t('footer.newFeature')}</a></li>
+              <li style={{ marginBottom: '5px' }}><a href="#" className="text-light small text-decoration-none hover-underline" style={{ fontSize: '1.1rem' }}>{t('footer.trending')}</a></li>
+              <li style={{ marginBottom: '5px' }}><a href="#" className="text-light small text-decoration-none hover-underline" style={{ fontSize: '1.1rem' }}>{t('footer.events')}</a></li>
             </ul>
           </Col>
           <Col md={2} className="mb-4 mb-md-0 text-center text-md-start" style={{ textAlign: 'left' }}>
-            <h6 className="text-white mb-4 fs-5" style={{ fontSize: '1.4rem' }}>Join Our Community</h6>
+            <h6 className="text-white mb-4 fs-5" style={{ fontSize: '1.4rem' }}>{t('footer.joinCommunity')}</h6>
             <div className="d-flex flex-wrap gap-4 justify-content-center justify-content-md-start">
               <a href="#" className="text-light hover-opacity"><Facebook size={30} /></a>
               <a href="#" className="text-light hover-opacity"><Twitter size={30} /></a>
@@ -117,7 +119,7 @@ const Footer: React.FC = () => {
                 <InputGroup className="mb-1">
                   <Form.Control 
                     type="email" 
-                    placeholder="Enter your email" 
+                    placeholder={t('footer.enterEmail')} 
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
@@ -148,25 +150,30 @@ const Footer: React.FC = () => {
                         <div className="spinner-border spinner-border-sm me-2" role="status">
                           <span className="visually-hidden">Loading...</span>
                         </div>
-                        Subscribing...
+                        {t('footer.subscribing')}
                       </>
                     ) : (
                       <>
-                        <span>Subscribe</span>
+                        <span>{t('footer.subscribe')}</span>
                         <i className="bi bi-envelope-fill ms-2"></i>
                       </>
                     )}
                   </Button>
                 </InputGroup>
                 <small className="text-light mt-2" style={{ fontSize: '0.8rem', opacity: 0.8 }}>
-                  Get the latest crypto news and market updates delivered to your inbox
+                  {t('footer.subscriptionText')}
                 </small>
               </Form>
             </div>
           </Col>
         </Row>
         <Row>
-          
+          <Col className="text-center">
+            <div className="d-flex justify-content-center align-items-center gap-3 mb-3">
+              <span className="text-light small">Language:</span>
+              <LanguageSelector />
+            </div>
+          </Col>
         </Row>
       </Container>
       <style>

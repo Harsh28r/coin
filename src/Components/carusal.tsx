@@ -4,6 +4,8 @@ import React, { useEffect, useState } from 'react'
 import { Carousel, Badge, Container } from 'react-bootstrap'
 import Skeleton from 'react-loading-skeleton'
 import 'react-loading-skeleton/dist/skeleton.css'
+import { useLanguage } from '../context/LanguageContext';
+import { useNewsTranslation } from '../hooks/useNewsTranslation';
 
 interface NewsItem {
   article_id?: string
@@ -56,9 +58,36 @@ const fallbackNewsItems = [
 ]
 
 export default function NewsCarousel() {
+  const { t } = useLanguage();
   const [newsItems, setNewsItems] = useState<NewsItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showTranslationIndicator, setShowTranslationIndicator] = useState(false);
+
+  // Use the translation hook
+  const { displayItems, isTranslating, currentLanguage } = useNewsTranslation(newsItems);
+  
+  // Ensure displayItems have the correct structure and handle type safety
+  const typedDisplayItems: NewsItem[] = displayItems.map(item => ({
+    article_id: item.article_id,
+    title: item.title || '',
+    description: item.description || '',
+    creator: Array.isArray(item.creator) ? item.creator : [item.creator || 'Unknown'],
+    pubDate: item.pubDate || new Date().toISOString(),
+    image_url: item.image_url || '/market.png?height=600&width=1200',
+    link: item.link || '#',
+    source: item.source || 'Crypto News',
+    category: Array.isArray(item.category) ? item.category : [item.category || 'Crypto News']
+  }));
+  
+  // Control translation indicator display to prevent flickering
+  useEffect(() => {
+    if (isTranslating && currentLanguage !== 'en') {
+      setShowTranslationIndicator(true);
+    } else {
+      setShowTranslationIndicator(false);
+    }
+  }, [isTranslating, currentLanguage]);
 
   const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://c-back-1.onrender.com';
   const LOCAL_API_URL = 'http://localhost:5000';
@@ -165,13 +194,28 @@ export default function NewsCarousel() {
           {error}
         </div>
       )}
+      
+      {/* Translation indicator - only show when actively translating */}
+      {showTranslationIndicator && (
+        <div className="alert alert-info alert-dismissible fade show" role="alert" style={{ margin: '10px' }}>
+          🔄 Translating carousel news to {currentLanguage === 'hi' ? 'Hindi' : 
+            currentLanguage === 'es' ? 'Spanish' :
+            currentLanguage === 'fr' ? 'French' :
+            currentLanguage === 'de' ? 'German' :
+            currentLanguage === 'zh' ? 'Chinese' :
+            currentLanguage === 'ja' ? 'Japanese' :
+            currentLanguage === 'ko' ? 'Korean' :
+            currentLanguage === 'ar' ? 'Arabic' : currentLanguage}...
+        </div>
+      )}
+      
       <Carousel 
         controls={true}
         indicators={false}
         interval={5000}
         className="news-carousel"
       >
-        {newsItems.map((item, index) => (
+        {typedDisplayItems.map((item, index) => (
           <Carousel.Item key={item.article_id || index}>
             <div className="position-relative" style={{ height: '600px' }}>
               <img

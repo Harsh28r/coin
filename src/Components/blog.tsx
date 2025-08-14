@@ -4,6 +4,8 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import '@fontsource/inter';
 import { Link } from 'react-router-dom';
+import { useLanguage } from '../context/LanguageContext';
+import { useNewsTranslation } from '../hooks/useNewsTranslation';
 
 interface BlogPost {
   id: string;
@@ -17,9 +19,14 @@ interface BlogPost {
 }
 
 const BlogSection: React.FC = () => {
+  const { t } = useLanguage();
   const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const postsPerPage = 6;
+  
+  // Use the translation hook
+  const { displayItems: displayPosts, isTranslating, currentLanguage } = useNewsTranslation(blogPosts);
+  
   const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5000';
 
   // Handle sliding left
@@ -30,7 +37,7 @@ const BlogSection: React.FC = () => {
   // Handle sliding right
   const handleNext = () => {
     setCurrentIndex((prevIndex) =>
-      Math.min(prevIndex + postsPerPage, blogPosts.length - postsPerPage)
+      Math.min(prevIndex + postsPerPage, displayPosts.length - postsPerPage)
     );
   };
 
@@ -102,6 +109,18 @@ const BlogSection: React.FC = () => {
           <p className="text-muted mb-0" style={{ fontSize: '1.1rem', fontWeight: '400' }}>
             Discover insights, tutorials, and updates from our crypto experts
           </p>
+          {isTranslating && (
+            <small className="text-muted d-block mt-1">
+              🔄 Translating blog posts to {currentLanguage === 'hi' ? 'Hindi' : 
+                currentLanguage === 'es' ? 'Spanish' :
+                currentLanguage === 'fr' ? 'French' :
+                currentLanguage === 'de' ? 'German' :
+                currentLanguage === 'zh' ? 'Chinese' :
+                currentLanguage === 'ja' ? 'Japanese' :
+                currentLanguage === 'ko' ? 'Korean' :
+                currentLanguage === 'ar' ? 'Arabic' : currentLanguage}...
+            </small>
+          )}
         </div>
         <Link 
           to="/blogs" 
@@ -129,7 +148,7 @@ const BlogSection: React.FC = () => {
 
       {/* Enhanced Blog Cards Grid */}
       <Row xs={1} md={2} lg={3} className="g-4">
-        {blogPosts.slice(currentIndex, currentIndex + postsPerPage).map((post) => (
+        {displayPosts.slice(currentIndex, currentIndex + postsPerPage).map((post) => (
           <Col key={post.id}>
             <Link to={`/blog/${post.id}`} className="text-decoration-none">
               <Card 
@@ -282,7 +301,7 @@ const BlogSection: React.FC = () => {
       </Row>
 
       {/* Enhanced Navigation */}
-      {blogPosts.length > postsPerPage && (
+              {displayPosts.length > postsPerPage && (
         <div className="d-flex justify-content-center align-items-center mt-5 gap-3">
           <Button
             variant="outline-warning"
@@ -315,7 +334,7 @@ const BlogSection: React.FC = () => {
               {Math.floor(currentIndex / postsPerPage) + 1}
             </span>
             <span className="text-muted fw-semibold" style={{ fontSize: '1rem' }}>
-              of {Math.ceil(blogPosts.length / postsPerPage)}
+              of {Math.ceil(displayPosts.length / postsPerPage)}
             </span>
           </div>
           
@@ -330,7 +349,7 @@ const BlogSection: React.FC = () => {
               transition: 'all 0.2s ease'
             }}
             onClick={handleNext}
-            disabled={currentIndex + postsPerPage >= blogPosts.length}
+                          disabled={currentIndex + postsPerPage >= displayPosts.length}
           >
             <ChevronRight size={24} />
           </Button>

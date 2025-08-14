@@ -3,7 +3,8 @@ import { Container, Row, Col, Card, Button } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-
+import { useLanguage } from '../context/LanguageContext';
+import { useNewsTranslation } from '../hooks/useNewsTranslation';
 
 interface NewsItem {
   article_id?: string;
@@ -23,9 +24,14 @@ const decodeHtml = (html: string) => {
 };
 
 const Exn: React.FC = () => {
+  const { t } = useLanguage();
   const [newsItems, setNewsItems] = useState<NewsItem[]>([]);
   const [showAll, setShowAll] = useState(false);
   const navigate = useNavigate();
+  
+  // Use the translation hook
+  const { displayItems, isTranslating, currentLanguage } = useNewsTranslation(newsItems);
+  
   const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5000';
 
   useEffect(() => {
@@ -51,11 +57,23 @@ const Exn: React.FC = () => {
     <Container fluid className="mt-5" style={{ width: '92%' }}>
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h4 className="m-0" style={{ fontWeight: 'bold', letterSpacing: '0.05em', borderBottom: '2px solid orange', marginBottom: '1rem' }}>
-          Exclusive News 
+          {t('news.exclusiveTitle') || 'Exclusive News'}
         </h4>
+        {isTranslating && (
+          <small className="text-muted">
+            🔄 Translating exclusive news to {currentLanguage === 'hi' ? 'Hindi' : 
+              currentLanguage === 'es' ? 'Spanish' :
+              currentLanguage === 'fr' ? 'French' :
+              currentLanguage === 'de' ? 'German' :
+              currentLanguage === 'zh' ? 'Chinese' :
+              currentLanguage === 'ja' ? 'Japanese' :
+              currentLanguage === 'ko' ? 'Korean' :
+              currentLanguage === 'ar' ? 'Arabic' : currentLanguage}...
+          </small>
+        )}
       </div>
       <Row xs={1} md={2} lg={4} className="g-4">
-        {Array.isArray(newsItems) && newsItems.map((item, index) => (
+        {Array.isArray(displayItems) && displayItems.map((item, index) => (
           <Col key={index}>
             <Card className="h-100 border-0 shadow-sm rounded-5">
               <Card.Img variant="top rounded-4" src={item.image_url} alt={item.title} />
@@ -86,7 +104,7 @@ const Exn: React.FC = () => {
                   onClick={() => navigate(`/news/${item.article_id || encodeURIComponent(item.title)}`)}
                   className="mt-3"
                 >
-                  Read More
+                  {t('news.readMore') || 'Read More'}
                 </Button>
               </Card.Body>
             </Card>

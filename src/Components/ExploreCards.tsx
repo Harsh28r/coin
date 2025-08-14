@@ -5,6 +5,8 @@ import QuizSection from './QuizSection';
 import Skeleton from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
 import './ExploreCards.css';
+import { useLanguage } from '../context/LanguageContext';
+import { useNewsTranslation } from '../hooks/useNewsTranslation';
 
 interface TrendingNewsItem {
   article_id?: string;
@@ -26,6 +28,7 @@ interface ExploreCard {
 }
 
 const ExploreSection: React.FC = () => {
+  const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState('did-you-know');
   const scrollableRef = useRef<HTMLDivElement>(null);
   const [exploreCards, setExploreCards] = useState<ExploreCard[]>([]);
@@ -37,67 +40,73 @@ const ExploreSection: React.FC = () => {
   const [viewCounts, setViewCounts] = useState<Map<number, number>>(new Map());
   const [particleEffect, setParticleEffect] = useState(false);
   const [achievementUnlocked, setAchievementUnlocked] = useState<string | null>(null);
+  const [showTranslationIndicator, setShowTranslationIndicator] = useState(false);
+  const [lastTranslationTime, setLastTranslationTime] = useState(0);
+  
+  // Stable reference for translation indicator to prevent unnecessary re-renders
+  const translationIndicatorRef = React.useRef<HTMLDivElement>(null);
+
+  // Memoized language display text to prevent unnecessary recalculations
+  const languageDisplayText = React.useMemo(() => {
+    switch (currentLanguage) {
+      case 'hi': return 'Hindi';
+      case 'es': return 'Spanish';
+      case 'fr': return 'French';
+      case 'de': return 'German';
+      case 'zh': return 'Chinese';
+      case 'ja': return 'Japanese';
+      case 'ko': return 'Korean';
+      case 'ar': return 'Arabic';
+      default: return currentLanguage;
+    }
+  }, [currentLanguage]);
 
   const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://c-back-1.onrender.com';
 
-  // Fallback static explore cards with enhanced content
+  // Fallback static explore cards with enhanced content (limited to 6)
   const fallbackExploreCards: ExploreCard[] = [
     { 
       id: 1, 
-      image: '/image.png?height=300&width=200&text=Switzerland', 
+      image: '/web3.png?height=300&width=200&text=Crypto', 
       text: '🚀 In January of 2016, Chiasso, Switzerland started accepting taxes in Bitcoin! This marked a historic moment for crypto adoption.',
       title: 'Switzerland Bitcoin Tax Revolution',
       source: 'Crypto History'
     },
     { 
       id: 2, 
-      image: '/tr3.png?height=300&width=200&text=Bitcoin', 
+      image: '/web3_1.png?height=300&width=200&text=Bitcoin', 
       text: '💎 90% of all bitcoin addresses have less than 0.1 BTC - showing the concentration of wealth in the crypto space.',
       title: 'Bitcoin Wealth Distribution',
       source: 'Crypto Analytics'
     },
     { 
       id: 3, 
-      image: '/web3.png?height=300&width=200&text=Cryptocurrencies', 
+      image: '/web3_2.png?height=300&width=200&text=Cryptocurrencies', 
       text: '🌍 There are over 10,000 cryptocurrencies in the market today! The crypto ecosystem is exploding with innovation.',
       title: 'Crypto Market Explosion',
       source: 'Market Research'
     },
     { 
       id: 4, 
-      image: '/web3_1.png?height=300&width=200&text=Bitcoin Pizza', 
+      image: '/web3_3.png?height=300&width=200&text=Bitcoin Pizza', 
       text: '🍕 Bitcoin Pizza Day: On May 22, 2010 two pizzas cost 10,000 BTC - worth over $400 million today!',
       title: 'The Most Expensive Pizza Ever',
       source: 'Crypto Legends'
     },
     { 
       id: 5, 
-      image: '/web3_2.png?height=300&width=200&text=Blockchain', 
+      image: '/trd1.png?height=300&width=200&text=Blockchain', 
       text: '🔗 The first blockchain was conceptualized in 2008 by Satoshi Nakamoto, revolutionizing digital trust forever.',
       title: 'Birth of Blockchain',
       source: 'Tech History'
     },
     { 
       id: 6, 
-      image: '/web3_3.png?height=300&width=200&text=Bitcoin Circulation', 
-      text: '👑 About 1000 people own 40% of total BTC in circulation - creating a new digital aristocracy.',
-      title: 'Bitcoin Whales',
-      source: 'Wealth Analysis'
-    },
-    { 
-      id: 7, 
-      image: '/trd1.png?height=300&width=200&text=Security', 
+      image: '/trd2.png?height=300&width=200&text=Security', 
       text: '🛡️ Blockchain technology could revolutionize cybersecurity with its immutable and transparent nature.',
       title: 'Future of Security',
       source: 'Tech Innovation'
-    },
-    { 
-      id: 8, 
-      image: '/trd2.png?height=300&width=200&text=Banks', 
-      text: '🏦 73% of banks are currently experimenting with blockchain technology - the future is here!',
-      title: 'Banks Embrace Blockchain',
-      source: 'Financial News'
-    },
+    }
   ];
 
   // Enhanced trending news with better content
@@ -146,46 +155,148 @@ const ExploreSection: React.FC = () => {
     },
   ];
 
+  // Use the translation hook for explore cards - only when language changes or cards change
+  const newsItemsForTranslation = React.useMemo(() => exploreCards.map(card => ({
+    title: card.text,
+    description: card.text,
+    creator: ['Unknown'],
+    pubDate: new Date().toISOString(),
+    image_url: card.image,
+    link: card.link || '#',
+    source: card.source || 'Crypto News'
+  })), [exploreCards]);
+  
+  const { displayItems: displayExploreCards, isTranslating: isTranslatingCards, currentLanguage: exploreCurrentLanguage } = useNewsTranslation(newsItemsForTranslation);
+
+  // Use the translation hook for trending news - only when language changes or news change
+  const trendingNewsForTranslation = React.useMemo(() => trendingNews.map(news => ({
+    title: news.title,
+    description: news.excerpt,
+    creator: [news.author],
+    pubDate: news.date,
+    image_url: news.image,
+    link: '#',
+    source: 'Trending News'
+  })), [trendingNews]);
+  
+  const { displayItems: displayTrendingNews, isTranslating: isTranslatingNews, currentLanguage: trendingCurrentLanguage } = useNewsTranslation(trendingNewsForTranslation);
+  
+  // Use the primary language from explore cards for consistency
+  const currentLanguage = exploreCurrentLanguage;
+
+  // Control translation indicator display to prevent flickering - with debouncing
+  useEffect(() => {
+    const now = Date.now();
+    const shouldShow = (isTranslatingCards || isTranslatingNews) && currentLanguage !== 'en';
+    
+    // Only update if there's a significant change or enough time has passed
+    if (shouldShow !== showTranslationIndicator || (now - lastTranslationTime) > 1000) {
+      setShowTranslationIndicator(shouldShow);
+      if (shouldShow) {
+        setLastTranslationTime(now);
+      }
+    }
+  }, [isTranslatingCards, isTranslatingNews, currentLanguage, showTranslationIndicator, lastTranslationTime]);
+
   useEffect(() => {
     const fetchExploreContent = async () => {
       if (activeTab !== 'did-you-know') return;
+      
+      // Prevent multiple simultaneous fetches
+      if (isLoading) return;
       
       setIsLoading(true);
       setError(null);
       
       try {
-        const response = await fetch(`${API_BASE_URL}/fetch-all-rss?limit=8`);
-        if (!response.ok) {
-          throw new Error('Failed to fetch RSS content');
+        // Fetch from multiple RSS sources to get diverse content
+        const [rssResponse, anotherRssResponse, allRssResponse] = await Promise.all([
+          fetch(`${API_BASE_URL}/fetch-rss`),
+          fetch(`${API_BASE_URL}/fetch-another-rss`),
+          fetch(`${API_BASE_URL}/fetch-all-rss?limit=10`)
+        ]);
+        
+        let allNews = [];
+        
+        // Process first RSS source (Exclusive News)
+        if (rssResponse.ok) {
+          const rssData = await rssResponse.json();
+          console.log('First RSS response:', rssData);
+          if (rssData.success && Array.isArray(rssData.data)) {
+            const mappedNews = rssData.data.map((item: any) => ({
+              article_id: item.article_id || `rss-${Date.now()}-${Math.random()}`,
+              image: item.image_url || `/web3_${Math.floor(Math.random() * 4) + 1}.png?height=300&width=200&text=${item.source_name || 'Crypto'}`,
+              text: item.title || 'Crypto News',
+              title: item.title,
+              link: item.link,
+              source: item.source_name || 'Exclusive News'
+            }));
+            allNews.push(...mappedNews);
+            console.log(`Added ${mappedNews.length} items from first RSS source`);
+          }
         }
         
-        const data = await response.json();
+        // Process second RSS source (Press Release)
+        if (anotherRssResponse.ok) {
+          const anotherRssData = await anotherRssResponse.json();
+          console.log('Second RSS response:', anotherRssData);
+          if (anotherRssData.success && Array.isArray(anotherRssData.data)) {
+            const mappedNews = anotherRssData.data.map((item: any) => ({
+              article_id: item.article_id || `another-rss-${Date.now()}-${Math.random()}`,
+              image: item.image_url || `/web3_${Math.floor(Math.random() * 4) + 1}.png?height=300&width=200&text=${item.source_name || 'Press'}`,
+              text: item.title || 'Crypto News',
+              title: item.title,
+              link: item.link,
+              source: item.source_name || 'Press Release'
+            }));
+            allNews.push(...mappedNews);
+            console.log(`Added ${mappedNews.length} items from second RSS source`);
+          }
+        }
         
-        if (data.success && Array.isArray(data.data) && data.data.length > 0) {
-          const dynamicCards = data.data.map((item: any, index: number) => {
-            let imageUrl = item.image_url;
-            
-            if (!imageUrl || (imageUrl.includes('placehold.co') && !imageUrl.includes('picsum.photos'))) {
-              imageUrl = `/web3_${(index % 4) + 1}.png?height=300&width=200&text=${item.source_name || 'Crypto'}`;
-            }
-            
-            return {
-              article_id: item.article_id || `dynamic-${index}`,
-              image: imageUrl,
-              text: `${item.title?.substring(0, 80) || 'Crypto News'}${item.title?.length > 80 ? '...' : ''}`,
+        // Process third RSS source (All RSS - for variety)
+        if (allRssResponse.ok) {
+          const allRssData = await allRssResponse.json();
+          console.log('Third RSS response:', allRssData);
+          if (allRssData.success && Array.isArray(allRssData.data)) {
+            const mappedNews = allRssData.data.map((item: any) => ({
+              article_id: item.article_id || `all-rss-${Date.now()}-${Math.random()}`,
+              image: item.image_url || `/web3_${Math.floor(Math.random() * 4) + 1}.png?height=300&width=200&text=${item.source_name || 'News'}`,
+              text: item.title || 'Crypto News',
               title: item.title,
               link: item.link,
               source: item.source_name || 'Crypto News'
-            };
-          });
-          
-          setExploreCards(dynamicCards);
+            }));
+            allNews.push(...mappedNews);
+            console.log(`Added ${mappedNews.length} items from third RSS source`);
+          }
+        }
+        
+        // Filter out items with missing or invalid data
+        const validNews = allNews.filter(item => 
+          item.title && 
+          item.title.trim() !== '' && 
+          item.title !== 'Crypto News' &&
+          item.image && 
+          item.image.trim() !== ''
+        );
+        
+        // Remove duplicates based on title and limit to exactly 6 unique cards
+        const uniqueNews = Array.from(
+          new Map(validNews.map(item => [item.title.toLowerCase().trim(), item])).values()
+        ).slice(0, 6);
+        
+        if (uniqueNews.length >= 4) {
+          setExploreCards(uniqueNews);
+          console.log('Successfully fetched RSS news:', uniqueNews);
         } else {
-          throw new Error('No valid content received');
+          console.warn('Not enough RSS content, using fallback');
+          throw new Error('Insufficient RSS content');
         }
       } catch (error: any) {
         console.error('Error fetching explore content:', error);
         setError('Using enhanced fallback content');
+        // Use exactly 6 fallback cards
         setExploreCards(fallbackExploreCards);
       } finally {
         setIsLoading(false);
@@ -193,7 +304,12 @@ const ExploreSection: React.FC = () => {
     };
 
     fetchExploreContent();
-  }, [activeTab]);
+    
+    // Cleanup function to prevent memory leaks
+    return () => {
+      // Cancel any pending operations if component unmounts
+    };
+  }, [activeTab, isLoading]);
 
   // Interactive functions
   const handleCardLike = (cardId: number) => {
@@ -322,7 +438,7 @@ const ExploreSection: React.FC = () => {
             
             {isLoading ? (
               <Row xs={1} sm={2} md={3} lg={4} className="g-4">
-                {Array.from({ length: 8 }).map((_, index) => (
+                {Array.from({ length: 6 }).map((_, index) => (
                   <Col key={index}>
                     <Card className="h-10 border-0 shadow-sm rounded-4 skeleton-card">
                       <Skeleton height={250} width="100%" baseColor="#e0e0e0" highlightColor="#f5f5f5" />
@@ -332,7 +448,7 @@ const ExploreSection: React.FC = () => {
               </Row>
             ) : (
               <Row xs={1} sm={2} md={3} lg={4} className="g-4">
-                {exploreCards.map((card, index) => (
+                {(displayExploreCards.length > 0 ? displayExploreCards : exploreCards).map((card, index) => (
                   <Col key={card.article_id || card.id || index}>
                     <Card 
                       className={`h-10 border-0 shadow-sm rounded-4 position-relative overflow-hidden interactive-card ${
@@ -350,7 +466,10 @@ const ExploreSection: React.FC = () => {
                         className="rounded-4 card-image-interactive" 
                         style={{ height: '100%', objectFit: 'cover' }}
                         onError={(e) => {
-                          e.currentTarget.src = `/web3_${(index % 4) + 1}.png?height=300&width=200&text=Crypto`;
+                          // Better fallback image with source name
+                          const fallbackImage = `/web3_${(index % 4) + 1}.png?height=300&width=200&text=${encodeURIComponent(card.source || 'Crypto')}`;
+                          e.currentTarget.src = fallbackImage;
+                          console.log(`Image failed to load for card ${index}, using fallback: ${fallbackImage}`);
                         }}
                       />
                       
@@ -443,7 +562,7 @@ const ExploreSection: React.FC = () => {
           <Row className="mt-3 mx-auto" style={{ width: '97%' }}>
             <Col lg={7}>
               <Carousel className="bg-dark text-white rounded-5 enhanced-carousel" style={{ height: '600px', marginBottom: '20px' }} indicators={false} controls={false}>
-                {(exploreCards.length > 0 ? exploreCards : fallbackExploreCards).map((card, index) => (
+                {(displayExploreCards.length > 0 ? displayExploreCards : (exploreCards.length > 0 ? exploreCards : fallbackExploreCards)).slice(0, 6).map((card, index) => (
                   <Carousel.Item key={card.article_id || card.id || index} className="custom-carousel-item" style={{ height: '600px' }}>
                     <Card.Img 
                       src={card.image} 
@@ -451,7 +570,10 @@ const ExploreSection: React.FC = () => {
                       className="rounded-4" 
                       style={{ height: '100%', objectFit: 'cover', width: '100%' }}
                       onError={(e) => {
-                        e.currentTarget.src = `/web3_${(index % 4) + 1}.png?height=600&width=800&text=Crypto`;
+                        // Better fallback image with source name
+                        const fallbackImage = `/web3_${(index % 4) + 1}.png?height=600&width=800&text=${encodeURIComponent(card.source || 'Crypto')}`;
+                        e.currentTarget.src = fallbackImage;
+                        console.log(`Carousel image failed to load for card ${index}, using fallback: ${fallbackImage}`);
                       }}
                     />
                     <Card.ImgOverlay className="d-flex flex-column justify-content-end" style={{ padding: '1rem' }}>
@@ -517,7 +639,7 @@ const ExploreSection: React.FC = () => {
                       cursor: 'pointer' 
                     }}>
                       <div className="trending-news-container">
-                        {trendingNews.map((news, index) => (
+                        {(displayTrendingNews.length > 0 ? displayTrendingNews : trendingNews).map((news, index) => (
                           <Row key={index} className="mb-4 trending-news-item">
                             <Col xs={8}>
                               <h6 
@@ -588,8 +710,21 @@ const ExploreSection: React.FC = () => {
   };
 
   return (
-    <Container fluid className="mt-5 rounded-5 explore-container" style={{ width: '92%' }}>
-      {/* Achievement Notification */}
+    <>
+      {/* Subtle translation indicator at the top - only show when actively translating */}
+      {showTranslationIndicator && (
+        <div 
+          ref={translationIndicatorRef}
+          className="text-center mb-2" 
+          key={`translation-${currentLanguage}`}
+        >
+          <small className="text-muted">
+            🔄 Translating to {languageDisplayText}
+          </small>
+        </div>
+      )}
+      <Container fluid className="mt-5 rounded-5 explore-container" style={{ width: '92%' }}>
+        {/* Achievement Notification */}
       {achievementUnlocked && (
         <div className="achievement-notification">
           <div className="achievement-content">
@@ -644,7 +779,7 @@ const ExploreSection: React.FC = () => {
                 className={`enhanced-tab ${activeTab === 'did-you-know' ? 'active' : ''}`}
               >
                 <Sparkles size={18} className="me-2" />
-                Did You Know?
+                {t('explore.didYouKnow') || 'Did You Know?'}
               </Nav.Link>
             </Nav.Item>
             <Nav.Item>
@@ -653,7 +788,7 @@ const ExploreSection: React.FC = () => {
                 className={`enhanced-tab ${activeTab === 'learn-a-little' ? 'active' : ''}`}
               >
                 <Bookmark size={18} className="me-2" />
-                Learn a Little
+                {t('explore.learnALittle') || 'Learn a Little'}
               </Nav.Link>
             </Nav.Item>
             <Nav.Item>
@@ -662,7 +797,7 @@ const ExploreSection: React.FC = () => {
                 className={`enhanced-tab ${activeTab === 'test-your-knowledge' ? 'active' : ''}`}
               >
                 <Brain size={18} className="me-2" />
-                Test Knowledge
+                {t('explore.testKnowledge') || 'Test Knowledge'}
               </Nav.Link>
             </Nav.Item>
           </Nav>
@@ -682,6 +817,7 @@ const ExploreSection: React.FC = () => {
         </Card.Body>
       </Card>
     </Container>
+    </>
   );
 };
 

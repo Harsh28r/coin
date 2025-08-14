@@ -5,6 +5,8 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Skeleton from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css'; // Import skeleton CSS
+import { useLanguage } from '../context/LanguageContext';
+import { useNewsTranslation } from '../hooks/useNewsTranslation';
 
 interface TrendingNewsItem {
   article_id?: string;
@@ -17,12 +19,38 @@ interface TrendingNewsItem {
 }
 
 const FeaturedCarousel: React.FC = () => {
+  const { t } = useLanguage();
   const [activeIndex, setActiveIndex] = useState(0);
   const [trendingNews, setTrendingNews] = useState<TrendingNewsItem[]>([]);
   const [loading, setLoading] = useState(true); // Add loading state
   const [error, setError] = useState<string | null>(null);
+  const [showTranslationIndicator, setShowTranslationIndicator] = useState(false);
   const scrollableRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
+  
+  // Use the translation hook - convert TrendingNewsItem to NewsItem format
+  const newsItemsForTranslation = React.useMemo(() => trendingNews.map(item => ({
+    title: item.title,
+    description: item.excerpt,
+    creator: [item.author],
+    pubDate: item.date,
+    image_url: item.image,
+    link: '#',
+    source: item.source
+  })), [trendingNews]);
+  
+  // Only trigger translation when language changes or news items change
+  const { displayItems: displayTrendingNews, isTranslating, currentLanguage } = useNewsTranslation(newsItemsForTranslation);
+  
+  // Control translation indicator display to prevent flickering
+  useEffect(() => {
+    if (isTranslating && currentLanguage !== 'en') {
+      setShowTranslationIndicator(true);
+    } else {
+      setShowTranslationIndicator(false);
+    }
+  }, [isTranslating, currentLanguage]);
+  
   const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://c-back-1.onrender.com';
   const MOCK_API_BASE_URL = 'http://localhost:5000'; // For db.json
 
@@ -174,8 +202,24 @@ const FeaturedCarousel: React.FC = () => {
   };
 
   return (
-    <Row className="mt-3 mx-auto" style={{ width: '95%' }}>
-      <Col lg={7} className="mb-3 mb-lg-0">
+    <>
+      {/* Subtle translation indicator at the top - only show when actively translating */}
+      {showTranslationIndicator && (
+        <div className="text-center mb-2">
+          <small className="text-muted">
+            🔄 Translating to {currentLanguage === 'hi' ? 'Hindi' : 
+              currentLanguage === 'es' ? 'Spanish' :
+              currentLanguage === 'fr' ? 'French' :
+              currentLanguage === 'de' ? 'German' :
+              currentLanguage === 'zh' ? 'Chinese' :
+              currentLanguage === 'ja' ? 'Japanese' :
+              currentLanguage === 'ko' ? 'Korean' :
+              currentLanguage === 'ar' ? 'Arabic' : currentLanguage}
+          </small>
+        </div>
+      )}
+      <Row className="mt-3 mx-auto" style={{ width: '95%' }}>
+        <Col lg={7} className="mb-3 mb-lg-0">
         {error ? (
           <div
             className="text-center my-custom-loading"
@@ -205,119 +249,121 @@ const FeaturedCarousel: React.FC = () => {
               </div>
             </div>
           </div>
-        ) : trendingNews.length > 0 ? (
-          <Carousel
-            className="text-white rounded-5 my-custom-carousel"
-            style={{ height: '450px', width: '95%', margin: '0 auto' }}
-            indicators={false}
-            controls={false}
-            activeIndex={activeIndex}
-            onSelect={setActiveIndex}
-          >
-            {trendingNews.map((news, index) => (
-              <Carousel.Item
-                key={index}
-                className="custom-carousel-item rounded-4"
-                style={{ height: '450px' }}
-              >
-                <Card.Img
-                  src={news.image}
-                  alt={news.title}
-                  className="rounded-4"
-                  style={{ height: '100%', objectFit: 'cover', width: '100%' }}
-                />
-                <Card.ImgOverlay
-                  className="d-flex flex-column justify-content-between rounded-5"
-                  style={{ padding: '1rem' }}
+        ) : displayTrendingNews.length > 0 ? (
+          <>
+            <Carousel
+              className="text-white rounded-5 my-custom-carousel"
+              style={{ height: '450px', width: '95%', margin: '0 auto' }}
+              indicators={false}
+              controls={false}
+              activeIndex={activeIndex}
+              onSelect={setActiveIndex}
+            >
+              {displayTrendingNews.map((news, index) => (
+                <Carousel.Item
+                  key={index}
+                  className="custom-carousel-item rounded-4"
+                  style={{ height: '450px' }}
                 >
-                  <div className="d-flex justify-content-between align-items-center mt-4">
-                    <div>
-                      <span className="badge news-badge ms-4">
-                        {news.source}
+                  <Card.Img
+                    src={news.image_url}
+                    alt={news.title}
+                    className="rounded-4"
+                    style={{ height: '100%', objectFit: 'cover', width: '100%' }}
+                  />
+                  <Card.ImgOverlay
+                    className="d-flex flex-column justify-content-between rounded-5"
+                    style={{ padding: '1rem' }}
+                  >
+                    <div className="d-flex justify-content-between align-items-center mt-4">
+                      <div>
+                        <span className="badge news-badge ms-4">
+                          {news.source}
+                        </span>
+                        <span className="ms-4 text-white">By {news.creator[0]}</span>
+                      </div>
+                      <span className="text-white ms-auto me-4">
+                        {news.pubDate}
                       </span>
-                      <span className="ms-4 text-white">By {news.author}</span>
                     </div>
-                    <span className="text-white ms-auto me-4">
-                      {news.date}
-                    </span>
-                  </div>
-                  <div
-                    className="d-flex align-items-start flex-column"
-                    style={{ paddingLeft: '0', width: '100%' }}
-                  >
                     <div
-                      className="fs-2 fw-bold mb-2 card-title h5 text-truncate"
-                      style={{
-                        textAlign: 'left',
-                        fontFamily: 'Inter, sans-serif',
-                        fontWeight: 500,
-                        fontSize: '1.5rem',
-                        lineHeight: '1.2',
-                        letterSpacing: '0.04em',
-                        maxWidth: '100%',
-                        overflowWrap: 'break-word',
-                      }}
+                      className="d-flex align-items-start flex-column"
+                      style={{ paddingLeft: '0', width: '100%' }}
                     >
-                      {news.title}
+                      <div
+                        className="fs-2 fw-bold mb-2 card-title h5 text-truncate"
+                        style={{
+                          textAlign: 'left',
+                          fontFamily: 'Inter, sans-serif',
+                          fontWeight: 500,
+                          fontSize: '1.5rem',
+                          lineHeight: '1.2',
+                          letterSpacing: '0.04em',
+                          maxWidth: '100%',
+                          overflowWrap: 'break-word',
+                        }}
+                      >
+                        {news.title}
+                      </div>
+                      <small
+                        className="text fs-4"
+                        style={{
+                          fontSize: '1rem',
+                          fontWeight: 500,
+                          display: '-webkit-box',
+                          overflow: 'hidden',
+                          WebkitBoxOrient: 'vertical',
+                          WebkitLineClamp: 3,
+                          lineHeight: '1.5',
+                          maxHeight: '7.5em',
+                          marginBottom: '1rem',
+                        }}
+                      >
+                        {news.description}
+                      </small>
                     </div>
-                    <small
-                      className="text fs-4"
+                  </Card.ImgOverlay>
+                  <div
+                    className="carousel-controls"
+                    style={{
+                      position: 'absolute',
+                      bottom: '10px',
+                      right: '10px',
+                      display: 'flex',
+                      alignItems: 'center',
+                    }}
+                  >
+                    <Button
+                      variant="outline-light"
+                      className="rounded-circle me-4"
+                      onClick={handlePrev}
                       style={{
-                        fontSize: '1rem',
-                        fontWeight: 500,
-                        display: '-webkit-box',
-                        overflow: 'hidden',
-                        WebkitBoxOrient: 'vertical',
-                        WebkitLineClamp: 3,
-                        lineHeight: '1.5',
-                        maxHeight: '7.5em',
-                        marginBottom: '1rem',
+                        width: '40px',
+                        height: '40px',
+                        borderRadius: '50%',
+                        padding: '0',
                       }}
                     >
-                      {news.excerpt}
-                    </small>
+                      <ChevronLeft style={{ marginLeft: '5px' }} />
+                    </Button>
+                    <Button
+                      variant="outline-light"
+                      className="rounded-circle"
+                      onClick={handleNext}
+                      style={{
+                        width: '40px',
+                        height: '40px',
+                        borderRadius: '50%',
+                        padding: '0',
+                      }}
+                    >
+                      <ChevronRight style={{ marginLeft: '5px' }} />
+                    </Button>
                   </div>
-                </Card.ImgOverlay>
-                <div
-                  className="carousel-controls"
-                  style={{
-                    position: 'absolute',
-                    bottom: '10px',
-                    right: '10px',
-                    display: 'flex',
-                    alignItems: 'center',
-                  }}
-                >
-                  <Button
-                    variant="outline-light"
-                    className="rounded-circle me-4"
-                    onClick={handlePrev}
-                    style={{
-                      width: '40px',
-                      height: '40px',
-                      borderRadius: '50%',
-                      padding: '0',
-                    }}
-                  >
-                    <ChevronLeft style={{ marginLeft: '5px' }} />
-                  </Button>
-                  <Button
-                    variant="outline-light"
-                    className="rounded-circle"
-                    onClick={handleNext}
-                    style={{
-                      width: '40px',
-                      height: '40px',
-                      borderRadius: '50%',
-                      padding: '0',
-                    }}
-                  >
-                    <ChevronRight style={{ marginLeft: '5px' }} />
-                  </Button>
-                </div>
-              </Carousel.Item>
-            ))}
-          </Carousel>
+                </Carousel.Item>
+              ))}
+            </Carousel>
+          </>
         ) : (
           <div
             className="text-center my-custom-loading"
@@ -531,8 +577,9 @@ const FeaturedCarousel: React.FC = () => {
             position: relative;
           }
         `}
-      </style>
-    </Row>
+              </style>
+      </Row>
+    </>
   );
 };
 
