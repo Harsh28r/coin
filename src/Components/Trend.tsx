@@ -14,6 +14,7 @@ interface NewsItem {
   pubDate: string;
   image_url: string;
   link: string;
+  content?: string;
 }
 
 // Utility function to decode HTML entities
@@ -79,6 +80,7 @@ const Exn: React.FC = () => {
                     href={`/news/${item.article_id || encodeURIComponent(item.link || item.title)}`}
                     className="text-black text-decoration-none"
                     style={{ cursor: 'pointer' }}
+                    onClick={(e) => { e.preventDefault(); navigate(`/news/${item.article_id || encodeURIComponent(item.link || item.title)}`, { state: { item } }); }}
                   >
                     {item.title}
                   </a>
@@ -97,7 +99,7 @@ const Exn: React.FC = () => {
                 </div>
                 <Button 
                   variant="warning"
-                  onClick={() => navigate(`/news/${item.article_id || encodeURIComponent(item.link || item.title)}`)}
+                  onClick={() => navigate(`/news/${item.article_id || encodeURIComponent(item.link || item.title)}`, { state: { item: { ...item, content: (item as any).content || item.description || '' } } })}
                   className="mt-3"
                 >
                   {t('news.readMore') || 'Read More'}

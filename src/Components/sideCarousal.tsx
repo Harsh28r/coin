@@ -232,7 +232,7 @@ const FeaturedCarousel: React.FC = () => {
             <h5 className="text-danger">Error: {error}</h5>
           </div>
         ) : loading ? (
-          <div className="my-custom-loading rounded-5" style={{ height: '450px', width: '95%', margin: '0 auto' }}>
+          <div className="my-custom-loading rounded-5" style={{ height: '450px', width: '95%', margin: '0 auto', position: 'relative', overflow: 'hidden' }}>
             <Skeleton height={450} width="100%" baseColor="#e0e0e0" highlightColor="#f5f5f5" />
             <div
               className="d-flex flex-column justify-content-between"
@@ -265,7 +265,18 @@ const FeaturedCarousel: React.FC = () => {
                   style={{ height: '450px', cursor: 'pointer' }}
                   onClick={() => {
                     const id = news.article_id || encodeURIComponent(((news.link as string | undefined) || news.title));
-                    navigate(`/news/${id}`);
+                    const stateItem = {
+                      article_id: news.article_id || id,
+                      title: news.title,
+                      description: news.description || news.excerpt || '',
+                      creator: Array.isArray(news.creator) ? news.creator : [news.author || 'Unknown'],
+                      pubDate: news.pubDate || news.date || new Date().toISOString(),
+                      image_url: news.image_url || news.image,
+                      link: news.link || '#',
+                      source_name: news.source || 'Trending',
+                      content: news.content || news.description || news.excerpt || ''
+                    };
+                    navigate(`/news/${id}`, { state: { item: stateItem } });
                   }}
                 >
                   <Card.Img
@@ -275,7 +286,18 @@ const FeaturedCarousel: React.FC = () => {
                     style={{ height: '100%', objectFit: 'cover', width: '100%', cursor: 'pointer' }}
                     onClick={() => {
                       const id = news.article_id || encodeURIComponent(((news.link as string | undefined) || news.title));
-                      navigate(`/news/${id}`);
+                      const stateItem = {
+                        article_id: news.article_id || id,
+                        title: news.title,
+                        description: news.description || news.excerpt || '',
+                        creator: Array.isArray(news.creator) ? news.creator : [news.author || 'Unknown'],
+                        pubDate: news.pubDate || news.date || new Date().toISOString(),
+                        image_url: news.image_url || news.image,
+                        link: news.link || '#',
+                        source_name: news.source || 'Trending',
+                        content: news.content || news.description || news.excerpt || ''
+                      };
+                      navigate(`/news/${id}`, { state: { item: stateItem } });
                     }}
                     onError={(e) => {
                       (e.currentTarget as HTMLImageElement).src = '/image.png?height=450&width=800&text=News';
@@ -286,7 +308,18 @@ const FeaturedCarousel: React.FC = () => {
                     style={{ padding: '1rem', cursor: 'pointer' }}
                     onClick={() => {
                       const id = news.article_id || encodeURIComponent(((news.link as string | undefined) || news.title));
-                      navigate(`/news/${id}`);
+                      const stateItem = {
+                        article_id: news.article_id || id,
+                        title: news.title,
+                        description: news.description || news.excerpt || '',
+                        creator: Array.isArray(news.creator) ? news.creator : [news.author || 'Unknown'],
+                        pubDate: news.pubDate || news.date || new Date().toISOString(),
+                        image_url: news.image_url || news.image,
+                        link: news.link || '#',
+                        source_name: news.source || 'Trending',
+                        content: news.content || news.description || news.excerpt || ''
+                      };
+                      navigate(`/news/${id}`, { state: { item: stateItem } });
                     }}
                   >
                     {/* content stack */}
@@ -470,7 +503,18 @@ const FeaturedCarousel: React.FC = () => {
                             }}
                             onClick={() => {
                               const id = news.article_id || encodeURIComponent(((news.link as string | undefined) || news.title));
-                              navigate(`/news/${id}`);
+                              const stateItem = {
+                                article_id: news.article_id || id,
+                                title: news.title,
+                                description: news.description || news.excerpt || '',
+                                creator: Array.isArray(news.creator) ? news.creator : [news.author || 'Unknown'],
+                                pubDate: news.pubDate || news.date || new Date().toISOString(),
+                                image_url: news.image_url || news.image,
+                                link: news.link || '#',
+                                source_name: news.source || 'Trending',
+                                content: news.content || news.description || news.excerpt || ''
+                              };
+                              navigate(`/news/${id}`, { state: { item: stateItem } });
                             }}
                           >
                             {news.title}

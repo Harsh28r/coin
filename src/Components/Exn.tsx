@@ -14,6 +14,7 @@ interface NewsItem {
   pubDate: string;
   image_url: string;
   link: string;
+  content?: string;
 }
 
 // Utility function to decode HTML entities
@@ -127,6 +128,7 @@ const Exn: React.FC = () => {
               pubDate: item.pubDate || new Date().toISOString(),
               image_url: imageUrl,
               link: item.link || '#',
+              content: item.content || '',
             } as NewsItem;
           });
 
@@ -199,6 +201,7 @@ const Exn: React.FC = () => {
                 <Card.Title className="fs-6 mb-3 text-start custom-text" style={{ fontWeight: 'bold', color: 'black', overflow: 'hidden', display: '-webkit-box', WebkitBoxOrient: 'vertical', WebkitLineClamp: 2, maxHeight: '3em' }}>
                   <a 
                     href={`/news/${item.article_id || encodeURIComponent(item.link || item.title)}`}
+                    onClick={(e) => { e.preventDefault(); navigate(`/news/${item.article_id || encodeURIComponent(item.link || item.title)}`, { state: { item } }); }}
                     className="text-black text-decoration-none"
                     style={{ cursor: 'pointer' }}
                   >
@@ -219,7 +222,7 @@ const Exn: React.FC = () => {
                 </div>
                 <Button 
                   variant="warning"
-                  onClick={() => navigate(`/news/${item.article_id || encodeURIComponent(item.link || item.title)}`)}
+                  onClick={() => navigate(`/news/${item.article_id || encodeURIComponent(item.link || item.title)}`, { state: { item } })}
                   className="mt-3"
                 >
                   {t('news.readMore') || 'Read More'}

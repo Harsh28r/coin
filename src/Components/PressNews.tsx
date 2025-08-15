@@ -4,6 +4,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import './PressNews.css';
 import { useLanguage } from '../context/LanguageContext';
 import { useNewsTranslation } from '../hooks/useNewsTranslation';
+import { useNavigate } from 'react-router-dom';
 
 interface NewsItem {
   article_id?: string;
@@ -56,6 +57,7 @@ const PresNews: React.FC = () => {
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
   
   // Use the translation hook
   const { displayItems, isTranslating, currentLanguage } = useNewsTranslation(newsItems);
@@ -176,6 +178,7 @@ const PresNews: React.FC = () => {
                     aria-label={item.title}
                     className="text-decoration-none"
                     style={{ cursor: 'pointer' }}
+                    onClick={(e) => { e.preventDefault(); const targetId = item.article_id || encodeURIComponent(item.title); navigate(`/news/${targetId}`, { state: { item: { ...item, content: item.content || item.description || '' } } }); }}
                   >
                     <Card.Img 
                       variant="top" 
@@ -214,6 +217,7 @@ const PresNews: React.FC = () => {
                       href={`/news/${item.article_id || encodeURIComponent(item.title)}`}
                       className="news-link"
                       style={{ cursor: 'pointer' }}
+                      onClick={(e) => { e.preventDefault(); const targetId = item.article_id || encodeURIComponent(item.title); navigate(`/news/${targetId}`, { state: { item: { ...item, content: item.content || item.description || '' } } }); }}
                     >
                       {item.title}
                     </a>
@@ -247,6 +251,7 @@ const PresNews: React.FC = () => {
                     <a 
                       href={`/news/${item.article_id || encodeURIComponent(item.title)}`}
                       className="btn btn-primary btn-sm ms-2"
+                      onClick={(e) => { e.preventDefault(); const targetId = item.article_id || encodeURIComponent(item.title); navigate(`/news/${targetId}`, { state: { item: { ...item, content: item.content || item.description || '' } } }); }}
                     >
                       <i className="fas fa-newspaper me-1"></i>
                       {t('news.readFullArticle') || 'Read Full Article'}

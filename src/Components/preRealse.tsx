@@ -224,8 +224,18 @@ const PressRelease: React.FC = () => {
                 className="border-0 rounded-4"
                 style={{ height: 'auto', minHeight: '430px', cursor: 'pointer', overflow: 'hidden' }}
                 onClick={() => {
-                  const target = effectiveMainArticle.article_id || effectiveMainArticle.title;
-                  window.location.href = `/news/${encodeURIComponent(target)}`;
+                  const targetId = effectiveMainArticle.article_id || encodeURIComponent(effectiveMainArticle.title || '');
+                  navigate(`/news/${targetId}`, { state: { item: {
+                    article_id: effectiveMainArticle.article_id || targetId,
+                    title: effectiveMainArticle.title,
+                    description: effectiveMainArticle.description,
+                    creator: [effectiveMainArticle.author || 'Unknown'],
+                    pubDate: effectiveMainArticle.date,
+                    image_url: effectiveMainArticle.image,
+                    link: effectiveMainArticle.link,
+                    source_name: getSourceName(effectiveMainArticle.link),
+                    content: effectiveMainArticle.description || ''
+                  } } });
                 }}
               >
                 <div style={{ position: 'relative', height: '628px', borderRadius: '20px', overflow: 'hidden' }}>
@@ -301,8 +311,18 @@ const PressRelease: React.FC = () => {
                   transition: 'all 0.25s ease',
                 }}
                 onClick={() => {
-                  const target = release.article_id || release.title;
-                  window.location.href = `/news/${encodeURIComponent(target)}`;
+                  const targetId = release.article_id || encodeURIComponent(release.title || '');
+                  navigate(`/news/${targetId}`, { state: { item: {
+                    article_id: release.article_id || targetId,
+                    title: release.title,
+                    description: release.description,
+                    creator: [release.author || 'Unknown'],
+                    pubDate: release.date,
+                    image_url: release.image,
+                    link: release.link,
+                    source_name: getSourceName(release.link),
+                    content: release.description || ''
+                  } } });
                 }}
                 onMouseEnter={(e) => {
                   (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-2px)';

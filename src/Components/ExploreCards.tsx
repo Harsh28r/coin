@@ -26,6 +26,7 @@ interface ExploreCard {
   title?: string;
   link?: string;
   source?: string;
+  content?: string;
 }
 
 const ExploreSection: React.FC = () => {
@@ -296,7 +297,8 @@ const ExploreSection: React.FC = () => {
               text: item.title || 'Crypto News',
               title: item.title,
               link: item.link,
-              source: item.source_name || 'CryptoSlate'
+              source: item.source_name || 'CryptoSlate',
+              content: item.content || ''
             }));
             allNews.push(...mappedNews);
             console.log(`Added ${mappedNews.length} items from CryptoSlate RSS source`);
@@ -314,7 +316,8 @@ const ExploreSection: React.FC = () => {
               text: item.title || 'Crypto News',
               title: item.title,
               link: item.link,
-              source: item.source_name || 'Exclusive News'
+              source: item.source_name || 'Exclusive News',
+              content: item.content || ''
             }));
             allNews.push(...mappedNews);
             console.log(`Added ${mappedNews.length} items from first RSS source`);
@@ -332,7 +335,8 @@ const ExploreSection: React.FC = () => {
               text: item.title || 'Crypto News',
               title: item.title,
               link: item.link,
-              source: item.source_name || 'Press Release'
+              source: item.source_name || 'Press Release',
+              content: item.content || ''
             }));
             allNews.push(...mappedNews);
             console.log(`Added ${mappedNews.length} items from second RSS source`);
@@ -350,7 +354,8 @@ const ExploreSection: React.FC = () => {
               text: item.title || 'Crypto News',
               title: item.title,
               link: item.link,
-              source: item.source_name || 'Crypto News'
+              source: item.source_name || 'Crypto News',
+              content: item.content || ''
             }));
             allNews.push(...mappedNews);
             console.log(`Added ${mappedNews.length} items from third RSS source`);
@@ -517,7 +522,29 @@ const ExploreSection: React.FC = () => {
                   <span className="author-badge">{newsItem.author}</span> - {newsItem.date}
                 </Card.Text>
                 <div className="news-actions-interactive">
-                  <Button variant="outline-primary" size="sm" className="action-btn">
+                  <Button
+                    variant="outline-primary"
+                    size="sm"
+                    className="action-btn"
+                    onClick={() => {
+                      const id = newsItem.article_id || encodeURIComponent(newsItem.title);
+                      navigate(`/news/${id}`, {
+                        state: {
+                          item: {
+                            article_id: id,
+                            title: newsItem.title,
+                            description: newsItem.excerpt,
+                            creator: [newsItem.author],
+                            pubDate: newsItem.date,
+                            image_url: newsItem.image,
+                            link: '#',
+                            source_name: 'Trending News',
+                            content: newsItem.excerpt,
+                          },
+                        },
+                      });
+                    }}
+                  >
                     <Eye size={16} className="me-1" />
                     Read
                   </Button>
@@ -587,7 +614,17 @@ const ExploreSection: React.FC = () => {
                       onClick={() => {
                         handleCardView(card.id || index);
                         const targetId = card.article_id || encodeURIComponent(card.link || titleText);
-                        navigate(`/news/${targetId}`);
+                        navigate(`/news/${targetId}`, { state: { item: {
+                          article_id: card.article_id || String(card.id || targetId),
+                          title: titleText,
+                          description: card.text || card.title || card.description || '',
+                          creator: ['Unknown'],
+                          pubDate: new Date().toISOString(),
+                          image_url: imgSrc,
+                          link: card.link || '#',
+                          source_name: card.source || card.source_name || 'Crypto',
+                          content: card.content || ''
+                        } } });
                       }}
                     >
                       <Card.Img 
@@ -646,7 +683,17 @@ const ExploreSection: React.FC = () => {
                             <a
                               href={`/news/${card.article_id || encodeURIComponent(card.link || titleText)}`}
                               className="text-white text-decoration-none"
-                              onClick={(e) => e.stopPropagation()}
+                              onClick={(e) => { e.stopPropagation(); const targetId = card.article_id || encodeURIComponent(card.link || titleText); navigate(`/news/${targetId}`, { state: { item: {
+                                article_id: card.article_id || String(card.id || targetId),
+                                title: titleText,
+                                description: card.text || card.title || card.description || '',
+                                creator: ['Unknown'],
+                                pubDate: new Date().toISOString(),
+                                image_url: imgSrc,
+                                link: card.link || '#',
+                                source_name: card.source || card.source_name || 'Crypto',
+                                content: card.content || ''
+                              } } }); }}
                             >
                               <small className="fw-bold content-text" style={{ fontSize: '0.9rem', lineHeight: '1.3' }}>
                                 {titleText}

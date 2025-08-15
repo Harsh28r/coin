@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Navbar, Container, Nav, NavDropdown, Card, ListGroup, Badge } from 'react-bootstrap';
+import { useNavigate } from 'react-router-dom';
 import { useCurrency } from '../context/CurrencyContext';
 
 // Define types for translations, currency rates, and news
@@ -36,9 +37,10 @@ interface CryptoPrice {
 }
 
 export function TopNav() {
+  const navigate = useNavigate();
   const allowedLanguages = ['en', 'bn', 'de', 'es', 'fr'] as const;
   type Language = typeof allowedLanguages[number];
-  const allowedCurrencies = ['USD', 'EUR', 'GBP'] as const;
+  const allowedCurrencies = ['USD', 'EUR', 'GBP', 'USDT'] as const;
   type Currency = typeof allowedCurrencies[number];
 
   const [language, setLanguage] = useState<Language>('en');
@@ -53,6 +55,7 @@ export function TopNav() {
   });
   const [currencyRates, setCurrencyRates] = useState<CurrencyRates>({ USD: 1, EUR: 0.85, GBP: 0.73 });
   const [news, setNews] = useState<NewsArticle[]>([]);
+  const [rawNews, setRawNews] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [cryptoPrices, setCryptoPrices] = useState<CryptoPrice[]>([]);
@@ -103,6 +106,7 @@ export function TopNav() {
         const data = await response.json();
         
         if (data.success && Array.isArray(data.data)) {
+          setRawNews(data.data);
           const newsArticles: NewsArticle[] = data.data.map((item: any, index: number) => ({
             id: item.article_id || `news-${index}`,
             title: item.title || 'Crypto News'
@@ -132,7 +136,8 @@ export function TopNav() {
     const fetchCryptoPrices = async () => {
       try {
         console.log('Fetching crypto prices from backend...');
-        const response = await fetch(`${API_BASE_URL}/crypto-prices?limit=8`);
+        const vs = currency === 'USDT' ? 'usd' : currency.toLowerCase();
+        const response = await fetch(`${API_BASE_URL}/crypto-prices?limit=8&vs=${encodeURIComponent(vs)}`);
         if (!response.ok) throw new Error('Failed to fetch crypto prices');
         const data = await response.json();
         
@@ -193,7 +198,7 @@ export function TopNav() {
     // Refresh prices every 30 seconds
     const interval = setInterval(fetchCryptoPrices, 30000);
     return () => clearInterval(interval);
-  }, []);
+  }, [currency]);
 
   const handleLanguageChange = (eventKey: string | null) => {
     console.log('Language dropdown clicked, eventKey:', eventKey);
@@ -211,6 +216,10 @@ export function TopNav() {
       console.log('Selected currency:', eventKey);
       setCurrency(eventKey as Currency);
       setGlobalCurrency(eventKey as Currency);
+      // Optionally update locale for EUR/GBP formatting
+      if (eventKey === 'EUR') setLocale('de-DE');
+      else if (eventKey === 'GBP') setLocale('en-GB');
+      else setLocale('en-US');
     } else {
       console.warn('Invalid currency selected:', eventKey);
     }
@@ -719,7 +728,31 @@ export function TopNav() {
                 <ListGroup.Item 
                   key={article.id}
                   style={{ cursor: 'pointer' }}
-                  onClick={() => window.location.href = `/news/${article.id}`}
+                  onClick={() => {
+                    const id = article.id;
+                    const match = rawNews.find((it: any) => {
+                      const articleId = (it.article_id || '').toString();
+                      const link = (it.link || '').toString();
+                      const title = (it.title || '').toString();
+                      return articleId === id || link.includes(id) || id.includes(articleId) || id.includes(title) || title.includes(id);
+                    });
+                    if (match) {
+                      const targetId = match.article_id || encodeURIComponent(match.link || match.title || id);
+                      navigate(`/news/${targetId}`, { state: { item: {
+                        article_id: match.article_id || targetId,
+                        title: match.title || 'Untitled',
+                        description: match.description || '',
+                        creator: Array.isArray(match.creator) ? match.creator : [match.creator || 'Unknown'],
+                        pubDate: match.pubDate || new Date().toISOString(),
+                        image_url: match.image_url || match.image || '',
+                        link: match.link || '#',
+                        source_name: match.source_name || 'Crypto',
+                        content: match.content || ''
+                      } } });
+                    } else {
+                      navigate(`/news/${id}`);
+                    }
+                  }}
                 >
                   {article.title}
                 </ListGroup.Item>

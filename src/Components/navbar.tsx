@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Navbar, Nav, NavDropdown, Form, FormControl, Container, Spinner, Alert, Button } from 'react-bootstrap';
 import { Search, CircleDollarSign, Landmark } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, NavLink, useNavigate } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import _ from 'lodash';
 import '../styles/CoinsNavbar.css';
@@ -120,19 +120,19 @@ const CoinsNavbar: React.FC = () => {
     <Navbar bg="white" expand="lg" className="border-bottom py-3" style={{ boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)' }}>
       <Container fluid style={{ maxWidth: '90%', margin: '0 auto' }}>
         <Navbar.Brand as={Link} to="/">
-          <img src="/logo2.png" style={{ width: '150px', height: '55px' }} alt="CoinsCapture logo" />
+          <img src="/logo3.png" style={{ width: '150px', height: '75px' }} alt="CoinsCapture logo" />
         </Navbar.Brand>
         <Navbar.Toggle aria-controls="basic-navbar-nav" />
         <Navbar.Collapse id="basic-navbar-nav">
           <Nav className="me-auto gap-2" style={linkStyles}>
             <NavDropdown title="News" id="news-dropdown">
-              <NavDropdown.Item as={Link} to="/exclusive-news">Exclusive News</NavDropdown.Item>
-              <NavDropdown.Item as={Link} to="/All-Trending-news">Trending</NavDropdown.Item>
-              <NavDropdown.Item as={Link} to="/press-news">Press News</NavDropdown.Item>
+              <NavDropdown.Item as={NavLink} to="/exclusive-news">Exclusive News</NavDropdown.Item>
+              <NavDropdown.Item as={NavLink} to="/All-Trending-news">Trending</NavDropdown.Item>
+              <NavDropdown.Item as={NavLink} to="/press-news">Press News</NavDropdown.Item>
             </NavDropdown>
-            <Nav.Link as={Link} to="/search">Search</Nav.Link>
-            <Nav.Link as={Link} to="/advertise">Advertise</Nav.Link>
-            <Nav.Link as={Link} to="/login">Login</Nav.Link>
+            <Nav.Link as={NavLink} to="/learn">Learn</Nav.Link>
+            <Nav.Link as={NavLink} to="/press-news">Press Releases</Nav.Link>
+            <Nav.Link as={NavLink} to="/blog">Blog</Nav.Link>
           </Nav>
           <Form className="d-flex justify-content-center me-2" onSubmit={handleSearch}>
             <div className="position-relative search-container">
@@ -180,7 +180,7 @@ const CoinsNavbar: React.FC = () => {
               )}
             </div>
           </Form>
-          <Nav.Link as={Link} to="/advertise" className="me-2 mt-1">
+          <Nav.Link as={NavLink} to="/advertise" className="me-2 mt-1">
             <Button
               variant="warning"
               style={{ fontSize: '16px', padding: '8px 20px', color: 'white', backgroundColor: '#f90', borderRadius: '0.7rem' }}

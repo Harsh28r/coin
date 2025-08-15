@@ -1,5 +1,5 @@
-import React from 'react';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { BrowserRouter as Router, Route, Routes, useLocation } from 'react-router-dom';
 import './App.css';
 import LandingPage from './pages/Landing';
 import BlogPage from './pages/BlogPage';
@@ -19,6 +19,17 @@ import { CurrencyProvider } from './context/CurrencyContext';
 import PressReleaseDetail from './Components/preRealse'
 import SearchPage from './Components/SearchPage';
 import NewsDetail from './Components/NewsDetail';
+import BlogHome from './Components/BlogHome';
+import Learn from './Components/Learn';
+
+
+const ScrollToTop: React.FC = () => {
+  const location = useLocation();
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location.pathname]);
+  return null;
+};
 
 function App() {
   return (
@@ -27,10 +38,13 @@ function App() {
         <BlogProvider>
           <CurrencyProvider>
             <Router>
+              <ScrollToTop />
               <div className="App">
                 <Routes>
                   <Route path="/" element={<LandingPage />} />
                   <Route path="/blog/:id" element={<BlogPage />} />
+                  <Route path="/blog" element={<BlogHome />} />
+                  <Route path="/learn" element={<Learn />} />
                   <Route path="/login" element={<LoginPage />} />
                   <Route path="/admin" element={<AdminDashboard />} />
                   <Route path="/All-exclusive-news" element={<AllNews />} /> 

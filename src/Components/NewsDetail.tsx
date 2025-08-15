@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { Container, Row, Col, Card, Badge, Button } from 'react-bootstrap';
 import { useLanguage } from '../context/LanguageContext';
 import { useNewsTranslation } from '../hooks/useNewsTranslation';
@@ -27,6 +27,7 @@ const NewsDetail: React.FC = () => {
   const [newsItem, setNewsItem] = useState<NewsItem | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  // Prefer env, fallback to the backend used elsewhere in the app
   const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://c-back-2.onrender.com';
   const { currentLanguage } = useLanguage();
   const { displayItems: translatedItems, isTranslating } = useNewsTranslation(newsItem ? [newsItem] : []);
@@ -48,70 +49,161 @@ const NewsDetail: React.FC = () => {
     return Math.max(1, Math.round(words / 200));
   };
 
+  const location = useLocation();
+  const navState: any = location.state;
+
   useEffect(() => {
     const fetchNewsDetail = async () => {
       if (!id) return;
-      
-      try {
-        setLoading(true);
-        // First try the dedicated endpoint
-        try {
-          const byIdRes = await fetch(`${API_BASE_URL}/news-by-id?id=${encodeURIComponent(id)}`);
-          if (byIdRes.ok) {
-            const byIdData = await byIdRes.json();
-            if (byIdData.success && byIdData.data) {
-              setNewsItem(byIdData.data);
-              setLoading(false);
-              return;
-            }
-          }
-        } catch (e) {
-          // fallback chain continues
+
+      const fromState = navState && (navState.item || navState.newsItem);
+      if (fromState) {
+        const incoming = fromState as NewsItem;
+        setNewsItem(incoming);
+        setLoading(false);
+        setError(null);
+        // If we already have full content, skip background enrichment entirely
+        if (incoming.content && incoming.content.trim().length > 80) {
+          return;
         }
-        
-        // Fallback search if direct fetch didn’t find it
-        try {
-          const searchResponse = await fetch(`${API_BASE_URL}/search-db-news?query=${encodeURIComponent(id)}`);
-          const searchData = await searchResponse.json();
-          if (searchData.success && searchData.data && Array.isArray(searchData.data)) {
-            const foundItem = searchData.data.find((item: NewsItem) => 
-              item.article_id === id || (item.link && item.link.includes(id))
-            );
-            if (foundItem) {
-              setNewsItem(foundItem);
-              setLoading(false);
-              return;
-            }
-          }
-        } catch (e) {}
-        
-        // Fallback: attempt fetch from Defiant endpoint latest items and match
-        try {
-          const defiantRes = await fetch(`${API_BASE_URL}/fetch-defiant-rss?limit=20`);
-          if (defiantRes.ok) {
-            const defiantData = await defiantRes.json();
-            if (defiantData.success && Array.isArray(defiantData.data)) {
-              const match = defiantData.data.find((it: any) => it.article_id === id || (it.link && it.link.includes(id)));
-              if (match) {
-                setNewsItem(match);
-                setLoading(false);
-                return;
+      } else {
+        setLoading(true);
+      }
+
+      const isLocalBase = /localhost|127\.0\.0\.1|:\\d{2,5}$/.test(API_BASE_URL);
+      const bases = isLocalBase
+        ? Array.from(new Set([
+            'https://c-back-1.onrender.com',
+            'https://c-back-2.onrender.com',
+            API_BASE_URL,
+          ]))
+        : Array.from(new Set([
+            API_BASE_URL,
+            'https://c-back-1.onrender.com',
+            'https://c-back-2.onrender.com',
+          ]));
+
+      try {
+        if (!fromState) setLoading(true);
+        let resolved: NewsItem | null = null;
+
+        for (const base of bases) {
+          if (resolved) break;
+          // 1) Search DB first (most reliable across deployments)
+          try {
+            const searchResponse = await fetch(`${base}/search-db-news?query=${encodeURIComponent(id)}`);
+            if (searchResponse.ok) {
+              const searchData = await searchResponse.json();
+              if (searchData.success && Array.isArray(searchData.data)) {
+                const idLower = id.toLowerCase();
+                const foundItem = searchData.data.find((item: any) => {
+                  const linkHit = item.link && typeof item.link === 'string' && item.link.includes(id);
+                  const idHit = item.article_id && String(item.article_id) === id;
+                  const titleHit = item.title && typeof item.title === 'string' && (item.title.toLowerCase().includes(idLower) || idLower.includes(item.title.toLowerCase()));
+                  return idHit || linkHit || titleHit;
+                });
+                if (foundItem) {
+                  resolved = foundItem;
+                  break;
+                }
               }
             }
-          }
-        } catch (e) {}
+          } catch {}
 
-        setError('News article not found');
-        setLoading(false);
+          // 2) Fallback: unified RSS and match (broad coverage)
+          try {
+            if (/localhost|127\.0\.0\.1/.test(base)) throw new Error('skip all-rss on local');
+            const allRssRes = await fetch(`${base}/fetch-all-rss?limit=50`);
+            if (allRssRes.ok) {
+              const allRssData = await allRssRes.json();
+              if (allRssData.success && Array.isArray(allRssData.data)) {
+                const idLower = id.toLowerCase();
+                const match = allRssData.data.find((it: any) => {
+                  const linkHit = it.link && typeof it.link === 'string' && it.link.includes(id);
+                  const idHit = it.article_id && String(it.article_id) === id;
+                  const titleHit = it.title && typeof it.title === 'string' && (it.title.toLowerCase().includes(idLower) || idLower.includes(it.title.toLowerCase()));
+                  return idHit || linkHit || titleHit;
+                });
+                if (match) {
+                  resolved = match;
+                  break;
+                }
+              }
+            }
+          } catch {}
+
+          // 3) Fallback: generic RSS endpoint and match
+          try {
+            const rssRes = await fetch(`${base}/fetch-rss?limit=50`);
+            if (rssRes.ok) {
+              const rssData = await rssRes.json();
+              if (rssData.success && Array.isArray(rssData.data)) {
+                const idLower = id.toLowerCase();
+                const match = rssData.data.find((it: any) => {
+                  const linkHit = it.link && typeof it.link === 'string' && it.link.includes(id);
+                  const idHit = it.article_id && String(it.article_id) === id;
+                  const titleHit = it.title && typeof it.title === 'string' && (it.title.toLowerCase().includes(idLower) || idLower.includes(it.title.toLowerCase()));
+                  return idHit || linkHit || titleHit;
+                });
+                if (match) {
+                  resolved = match;
+                  break;
+                }
+              }
+            }
+          } catch {}
+
+          // 4) Fallback: dedicated by-id endpoint (may not exist on some deployments)
+          try {
+            const byIdRes = await fetch(`${base}/news-by-id?id=${encodeURIComponent(id)}`);
+            if (byIdRes.ok) {
+              const byIdData = await byIdRes.json();
+              if (byIdData.success && byIdData.data) {
+                resolved = byIdData.data;
+                break;
+              }
+            }
+          } catch {}
+
+          // 5) Fallback: The Defiant feed (might be missing on some deployments)
+          try {
+            if (/localhost|127\.0\.0\.1/.test(base)) throw new Error('skip defiant on local');
+            const defiantRes = await fetch(`${base}/fetch-defiant-rss?limit=20`);
+            if (defiantRes.ok) {
+              const defiantData = await defiantRes.json();
+              if (defiantData.success && Array.isArray(defiantData.data)) {
+                const idLower = id.toLowerCase();
+                const match = defiantData.data.find((it: any) => {
+                  const linkHit = it.link && typeof it.link === 'string' && it.link.includes(id);
+                  const idHit = it.article_id && String(it.article_id) === id;
+                  const titleHit = it.title && typeof it.title === 'string' && (it.title.toLowerCase().includes(idLower) || idLower.includes(it.title.toLowerCase()));
+                  return idHit || linkHit || titleHit;
+                });
+                if (match) {
+                  resolved = match;
+                  break;
+                }
+              }
+            }
+          } catch {}
+        }
+
+        if (resolved) {
+          setNewsItem(resolved);
+          setError(null);
+        } else if (!fromState) {
+          setError('News article not found');
+        }
+        if (!fromState) setLoading(false);
       } catch (err) {
         console.error('Error fetching news detail:', err);
         setError('Failed to load news article');
-        setLoading(false);
+        if (!fromState) setLoading(false);
       }
     };
 
     fetchNewsDetail();
-  }, [id, API_BASE_URL]);
+  }, [id, API_BASE_URL, navState]);
 
   const handleBack = () => {
     navigate(-1);
@@ -141,6 +233,43 @@ const NewsDetail: React.FC = () => {
     }
   };
 
+  // Background: if we have a link and content is short/empty, try to extract full article HTML from backend
+  useEffect(() => {
+    const maybeExtract = async () => {
+      if (!effectiveItem) return;
+      const contentLen = (effectiveItem.content || '').trim().length;
+      if (contentLen > 80) return;
+      if (!effectiveItem.link) return;
+
+      try {
+        const basesToTry = Array.from(new Set([
+          API_BASE_URL,
+          'https://c-back-1.onrender.com',
+          'https://c-back-2.onrender.com',
+        ]));
+
+        for (const base of basesToTry) {
+          try {
+            const resp = await fetch(`${base}/extract-article?url=${encodeURIComponent(effectiveItem.link)}`);
+            if (!resp.ok) continue;
+            const data = await resp.json();
+            if (data.success && (data.html || data.text)) {
+              const merged = { ...effectiveItem, content: data.html || (data.text || '').replace(/\n/g, '<br>') } as NewsItem;
+              setNewsItem(merged);
+              break;
+            }
+          } catch {
+            // continue to next base
+          }
+        }
+      } catch {
+        // ignore extraction errors silently
+      }
+    };
+    maybeExtract();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [effectiveItem?.link, effectiveItem?.content, API_BASE_URL]);
+
   if (loading) {
     return (
       <Container className="mt-5">
@@ -154,7 +283,7 @@ const NewsDetail: React.FC = () => {
     );
   }
 
-  if (error || !effectiveItem) {
+  if (!effectiveItem) {
     return (
       <Container className="mt-5">
         <div className="text-center">
@@ -188,7 +317,7 @@ const NewsDetail: React.FC = () => {
           {/* Article Header */}
           <div className="article-header mb-4">
             {/* Title */}
-            <h1 className="article-title mb-1" style={{ fontWeight: 700, lineHeight: 1.2 }}>
+            <h1 className="article-title mb-1">
               {effectiveItem.title}
             </h1>
             {isTranslating && currentLanguage !== 'en' && (
@@ -270,7 +399,6 @@ const NewsDetail: React.FC = () => {
               <div className="article-body">
                 <div
                   className="content-html"
-                  style={{ fontSize: '1.04rem', lineHeight: 1.8 }}
                   dangerouslySetInnerHTML={{ __html: effectiveItem.content.replace(/\n/g, '<br>') }}
                 />
               </div>

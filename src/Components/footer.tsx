@@ -62,7 +62,7 @@ const Footer: React.FC = () => {
         <Row className="mb-5" style={{ maxWidth: '100%' }}>
           <Col md={5} className="mb-4 mb-md-0 text-center text-md-start" style={{ textAlign: 'left' }}>
             <img 
-              src="/logo2.png" 
+              src="/logo3.png" 
               alt="CoinsCapture Logo" 
               className="mb-4" 
               style={{ width: '250px', height: 'auto' }} 

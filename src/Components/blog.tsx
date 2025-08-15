@@ -6,6 +6,8 @@ import '@fontsource/inter';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { useNewsTranslation } from '../hooks/useNewsTranslation';
+import Skeleton from 'react-loading-skeleton';
+import 'react-loading-skeleton/dist/skeleton.css';
 
 interface BlogPost {
   id: string;
@@ -23,6 +25,8 @@ const BlogSection: React.FC = () => {
   const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const postsPerPage = 6;
+  const [loading, setLoading] = useState<boolean>(false);
+  const [showAll, setShowAll] = useState<boolean>(false);
   
   // Use the translation hook
   const { displayItems: displayPosts, isTranslating, currentLanguage } = useNewsTranslation(blogPosts);
@@ -44,6 +48,7 @@ const BlogSection: React.FC = () => {
   useEffect(() => {
     const fetchBlogPosts = async () => {
       try {
+        setLoading(true);
         const response = await fetch(`${API_BASE_URL}/posts`, {
           headers: {
             'Content-Type': 'application/json',
@@ -81,6 +86,8 @@ const BlogSection: React.FC = () => {
         setBlogPosts(formattedPosts);
       } catch (error) {
         console.error('Error fetching blog posts:', error);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -122,8 +129,8 @@ const BlogSection: React.FC = () => {
             </small>
           )}
         </div>
-        <Link 
-          to="/blogs" 
+        <button 
+          type="button"
           className="text-decoration-none d-flex align-items-center px-4 py-3 rounded-4"
           style={{
             background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
@@ -131,24 +138,60 @@ const BlogSection: React.FC = () => {
             fontWeight: '600',
             fontSize: '1rem',
             transition: 'all 0.3s ease',
-            boxShadow: '0 4px 15px rgba(245, 158, 11, 0.3)'
+            boxShadow: '0 4px 15px rgba(245, 158, 11, 0.3)',
+            border: 'none'
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.transform = 'translateY(-2px)';
-            e.currentTarget.style.boxShadow = '0 8px 25px rgba(245, 158, 11, 0.4)';
+            (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(-2px)';
+            (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 8px 25px rgba(245, 158, 11, 0.4)';
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.transform = 'translateY(0)';
-            e.currentTarget.style.boxShadow = '0 4px 15px rgba(245, 158, 11, 0.3)';
+            (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(0)';
+            (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 4px 15px rgba(245, 158, 11, 0.3)';
+          }}
+          onClick={() => {
+            setShowAll((prev) => !prev);
+            setCurrentIndex(0);
           }}
         >
-          View All Posts <ChevronRight size={20} className="ms-2" />
-        </Link>
+          {showAll ? 'View Less' : 'View All Posts'} <ChevronRight size={20} className="ms-2" />
+        </button>
       </div>
 
       {/* Enhanced Blog Cards Grid */}
-      <Row xs={1} md={2} lg={3} className="g-4">
-        {displayPosts.slice(currentIndex, currentIndex + postsPerPage).map((post) => (
+      {loading ? (
+        <Row xs={1} md={2} lg={3} className="g-4">
+          {Array.from({ length: postsPerPage }).map((_, i) => (
+            <Col key={`sk-${i}`}>
+              <Card className="h-100 border-0 shadow-sm rounded-4 overflow-hidden">
+                <Skeleton height={220} />
+                <Card.Body className="p-4">
+                  <Skeleton width="80%" height={24} className="mb-3" />
+                  <Skeleton count={3} height={14} className="mb-2" />
+                  <div className="mt-auto">
+                    <div className="d-flex justify-content-between align-items-center mb-3">
+                      <div className="d-flex align-items-center">
+                        <Skeleton circle width={24} height={24} className="me-2" />
+                        <div>
+                          <Skeleton width={60} height={12} />
+                          <Skeleton width={80} height={12} />
+                        </div>
+                      </div>
+                      <div className="text-end">
+                        <Skeleton width={70} height={12} />
+                        <Skeleton width={60} height={12} />
+                      </div>
+                    </div>
+                    <Skeleton height={36} />
+                  </div>
+                </Card.Body>
+              </Card>
+            </Col>
+          ))}
+        </Row>
+      ) : (
+        <Row xs={1} md={2} lg={3} className="g-4">
+        {(showAll ? displayPosts : displayPosts.slice(currentIndex, currentIndex + postsPerPage)).map((post) => (
           <Col key={post.id}>
             <Link to={`/blog/${post.id}`} className="text-decoration-none">
               <Card 
@@ -299,9 +342,10 @@ const BlogSection: React.FC = () => {
           </Col>
         ))}
       </Row>
+      )}
 
       {/* Enhanced Navigation */}
-              {displayPosts.length > postsPerPage && (
+      {!loading && !showAll && displayPosts.length > postsPerPage && (
         <div className="d-flex justify-content-center align-items-center mt-5 gap-3">
           <Button
             variant="outline-warning"

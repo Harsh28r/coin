@@ -17,6 +17,7 @@ interface NewsItem {
   pubDate: string;
   image_url: string;
   link: string;
+  content?: string;
 }
 
 // Utility function to decode HTML entities
@@ -136,6 +137,7 @@ const ExclusiveNews: React.FC = () => {
               pubDate: item.pubDate || new Date().toISOString(),
               image_url: imageUrl,
               link: item.link || '#',
+              content: item.content || '',
             } as NewsItem;
           });
 
@@ -259,7 +261,14 @@ const ExclusiveNews: React.FC = () => {
                  <Row xs={1} md={2} lg={4} className="g-4">
            {displayItems.slice(0, 4).map((item, index) => (
             <Col key={item.article_id || item.link || `${item.title}-${index}`}>
-              <Card className="h-100 border-0 shadow-sm rounded-4">
+              <Card
+                className="h-100 border-0 shadow-sm rounded-4"
+                style={{ cursor: 'pointer' }}
+                onClick={() => {
+                  const targetId = item.article_id || encodeURIComponent(item.title);
+                  navigate(`/news/${targetId}`, { state: { item } });
+                }}
+              >
                                  <Card.Img
                    variant="top"
                    className="rounded-4"
@@ -282,11 +291,15 @@ const ExclusiveNews: React.FC = () => {
                       maxHeight: '3em',
                     }}
                   >
-                                         <a
+                     <a
                        href={`/news/${item.article_id || encodeURIComponent(item.title)}`}
                        className="text-black text-decoration-none"
                        aria-label={item.title}
                        style={{ cursor: 'pointer' }}
+                       onClick={(e) => { e.preventDefault();
+                         const targetId = item.article_id || encodeURIComponent(item.title);
+                         navigate(`/news/${targetId}`, { state: { item } });
+                       }}
                      >
                        {decodeHtml(item.title)}
                      </a>

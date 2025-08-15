@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Container, Row, Col, Card } from 'react-bootstrap';
+import { useNavigate } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 interface NewsItem {
@@ -23,12 +24,13 @@ const decodeHtml = (html: string) => {
 const AllNews: React.FC = () => {
   const [newsItems, setNewsItems] = useState<NewsItem[]>([]);
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null); // Track expanded item
-  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5000';
+  const navigate = useNavigate();
+  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://c-back-1.onrender.com';
 
   useEffect(() => {
     const fetchNews = async () => {
       try {
-        const response = await fetch('${API_BASE_URL}/fetch-rss');
+        const response = await fetch(`${API_BASE_URL}/fetch-rss`);
         const data = await response.json();
         if (Array.isArray(data.data)) {
           setNewsItems(data.data);
@@ -69,6 +71,7 @@ const AllNews: React.FC = () => {
                 href={`/news/${item.article_id || encodeURIComponent(item.title)}`} 
                 className="text-black text-decoration-none"
                 style={{ cursor: 'pointer' }}
+                onClick={(e) => { e.preventDefault(); const targetId = item.article_id || encodeURIComponent(item.title); navigate(`/news/${targetId}`, { state: { item: { ...item } } }); }}
               >
                 {item.title}
               </a>
