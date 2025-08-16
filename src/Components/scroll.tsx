@@ -126,7 +126,7 @@ export const ScrollingStats = () => {
         const len = Math.max(scrollingStats.length, 1);
         return (prev + 1) % len;
       });
-    }, 70000);
+    }, 2000);
     return () => clearInterval(timer);
   }, [scrollingStats.length]);
 

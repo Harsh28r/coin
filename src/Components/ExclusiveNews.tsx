@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import Skeleton from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css'; // Import skeleton CSS
 import { useLanguage } from '../context/LanguageContext';
+import { Helmet } from 'react-helmet-async';
 import { useNewsTranslation } from '../hooks/useNewsTranslation';
 
 interface NewsItem {
@@ -202,6 +203,11 @@ const ExclusiveNews: React.FC = () => {
 
   return (
     <Container fluid className="mt-5 skeleton-container" style={{ width: '92%' }}>
+      <Helmet>
+        <title>Exclusive News | CoinsCapture</title>
+        <meta name="description" content="Exclusive crypto stories curated with full content on-platform." />
+        <link rel="canonical" href={`${window.location.origin}/exclusive-news`} />
+      </Helmet>
       <div className="d-flex justify-content-between align-items-center mb-4">
         <div>
           <h4 className="m-0" style={{ fontWeight: 'bold', letterSpacing: '0.05em' }}>

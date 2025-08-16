@@ -62,22 +62,29 @@ const PresNews: React.FC = () => {
   // Use the translation hook
   const { displayItems, isTranslating, currentLanguage } = useNewsTranslation(newsItems);
   
-  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5000';
+  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://c-back-2.onrender.com';
 
   useEffect(() => {
     const fetchNews = async () => {
+      const sources = [
+        `${API_BASE_URL}/fetch-cryptobriefing-rss?limit=12`,
+        `${API_BASE_URL}/fetch-dailyhodl-rss?limit=12`,
+        `${API_BASE_URL}/fetch-beincrypto-rss?limit=12`,
+        `${API_BASE_URL}/fetch-another-rss?limit=12`,
+      ];
       try {
         setLoading(true);
         setError(null);
-        const response = await fetch(`${API_BASE_URL}/fetch-another-rss`);
-        const data = await response.json();
-        
-        if (Array.isArray(data.data)) {
-          setNewsItems(data.data);
-        } else {
-          setError('Invalid data format received');
-          console.error('Fetched data is not an array:', data);
+        let payload: any = null;
+        for (const url of sources) {
+          try {
+            const res = await fetch(url);
+            const data = await res.json();
+            if (data?.success && Array.isArray(data.data) && data.data.length) { payload = data; break; }
+          } catch {}
         }
+        if (!payload) throw new Error('All press sources failed');
+        setNewsItems(payload.data.map((item: any) => ({ ...item, content: item.content || item.description || '' })));
       } catch (error) {
         setError('Failed to fetch news. Please try again later.');
         console.error('Error fetching news:', error);

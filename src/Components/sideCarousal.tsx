@@ -17,12 +17,15 @@ interface TrendingNewsItem {
   image: string;
   source: string;
   link?: string;
+  content?: string;
 }
 
 const FeaturedCarousel: React.FC = () => {
   const { t } = useLanguage();
   const [activeIndex, setActiveIndex] = useState(0);
   const [trendingNews, setTrendingNews] = useState<TrendingNewsItem[]>([]);
+  const [featureSlides, setFeatureSlides] = useState<any[]>([]);
+  const [loadingFeatures, setLoadingFeatures] = useState<boolean>(true);
   const [loading, setLoading] = useState(true); // Add loading state
   const [error, setError] = useState<string | null>(null);
   const [showTranslationIndicator, setShowTranslationIndicator] = useState(false);
@@ -43,6 +46,19 @@ const FeaturedCarousel: React.FC = () => {
   
   // Only trigger translation when language changes or news items change
   const { displayItems: displayTrendingNews, isTranslating, currentLanguage } = useNewsTranslation(newsItemsForTranslation);
+
+  // Translate feature slides (left carousel)
+  const featureItemsForTranslation = React.useMemo(() => featureSlides.map((news: any) => ({
+    article_id: news.article_id,
+    title: news.title,
+    description: news.description,
+    creator: Array.isArray(news.creator) ? news.creator : [news.author || 'Unknown'],
+    pubDate: news.pubDate || news.date,
+    image_url: news.image_url || news.image,
+    link: news.link || '#',
+    source: news.source || 'Top News'
+  })), [featureSlides]);
+  const { displayItems: displayFeatureSlides } = useNewsTranslation(featureItemsForTranslation);
   
   // Control translation indicator display to prevent flickering
   useEffect(() => {
@@ -77,113 +93,86 @@ const FeaturedCarousel: React.FC = () => {
   };
 
   useEffect(() => {
+    // Fetch top-1 from each section for LEFT carousel
+    const fetchFeatureSlides = async () => {
+      setLoadingFeatures(true);
+      try {
+        const endpoints = [
+          { url: `${API_BASE_URL}/fetch-cointelegraph-rss?limit=1`, label: 'Exclusive' },
+          { url: `${API_BASE_URL}/fetch-another-rss?limit=1`, label: 'Trending' },
+          { url: `${API_BASE_URL}/fetch-beincrypto-rss?limit=1`, label: 'Beyond the Headlines' },
+          { url: `${API_BASE_URL}/fetch-cryptopotato-rss?limit=1`, label: 'Did You Know' },
+        ];
+        const results = await Promise.allSettled(endpoints.map(e => fetch(e.url).then(r => r.json()).then(j => ({ j, label: e.label }))));
+        const slides: any[] = [];
+        results.forEach((res: any) => {
+          if (res.status === 'fulfilled' && res.value?.j?.success && Array.isArray(res.value.j.data) && res.value.j.data.length > 0) {
+            const it = res.value.j.data[0];
+            slides.push({
+              article_id: it.article_id,
+              title: it.title,
+              description: it.description || '',
+              creator: it.creator || ['Unknown'],
+              pubDate: it.pubDate || new Date().toISOString(),
+              image_url: it.image_url || '/image.png?height=450&width=800&text=News',
+              link: it.link || '#',
+              source: res.value.label,
+              content: it.content || it.description || ''
+            });
+          }
+        });
+        setFeatureSlides(slides);
+      } catch {}
+      finally { setLoadingFeatures(false); }
+    };
+    fetchFeatureSlides();
+
     const fetchTrendingNews = async () => {
       setLoading(true);
       try {
-        // Try fetching from db.json first
-        try {
-          const response = await fetch(`${MOCK_API_BASE_URL}/news`);
-          if (!response.ok) {
-            throw new Error(`db.json fetch failed: ${response.status} ${response.statusText}`);
+        const sources = [
+          { url: `${API_BASE_URL}/fetch-dailycoin-rss?limit=12`, source: 'Trending' },
+          { url: `${API_BASE_URL}/fetch-cryptobriefing-rss?limit=12`, source: 'Trending' },
+          { url: `${API_BASE_URL}/fetch-dailyhodl-rss?limit=12`, source: 'Trending' },
+          { url: `${API_BASE_URL}/fetch-ambcrypto-rss?limit=12`, source: 'Trending' },
+          { url: `${API_BASE_URL}/fetch-beincrypto-rss?limit=12`, source: 'Trending' },
+          { url: `${API_BASE_URL}/fetch-bitcoinmagazine-rss?limit=12`, source: 'Trending' },
+          { url: `${API_BASE_URL}/fetch-decrypt-rss?limit=12`, source: 'Trending' },
+        ];
+        // Fetch ALL sources and merge results
+        const results = await Promise.allSettled(
+          sources.map((s) => fetch(s.url).then((r) => r.json()).then((j) => ({ j, source: s.source })).catch(() => null))
+        );
+        let items: any[] = [];
+        results.forEach((res: any) => {
+          if (res && res.status === 'fulfilled' && res.value && res.value.j?.success && Array.isArray(res.value.j.data)) {
+            items.push(...res.value.j.data);
           }
-          const data = await response.json();
-          const news = data
-            .map((item: any) => ({
-              article_id: item.article_id,
-              title: item.title || 'Untitled',
-              excerpt: item.description || 'No description available',
-              author: item.author || 'Unknown',
-              date: new Date(item.pubDate || new Date()).toLocaleDateString(),
-              image: item.image || '/default.png?height=200&width=400&text=News',
-              source: item.source || 'Local News',
-              link: item.link || '#',
-            }))
-            .slice(0, 4);
-
-          setTrendingNews(news);
-          console.log('Fetched trending news from db.json:', news);
-          setLoading(false);
-          return;
-        } catch (error) {
-          console.warn('Failed to fetch from db.json, falling back to API:', error);
-        }
-
-        // Fetch from /fetch-rss
-        const response1 = await fetch(`${API_BASE_URL}/fetch-rss`);
-        if (!response1.ok) {
-          throw new Error(`fetch-rss failed: ${response1.status} ${response1.statusText}`);
-        }
-        const contentType1 = response1.headers.get('content-type');
-        if (!contentType1 || !contentType1.includes('application/json')) {
-          throw new Error('fetch-rss returned non-JSON response');
-        }
-        const data1 = await response1.json();
-        const news1 = data1.success
-          ? data1.data
-              .map((item: any) => ({
-                article_id: item.article_id,
-                title: item.title || 'Untitled',
-                description: item.description || 'No description available',
-                creator: item.creator || ['Unknown'],
-                pubDate: item.pubDate || new Date().toISOString(),
-                image_url: item.image_url || '/default.png?height=200&width=400&text=News',
-                source: 'Exclusive News',
-                link: item.link || '#',
-              }))
-              .slice(0, 2)
-          : [];
-
-        // Fetch from /fetch-another-rss
-        const response2 = await fetch(`${API_BASE_URL}/fetch-another-rss`);
-        if (!response2.ok) {
-          throw new Error(`fetch-another-rss failed: ${response2.status} ${response2.statusText}`);
-        }
-        const contentType2 = response2.headers.get('content-type');
-        if (!contentType2 || !contentType2.includes('application/json')) {
-          throw new Error('fetch-another-rss returned non-JSON response');
-        }
-        const data2 = await response2.json();
-        const news2 = data2.success
-          ? data2.data
-              .map((item: any) => ({
-                article_id: item.article_id,
-                title: item.title || 'Untitled',
-                description: item.description || 'No description available',
-                creator: item.creator || ['Unknown'],
-                pubDate: item.pubDate || new Date().toISOString(),
-                image_url: item.image_url || '/default.png?height=200&width=400&text=News',
-                source: 'Press Release',
-                link: item.link || '#',
-              }))
-              .slice(0, 2)
-          : [];
-
-        const formattedNews: TrendingNewsItem[] = [...news1, ...news2]
-          .map((item: any): TrendingNewsItem => ({
-            article_id: item.article_id,
-            title: item.title,
-            excerpt: item.description,
-            author: item.creator[0] || 'Unknown',
-            date: new Date(item.pubDate).toLocaleDateString(),
-            image: item.image_url,
-            source: item.source,
-            link: item.link,
-          }))
-          .filter(
-            (item: TrendingNewsItem) => item.image && item.image.trim() !== ''
-          );
-
-        const uniqueNews: TrendingNewsItem[] = Array.from(
-          new Set(formattedNews.map((n) => n.title))
-        )
-          .map((title) => formattedNews.find((n) => n.title === title))
-          .filter((n): n is TrendingNewsItem => !!n);
-
+        });
+        const formatted: TrendingNewsItem[] = items.map((it: any) => ({
+          article_id: it.article_id,
+          title: it.title || 'Untitled',
+          excerpt: it.description || 'No description available',
+          author: Array.isArray(it.creator) ? (it.creator[0] || 'Unknown') : (it.creator || 'Unknown'),
+          date: new Date(it.pubDate || new Date().toISOString()).toLocaleDateString(),
+          image: (typeof it.image_url === 'string' && /^https?:\/\//i.test(it.image_url)) ? it.image_url : '/image.png',
+          source: 'Trending',
+          link: it.link || '#',
+          content: it.content || it.description || ''
+        }));
+        // Only keep items with full content (not just short descriptions)
+        const hasMeaningfulContent = (htmlOrText?: string): boolean => {
+          if (!htmlOrText || typeof htmlOrText !== 'string') return false;
+          const text = htmlOrText.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+          return text.length > 120; // threshold for "full" content
+        };
+        const contentRich = formatted.filter((n) => hasMeaningfulContent(n.content));
+        // Dedup by title
+        const uniqueNews: TrendingNewsItem[] = Array.from(new Set(contentRich.map(n => n.title))).map(t => contentRich.find(n => n.title === t)!).filter(Boolean) as TrendingNewsItem[];
         setTrendingNews(uniqueNews);
-        console.log('Fetched trending news:', uniqueNews);
       } catch (error: any) {
-        console.error('Error fetching trending news:', error.message);
-        setError(error.message);
+        console.error('Error fetching trending news:', error?.message || error);
+        setError(error?.message || 'Failed to fetch trending');
       } finally {
         setLoading(false);
       }
@@ -213,6 +202,12 @@ const FeaturedCarousel: React.FC = () => {
       window.addEventListener('mouseup', handleMouseUp);
     }
   };
+
+  // Derive NFT-specific list from aggregated trending
+  const nftNews = React.useMemo(() => {
+    const pattern = /\bnft\b/i;
+    return trendingNews.filter((n) => pattern.test(n.title) || pattern.test(n.excerpt));
+  }, [trendingNews]);
 
   return (
     <>
@@ -248,32 +243,38 @@ const FeaturedCarousel: React.FC = () => {
               </div>
             </div>
           </div>
-        ) : displayTrendingNews.length > 0 ? (
+        ) : (!loadingFeatures && featureSlides.length > 0) ? (
           <>
             <Carousel
               className="text-white rounded-5 my-custom-carousel"
               style={{ height: '450px', width: '95%', margin: '0 auto' }}
               indicators={false}
               controls={false}
+              interval={1800}
+              pause={false}
+              wrap
+              touch={false}
+              keyboard={false}
               activeIndex={activeIndex}
               onSelect={setActiveIndex}
             >
-              {displayTrendingNews.map((news: any, index: number) => (
+              {featureSlides.map((news: any, index: number) => (
                 <Carousel.Item
                   key={index}
                   className="custom-carousel-item rounded-4"
                   style={{ height: '450px', cursor: 'pointer' }}
                   onClick={() => {
                     const id = news.article_id || encodeURIComponent(((news.link as string | undefined) || news.title));
+                    const translated = Array.isArray(displayFeatureSlides) ? displayFeatureSlides[index] : null;
                     const stateItem = {
                       article_id: news.article_id || id,
-                      title: news.title,
-                      description: news.description || news.excerpt || '',
+                      title: translated?.title || news.title,
+                      description: translated?.description || news.description || news.excerpt || '',
                       creator: Array.isArray(news.creator) ? news.creator : [news.author || 'Unknown'],
                       pubDate: news.pubDate || news.date || new Date().toISOString(),
                       image_url: news.image_url || news.image,
                       link: news.link || '#',
-                      source_name: news.source || 'Trending',
+                      source_name: news.source || 'Top News',
                       content: news.content || news.description || news.excerpt || ''
                     };
                     navigate(`/news/${id}`, { state: { item: stateItem } });
@@ -283,18 +284,19 @@ const FeaturedCarousel: React.FC = () => {
                     src={news.image_url || news.image || '/image.png?height=450&width=800&text=News'}
                     alt={news.title}
                     className="rounded-4"
-                    style={{ height: '100%', objectFit: 'cover', width: '100%', cursor: 'pointer' }}
+                    style={{ height: '100%', objectFit: 'cover', width: '100%', cursor: 'pointer', backgroundColor: '#0b0f1a' }}
                     onClick={() => {
                       const id = news.article_id || encodeURIComponent(((news.link as string | undefined) || news.title));
+                      const translated = Array.isArray(displayFeatureSlides) ? displayFeatureSlides[index] : null;
                       const stateItem = {
                         article_id: news.article_id || id,
-                        title: news.title,
-                        description: news.description || news.excerpt || '',
+                        title: translated?.title || news.title,
+                        description: translated?.description || news.description || news.excerpt || '',
                         creator: Array.isArray(news.creator) ? news.creator : [news.author || 'Unknown'],
                         pubDate: news.pubDate || news.date || new Date().toISOString(),
                         image_url: news.image_url || news.image,
                         link: news.link || '#',
-                        source_name: news.source || 'Trending',
+                        source_name: news.source || 'Top News',
                         content: news.content || news.description || news.excerpt || ''
                       };
                       navigate(`/news/${id}`, { state: { item: stateItem } });
@@ -305,13 +307,14 @@ const FeaturedCarousel: React.FC = () => {
                   />
                   <Card.ImgOverlay
                     className="d-flex flex-column justify-content-end rounded-5"
-                    style={{ padding: '1rem', cursor: 'pointer' }}
+                    style={{ padding: '1rem', cursor: 'pointer', background: 'linear-gradient(180deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.35) 40%, rgba(0,0,0,0.15) 70%, rgba(0,0,0,0.0) 100%)' }}
                     onClick={() => {
                       const id = news.article_id || encodeURIComponent(((news.link as string | undefined) || news.title));
+                      const translated = Array.isArray(displayFeatureSlides) ? displayFeatureSlides[index] : null;
                       const stateItem = {
                         article_id: news.article_id || id,
-                        title: news.title,
-                        description: news.description || news.excerpt || '',
+                        title: translated?.title || news.title,
+                        description: translated?.description || news.description || news.excerpt || '',
                         creator: Array.isArray(news.creator) ? news.creator : [news.author || 'Unknown'],
                         pubDate: news.pubDate || news.date || new Date().toISOString(),
                         image_url: news.image_url || news.image,
@@ -322,6 +325,13 @@ const FeaturedCarousel: React.FC = () => {
                       navigate(`/news/${id}`, { state: { item: stateItem } });
                     }}
                   >
+                    {/* Top-left badges */}
+                    <div style={{ position: 'absolute', top: '12px', left: '12px', display: 'flex', gap: '8px' }}>
+                      <span className="badge bg-light text-dark">{news.source || 'Top News'}</span>
+                      <span className="badge" style={{ backgroundColor: 'rgba(251,146,60,0.12)', border: '1px solid rgba(251,146,60,0.25)', color: '#fb923c' }}>
+                        {Array.isArray(news.creator) ? (news.creator[0] || 'Unknown') : (news.author || 'Unknown')}
+                      </span>
+                    </div>
                     {/* content stack */}
                     <div
                       className="d-flex align-items-start flex-column"
@@ -342,7 +352,7 @@ const FeaturedCarousel: React.FC = () => {
                           color: '#ffffff'
                         }}
                       >
-                        {news.title}
+                        {(Array.isArray(displayFeatureSlides) && displayFeatureSlides[index]?.title) ? displayFeatureSlides[index].title : news.title}
                       </div>
                       <small
                         className="text"
@@ -360,7 +370,7 @@ const FeaturedCarousel: React.FC = () => {
                           color: '#ffffff'
                         }}
                       >
-                        {news.description}
+                        {(Array.isArray(displayFeatureSlides) && displayFeatureSlides[index]?.description) ? displayFeatureSlides[index].description : news.description}
                       </small>
                     </div>
                   </Card.ImgOverlay>
@@ -436,7 +446,7 @@ const FeaturedCarousel: React.FC = () => {
                 className="m-0 trending-news-title"
                 style={{ textAlign: 'left', fontSize: '24px' }}
               >
-                Trending News
+                Trending Market
               </h6>
               <Button
                 variant="link"
@@ -586,6 +596,60 @@ const FeaturedCarousel: React.FC = () => {
                 </div>
               </div>
             </div>
+
+            {/* NFT Market Section */}
+            {nftNews.length > 0 && (
+              <>
+                <div className="d-flex justify-content-between align-items-center mt-3 mb-1">
+                  <h6 className="m-0 trending-news-title" style={{ textAlign: 'left', fontSize: '24px' }}>NFT Market</h6>
+                </div>
+                <div style={{ maxHeight: '450px', overflowY: 'auto' }}>
+                  {nftNews.map((news, index) => (
+                    <Row key={`nft-${index}`} className="mb-4">
+                      <Col xs={8}>
+                        <h6
+                          className="mb-2"
+                          style={{ fontSize: '18px', fontWeight: 'bold', lineHeight: '1.4', textAlign: 'left', cursor: 'pointer' }}
+                          onClick={() => {
+                            const id = news.article_id || encodeURIComponent((news.link as string | undefined) || news.title);
+                            const stateItem = {
+                              article_id: news.article_id || id,
+                              title: news.title,
+                              description: news.excerpt || '',
+                              creator: [news.author || 'Unknown'],
+                              pubDate: news.date || new Date().toISOString(),
+                              image_url: news.image,
+                              link: news.link || '#',
+                              source_name: 'NFT',
+                              content: news.content || news.excerpt || ''
+                            };
+                            navigate(`/news/${id}`, { state: { item: stateItem } });
+                          }}
+                        >
+                          {news.title}
+                        </h6>
+                        <p className="small text-muted mb-2" style={{ fontSize: '12px', lineHeight: '1.5', textAlign: 'left', overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical' }}>
+                          {news.excerpt}
+                        </p>
+                        <small className="text-muted d-flex justify-content-between" style={{ fontSize: '12px' }}>
+                          <span className="text-warning"><strong>{news.author || 'Unknown'}</strong></span>
+                          <span>{news.date}</span>
+                        </small>
+                      </Col>
+                      <Col xs={4}>
+                        <img
+                          src={news.image || '/image.png?height=103&width=160&text=NFT'}
+                          alt={news.title}
+                          className="img-fluid rounded"
+                          style={{ height: '103px', objectFit: 'cover' }}
+                          onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/image.png?height=103&width=160&text=NFT'; }}
+                        />
+                      </Col>
+                    </Row>
+                  ))}
+                </div>
+              </>
+            )}
           </Card.Body>
         </Card>
       </Col>

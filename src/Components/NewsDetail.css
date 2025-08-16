@@ -5,6 +5,26 @@
   padding-right: 1rem;
 }
 
+/* Reading progress */
+.reading-progress {
+  position: sticky;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: rgba(0,0,0,0.05);
+  border-radius: 0 0 4px 4px;
+  overflow: hidden;
+  z-index: 1020;
+}
+
+.reading-progress__bar {
+  height: 100%;
+  background: linear-gradient(90deg, #f59e0b, #f97316);
+  width: 0;
+  transition: width 0.15s ease-out;
+}
+
 .article-header {
   border-bottom: 1px solid #e9ecef;
   padding-bottom: 1.5rem;
@@ -73,6 +93,7 @@
 
 .content-html p {
   margin-bottom: 1.1rem;
+  text-align: justify;
 }
 
 .content-html ul,
@@ -215,4 +236,42 @@
 .content-html code {
   padding: 0.2rem 0.4rem;
   background-color: #f1f3f4;
+}
+
+/* Action bar */
+.action-bar {
+  gap: 0.5rem;
+}
+
+/* Copy toast */
+.copy-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 80px;
+  transform: translateX(-50%);
+  background: rgba(17, 24, 39, 0.95);
+  color: #fff;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+  z-index: 1050;
+}
+
+.copy-toast.show { opacity: 1; }
+
+/* Mobile sticky bar */
+.mobile-sticky-bar {
+  position: sticky;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: rgba(255,255,255,0.95);
+  backdrop-filter: blur(6px);
+  border-top: 1px solid #e5e7eb;
+  padding: 0.75rem 1rem;
+  z-index: 1020;
 }

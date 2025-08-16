@@ -79,6 +79,7 @@ const Footer: React.FC = () => {
               <li style={{ marginBottom: '5px' }}><a href="/exclusive-news" className="text-light small text-decoration-none hover-underline" style={{ fontSize: '1.1rem' }}>{t('news.exclusive')}</a></li>
               <li style={{ marginBottom: '5px' }}><a href="/All-Trending-news" className="text-light small text-decoration-none hover-underline" style={{ fontSize: '1.1rem' }}>{t('news.trending')}</a></li>
               <li style={{ marginBottom: '5px' }}><a href="/press-news" className="text-light small text-decoration-none hover-underline" style={{ fontSize: '1.1rem' }}>{t('news.press')}</a></li>
+              <li style={{ marginBottom: '5px' }}><a href="/listings" className="text-light small text-decoration-none hover-underline" style={{ fontSize: '1.1rem' }}>Listings</a></li>
               <li style={{ marginBottom: '5px' }}><a href="/search" className="text-light small text-decoration-none hover-underline" style={{ fontSize: '1.1rem' }}>{t('common.search')}</a></li>
             </ul>
           </Col>

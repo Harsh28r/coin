@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { Container, Row, Col, Card, Button } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { useNewsTranslation } from '../hooks/useNewsTranslation';
+import { computeImpactLevel } from '../utils/impact';
 
 interface NewsItem {
   article_id?: string;
@@ -50,6 +52,7 @@ const Exn: React.FC = () => {
             pubDate: item.pubDate,
             image_url: item.image_url,
             link: item.link,
+            content: item.content || item.description || ''
           })));
         } else {
           console.error('Fetched data is not valid:', data);
@@ -64,6 +67,11 @@ const Exn: React.FC = () => {
 
   return (
     <Container fluid className="mt-5" style={{ width: '92%' }}>
+      <Helmet>
+        <title>Trending News | CoinsCapture</title>
+        <meta name="description" content="Trending crypto news aggregated with full content on-platform." />
+        <link rel="canonical" href={`${window.location.origin}/All-Trending-news`} />
+      </Helmet>
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h4 className="m-0" style={{ fontWeight: 'bold', letterSpacing: '0.05em', borderBottom: '2px solid orange', marginBottom: '1rem' }}>
           {t('news.trendingTitle') || 'Trending News'}
@@ -89,7 +97,10 @@ const Exn: React.FC = () => {
                   {decodeHtml(item.description)}
                 </Card.Text>
                 <div className="mt-auto d-flex justify-content-between align-items-center">
-                  <div>
+                  <div className="d-flex align-items-center gap-2">
+                    <span className="badge bg-light text-dark">
+                      {(() => { const r = computeImpactLevel(item); return `Impact: ${r.level}`; })()}
+                    </span>
                     <small className="text-muted">By </small>
                     <small className="text-warning "> {item.creator[0]}</small>
                   </div>

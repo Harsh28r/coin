@@ -129,9 +129,12 @@ const CoinsNavbar: React.FC = () => {
               <NavDropdown.Item as={NavLink} to="/exclusive-news">Exclusive News</NavDropdown.Item>
               <NavDropdown.Item as={NavLink} to="/All-Trending-news">Trending</NavDropdown.Item>
               <NavDropdown.Item as={NavLink} to="/press-news">Press News</NavDropdown.Item>
+              <NavDropdown.Divider />
+              <NavDropdown.Item as={NavLink} to="/listings">Listings</NavDropdown.Item>
             </NavDropdown>
             <Nav.Link as={NavLink} to="/learn">Learn</Nav.Link>
             <Nav.Link as={NavLink} to="/press-news">Press Releases</Nav.Link>
+            <Nav.Link as={NavLink} to="/listings">Listings</Nav.Link>
             <Nav.Link as={NavLink} to="/blog">Blog</Nav.Link>
           </Nav>
           <Form className="d-flex justify-content-center me-2" onSubmit={handleSearch}>

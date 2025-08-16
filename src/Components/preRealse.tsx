@@ -8,6 +8,7 @@ import Skeleton from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css'; // Import skeleton CSS
 import { useLanguage } from '../context/LanguageContext';
 import { useNewsTranslation } from '../hooks/useNewsTranslation';
+import { Helmet } from 'react-helmet-async';
 
 interface PressReleaseItem {
   article_id?: string;
@@ -138,6 +139,11 @@ const PressRelease: React.FC = () => {
         marginBottom: '100px',
       }}
     >
+      <Helmet>
+        <title>Press Releases | CoinsCapture</title>
+        <meta name="description" content="Latest announcements and press releases across crypto." />
+        <link rel="canonical" href={`${window.location.origin}/press-news`} />
+      </Helmet>
       <div className="d-flex justify-content-between align-items-center mb-4">
         <div>
           <h4

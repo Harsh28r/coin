@@ -1,10 +1,13 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { Container, Row, Col, Card, Badge, Button } from 'react-bootstrap';
 import { useLanguage } from '../context/LanguageContext';
 import { useNewsTranslation } from '../hooks/useNewsTranslation';
-import { ArrowLeft, Share2, Bookmark, Eye, Calendar, User, ExternalLink } from 'lucide-react';
+import { translateNewsContent } from '../utils/translationUtils';
+import { computeImpactLevel } from '../utils/impact';
+import { ArrowLeft, Share2, Bookmark, Eye, Calendar, User, ExternalLink, Volume2, Square } from 'lucide-react';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import { Helmet } from 'react-helmet-async';
 import './NewsDetail.css';
 
 interface NewsItem {
@@ -32,6 +35,7 @@ const NewsDetail: React.FC = () => {
   const { currentLanguage } = useLanguage();
   const { displayItems: translatedItems, isTranslating } = useNewsTranslation(newsItem ? [newsItem] : []);
   const effectiveItem = (translatedItems && translatedItems[0]) || newsItem;
+  const [translatedContent, setTranslatedContent] = useState<string>('');
 
   // Compute a simple estimated reading time based on content length
   const getReadingTime = (html?: string): number => {
@@ -51,11 +55,22 @@ const NewsDetail: React.FC = () => {
 
   const location = useLocation();
   const navState: any = location.state;
+  const contentRef = useRef<HTMLDivElement | null>(null);
+  const [progress, setProgress] = useState<number>(0);
+  const [isBookmarked, setIsBookmarked] = useState<boolean>(false);
+  const [fontScale, setFontScale] = useState<number>(1);
+  const [copyFeedback, setCopyFeedback] = useState<string | null>(null);
+  const [isTtsPlaying, setIsTtsPlaying] = useState<boolean>(false);
+  const ttsUtterancesRef = useRef<SpeechSynthesisUtterance[] | null>(null);
+  const [priceSnapshot, setPriceSnapshot] = useState<Record<string, { price?: number; change24h?: number }>>({});
+  const [following, setFollowing] = useState<string[]>(() => {
+    try { const raw = localStorage.getItem('followingCoins'); return raw ? JSON.parse(raw) : []; } catch { return []; }
+  });
 
   useEffect(() => {
     const fetchNewsDetail = async () => {
       if (!id) return;
-
+      
       const fromState = navState && (navState.item || navState.newsItem);
       if (fromState) {
         const incoming = fromState as NewsItem;
@@ -169,9 +184,9 @@ const NewsDetail: React.FC = () => {
           try {
             if (/localhost|127\.0\.0\.1/.test(base)) throw new Error('skip defiant on local');
             const defiantRes = await fetch(`${base}/fetch-defiant-rss?limit=20`);
-            if (defiantRes.ok) {
-              const defiantData = await defiantRes.json();
-              if (defiantData.success && Array.isArray(defiantData.data)) {
+          if (defiantRes.ok) {
+            const defiantData = await defiantRes.json();
+            if (defiantData.success && Array.isArray(defiantData.data)) {
                 const idLower = id.toLowerCase();
                 const match = defiantData.data.find((it: any) => {
                   const linkHit = it.link && typeof it.link === 'string' && it.link.includes(id);
@@ -179,7 +194,7 @@ const NewsDetail: React.FC = () => {
                   const titleHit = it.title && typeof it.title === 'string' && (it.title.toLowerCase().includes(idLower) || idLower.includes(it.title.toLowerCase()));
                   return idHit || linkHit || titleHit;
                 });
-                if (match) {
+              if (match) {
                   resolved = match;
                   break;
                 }
@@ -192,7 +207,7 @@ const NewsDetail: React.FC = () => {
           setNewsItem(resolved);
           setError(null);
         } else if (!fromState) {
-          setError('News article not found');
+        setError('News article not found');
         }
         if (!fromState) setLoading(false);
       } catch (err) {
@@ -204,6 +219,30 @@ const NewsDetail: React.FC = () => {
 
     fetchNewsDetail();
   }, [id, API_BASE_URL, navState]);
+
+  // Sync bookmark state with localStorage
+  useEffect(() => {
+    if (effectiveItem?.article_id) {
+      const stored = localStorage.getItem(`bookmark:${effectiveItem.article_id}`);
+      setIsBookmarked(stored === '1');
+    }
+  }, [effectiveItem?.article_id]);
+
+  // Reading progress tracking
+  useEffect(() => {
+    const onScroll = () => {
+      const el = contentRef.current;
+      if (!el) return;
+      const articleTop = el.getBoundingClientRect().top + window.scrollY;
+      const totalScrollable = el.scrollHeight - window.innerHeight;
+      const scrolled = Math.min(Math.max(window.scrollY - articleTop, 0), totalScrollable);
+      const pct = totalScrollable > 0 ? (scrolled / totalScrollable) * 100 : 0;
+      setProgress(pct);
+    };
+    window.addEventListener('scroll', onScroll, { passive: true } as any);
+    onScroll();
+    return () => window.removeEventListener('scroll', onScroll);
+  }, [effectiveItem?.article_id]);
 
   const handleBack = () => {
     navigate(-1);
@@ -223,7 +262,8 @@ const NewsDetail: React.FC = () => {
     } else {
       // Fallback: copy to clipboard
       navigator.clipboard.writeText(window.location.href);
-      alert('Link copied to clipboard!');
+      setCopyFeedback('Link copied to clipboard');
+      setTimeout(() => setCopyFeedback(null), 1500);
     }
   };
 
@@ -231,6 +271,91 @@ const NewsDetail: React.FC = () => {
     if (newsItem?.link) {
       window.open(newsItem.link, '_blank', 'noopener,noreferrer');
     }
+  };
+
+  const stopTts = () => {
+    try {
+      const synth = (window as any).speechSynthesis as SpeechSynthesis | undefined;
+      if (synth) synth.cancel();
+    } catch {}
+    ttsUtterancesRef.current = null;
+    setIsTtsPlaying(false);
+  };
+
+  const startTts = () => {
+    try {
+      const synth = (window as any).speechSynthesis as SpeechSynthesis | undefined;
+      if (!synth) return;
+      const rawHtml = (translatedContent && translatedContent.trim().length > 0)
+        ? translatedContent
+        : (effectiveItem?.content || effectiveItem?.description || '');
+      if (!rawHtml) return;
+      const text = rawHtml
+        .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+        .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+        .replace(/<[^>]+>/g, ' ')
+        .replace(/&nbsp;/g, ' ')
+        .replace(/&amp;/g, '&')
+        .replace(/&quot;/g, '"')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/\s+/g, ' ')
+        .trim();
+      if (!text) return;
+      const chunks: string[] = [];
+      const maxLen = 400;
+      let i = 0;
+      while (i < text.length) {
+        const slice = text.slice(i, i + maxLen);
+        let end = slice.lastIndexOf('. ');
+        if (end < maxLen * 0.4) end = slice.length;
+        chunks.push(slice.slice(0, end).trim());
+        i += end;
+      }
+      if (chunks.length === 0) return;
+      // language-aware voice selection
+      const resolveLang = (lang: string): string => {
+        switch (lang) {
+          case 'hi': return 'hi-IN';
+          case 'es': return 'es-ES';
+          case 'fr': return 'fr-FR';
+          case 'de': return 'de-DE';
+          case 'zh': return 'zh-CN';
+          case 'ja': return 'ja-JP';
+          case 'ko': return 'ko-KR';
+          case 'ar': return 'ar-SA';
+          default: return 'en-US';
+        }
+      };
+      const langTag = resolveLang(currentLanguage);
+      const voices = (window as any).speechSynthesis?.getVoices() || [];
+      const voice = voices.find((v: SpeechSynthesisVoice) => (v.lang || '').toLowerCase().startsWith(langTag.split('-')[0].toLowerCase()));
+      const utterances = chunks.map((c) => {
+        const u = new SpeechSynthesisUtterance(c);
+        u.lang = langTag;
+        if (voice) u.voice = voice;
+        return u;
+      });
+      utterances.forEach((u, idx) => {
+        if (idx === utterances.length - 1) u.onend = () => setIsTtsPlaying(false);
+        synth.speak(u);
+      });
+      ttsUtterancesRef.current = utterances;
+      setIsTtsPlaying(true);
+    } catch {}
+  };
+
+  const handleBookmarkToggle = () => {
+    if (!effectiveItem?.article_id) return;
+    const next = !isBookmarked;
+    setIsBookmarked(next);
+    try {
+      if (next) {
+        localStorage.setItem(`bookmark:${effectiveItem.article_id}`, '1');
+      } else {
+        localStorage.removeItem(`bookmark:${effectiveItem.article_id}`);
+      }
+    } catch {}
   };
 
   // Background: if we have a link and content is short/empty, try to extract full article HTML from backend
@@ -270,6 +395,41 @@ const NewsDetail: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [effectiveItem?.link, effectiveItem?.content, API_BASE_URL]);
 
+  // Normalize content to formal HTML paragraphs when needed
+  const getNormalizedContentHtml = (htmlOrText?: string): string => {
+    const raw = (htmlOrText || '').trim();
+    if (!raw) return '';
+    const looksLikeHtml = /<[^>]+>/.test(raw);
+    if (looksLikeHtml) return raw;
+    const paragraphs = raw
+      .split(/\n{2,}/)
+      .map((p) => `<p>${p.replace(/\n/g, '<br/>')}</p>`) // preserve single newlines within a paragraph
+      .join('');
+    return paragraphs || `<p>${raw}</p>`;
+  };
+
+  // Translate full content when language is not English
+  useEffect(() => {
+    let cancelled = false;
+    const run = async () => {
+      try {
+        setTranslatedContent('');
+        if (!effectiveItem?.content) return;
+        if (currentLanguage === 'en') return;
+        const raw = effectiveItem.content || '';
+        const looksLikeHtml = /<[^>]+>/.test(raw);
+        const textOnly = looksLikeHtml ? raw.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim() : raw;
+        if (!textOnly) return;
+        const translated = await translateNewsContent(textOnly, currentLanguage as any);
+        if (!cancelled && translated) {
+          setTranslatedContent(translated);
+        }
+      } catch {}
+    };
+    run();
+    return () => { cancelled = true; };
+  }, [effectiveItem?.content, currentLanguage]);
+
   if (loading) {
     return (
       <Container className="mt-5">
@@ -300,6 +460,33 @@ const NewsDetail: React.FC = () => {
 
   return (
     <Container className="mt-4 news-detail-container">
+      <Helmet>
+        <title>{effectiveItem.title} | CoinsCapture</title>
+        <meta name="description" content={effectiveItem.description?.slice(0, 160) || effectiveItem.title} />
+        <link rel="canonical" href={window.location.href} />
+        <meta property="og:type" content="article" />
+        <meta property="og:title" content={effectiveItem.title} />
+        <meta property="og:description" content={effectiveItem.description || effectiveItem.title} />
+        <meta property="og:image" content={effectiveItem.image_url} />
+        <meta property="og:url" content={window.location.href} />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={effectiveItem.title} />
+        <meta name="twitter:description" content={effectiveItem.description || effectiveItem.title} />
+        <meta name="twitter:image" content={effectiveItem.image_url} />
+        <script type="application/ld+json">{JSON.stringify({
+          '@context': 'https://schema.org',
+          '@type': 'NewsArticle',
+          headline: effectiveItem.title,
+          description: effectiveItem.description,
+          image: [effectiveItem.image_url].filter(Boolean),
+          author: effectiveItem.creator?.[0] ? [{ '@type': 'Person', name: effectiveItem.creator[0] }] : undefined,
+          datePublished: effectiveItem.pubDate,
+          dateModified: effectiveItem.pubDate,
+          mainEntityOfPage: window.location.href,
+          publisher: { '@type': 'Organization', name: 'CoinsCapture', logo: { '@type': 'ImageObject', url: '/logo3.png' } }
+        })}</script>
+      </Helmet>
+      <div className="reading-progress"><div className="reading-progress__bar" style={{ width: `${progress}%` }} /></div>
       <Row>
         <Col lg={10} className="mx-auto">
           {/* Breadcrumb / Back */}
@@ -328,7 +515,7 @@ const NewsDetail: React.FC = () => {
               <div className="d-flex align-items-center flex-wrap gap-3 text-muted">
                 <div className="d-flex align-items-center small">
                   <User className="me-2" size={16} />
-                  {effectiveItem.creator?.[0] || 'Unknown Author'}
+                  <span style={{ color: '#fb923c' }}>{effectiveItem.creator?.[0] || 'Unknown Author'}</span>
                 </div>
                 <div className="vr" />
                 <div className="d-flex align-items-center small">
@@ -356,6 +543,10 @@ const NewsDetail: React.FC = () => {
                   <Eye className="me-2" size={16} />
                   {getReadingTime(effectiveItem?.content)} min read
                 </div>
+                <div className="vr" />
+                <span className="badge bg-light text-dark">
+                  {(() => { const r = computeImpactLevel(effectiveItem); return `Impact: ${r.level}${r.affectedCoins.length ? ' • ' + r.affectedCoins.join(', ') : ''}`; })()}
+                </span>
                 {effectiveItem && effectiveItem.category && effectiveItem.category.length > 0 && (
                   <>
                     <div className="vr" />
@@ -370,6 +561,29 @@ const NewsDetail: React.FC = () => {
                 )}
               </div>
             </div>
+            <div className="action-bar d-flex align-items-center gap-2 flex-wrap">
+              <Button onClick={handleShare} variant="outline-primary" size="sm">
+                <Share2 className="me-2" size={16} /> Share
+              </Button>
+              <Button onClick={handleBookmarkToggle} variant={isBookmarked ? 'primary' : 'outline-secondary'} size="sm">
+                <Bookmark className="me-2" size={16} /> {isBookmarked ? 'Saved' : 'Save'}
+              </Button>
+              <div className="vr d-none d-md-block" />
+              <div className="d-flex align-items-center gap-1">
+                <Button variant="outline-secondary" size="sm" onClick={() => setFontScale((v) => Math.max(0.9, Number((v - 0.1).toFixed(2))))}>A-</Button>
+                <Button variant="outline-secondary" size="sm" onClick={() => setFontScale((v) => Math.min(1.4, Number((v + 0.1).toFixed(2))))}>A+</Button>
+              </div>
+              <div className="vr d-none d-md-block" />
+              {!isTtsPlaying ? (
+                <Button variant="outline-secondary" size="sm" onClick={startTts} title="Listen to article">
+                  <Volume2 className="me-2" size={16} /> Brief
+                </Button>
+              ) : (
+                <Button variant="outline-danger" size="sm" onClick={stopTts} title="Stop audio">
+                  <Square className="me-2" size={16} /> Stop
+                </Button>
+              )}
+            </div>
           </div>
 
           {/* Featured Image */}
@@ -379,6 +593,8 @@ const NewsDetail: React.FC = () => {
                 src={effectiveItem.image_url}
                 alt={effectiveItem.title}
                 className="img-fluid rounded shadow-sm featured-image"
+                loading="lazy"
+                decoding="async"
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
                   target.src = 'https://via.placeholder.com/800x400?text=News+Image';
@@ -388,18 +604,18 @@ const NewsDetail: React.FC = () => {
           )}
 
           {/* Article Content */}
-          <div className="article-content mb-4">
+          <div className="article-content mb-4" ref={contentRef}>
             {effectiveItem.description && (
               <div className="article-excerpt mb-4">
                 <p className="lead text-muted" style={{ fontStyle: 'italic' }}>{effectiveItem.description}</p>
               </div>
             )}
             
-            {effectiveItem.content && (
-              <div className="article-body">
+            {(effectiveItem.content || translatedContent) && (
+              <div className="article-body" style={{ fontSize: `${(1.0 * fontScale).toFixed(2)}rem` }}>
                 <div
                   className="content-html"
-                  dangerouslySetInnerHTML={{ __html: effectiveItem.content.replace(/\n/g, '<br>') }}
+                  dangerouslySetInnerHTML={{ __html: getNormalizedContentHtml(translatedContent || effectiveItem.content) }}
                 />
               </div>
             )}
@@ -422,6 +638,18 @@ const NewsDetail: React.FC = () => {
                 <ExternalLink className="me-2" size={16} /> Read on {effectiveItem.source_name || 'Original Source'}
               </Button>
             </div>
+            {(() => { try { const r = computeImpactLevel(effectiveItem || undefined); return r.affectedCoins && r.affectedCoins.length > 0; } catch { return false; } })() && (
+              <div className="mt-3">
+                <small className="text-muted d-block mb-1">Coins likely affected:</small>
+                <div className="d-flex flex-wrap gap-2">
+                  {(() => { const r = computeImpactLevel(effectiveItem || undefined); return r.affectedCoins; })().map((c: string) => (
+                    <Badge key={c} bg="light" text="dark" style={{ cursor: 'pointer' }}>
+                      {c}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
             
             {effectiveItem && effectiveItem.keywords && effectiveItem.keywords.length > 0 && (
               <div className="keywords-section mt-4">
@@ -438,6 +666,13 @@ const NewsDetail: React.FC = () => {
           </div>
         </Col>
       </Row>
+      <div className={`copy-toast ${copyFeedback ? 'show' : ''}`}>{copyFeedback}</div>
+      <div className="mobile-sticky-bar d-md-none">
+        <div className="d-flex gap-2 w-100">
+          <Button onClick={handleShare} variant="primary" className="flex-fill">Share</Button>
+          <Button onClick={handleExternalLink} variant="dark" className="flex-fill">Original</Button>
+        </div>
+      </div>
     </Container>
   );
 };
