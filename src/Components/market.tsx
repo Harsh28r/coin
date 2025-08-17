@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { Container, Row, Col, Table, Card, Button, Modal, ButtonGroup, Alert } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { Line } from 'react-chartjs-2';
@@ -296,7 +297,7 @@ const MarketPriceAndNews: React.FC = () => {
 
         // Fetch detailed data for a limited number of NFTs to avoid rate limits
         const formattedData: NFTData[] = [];
-        for (const nft of nftList.slice(0, 3)) { // Limit to 3 NFTs to stay within rate limits
+        for (const nft of nftList.slice(0, 6)) { // Limit to 3 NFTs to stay within rate limits
           try {
             const nftDetail = await fetchWithRetry(
               `https://api.coingecko.com/api/v3/nfts/${nft.id}`

@@ -190,7 +190,7 @@ const HomePage: React.FC = () => {
                     animation: `fadeInUp 0.6s ease-out ${index * 0.1}s both`
                   }}
                 >
-                  <BlogPost post={post} />
+                  <BlogPost post={post} variant="full" />
                 </div>
               ))
             ) : (

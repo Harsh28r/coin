@@ -15,6 +15,7 @@ interface SearchSuggestion {
 
 const CoinsNavbar: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
+  const [expanded, setExpanded] = useState(false);
   const [suggestions, setSuggestions] = useState<SearchSuggestion[]>([]);
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -116,13 +117,50 @@ const CoinsNavbar: React.FC = () => {
     letterSpacing: '0.04em',
   };
 
+  const handleToggle = () => setExpanded((prev) => !prev);
+  const handleNavItemClick = () => setExpanded(false);
+
+  const barCommon: React.CSSProperties = {
+    display: 'block',
+    width: 24,
+    height: 2,
+    background: '#111',
+    transition: 'transform 250ms ease, opacity 250ms ease',
+    borderRadius: 2
+  };
+
   return (
-    <Navbar bg="white" expand="lg" className="border-bottom py-3" style={{ boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)' }}>
+    <Navbar
+      bg="white"
+      expand="lg"
+      expanded={expanded}
+      onToggle={(next) => setExpanded(Boolean(next))}
+      className="border-bottom py-3"
+      style={{ boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)' }}
+    >
       <Container fluid style={{ maxWidth: '90%', margin: '0 auto' }}>
-        <Navbar.Brand as={Link} to="/">
-          <img src="/logo3.png" style={{ width: '150px', height: '75px' }} alt="CoinsCapture logo" />
+        <Navbar.Brand as={Link} to="/" className="d-flex align-items-center">
+          <img
+            src="/logo3.png"
+            alt="CoinsCapture"
+            loading="eager"
+            style={{ height: 56, width: 'auto', objectFit: 'contain', display: 'block' }}
+            onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/image.png'; }}
+          />
         </Navbar.Brand>
-        <Navbar.Toggle aria-controls="basic-navbar-nav" />
+        {/* Custom hamburger using Navbar.Toggle for proper accessibility/control */}
+        <Navbar.Toggle
+          aria-controls="basic-navbar-nav"
+          aria-label={expanded ? 'Close menu' : 'Open menu'}
+          className="border-0 bg-transparent d-lg-none"
+          style={{ cursor: 'pointer', zIndex: 3, border: 'none', outline: 'none', boxShadow: 'none' }}
+        >
+          <div style={{ display: 'inline-flex', flexDirection: 'column', gap: 5 }}>
+            <span style={{ ...barCommon, transform: expanded ? 'translateY(7px) rotate(45deg)' : 'none' }} />
+            <span style={{ ...barCommon, opacity: expanded ? 0 : 1 }} />
+            <span style={{ ...barCommon, transform: expanded ? 'translateY(-7px) rotate(-45deg)' : 'none' }} />
+          </div>
+        </Navbar.Toggle>
         <Navbar.Collapse id="basic-navbar-nav">
           <Nav className="me-auto gap-2" style={linkStyles}>
             <NavDropdown title="News" id="news-dropdown">

@@ -34,6 +34,43 @@ const FeaturedCarousel: React.FC = () => {
   const scrollableRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   
+  // Quick fallback slides to avoid empty UI
+  const fallbackFeatureSlides = [
+    {
+      article_id: 'fallback-1',
+      title: 'Top Market Stories Today',
+      description: 'Catch up on the most important crypto headlines right now.',
+      creator: ['CoinsClarity'],
+      pubDate: new Date().toISOString(),
+      image_url: '/image.png?height=450&width=800&text=Crypto+News',
+      link: '#',
+      source: 'Top News',
+      content: 'Top market stories summary.'
+    },
+    {
+      article_id: 'fallback-2',
+      title: 'New Listings and Trading Pairs',
+      description: 'The latest token listings across major exchanges.',
+      creator: ['CoinsClarity'],
+      pubDate: new Date().toISOString(),
+      image_url: '/image.png?height=450&width=800&text=New+Listings',
+      link: '#',
+      source: 'Listings',
+      content: 'New listings overview.'
+    },
+    {
+      article_id: 'fallback-3',
+      title: 'DeFi & NFT Highlights',
+      description: 'What’s moving in DeFi and NFTs right now.',
+      creator: ['CoinsClarity'],
+      pubDate: new Date().toISOString(),
+      image_url: '/image.png?height=450&width=800&text=DeFi+%26+NFT',
+      link: '#',
+      source: 'Beyond the Headlines',
+      content: 'DeFi and NFT highlights.'
+    }
+  ];
+
   // Use the translation hook - convert TrendingNewsItem to NewsItem format
   const newsItemsForTranslation = React.useMemo(() => trendingNews.map(item => ({
     article_id: item.article_id,
@@ -95,6 +132,19 @@ const FeaturedCarousel: React.FC = () => {
   };
 
   useEffect(() => {
+    // Helper with timeout to prevent long stalls
+    const fetchJson = async (url: string, timeoutMs = 6000) => {
+      const controller = new AbortController();
+      const id = window.setTimeout(() => controller.abort(), timeoutMs);
+      try {
+        const res = await fetch(url, { signal: controller.signal });
+        if (!res.ok) throw new Error('Bad response');
+        return await res.json();
+      } finally {
+        clearTimeout(id);
+      }
+    };
+
     // Fetch top-N from each section for LEFT carousel
     const fetchFeatureSlides = async () => {
       setLoadingFeatures(true);
@@ -105,7 +155,9 @@ const FeaturedCarousel: React.FC = () => {
           { url: `${API_BASE_URL}/fetch-beincrypto-rss?limit=3`, label: 'Beyond the Headlines' },
           { url: `${API_BASE_URL}/fetch-cryptopotato-rss?limit=3`, label: 'Did You Know' },
         ];
-        const results = await Promise.allSettled(endpoints.map(e => fetch(e.url).then(r => r.json()).then(j => ({ j, label: e.label }))));
+        const results = await Promise.allSettled(
+          endpoints.map(e => fetchJson(e.url, 6000).then(j => ({ j, label: e.label })).catch(() => null))
+        );
         const slides: any[] = [];
         results.forEach((res: any) => {
           if (res.status === 'fulfilled' && res.value?.j?.success && Array.isArray(res.value.j.data) && res.value.j.data.length > 0) {
@@ -198,7 +250,10 @@ const FeaturedCarousel: React.FC = () => {
           return true;
         });
         // Limit to a reasonable number to keep carousel smooth
-        const limited = deduped.slice(0, 12);
+        let limited = deduped.slice(0, 12);
+        if (!limited.length) {
+          limited = fallbackFeatureSlides;
+        }
         setFeatureSlides(limited);
       } catch {}
       finally { setLoadingFeatures(false); }
@@ -206,54 +261,114 @@ const FeaturedCarousel: React.FC = () => {
     fetchFeatureSlides();
 
     const fetchTrendingNews = async () => {
-      setLoading(true);
+      // Cached-first paint
+      const seedFromCache = (): TrendingNewsItem[] => {
+        try {
+          const raw = localStorage.getItem('trendingCache');
+          if (!raw) return [];
+          const parsed = JSON.parse(raw);
+          return Array.isArray(parsed) ? parsed as TrendingNewsItem[] : [];
+        } catch {
+          return [];
+        }
+      };
+      const saveCache = (items: TrendingNewsItem[]) => {
+        try { localStorage.setItem('trendingCache', JSON.stringify(items.slice(0, 24))); } catch {}
+      };
+
+      const cached = seedFromCache();
+      if (cached.length) {
+        setTrendingNews(cached);
+        setLoading(false);
+      } else {
+        setLoading(true);
+      }
+
+      // Phase 1: quick sources with short timeout
       try {
-        const sources = [
-          { url: `${API_BASE_URL}/fetch-dailycoin-rss?limit=12`, source: 'Trending' },
-          { url: `${API_BASE_URL}/fetch-cryptobriefing-rss?limit=12`, source: 'Trending' },
-          { url: `${API_BASE_URL}/fetch-dailyhodl-rss?limit=12`, source: 'Trending' },
-          { url: `${API_BASE_URL}/fetch-ambcrypto-rss?limit=12`, source: 'Trending' },
-          { url: `${API_BASE_URL}/fetch-beincrypto-rss?limit=12`, source: 'Trending' },
-          { url: `${API_BASE_URL}/fetch-bitcoinmagazine-rss?limit=12`, source: 'Trending' },
-          { url: `${API_BASE_URL}/fetch-decrypt-rss?limit=12`, source: 'Trending' },
+        const quickSources = [
+          `${API_BASE_URL}/fetch-coindesk-rss?limit=12`,
+          `${API_BASE_URL}/fetch-dailycoin-rss?limit=12`,
         ];
-        // Fetch ALL sources and merge results
+        const quickResults = await Promise.allSettled(
+          quickSources.map(u => fetchJson(u, 4500).catch(() => null))
+        );
+        let quickItems: any[] = [];
+        quickResults.forEach((r: any) => {
+          if (r?.status === 'fulfilled' && r.value?.success && Array.isArray(r.value.data)) quickItems.push(...r.value.data);
+        });
+        if (quickItems.length) {
+          const formattedQuick: TrendingNewsItem[] = quickItems.map((it: any) => ({
+            article_id: it.article_id,
+            title: it.title || 'Untitled',
+            excerpt: it.description || 'No description available',
+            author: Array.isArray(it.creator) ? (it.creator[0] || 'Unknown') : (it.creator || 'Unknown'),
+            date: new Date(it.pubDate || new Date().toISOString()).toLocaleDateString(),
+            image: (typeof it.image_url === 'string' && /^https?:\/\//i.test(it.image_url)) ? it.image_url : '/image.png',
+            source: 'Trending',
+            link: it.link || '#',
+            content: it.content || it.description || ''
+          }));
+          const seen = new Set<string>();
+          const dedupQuick = formattedQuick.filter(n => {
+            const key = n.article_id || n.link || n.title;
+            if (seen.has(key)) return false;
+            seen.add(key);
+            return true;
+          });
+          setTrendingNews(dedupQuick);
+          saveCache(dedupQuick);
+          setLoading(false);
+        }
+      } catch (error: any) {
+        console.error('Error fetching quick trending:', error?.message || error);
+      }
+
+      // Phase 2: background enrichment
+      try {
+        const moreSources = [
+          `${API_BASE_URL}/fetch-cryptobriefing-rss?limit=12`,
+          `${API_BASE_URL}/fetch-dailyhodl-rss?limit=12`,
+          `${API_BASE_URL}/fetch-ambcrypto-rss?limit=12`,
+          `${API_BASE_URL}/fetch-beincrypto-rss?limit=12`,
+          `${API_BASE_URL}/fetch-bitcoinmagazine-rss?limit=12`,
+          `${API_BASE_URL}/fetch-decrypt-rss?limit=12`,
+        ];
         const results = await Promise.allSettled(
-          sources.map((s) => fetch(s.url).then((r) => r.json()).then((j) => ({ j, source: s.source })).catch(() => null))
+          moreSources.map(u => fetchJson(u, 6000).catch(() => null))
         );
         let items: any[] = [];
         results.forEach((res: any) => {
-          if (res && res.status === 'fulfilled' && res.value && res.value.j?.success && Array.isArray(res.value.j.data)) {
-            items.push(...res.value.j.data);
+          if (res?.status === 'fulfilled' && res.value?.success && Array.isArray(res.value.data)) {
+            items.push(...res.value.data);
           }
         });
-        const formatted: TrendingNewsItem[] = items.map((it: any) => ({
-          article_id: it.article_id,
-          title: it.title || 'Untitled',
-          excerpt: it.description || 'No description available',
-          author: Array.isArray(it.creator) ? (it.creator[0] || 'Unknown') : (it.creator || 'Unknown'),
-          date: new Date(it.pubDate || new Date().toISOString()).toLocaleDateString(),
-          image: (typeof it.image_url === 'string' && /^https?:\/\//i.test(it.image_url)) ? it.image_url : '/image.png',
-          source: 'Trending',
-          link: it.link || '#',
-          content: it.content || it.description || ''
-        }));
-        // Only keep items with full content (not just short descriptions)
-        const hasMeaningfulContent = (htmlOrText?: string): boolean => {
-          if (!htmlOrText || typeof htmlOrText !== 'string') return false;
-          const text = htmlOrText.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
-          return text.length > 120; // threshold for "full" content
-        };
-        const contentRich = formatted.filter((n) => hasMeaningfulContent(n.content));
-        // Dedup by title
-        const uniqueNews: TrendingNewsItem[] = Array.from(new Set(contentRich.map(n => n.title))).map(t => contentRich.find(n => n.title === t)!).filter(Boolean) as TrendingNewsItem[];
-        setTrendingNews(uniqueNews);
-      } catch (error: any) {
-        console.error('Error fetching trending news:', error?.message || error);
-        setError(error?.message || 'Failed to fetch trending');
-      } finally {
-        setLoading(false);
-      }
+        if (items.length) {
+          const formatted: TrendingNewsItem[] = items.map((it: any) => ({
+            article_id: it.article_id,
+            title: it.title || 'Untitled',
+            excerpt: it.description || 'No description available',
+            author: Array.isArray(it.creator) ? (it.creator[0] || 'Unknown') : (it.creator || 'Unknown'),
+            date: new Date(it.pubDate || new Date().toISOString()).toLocaleDateString(),
+            image: (typeof it.image_url === 'string' && /^https?:\/\//i.test(it.image_url)) ? it.image_url : '/image.png',
+            source: 'Trending',
+            link: it.link || '#',
+            content: it.content || it.description || ''
+          }));
+          const dedupByKey = (arr: TrendingNewsItem[]) => {
+            const seen = new Set<string>();
+            return arr.filter(n => {
+              const key = n.article_id || n.link || n.title;
+              if (seen.has(key)) return false;
+              seen.add(key);
+              return true;
+            });
+          };
+          const merged = dedupByKey([ ...formatted, ...trendingNews ]).slice(0, 30);
+          setTrendingNews(merged);
+          saveCache(merged);
+        }
+      } catch {}
     };
 
     fetchTrendingNews();
@@ -307,11 +422,7 @@ const FeaturedCarousel: React.FC = () => {
     }
   };
 
-  // Derive NFT-specific list from aggregated trending
-  const nftNews = React.useMemo(() => {
-    const pattern = /\bnft\b/i;
-    return trendingNews.filter((n) => pattern.test(n.title) || pattern.test(n.excerpt));
-  }, [trendingNews]);
+  // NFT Market section removed per request
 
   return (
     <>
@@ -525,17 +636,21 @@ const FeaturedCarousel: React.FC = () => {
             </Carousel>
           </>
         ) : (
-          <div
-            className="text-center my-custom-loading"
-            style={{
-              height: '450px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              backgroundColor: '#f8f9fa',
-            }}
-          >
-            <h5 className="text-dark">No trending news available.</h5>
+          <div className="my-custom-loading rounded-5" style={{ height: '450px', width: '95%', margin: '0 auto', position: 'relative', overflow: 'hidden' }}>
+            <Skeleton height={450} width="100%" baseColor="#e0e0e0" highlightColor="#f5f5f5" />
+            <div
+              className="d-flex flex-column justify-content-between"
+              style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, padding: '1rem' }}
+            >
+              <div className="d-flex justify-content-between align-items-center mt-4">
+                <Skeleton width={100} height={20} baseColor="#e0e0e0" highlightColor="#f5f5f5" />
+                <Skeleton width={80} height={20} baseColor="#e0e0e0" highlightColor="#f5f5f5" />
+              </div>
+              <div>
+                <Skeleton width="80%" height={30} baseColor="#e0e0e0" highlightColor="#f5f5f5" />
+                <Skeleton count={3} width="90%" height={20} baseColor="#e0e0e0" highlightColor="#f5f5f5" />
+              </div>
+            </div>
           </div>
         )}
       </Col>
@@ -700,65 +815,26 @@ const FeaturedCarousel: React.FC = () => {
                       </Row>
                     ))
                   ) : (
-                    <p>No trending news available.</p>
+                    Array.from({ length: 4 }).map((_, index) => (
+                      <Row key={`sk-${index}`} className="mb-4">
+                        <Col xs={8}>
+                          <Skeleton width="80%" height={20} baseColor="#e0e0e0" highlightColor="#f5f5f5" />
+                          <Skeleton count={3} width="90%" height={16} baseColor="#e0e0e0" highlightColor="#f5f5f5" />
+                          <div className="d-flex justify-content-between">
+                            <Skeleton width={100} height={14} baseColor="#e0e0e0" highlightColor="#f5f5f5" />
+                            <Skeleton width={80} height={14} baseColor="#e0e0e0" highlightColor="#f5f5f5" />
+                          </div>
+                        </Col>
+                        <Col xs={4}>
+                          <Skeleton height={103} width="100%" baseColor="#e0e0e0" highlightColor="#f5f5f5" />
+                        </Col>
+                      </Row>
+                    ))
                   )}
                 </div>
               </div>
             </div>
 
-            {/* NFT Market Section */}
-            {nftNews.length > 0 && (
-              <>
-                <div className="d-flex justify-content-between align-items-center mt-3 mb-1">
-                  <h6 className="m-0 trending-news-title" style={{ textAlign: 'left', fontSize: '24px' }}>NFT Market</h6>
-                </div>
-                <div style={{ maxHeight: '450px', overflowY: 'auto' }}>
-                  {nftNews.map((news, index) => (
-                    <Row key={`nft-${index}`} className="mb-4">
-                      <Col xs={8}>
-                        <h6
-                          className="mb-2"
-                          style={{ fontSize: '18px', fontWeight: 'bold', lineHeight: '1.4', textAlign: 'left', cursor: 'pointer' }}
-                          onClick={() => {
-                            const id = news.article_id || encodeURIComponent((news.link as string | undefined) || news.title);
-                            const stateItem = {
-                              article_id: news.article_id || id,
-                              title: news.title,
-                              description: news.excerpt || '',
-                              creator: [news.author || 'Unknown'],
-                              pubDate: news.date || new Date().toISOString(),
-                              image_url: news.image,
-                              link: news.link || '#',
-                              source_name: 'NFT',
-                              content: news.content || news.excerpt || ''
-                            };
-                            navigate(`/news/${id}`, { state: { item: stateItem } });
-                          }}
-                        >
-                          {news.title}
-                        </h6>
-                        <p className="small text-muted mb-2" style={{ fontSize: '12px', lineHeight: '1.5', textAlign: 'left', overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical' }}>
-                          {news.excerpt}
-                        </p>
-                        <small className="text-muted d-flex justify-content-between" style={{ fontSize: '12px' }}>
-                          <span className="text-warning"><strong>{news.author || 'Unknown'}</strong></span>
-                          <span>{news.date}</span>
-                        </small>
-                      </Col>
-                      <Col xs={4}>
-                        <img
-                          src={news.image || '/image.png?height=103&width=160&text=NFT'}
-                          alt={news.title}
-                          className="img-fluid rounded"
-                          style={{ height: '103px', objectFit: 'cover' }}
-                          onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/image.png?height=103&width=160&text=NFT'; }}
-                        />
-                      </Col>
-                    </Row>
-                  ))}
-                </div>
-              </>
-            )}
           </Card.Body>
         </Card>
       </Col>

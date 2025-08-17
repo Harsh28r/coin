@@ -18,7 +18,7 @@ const LoginForm: React.FC = () => {
     const success = await login(credentials);
     setLoading(false);
     if (success) {
-      navigate('/Main-dashboard');
+      navigate('/main-dashboard');
     } else {
       setError('Invalid username or password');
     }

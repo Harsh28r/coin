@@ -9,7 +9,6 @@ import BlogSection from '../Components/blog'
 import InDepthNews from '../Components/InDepthNews'
 import  Footer from '../Components/footer'
 import Chart from '../Components/Chart'
-import { TopNav } from '../Components/belowNav'
 import  NewsCarousel from '../Components/carusal'
 import { Helmet } from 'react-helmet-async';
 import {ScrollingStats} from '../Components/scroll'
@@ -21,7 +20,7 @@ const LandingPage: React.FC = () => {
     <div className="LandingPage">
       <div className="content-wrapper">
         <Helmet>
-          <title>CoinsCapture — Crypto News, Listings, Markets</title>
+          <title> Coinsclarity— Crypto News, Listings, Markets</title>
           <meta name="description" content="Real-time crypto news with full articles, new listings, and market insights. Read everything on-platform in your language." />
           <link rel="canonical" href={`${window.location.origin}/`} />
           <meta property="og:type" content="website" />

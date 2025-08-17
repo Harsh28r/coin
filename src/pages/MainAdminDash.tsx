@@ -22,7 +22,7 @@ const MainDashboard: React.FC = () => {
   const handleSubmit = async (formData: Omit<BlogPostType, 'id'>) => {
     try {
       if (editingPost) {
-        await updatePost({ ...editingPost, ...formData });
+        await updatePost({ ...editingPost, ...formData } as BlogPostType);
       } else {
         await addPost({ ...formData, date: new Date().toISOString() });
       }

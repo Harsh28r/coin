@@ -33,7 +33,7 @@ const NewsletterAdmin: React.FC = () => {
   const fetchSubscribers = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${API_BASE}/subscribers`);
+      const response = await fetch(`${API_BASE}/subscribe`);
       const data = await response.json();
       
       if (data.success) {

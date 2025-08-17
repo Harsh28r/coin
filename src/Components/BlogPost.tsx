@@ -23,7 +23,7 @@ interface BlogPostProps {
   onEdit?: (post: BlogPostType) => Promise<{ success: boolean; message: string }>;
   onDelete?: (id: string) => Promise<{ success: boolean; message: string }>;
   showActions?: boolean;
-  variant?: 'default' | 'compact' | 'featured';
+  variant?: 'default' | 'compact' | 'featured' | 'full';
 }
 
 const BlogPost: React.FC<BlogPostProps> = ({ 
@@ -38,6 +38,7 @@ const BlogPost: React.FC<BlogPostProps> = ({
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [actionMessage, setActionMessage] = useState<string | null>(null);
+  const [isExpandedFull, setIsExpandedFull] = useState(false);
 
   const formattedDate = format(new Date(post.date), 'MMMM dd, yyyy');
   const timeAgo = format(new Date(post.date), 'MMM dd');
@@ -121,6 +122,17 @@ const BlogPost: React.FC<BlogPostProps> = ({
       'Analysis': 'dark'
     };
     return colors[category] || 'light';
+  };
+
+  const getNormalizedHtml = (htmlOrText?: string): string => {
+    const raw = (htmlOrText || '').trim();
+    if (!raw) return '';
+    const looksLikeHtml = /<[^>]+>/.test(raw);
+    if (looksLikeHtml) return raw;
+    return raw
+      .split(/\n{2,}/)
+      .map((p) => `<p>${p.replace(/\n/g, '<br/>')}</p>`)
+      .join('');
   };
 
   // Render different variants
@@ -251,6 +263,73 @@ const BlogPost: React.FC<BlogPostProps> = ({
               Share
             </Button>
           </div>
+        </Card.Body>
+      </Card>
+    );
+  }
+
+  if (variant === 'full') {
+    const normalizedHtml = getNormalizedHtml(post.content);
+    const truncateHtmlByParagraphs = (html: string, maxParagraphs: number, maxCharsFallback: number) => {
+      if (!html) return '';
+      const parts = html.split(/<\/p>/i).map((s) => s.trim()).filter(Boolean);
+      if (parts.length > 0) {
+        const limited = parts.slice(0, maxParagraphs).map((p) => `${p}</p>`).join('');
+        return limited;
+      }
+      // Fallback if no paragraphs found
+      const sliced = html.slice(0, maxCharsFallback);
+      return sliced + (html.length > maxCharsFallback ? '…' : '');
+    };
+
+    const collapsedHtml = truncateHtmlByParagraphs(normalizedHtml, 3, 800);
+    const needsToggle = normalizedHtml.length > collapsedHtml.length + 10;
+
+    return (
+      <Card className="border-0 shadow-sm mb-5">
+        {post.imageUrl && (
+          <Card.Img
+            variant="top"
+            src={post.imageUrl}
+            alt={post.title}
+            className="object-fit-cover"
+            style={{ maxHeight: '360px' }}
+            onError={(e) => { (e.currentTarget as HTMLImageElement).src = 'https://placehold.co/800x360?text=Blog'; }}
+          />
+        )}
+        <Card.Body className="p-4">
+          <h1 className="fw-bold mb-3" style={{ fontSize: 'clamp(1.5rem, 2.5vw, 2.25rem)' }}>{post.title}</h1>
+          <div className="d-flex align-items-center text-muted mb-4" style={{ gap: 16 }}>
+            <div className="d-flex align-items-center">
+              <User size={16} className="me-2" />
+              <small>{post.author}</small>
+            </div>
+            <div className="d-flex align-items-center">
+              <Calendar size={16} className="me-2" />
+              <small>{formattedDate}</small>
+            </div>
+          </div>
+          <div style={{ position: 'relative' }}>
+            <div
+              className="prose"
+              style={{ lineHeight: 1.8, fontSize: '1rem', color: '#374151', maxHeight: isExpandedFull ? 'none' : '28rem', overflow: 'hidden' }}
+              dangerouslySetInnerHTML={{ __html: isExpandedFull ? normalizedHtml : collapsedHtml }}
+            />
+            {!isExpandedFull && needsToggle && (
+              <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: '4rem', background: 'linear-gradient(180deg, rgba(255,255,255,0) 0%, #ffffff 60%)' }} />
+            )}
+          </div>
+          {needsToggle && (
+            <Button
+              variant={isExpandedFull ? 'outline-secondary' : 'outline-warning'}
+              size="sm"
+              className="mt-3 rounded-pill"
+              onClick={() => setIsExpandedFull((v) => !v)}
+              style={isExpandedFull ? undefined : { background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)', border: 'none', color: 'white' }}
+            >
+              {isExpandedFull ? 'Read Less' : 'Read More'}
+            </Button>
+          )}
         </Card.Body>
       </Card>
     );
@@ -435,7 +514,7 @@ BlogPost.propTypes = {
   onEdit: PropTypes.func,
   onDelete: PropTypes.func,
   showActions: PropTypes.bool,
-  variant: PropTypes.oneOf(['default', 'compact', 'featured'])
+  variant: PropTypes.oneOf(['default', 'compact', 'featured', 'full'])
 };
 
 export default BlogPost;

@@ -127,20 +127,22 @@ export const BlogProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setError(null);
       
       // Validate post data
-      if (!post.id) {
+      const hasId = Boolean((post as any).id || (post as any)._id);
+      if (!hasId) {
         throw new Error('Post ID is required for update');
       }
-      
-      const updatedPost = await api.updatePost(post);
+      const normalized: BlogPost = { ...post, id: (post as any).id || (post as any)._id } as BlogPost;
+      const updatedPost = await api.updatePost(normalized);
       
       // Validate returned post
       if (!updatedPost?.id) {
         throw new Error('Invalid updated post data returned from API');
       }
       
-      setPosts(prevPosts => 
-        prevPosts.map(p => p.id === updatedPost.id ? updatedPost : p)
-      );
+      setPosts(prevPosts => {
+        const targetId = (updatedPost as any).id || (updatedPost as any)._id;
+        return prevPosts.map(p => ((p as any).id || (p as any)._id) === targetId ? { ...updatedPost, id: targetId } as BlogPost : p);
+      });
       
       console.log(`✅ Successfully updated post: ${updatedPost.title}`);
       return { success: true, message: 'Post updated successfully!' };

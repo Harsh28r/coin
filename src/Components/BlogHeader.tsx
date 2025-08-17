@@ -24,24 +24,8 @@ const Header: React.FC = () => {
         <Navbar.Collapse id="basic-navbar-nav">
           <Nav className="me-auto">
             <Nav.Link as={Link} to="/">Home</Nav.Link>
-            {auth.isAuthenticated && (
-              <Nav.Link as={Link} to="/admin">Admin Dashboard</Nav.Link>
-            )}
           </Nav>
-          {auth.isAuthenticated ? (
-            <div className="d-flex align-items-center">
-              <span className="text-light me-3">Welcome, {auth.username}</span>
-              <Button variant="outline-light" onClick={handleLogout}>
-                Logout
-              </Button>
-            </div>
-          ) : (
-            <Nav.Link as={Link} to="/login">
-              <Button variant="outline-light">
-                Admin Login
-              </Button>
-            </Nav.Link>
-          )}
+          {/* User-facing blog header: no admin/login controls */}
         </Navbar.Collapse>
       </Container>
     </Navbar>

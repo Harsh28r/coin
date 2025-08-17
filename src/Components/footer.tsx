@@ -12,6 +12,7 @@ const Footer: React.FC = () => {
   const [name, setName] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://c-back-2.onrender.com';
 
   const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,7 +33,7 @@ const Footer: React.FC = () => {
     setMessage(null);
 
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/subscribe`, {
+      const response = await fetch(`${ API_BASE_URL || 'http://localhost:5000'}/subscribe`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -58,48 +59,49 @@ const Footer: React.FC = () => {
 
   return (
     <footer className="text-light py-5 mt-5" style={{ backgroundColor: '#333333' }}>
-      <Container style={{ width: '100%', maxWidth: '1440px' }}>
-        <Row className="mb-5" style={{ maxWidth: '100%' }}>
-          <Col md={5} className="mb-4 mb-md-0 text-center text-md-start" style={{ textAlign: 'left' }}>
+      <Container style={{ width: '100%', maxWidth: '1200px', padding: '0 16px' }}>
+        <Row className="mb-5 gy-4" style={{ maxWidth: '100%' }}>
+          <Col md={5} className="mb-4 mb-md-0 text-center text-md-start">
             <img 
               src="/logo3.png" 
               alt="CoinsCapture Logo" 
-              className="mb-4" 
-              style={{ width: '250px', height: 'auto' }} 
+              className="mb-4 d-block mx-auto mx-md-0" 
+              style={{ width: '250px', height: 'auto' }}
+              onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/image.png'; }}
             />
-            <p className="text-light small fs-6" style={{ textAlign: 'left', lineHeight: '1.2' }}>
+            <p className="text-light small mx-auto mx-md-0" style={{ lineHeight: '1.6', maxWidth: 520 }}>
               {t('footer.companyDescription')}
             </p>
-            <p className="text-light mt-4 small fs-6" style={{ textAlign: 'left' }}>{t('footer.copyright')}</p>
+            <p className="text-light mt-3 small">{t('footer.copyright')}</p>
           </Col>
-          <Col md={2} className="mb-2 mb-md-0 text-center text-md-start" style={{ textAlign: 'left' }} >
-            <h6 className="text-white mb-3 fs-5" style={{ fontSize: '1.4rem' }}>Our Company</h6>
+          <Col md={2} className="mb-2 mb-md-0 text-center text-md-start">
+            <h6 className="text-white mb-3 fw-bold">Our Company</h6>
             <ul className="list-unstyled" style={{ paddingLeft: '0' }}>
-              <li style={{ marginBottom: '5px' }}><a href="/" className="text-light small text-decoration-none hover-underline" style={{ fontSize: '1.1rem' }}>{t('nav.home')}</a></li>
-              <li style={{ marginBottom: '5px' }}><a href="/exclusive-news" className="text-light small text-decoration-none hover-underline" style={{ fontSize: '1.1rem' }}>{t('news.exclusive')}</a></li>
-              <li style={{ marginBottom: '5px' }}><a href="/All-Trending-news" className="text-light small text-decoration-none hover-underline" style={{ fontSize: '1.1rem' }}>{t('news.trending')}</a></li>
-              <li style={{ marginBottom: '5px' }}><a href="/press-news" className="text-light small text-decoration-none hover-underline" style={{ fontSize: '1.1rem' }}>{t('news.press')}</a></li>
-              <li style={{ marginBottom: '5px' }}><a href="/listings" className="text-light small text-decoration-none hover-underline" style={{ fontSize: '1.1rem' }}>Listings</a></li>
-              <li style={{ marginBottom: '5px' }}><a href="/search" className="text-light small text-decoration-none hover-underline" style={{ fontSize: '1.1rem' }}>{t('common.search')}</a></li>
+              <li className="mb-2"><a href="/" className="text-light small text-decoration-none hover-underline d-inline-block">{t('nav.home')}</a></li>
+              <li className="mb-2"><a href="/exclusive-news" className="text-light small text-decoration-none hover-underline d-inline-block">{t('news.exclusive')}</a></li>
+              <li className="mb-2"><a href="/All-Trending-news" className="text-light small text-decoration-none hover-underline d-inline-block">{t('news.trending')}</a></li>
+              <li className="mb-2"><a href="/press-news" className="text-light small text-decoration-none hover-underline d-inline-block">{t('news.press')}</a></li>
+              <li className="mb-2"><a href="/listings" className="text-light small text-decoration-none hover-underline d-inline-block">Listings</a></li>
+              {/* Removed search link as requested */}
             </ul>
           </Col>
-          <Col md={2} className="mb-2 mb-md-0 text-center text-md-start" style={{ textAlign: 'left' }}>
-            <h6 className="text-white mb-3 fs-5" style={{ fontSize: '1.4rem' }}>Interesting</h6>
-            <ul className="list-unstyled" >
-              <li style={{ marginBottom: '5px' }}><a href="/explore/cryptocurrencies" className="text-light small text-decoration-none hover-underline" style={{ fontSize: '1.1rem' }}>{t('explore.didYouKnow')}</a></li>
-              <li style={{ marginBottom: '5px' }}><a href="/explore/defi" className="text-light small text-decoration-none hover-underline" style={{ fontSize: '1.1rem' }}>{t('explore.learnALittle')}</a></li>
-              <li style={{ marginBottom: '5px' }}><a href="/explore/nfts" className="text-light small text-decoration-none hover-underline" style={{ fontSize: '1.1rem' }}>{t('explore.testKnowledge')}</a></li>
+          <Col md={2} className="mb-2 mb-md-0 text-center text-md-start">
+            <h6 className="text-white mb-3 fw-bold">Interesting</h6>
+            <ul className="list-unstyled">
+              <li className="mb-2"><a href="/explore/cryptocurrencies" className="text-light small text-decoration-none hover-underline d-inline-block">{t('explore.didYouKnow')}</a></li>
+              <li className="mb-2"><a href="/explore/defi" className="text-light small text-decoration-none hover-underline d-inline-block">{t('explore.learnALittle')}</a></li>
+              <li className="mb-2"><a href="/explore/nfts" className="text-light small text-decoration-none hover-underline d-inline-block">{t('explore.testKnowledge')}</a></li>
             </ul>
           </Col>
-          <Col md={2} className="mb-4 mb-md-0 text-center text-md-start" style={{ textAlign: 'left' }}>
-            <h6 className="text-white mb-4 fs-5" style={{ fontSize: '1.4rem' }}>{t('footer.joinCommunity')}</h6>
-            <div className="d-flex flex-wrap gap-4 justify-content-center justify-content-md-start">
-              <a href="https://x.com" target="_blank" rel="noreferrer" className="text-light hover-opacity"><Twitter size={30} /></a>
-              <a href="https://instagram.com" target="_blank" rel="noreferrer" className="text-light hover-opacity"><Instagram size={30} /></a>
-              <a href="https://youtube.com" target="_blank" rel="noreferrer" className="text-light hover-opacity"><Youtube size={30} /></a>
-              <a href="https://discord.com" target="_blank" rel="noreferrer" className="text-light hover-opacity"><Discord size={30} /></a>
+          <Col md={3} className="mb-4 mb-md-0 text-center text-md-start">
+            <h6 className="text-white mb-3 fw-bold">{t('footer.joinCommunity')}</h6>
+            <div className="d-flex flex-wrap gap-3 justify-content-center justify-content-md-start">
+              <a href="https://x.com/coinsclarity?t=hSpD5E1d2xIjii-mhw9kEQ&s=09" target="_blank" rel="noreferrer" aria-label="X (Twitter)" className="text-light hover-opacity"><Twitter size={28} /></a>
+              <a href="https://www.instagram.com/coinsclarity?igsh=MWc2YnRjMXIzeTE3aw==" target="_blank" rel="noreferrer" aria-label="Instagram" className="text-light hover-opacity"><Instagram size={28} /></a>
+              <a href="https://youtube.com" target="_blank" rel="noreferrer" aria-label="YouTube" className="text-light hover-opacity"><Youtube size={28} /></a>
+              <a href="https://discord.com" target="_blank" rel="noreferrer" aria-label="Discord" className="text-light hover-opacity"><Discord size={28} /></a>
             </div>
-            <div className="d-flex justify-content-start mt-5 me-md-0">
+            <div className="d-flex justify-content-center justify-content-md-start mt-5 me-md-0">
               <Form onSubmit={handleSubscribe} className="d-flex flex-column" style={{ width: '100%' }}>
                 {message && (
                   <Alert 
@@ -118,12 +120,11 @@ const Footer: React.FC = () => {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
-                    className="bg-dark text-light border-secondary border-2" 
+                    className="bg-dark text-light" 
                     style={{ 
-                      color: 'white', 
-                      fontSize: '1rem', 
-                      height: '40px',
-                      borderColor: '#6c757d !important'
+                      color: 'white',
+                      fontSize: '0.95rem',
+                      height: '40px'
                     }}
                   />
                   <Button 
@@ -132,8 +133,8 @@ const Footer: React.FC = () => {
                     disabled={isSubmitting}
                     className="footer-button d-flex align-items-center justify-content-center" 
                     style={{ 
-                      backgroundColor: 'orange', 
-                      fontSize: '1.1rem', 
+                      backgroundColor: 'orange',
+                      fontSize: '1rem', 
                       color: 'white', 
                       height: '40px', 
                       border: '2px solid transparent', 

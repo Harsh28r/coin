@@ -35,23 +35,7 @@ const Exn: React.FC = () => {
   
   const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://c-back-2.onrender.com';
 
-  // Extract first valid image URL from HTML content
-  const extractImageFromHtml = (html?: string): string | null => {
-    if (!html || typeof html !== 'string') return null;
-    const patterns = [
-      /<img[^>]+src=["']([^"']+)["'][^>]*>/gi,
-      /src=["']([^"']*\.(jpg|jpeg|png|gif|webp|svg|avif)[^"']*)["']/gi,
-      /https?:\/\/[^"'\s]+\.(jpg|jpeg|png|gif|webp|svg|avif)/gi
-    ];
-    for (const pattern of patterns) {
-      const match = pattern.exec(html);
-      if (match && match[1]) {
-        const url = match[1].startsWith('http') ? match[1] : null;
-        if (url) return url;
-      }
-    }
-    return null;
-  };
+  // No HTML extraction. We prefer provided image_url or a high-quality crypto fallback.
 
   const isValidImageUrl = (url?: string): boolean => {
     if (!url) return false;
@@ -112,13 +96,10 @@ const Exn: React.FC = () => {
 
         if (items.length) {
           // Normalize
-          const normalizedRaw = items.map((item: any) => {
+          const normalizedRaw = items.map((item: any, i: number) => {
             let imageUrl = item.image_url || item.image || (typeof item.enclosure === 'string' ? item.enclosure : undefined) || '';
             if (!isValidImageUrl(imageUrl)) {
-              imageUrl = extractImageFromHtml(item.description) || extractImageFromHtml(item.content) || '';
-            }
-            if (!isValidImageUrl(imageUrl)) {
-              imageUrl = 'https://placehold.co/400x250?text=News';
+              imageUrl = getFallbackImage(i);
             }
             return {
               article_id: item.article_id,
@@ -158,6 +139,19 @@ const Exn: React.FC = () => {
     fetchNews();
   }, []);
 
+  // Online crypto-themed fallback images
+  const getFallbackImage = (index: number): string => {
+    const images = [
+      'https://images.pexels.com/photos/8353777/pexels-photo-8353777.jpeg?auto=compress&cs=tinysrgb&w=1200&h=800&fit=crop',
+      'https://images.pexels.com/photos/6770774/pexels-photo-6770774.jpeg?auto=compress&cs=tinysrgb&w=1200&h=800&fit=crop',
+      'https://images.pexels.com/photos/730547/pexels-photo-730547.jpeg?auto=compress&cs=tinysrgb&w=1200&h=800&fit=crop',
+      'https://images.pexels.com/photos/5980645/pexels-photo-5980645.jpeg?auto=compress&cs=tinysrgb&w=1200&h=800&fit=crop',
+      'https://images.pexels.com/photos/6772071/pexels-photo-6772071.jpeg?auto=compress&cs=tinysrgb&w=1200&h=800&fit=crop',
+      'https://images.pexels.com/photos/8437015/pexels-photo-8437015.jpeg?auto=compress&cs=tinysrgb&w=1200&h=800&fit=crop'
+    ];
+    return images[index % images.length];
+  };
+
   // Robust date formatter to handle backend formats like "YYYY-MM-DD HH:mm:ss"
   const formatDate = (dateString: string): string => {
     try {
@@ -194,7 +188,7 @@ const Exn: React.FC = () => {
                 onError={(e) => {
                   const img = e.currentTarget as HTMLImageElement;
                   img.onerror = null;
-                  img.src = 'https://placehold.co/400x250?text=News';
+                  img.src = getFallbackImage(index);
                 }}
               />
               <Card.Body className="d-flex flex-column">

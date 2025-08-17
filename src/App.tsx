@@ -24,6 +24,7 @@ import Learn from './Components/Learn';
 import InDepthNewsPage from './pages/InDepthNewsPage';
 import EventRadar from './Components/EventRadar';
 import Listing from './Components/Listings';
+import DefaultSEO from './Components/DefaultSEO';
 
 
 const ScrollToTop: React.FC = () => {
@@ -43,6 +44,7 @@ function App() {
             <Router>
               <ScrollToTop />
               <div className="App">
+                <DefaultSEO />
                 <Routes>
                   <Route path="/" element={<LandingPage />} />
                   <Route path="/blog/:id" element={<BlogPage />} />

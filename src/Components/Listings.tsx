@@ -85,17 +85,33 @@ const Listings: React.FC = () => {
   return (
     <Container className="mt-4">
       <Helmet>
-        <title>CoinsClarity | be crypto aware</title>
-        <meta name="description" content="Latest crypto exchange listings and market pairs. Stay ahead with new token listings." />
+        <title>CoinsClarity | Crypto Exchange Listings & New Token Pairs Today</title>
+        <meta name="description" content="Discover the latest crypto exchange listings, new token pairs, markets, and trading venues updated daily. Track coins across Binance, Coinbase, and more." />
         <link rel="canonical" href={`${window.location.origin}/listings`} />
         <meta property="og:type" content="website" />
-        <meta property="og:title" content="CoinsClarity | be crypto aware" />
-        <meta property="og:description" content="Latest crypto exchange listings and market pairs." />
+        <meta property="og:title" content="CoinsClarity | Crypto Exchange Listings & New Token Pairs Today" />
+        <meta property="og:description" content="Discover the latest crypto exchange listings, new token pairs, markets, and trading venues updated daily." />
         <meta property="og:url" content={`${window.location.origin}/listings`} />
-        <meta name="twitter:card" content="summary" />
+        <meta name="twitter:card" content="summary_large_image" />
+        {/* Hreflang alternates */}
+        <link rel="alternate" hrefLang="x-default" href={`${window.location.origin}/listings`} />
+        <link rel="alternate" hrefLang="en" href={`${window.location.origin}/listings`} />
+        <link rel="alternate" hrefLang="es" href={`${window.location.origin}/listings`} />
+        <link rel="alternate" hrefLang="fr" href={`${window.location.origin}/listings`} />
+        <link rel="alternate" hrefLang="de" href={`${window.location.origin}/listings`} />
+        {/* Structured data: CollectionPage */}
+        <script type="application/ld+json">
+          {JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'CollectionPage',
+            name: 'Crypto Exchange Listings & New Token Pairs',
+            url: `${window.location.origin}/listings`,
+            description: 'Latest crypto exchange listings and new token pairs updated daily.'
+          })}
+        </script>
       </Helmet>
       <div className="d-flex justify-content-between align-items-center mb-3">
-        <h4 className="m-0">New Listings</h4>
+        <h1 className="m-0" style={{ fontSize: '1.5rem' }}>Crypto Exchange Listings & New Token Pairs</h1>
         <div className="d-flex align-items-center gap-2">
           <Badge bg="dark" className="me-2">{effectiveItems.length} items</Badge>
           {items.length > 6 && (

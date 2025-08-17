@@ -15,9 +15,12 @@ const ADMIN_CREDENTIALS = {
 };
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }): JSX.Element => {
-  const [auth, setAuth] = useState<AuthState>({
-    isAuthenticated: false,
-    username: null
+  const [auth, setAuth] = useState<AuthState>(() => {
+    try {
+      const raw = localStorage.getItem('auth');
+      if (raw) return JSON.parse(raw) as AuthState;
+    } catch {}
+    return { isAuthenticated: false, username: null } as AuthState;
   });
 
   const login = (credentials: LoginCredentials): boolean => {
@@ -29,6 +32,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }): J
         isAuthenticated: true,
         username: credentials.username
       });
+      try {
+        localStorage.setItem('auth', JSON.stringify({ isAuthenticated: true, username: credentials.username }));
+      } catch {}
       return true;
     }
     return false;
@@ -39,6 +45,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }): J
       isAuthenticated: false,
       username: null
     });
+    try { localStorage.removeItem('auth'); } catch {}
   };
 
   return (

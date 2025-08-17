@@ -8,6 +8,8 @@ import 'font-awesome/css/font-awesome.min.css';
 import axios from 'axios';
 import Skeleton from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css'; // Import skeleton CSS
+import { useLanguage } from '../context/LanguageContext';
+import CoinTicker from './CoinTicker';
 // Import Firebase
 import { initializeApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider, signInWithPopup, User } from 'firebase/auth';
@@ -64,6 +66,7 @@ export const ScrollingStats = () => {
   const [showProfileCard, setShowProfileCard] = useState(false);
   const itemsToShow = 15;
   const didInitRef = useRef(false);
+  const { currentLanguage, setLanguage } = useLanguage();
 
   const formatPrice = (p: string) => {
     const n = Number(p);
@@ -79,16 +82,23 @@ export const ScrollingStats = () => {
   const fetchCryptoData = useCallback(async () => {
     setLoading(true);
     try {
-      const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5000';
-      const response = await axios.get<BackendApiResponse>(`${API_BASE_URL}/crypto-prices?limit=20`);
-      
-      if (response.data.success && Array.isArray(response.data.data)) {
-      const data = response.data.data.map((item) => ({
-          symbol: item.symbol.toUpperCase(),
-          priceUsd: item.current_price.toString(),
-          changePercent24Hr: item.price_change_percentage_24h.toString(),
-      }));
-      setScrollingStats(data);
+      // Fetch directly from CoinGecko for real-time rates
+      const response = await axios.get('https://api.coingecko.com/api/v3/coins/markets', {
+        params: {
+          vs_currency: 'usd',
+          order: 'market_cap_desc',
+          per_page: 20,
+          page: 1,
+          price_change_percentage: '24h'
+        }
+      });
+      if (Array.isArray(response.data)) {
+        const data: CryptoData[] = response.data.map((item: any) => ({
+          symbol: String(item.symbol || '').toUpperCase(),
+          priceUsd: String(item.current_price ?? ''),
+          changePercent24Hr: String(item.price_change_percentage_24h ?? '0'),
+        }));
+        setScrollingStats(data);
       } else {
         throw new Error('Invalid response format');
       }
@@ -117,6 +127,12 @@ export const ScrollingStats = () => {
     if (didInitRef.current) return;
     didInitRef.current = true;
     fetchCryptoData();
+  }, [fetchCryptoData]);
+
+  // Refresh data every 30s for real-time updates
+  useEffect(() => {
+    const id = setInterval(fetchCryptoData, 30000);
+    return () => clearInterval(id);
   }, [fetchCryptoData]);
 
   // Independent ticker timer (do not re-create on every render)
@@ -156,7 +172,7 @@ export const ScrollingStats = () => {
   };
 
   return (
-    <div style={{ width: '92%', margin: '0 auto' }} className="relative h-12 bg-white rounded-lg overflow-hidden d-flex align-items-center">
+    <div style={{ width: '95%', margin: '0 auto' }} className="relative h-12 bg-white rounded-lg overflow-hidden d-flex align-items-center">
       {/* Edge fades */}
       <div style={{
         position: 'absolute', left: 0, top: 0, bottom: 0, width: '60px',
@@ -167,86 +183,78 @@ export const ScrollingStats = () => {
         background: 'linear-gradient(270deg, rgba(255,255,255,1) 0%, rgba(255,255,255,0) 100%)', zIndex: 2
       }} />
 
-      <AnimatePresence mode="wait">
-        {loading ? (
-          <motion.div
-            key="skeleton"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="d-flex flex-row"
-            style={{ paddingLeft: '70px', paddingRight: '70px' }}
-          >
-            {Array.from({ length: itemsToShow }).map((_, index) => (
-              <div className="flex-shrink-0 mx-2" key={index}>
-                <Skeleton width={140} height={28} baseColor="#eee" highlightColor="#f8f8f8" />
-              </div>
-            ))}
-          </motion.div>
-        ) : (
-          <motion.div
-            key={currentIndex}
-            initial={{ x: '100%', opacity: 1 }}
-            animate={{ x: '-100%', opacity: 1 }}
-            transition={{ duration: 70, ease: 'linear' }}
-            className="d-flex flex-row"
-            style={{ paddingLeft: '70px', paddingRight: '70px' }}
-          >
-            {scrollingStats.concat(scrollingStats).slice(currentIndex, currentIndex + itemsToShow).map((stat: CryptoData, index) => {
-              const isUp = Number(stat.changePercent24Hr) >= 0;
-              return (
-                <div className="flex-shrink-0 mx-2" key={index}>
-                  <div
-                    className="d-flex align-items-center"
-                    style={{
-                      gap: '10px',
-                      padding: '6px 10px',
-                      borderRadius: '999px',
-                      background: '#f8f9fa',
-                      border: '1px solid #eee',
-                      boxShadow: '0 1px 2px rgba(0,0,0,0.04)'
-                    }}
-                  >
-                    <span style={{ fontWeight: 700, letterSpacing: '0.02em', minWidth: 42 }}>{stat.symbol}</span>
-                    <span style={{ color: '#111' }}>{formatPrice(stat.priceUsd)}</span>
-                    <span
-                      className={`badge ${isUp ? 'bg-success' : 'bg-danger'}`}
-                      style={{ display: 'inline-flex', alignItems: 'center', gap: 6, borderRadius: '999px' }}
-                    >
-                      <i className={`fa ${isUp ? 'fa-caret-up' : 'fa-caret-down'}`}></i>
-                      {formatChange(stat.changePercent24Hr)}
-                    </span>
-                  </div>
-              </div>
-              );
-            })}
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Full-width ticker area with slight left padding and space for right controls */}
+      <div style={{ flex: 1, paddingLeft: '60px', paddingRight: '180px', overflow: 'hidden' }}>
+        <CoinTicker fixed={false} height={48} perPage={20} />
+      </div>
 
-      <div className="position-absolute end-0 d-flex align-items-center" style={{ zIndex: 3 }}>
+      <div className="position-absolute d-flex align-items-center" style={{ zIndex: 3, right: 16 }}>
         <Nav className="flex-nowrap align-items-center justify-content-end">
-          <NavDropdown title={<span className="text-black" style={{ fontSize: '1em' }}>USD</span>} id="currency-dropdown">
-            <NavDropdown.Item>USD</NavDropdown.Item>
-            <NavDropdown.Item>EUR</NavDropdown.Item>
-            <NavDropdown.Item>GBP</NavDropdown.Item>
-            <NavDropdown.Item>JPY</NavDropdown.Item>
+          <NavDropdown
+            title={<span className="text-black" style={{ fontSize: '1em' }}>{currentLanguage.toUpperCase()}</span>}
+            id="language-dropdown-ticker"
+            onSelect={(key) => {
+              const k = (key || '').toString();
+              const allowed = ['en','hi','es','fr','de','zh','ja','ko','ar'];
+              if (allowed.includes(k)) setLanguage(k as any);
+            }}
+          >
+            <NavDropdown.Item eventKey="en">English</NavDropdown.Item>
+            <NavDropdown.Item eventKey="hi">हिंदी</NavDropdown.Item>
+            <NavDropdown.Item eventKey="es">Español</NavDropdown.Item>
+            <NavDropdown.Item eventKey="fr">Français</NavDropdown.Item>
+            <NavDropdown.Item eventKey="de">Deutsch</NavDropdown.Item>
+            <NavDropdown.Item eventKey="zh">中文</NavDropdown.Item>
+            <NavDropdown.Item eventKey="ja">日本語</NavDropdown.Item>
+            <NavDropdown.Item eventKey="ko">한국어</NavDropdown.Item>
+            <NavDropdown.Item eventKey="ar">العربية</NavDropdown.Item>
           </NavDropdown>
           {!user ? (
-            <i className="fa fa-user mt-2" aria-hidden="true" style={{ fontSize: '1.7em' }} onClick={handleUserClick}></i>
+            <i
+              className="fa fa-user"
+              aria-hidden="true"
+              title="Sign in"
+              onClick={handleUserClick}
+              style={{ fontSize: '1.7em', cursor: 'pointer', color: '#111' }}
+            />
           ) : (
-            <li className="nav-item dropdown hdr-dropdown mt-0 signList" onMouseEnter={toggleProfileCard} onMouseLeave={() => setShowProfileCard(false)}>
-              <a className="nav-link darkmodeText dropdown-toggle" href="#" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true" title={user.displayName || 'User'}>
-                <img src={user.photoURL ?? ''} alt="User Profile" style={{ borderRadius: '60%', width: '22px' }} />
-              </a>
+            <li
+              className="nav-item dropdown hdr-dropdown mt-0 signList"
+              onMouseEnter={toggleProfileCard}
+              onMouseLeave={() => setShowProfileCard(false)}
+              style={{ position: 'relative' }}
+            >
+              <button
+                className="nav-link darkmodeText dropdown-toggle"
+                id="navbarDropdownMenuLink"
+                aria-haspopup="true"
+                aria-expanded={showProfileCard}
+                title={user.displayName || 'User'}
+                onClick={(e) => { e.preventDefault(); toggleProfileCard(); }}
+                style={{ background: 'transparent', border: 'none', padding: 0, display: 'flex', alignItems: 'center' }}
+              >
+                <i className="fa fa-user-circle" aria-hidden="true" style={{ fontSize: '1.6em', color: '#111' }} />
+              </button>
               {showProfileCard && (
-                <div className="profile-card shadow" style={{ width: '150px', top: '100%', left: '0' }} onMouseEnter={() => setShowProfileCard(true)} onMouseLeave={() => setShowProfileCard(false)}>
-                  <div className="profile-name" style={{ fontSize: '0.7em' }} onMouseEnter={(e) => e.currentTarget.classList.add('bg-warning')} onMouseLeave={(e) => e.currentTarget.classList.remove('bg-warning')}>
+                <div
+                  className="profile-card shadow"
+                  style={{ width: '180px', position: 'absolute', top: '100%', right: 0, left: 'auto', background: '#fff', borderRadius: 8 }}
+                  onMouseEnter={() => setShowProfileCard(true)}
+                  onMouseLeave={() => setShowProfileCard(false)}
+                >
+                  <div
+                    className="profile-name px-3 py-2"
+                    style={{ fontSize: '0.8em', fontWeight: 600, borderBottom: '1px solid #f2f2f2' }}
+                  >
                     {user.displayName || 'User'}
                   </div>
-                  <a className="dropdown-item" style={{ fontSize: '0.7em' }} onMouseEnter={(e) => e.currentTarget.classList.add('bg-warning')} onMouseLeave={(e) => e.currentTarget.classList.remove('bg-warning')} onClick={handleLogout}>
-                    SignOut
-                  </a>
+                  <button
+                    className="dropdown-item w-100 text-start px-3 py-2"
+                    style={{ fontSize: '0.8em', background: 'transparent', border: 'none' }}
+                    onClick={handleLogout}
+                  >
+                    Sign out
+                  </button>
                 </div>
               )}
             </li>

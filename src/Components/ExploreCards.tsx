@@ -465,8 +465,9 @@ const ExploreSection: React.FC = () => {
     }
     setSubmitting(true);
     setSubMessage(null);
+    const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://c-back-2.onrender.com';
     try {
-      const resp = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/subscribe`, {
+      const resp = await fetch(`${ API_BASE_URL || 'http://localhost:5000'}/subscribe`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: subEmail.trim(), name: subName.trim() }),

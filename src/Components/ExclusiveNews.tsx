@@ -41,23 +41,7 @@ const ExclusiveNews: React.FC = () => {
   const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://c-back-2.onrender.com';
   const MOCK_API_BASE_URL = process.env.REACT_APP_USE_LOCAL_DB === 'true' ? 'http://localhost:5000' : '';
 
-  // Helpers to improve images and excerpts
-  const extractImageFromHtml = (html?: string): string | null => {
-    if (!html || typeof html !== 'string') return null;
-    const patterns = [
-      /<img[^>]+src=["']([^"']+)["'][^>]*>/gi,
-      /src=["']([^"']*\.(jpg|jpeg|png|gif|webp|svg|avif)[^"']*)["']/gi,
-      /https?:\/\/[^"'\s]+\.(jpg|jpeg|png|gif|webp|svg|avif)/gi
-    ];
-    for (const pattern of patterns) {
-      const match = pattern.exec(html);
-      if (match && match[1]) {
-        const url = match[1].startsWith('http') ? match[1] : null;
-        if (url) return url;
-      }
-    }
-    return null;
-  };
+  // Helpers to improve excerpts
 
   const isValidImageUrl = (url?: string): boolean => {
     if (!url) return false;
@@ -125,9 +109,6 @@ const ExclusiveNews: React.FC = () => {
           const normalizedRaw = items.map((item: any, i: number) => {
             let imageUrl = item.image_url || item.image || '';
             if (!isValidImageUrl(imageUrl)) {
-              imageUrl = extractImageFromHtml(item.description) || extractImageFromHtml(item.content) || '';
-            }
-            if (!isValidImageUrl(imageUrl)) {
               imageUrl = getFallbackImage(i);
             }
             return {
@@ -171,12 +152,12 @@ const ExclusiveNews: React.FC = () => {
   // Fallback image URLs for different cards
   const getFallbackImage = (index: number): string => {
     const images = [
-      '/image.png?height=300&width=200&text=Bitcoin',
-      '/tr3.png?height=300&width=200&text=Ethereum',
-      '/web3.png?height=300&width=200&text=Crypto',
-      '/web3_1.png?height=300&width=200&text=Blockchain',
-      '/web3_2.png?height=300&width=200&text=DeFi',
-      '/web3_3.png?height=300&width=200&text=NFT'
+      'https://images.pexels.com/photos/8353777/pexels-photo-8353777.jpeg?auto=compress&cs=tinysrgb&w=1200&h=800&fit=crop',
+      'https://images.pexels.com/photos/6770774/pexels-photo-6770774.jpeg?auto=compress&cs=tinysrgb&w=1200&h=800&fit=crop',
+      'https://images.pexels.com/photos/730547/pexels-photo-730547.jpeg?auto=compress&cs=tinysrgb&w=1200&h=800&fit=crop',
+      'https://images.pexels.com/photos/5980645/pexels-photo-5980645.jpeg?auto=compress&cs=tinysrgb&w=1200&h=800&fit=crop',
+      'https://images.pexels.com/photos/6772071/pexels-photo-6772071.jpeg?auto=compress&cs=tinysrgb&w=1200&h=800&fit=crop',
+      'https://images.pexels.com/photos/8437015/pexels-photo-8437015.jpeg?auto=compress&cs=tinysrgb&w=1200&h=800&fit=crop'
     ];
     return images[index % images.length];
   };
