@@ -69,8 +69,8 @@ const FeaturedCarousel: React.FC = () => {
     }
   }, [isTranslating, currentLanguage]);
   
-  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://c-back-1.onrender.com';
-  const MOCK_API_BASE_URL = 'http://localhost:5000'; // For db.json
+  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://c-back-2.onrender.com';
+  const MOCK_API_BASE_URL = process.env.REACT_APP_USE_LOCAL_DB === 'true' ? 'http://localhost:5000' : '';
   const formatMDY = (input: string | Date) => {
     try {
       const d = new Date(input);

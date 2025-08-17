@@ -64,7 +64,7 @@ export function TopNav() {
   // API URLs
   const currencyApiUrl = 'https://open.er-api.com/v6/latest/USD';
   // Use your actual backend API
-  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5000';
+  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://c-back-2.onrender.com';
 
   // Language change handler - translations are now static
   useEffect(() => {

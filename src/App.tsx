@@ -1,5 +1,4 @@
 import React, { useEffect, lazy, Suspense } from 'react';
-import { HelmetProvider } from 'react-helmet-async';
 import { BrowserRouter as Router, Route, Routes, useLocation } from 'react-router-dom';
 import './App.css';
 import LandingPage from './pages/Landing';
@@ -25,7 +24,6 @@ import Learn from './Components/Learn';
 import InDepthNewsPage from './pages/InDepthNewsPage';
 import EventRadar from './Components/EventRadar';
 import Listing from './Components/Listings';
-import ListingsAll from './pages/ListingsAll';
 
 
 const ScrollToTop: React.FC = () => {
@@ -38,14 +36,13 @@ const ScrollToTop: React.FC = () => {
 
 function App() {
   return (
-    <HelmetProvider>
-      <LanguageProvider>
-        <AuthProvider>
-          <BlogProvider>
-            <CurrencyProvider>
-              <Router>
-                <ScrollToTop />
-                <div className="App">
+    <LanguageProvider>
+      <AuthProvider>
+        <BlogProvider>
+          <CurrencyProvider>
+            <Router>
+              <ScrollToTop />
+              <div className="App">
                 <Routes>
                   <Route path="/" element={<LandingPage />} />
                   <Route path="/blog/:id" element={<BlogPage />} />
@@ -60,7 +57,6 @@ function App() {
                   <Route path="/All-Trending-news" element={<  Trend />} /> 
                   <Route path="/beyond-the-headlines" element={<InDepthNewsPage />} />
                   <Route path="/listings" element={<Listing />} />
-                  <Route path="/listings/all" element={<ListingsAll />} />
                   <Route path="/events" element={<EventRadar />} />
                   <Route path="/news/:id" element={<NewsDetail />} />
                   <Route path="/main-dashboard" element={<   MainDashboard/>} /> 
@@ -78,7 +74,6 @@ function App() {
         </BlogProvider>
       </AuthProvider>
     </LanguageProvider>
-    </HelmetProvider>
   );
 }
 

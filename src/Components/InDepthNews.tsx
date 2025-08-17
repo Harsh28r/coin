@@ -42,28 +42,51 @@ const InDepthNews: React.FC = () => {
 			setLoading(true);
 			setError(null);
 			try {
-				const res = await fetch(`${API_BASE_URL}/fetch-beincrypto-rss?limit=8`);
-				const data = await res.json();
-				if (!cancelled && data.success && Array.isArray(data.data)) {
-					const normalized: InDepthItem[] = data.data.map((it: any) => ({
-						article_id: it.article_id,
-						title: it.title,
-						description: it.description,
-						creator: Array.isArray(it.creator) ? it.creator : [it.creator || 'Unknown'],
-						pubDate: it.pubDate,
-						image_url: it.image_url,
-						link: it.link,
-						content: it.content,
-						source_name: it.source_name,
-						keywords: it.keywords,
-						category: it.category
-					}));
-					setItems(normalized);
-				} else if (!cancelled) {
-					setError('Failed to load in-depth feed');
+				const endpoints = [
+					`${API_BASE_URL}/fetch-beincrypto-rss?limit=8`,
+					`${API_BASE_URL}/fetch-coindesk-rss?limit=8`,
+					`${API_BASE_URL}/fetch-cryptoslate-rss?limit=8`,
+					`${API_BASE_URL}/fetch-ambcrypto-rss?limit=8`,
+					`${API_BASE_URL}/fetch-dailycoin-rss?limit=8`,
+					`${API_BASE_URL}/fetch-cryptopotato-rss?limit=8`,
+					`${API_BASE_URL}/fetch-utoday-rss?limit=8`,
+					`${API_BASE_URL}/fetch-all-rss?limit=8&source=BeInCrypto`,
+					`${API_BASE_URL}/fetch-all-rss?limit=16`
+				];
+				let loaded: any[] | null = null;
+				for (const url of endpoints) {
+					try {
+						const res = await fetch(url);
+						if (!res.ok) continue;
+						const data = await res.json();
+						if (data && Array.isArray(data.data) && data.data.length) {
+							loaded = data.data;
+							break;
+						}
+					} catch {}
 				}
-			} catch (e) {
-				if (!cancelled) setError('Failed to load in-depth feed');
+
+				if (!cancelled) {
+					if (loaded) {
+						const normalized: InDepthItem[] = loaded.map((it: any) => ({
+							article_id: it.article_id,
+							title: it.title,
+							description: it.description,
+							creator: Array.isArray(it.creator) ? it.creator : [it.creator || 'Unknown'],
+							pubDate: it.pubDate,
+							image_url: it.image_url,
+							link: it.link,
+							content: it.content,
+							source_name: it.source_name,
+							keywords: it.keywords,
+							category: it.category
+						}));
+						setItems(normalized);
+					} else {
+						setItems([]);
+						setError('No in-depth items available right now.');
+					}
+				}
 			} finally {
 				if (!cancelled) setLoading(false);
 			}

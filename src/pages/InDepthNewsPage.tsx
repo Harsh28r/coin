@@ -30,13 +30,31 @@ const InDepthNewsPage: React.FC = () => {
 		const run = async () => {
 			setLoading(true);
 			try {
-				const res = await fetch(`${API_BASE_URL}/fetch-beincrypto-rss?limit=24`);
-				const data = await res.json();
-				if (!cancelled && data.success && Array.isArray(data.data)) {
-					setItems(data.data);
+				const endpoints = [
+					`${API_BASE_URL}/fetch-beincrypto-rss?limit=24`,
+					`${API_BASE_URL}/fetch-coindesk-rss?limit=24`,
+					`${API_BASE_URL}/fetch-cryptoslate-rss?limit=24`,
+					`${API_BASE_URL}/fetch-ambcrypto-rss?limit=24`,
+					`${API_BASE_URL}/fetch-dailycoin-rss?limit=24`,
+					`${API_BASE_URL}/fetch-cryptopotato-rss?limit=24`,
+					`${API_BASE_URL}/fetch-utoday-rss?limit=24`,
+					`${API_BASE_URL}/fetch-all-rss?limit=24&source=BeInCrypto`,
+					`${API_BASE_URL}/fetch-all-rss?limit=24`
+				];
+				let loaded: any[] | null = null;
+				for (const url of endpoints) {
+					try {
+						const res = await fetch(url);
+						if (!res.ok) continue;
+						const data = await res.json();
+						if (data && Array.isArray(data.data) && data.data.length) {
+							loaded = data.data;
+							break;
+						}
+					} catch {}
 				}
-			} catch {}
-			finally { if (!cancelled) setLoading(false); }
+				if (!cancelled && loaded) setItems(loaded);
+			} finally { if (!cancelled) setLoading(false); }
 		};
 		run();
 		return () => { cancelled = true; };

@@ -39,7 +39,7 @@ const ExclusiveNews: React.FC = () => {
   const { displayItems, isTranslating, currentLanguage } = useNewsTranslation(newsItems);
 
   const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://c-back-2.onrender.com';
-  const MOCK_API_BASE_URL = 'http://localhost:5000'; // For db.json
+  const MOCK_API_BASE_URL = process.env.REACT_APP_USE_LOCAL_DB === 'true' ? 'http://localhost:5000' : '';
 
   // Helpers to improve images and excerpts
   const extractImageFromHtml = (html?: string): string | null => {

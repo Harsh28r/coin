@@ -42,8 +42,8 @@ const PressRelease: React.FC = () => {
     return byTitle || effectiveReleases[effectiveReleases.length - 1] || null;
   }, [effectiveReleases, mainArticle]);
   
-  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://c-back-1.onrender.com';
-  const MOCK_API_BASE_URL = 'http://localhost:5000'; // For db.json
+  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://c-back-2.onrender.com';
+  const MOCK_API_BASE_URL = process.env.REACT_APP_USE_LOCAL_DB === 'true' ? 'http://localhost:5000' : '';
 
   const formatMDY = (input: string | Date) => {
     try {
@@ -64,6 +64,7 @@ const PressRelease: React.FC = () => {
       try {
         // Try fetching from db.json first
         try {
+          if (!MOCK_API_BASE_URL) throw new Error('Local db disabled');
           const response = await fetch(`${MOCK_API_BASE_URL}/news`);
           if (!response.ok) {
             throw new Error(`db.json fetch failed: ${response.status} ${response.statusText}`);
