@@ -24,7 +24,18 @@ const NewsletterAdmin: React.FC = () => {
   const [sendingNewsletter, setSendingNewsletter] = useState(false);
   const [newsletterResult, setNewsletterResult] = useState<any>(null);
 
-  const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://c-back-2.onrender.com';
+  const getBases = (): string[] => {
+    const list: string[] = [];
+    const env = (process.env.REACT_APP_API_BASE_URL ) || '';
+    if (env) list.push(env);
+    if (typeof window !== 'undefined') {    
+      list.push(window.location.origin);
+      list.push(`${window.location.origin}/api`);
+    }
+    list.push('http://localhost:5000');
+    return Array.from(new Set(list.filter(Boolean)));
+  };
 
   useEffect(() => {
     fetchSubscribers();
@@ -46,8 +57,16 @@ const NewsletterAdmin: React.FC = () => {
   const fetchSubscribers = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${API_BASE}/subscribers`);
-      const data = await safeJson(response);
+      let data: any = null;
+      let lastErr: any;
+      for (const base of getBases()) {
+        try {
+          const response = await fetch(`${base}/subscribers`);
+          data = await safeJson(response);
+          break;
+        } catch (e) { lastErr = e; }
+      }
+      if (!data) throw lastErr || new Error('Failed to fetch');
       
       if (data.success) {
         setSubscribers(data.data);
@@ -56,7 +75,7 @@ const NewsletterAdmin: React.FC = () => {
       }
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Network error.';
-      setError(`${msg} Ensure REACT_APP_API_URL points to your backend.`);
+      setError(`${msg} Ensure REACT_APP_API_BASE_URL points to your backend.`);
     } finally {
       setLoading(false);
     }
@@ -74,15 +93,22 @@ const NewsletterAdmin: React.FC = () => {
       setSendingNewsletter(true);
       setError(null);
       
-      const response = await fetch(`${API_BASE}/send-newsletter`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(newsletterForm),
-      });
-
-      const data = await safeJson(response);
+      let data: any = null;
+      let lastErr: any;
+      for (const base of getBases()) {
+        try {
+          const response = await fetch(`${base}/send-newsletter`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(newsletterForm),
+          });
+          data = await safeJson(response);
+          break;
+        } catch (e) { lastErr = e; }
+      }
+      if (!data) throw lastErr || new Error('Failed to send');
       
       if (data.success) {
         setNewsletterResult(data);
@@ -95,7 +121,7 @@ const NewsletterAdmin: React.FC = () => {
       }
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Network error.';
-      setError(`${msg} Ensure REACT_APP_API_URL points to your backend.`);
+      setError(`${msg} Ensure REACT_APP_API_BASE_URL points to your backend.`);
     } finally {
       setSendingNewsletter(false);
     }

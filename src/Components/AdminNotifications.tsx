@@ -16,26 +16,13 @@ const AdminNotifications: React.FC = () => {
   const [items, setItems] = useState<NotificationItem[]>([]);
   const [unseen, setUnseen] = useState(0);
   const [loading, setLoading] = useState(false);
-  const API_BASE = (process.env.REACT_APP_API_URL as string) || 'http://localhost:5000';
-
-  const safeJson = async (res: Response) => {
-    const contentType = res.headers.get('content-type') || '';
-    if (!res.ok) {
-      const text = await res.text();
-      throw new Error(`HTTP ${res.status}: ${text.slice(0, 200)}`);
-    }
-    if (!contentType.includes('application/json')) {
-      const text = await res.text();
-      throw new Error(`Expected JSON, got: ${text.slice(0, 160)}`);
-    }
-    return res.json();
-  };
+  const API_BASE_URL = (process.env.REACT_APP_API_BASE_URL ) || 'https://c-back-2.onrender.com';
 
   const fetchNotifications = async () => {
     try {
       setLoading(true);
-      const res = await fetch(`${API_BASE}/admin/notifications?limit=20`);
-      const data = await safeJson(res);
+      const res = await fetch(`${API_BASE_URL}/admin/notifications?limit=20`);
+      const data = await res.json();
       if (data.success) {
         setItems(data.data || []);
         setUnseen(data.unseenCount || 0);
@@ -49,7 +36,7 @@ const AdminNotifications: React.FC = () => {
 
   const markSeen = async () => {
     try {
-      await fetch(`${API_BASE}/admin/notifications/mark-seen`, {
+      await fetch(`${API_BASE_URL}/admin/notifications/mark-seen`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
       });

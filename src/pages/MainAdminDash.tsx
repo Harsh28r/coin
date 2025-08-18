@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {
   Container, Row, Col, Nav, Navbar, Card, Button, Form, ListGroup, Badge,
-  ProgressBar, Dropdown, Table, Modal
+  ProgressBar, Dropdown, Table, Modal, Pagination
 } from 'react-bootstrap';
 import { BarChart2, Users, FileText, Settings, Bell, User, Search, Plus, BookOpen, Mail, Activity, Send } from 'lucide-react';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -10,11 +10,32 @@ import { useBlog } from '../context/BlogContext';
 import { BlogPost as BlogPostType } from '../types/blog';
 import BlogForm from '../Components/BlogForm';
 import NewsletterAdmin from '../Components/NewsletterAdmin';
-// Single API base (same pattern as BlogHome)
-const API_BASE: string = (process.env.REACT_APP_API_URL as string) || 'http://localhost:5000';
+// Single API base (admin side) with multi-base fallback
+const API_BASE_URL: string = (process.env.REACT_APP_API_BASE_URL) || 'https://c-back-2.onrender.com';
+const getAdminApiBases = (): string[] => {
+  const bases: string[] = [];
+  const env = (process.env.REACT_APP_API_BASE_URL ) || '';
+  if (env) bases.push(env);
+  if (typeof window !== 'undefined') {
+    bases.push(window.location.origin);
+    bases.push(`${window.location.origin}/api`);
+  }
+  bases.push('http://localhost:5000');
+  return Array.from(new Set(bases.filter(Boolean)));
+};
 const fetchJson = async (path: string, init?: RequestInit): Promise<any> => {
-  const res = await fetch(`${API_BASE}${path}`, init);
-  return safeJson(res);
+  let lastErr: any;
+  for (const base of getAdminApiBases()) {
+    try {
+      const res = await fetch(`${base}${path}`, init);
+      const data = await safeJson(res);
+      try { (window as any).__adminOkBase = base; } catch {}
+      return data;
+    } catch (e) {
+      lastErr = e;
+    }
+  }
+  throw lastErr;
 };
 // Shared JSON helper
 const safeJson = async <T = any>(res: Response): Promise<T> => {
@@ -252,6 +273,22 @@ const MainDashboard: React.FC = () => {
     const [stats, setStats] = React.useState<any>(null);
     const [users, setUsers] = React.useState<any[]>([]);
     const [events, setEvents] = React.useState<any[]>([]);
+    const [search, setSearch] = React.useState('');
+    const [country, setCountry] = React.useState('all');
+    const [registeredOnly, setRegisteredOnly] = React.useState(false);
+    const [minLogins, setMinLogins] = React.useState<string>('');
+    const [minVisits, setMinVisits] = React.useState<string>('');
+    const [dateFrom, setDateFrom] = React.useState<string>('');
+    const [dateTo, setDateTo] = React.useState<string>('');
+    const [sortKey, setSortKey] = React.useState<string>('lastSeen');
+    const [sortDir, setSortDir] = React.useState<'asc' | 'desc'>('desc');
+    const [page, setPage] = React.useState(1);
+    const [pageSize, setPageSize] = React.useState(10);
+
+    const [eventType, setEventType] = React.useState('all');
+    const [eventSearch, setEventSearch] = React.useState('');
+    const [eventPage, setEventPage] = React.useState(1);
+    const [eventPageSize, setEventPageSize] = React.useState(10);
 
     type StatsRes = { success: boolean; data: any; message?: string };
     type UsersRes = { success: boolean; data: any[]; message?: string };
@@ -283,10 +320,176 @@ const MainDashboard: React.FC = () => {
       fetchAll();
     }, []);
 
+    // Derived country options
+    const countryOptions = React.useMemo(() => {
+      const set = new Set<string>();
+      users.forEach(u => { if (u.country) set.add(String(u.country)); });
+      return Array.from(set).sort((a, b) => a.localeCompare(b));
+    }, [users]);
+
+    // Filtering and sorting
+    const filteredUsers = React.useMemo(() => {
+      let list = users.slice();
+      const s = search.trim().toLowerCase();
+      if (s) {
+        list = list.filter(u => (u.email || '').toLowerCase().includes(s) || (u.name || '').toLowerCase().includes(s));
+      }
+      if (country !== 'all') {
+        list = list.filter(u => String(u.country || '') === country);
+      }
+      if (registeredOnly) {
+        list = list.filter(u => Number(u.registerCount || 0) > 0);
+      }
+      const minL = Number(minLogins);
+      if (!Number.isNaN(minL) && minLogins !== '') list = list.filter(u => Number(u.loginCount || 0) >= minL);
+      const minV = Number(minVisits);
+      if (!Number.isNaN(minV) && minVisits !== '') list = list.filter(u => Number(u.visitCount || 0) >= minV);
+      if (dateFrom) {
+        const fromTs = new Date(dateFrom).getTime();
+        list = list.filter(u => new Date(u.lastSeen).getTime() >= fromTs);
+      }
+      if (dateTo) {
+        const toTs = new Date(dateTo).getTime();
+        list = list.filter(u => new Date(u.lastSeen).getTime() <= toTs + 24*60*60*1000 - 1);
+      }
+
+      list.sort((a, b) => {
+        const dir = sortDir === 'asc' ? 1 : -1;
+        switch (sortKey) {
+          case 'email': return String(a.email || '').localeCompare(String(b.email || '')) * dir;
+          case 'name': return String(a.name || '').localeCompare(String(b.name || '')) * dir;
+          case 'country': return String(a.country || '').localeCompare(String(b.country || '')) * dir;
+          case 'loginCount': return (Number(a.loginCount || 0) - Number(b.loginCount || 0)) * dir;
+          case 'registerCount': return (Number(a.registerCount || 0) - Number(b.registerCount || 0)) * dir;
+          case 'visitCount': return (Number(a.visitCount || 0) - Number(b.visitCount || 0)) * dir;
+          case 'lastSeen':
+          default:
+            return (new Date(a.lastSeen).getTime() - new Date(b.lastSeen).getTime()) * dir;
+        }
+      });
+      return list;
+    }, [users, search, country, registeredOnly, minLogins, minVisits, dateFrom, dateTo, sortKey, sortDir]);
+
+    const totalPages = Math.max(1, Math.ceil(filteredUsers.length / pageSize));
+    const currentPage = Math.min(page, totalPages);
+    const pagedUsers = React.useMemo(() => {
+      const start = (currentPage - 1) * pageSize;
+      return filteredUsers.slice(start, start + pageSize);
+    }, [filteredUsers, currentPage, pageSize]);
+
+    const resetFilters = () => {
+      setSearch('');
+      setCountry('all');
+      setRegisteredOnly(false);
+      setMinLogins('');
+      setMinVisits('');
+      setDateFrom('');
+      setDateTo('');
+      setSortKey('lastSeen');
+      setSortDir('desc');
+      setPage(1);
+    };
+
+    const toggleSort = (key: string) => {
+      if (sortKey === key) {
+        setSortDir(sortDir === 'asc' ? 'desc' : 'asc');
+      } else {
+        setSortKey(key);
+        setSortDir('asc');
+      }
+    };
+
+    const exportCsv = () => {
+      const headers = ['Email','Name','Country','Last Seen','Logins','Registered','Visits'];
+      const rows = filteredUsers.map(u => [
+        u.email || '-',
+        u.name || '-',
+        u.country || '-',
+        new Date(u.lastSeen).toISOString(),
+        String(u.loginCount ?? 0),
+        String(u.registerCount ?? 0),
+        String(u.visitCount ?? 0)
+      ]);
+      const csv = [headers, ...rows].map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `users_${Date.now()}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    };
+
+    const filteredEvents = React.useMemo(() => {
+      const s = eventSearch.trim().toLowerCase();
+      return events.filter(ev => (
+        (eventType === 'all' || ev.type === eventType) &&
+        (!s || (String(ev.email || '').toLowerCase().includes(s) || String(ev.type || '').toLowerCase().includes(s)))
+      ));
+    }, [events, eventType, eventSearch]);
+
+    const totalEventPages = Math.max(1, Math.ceil(filteredEvents.length / eventPageSize));
+    const currentEventPage = Math.min(eventPage, totalEventPages);
+    const pagedEvents = React.useMemo(() => {
+      const start = (currentEventPage - 1) * eventPageSize;
+      return filteredEvents.slice(start, start + eventPageSize);
+    }, [filteredEvents, currentEventPage, eventPageSize]);
+
     return (
       <div className="p-3">
         <h4 className="mb-3">User Analytics</h4>
         {error && <div className="alert alert-danger">{error}</div>}
+        {/* Filters */}
+        <div className="card mb-3">
+          <div className="card-body">
+            <div className="row g-3 align-items-end">
+              <div className="col-md-3">
+                <label className="form-label">Search</label>
+                <Form.Control placeholder="email or name" value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} />
+              </div>
+              <div className="col-md-2">
+                <label className="form-label">Country</label>
+                <Form.Select value={country} onChange={(e) => { setCountry(e.target.value); setPage(1); }}>
+                  <option value="all">All</option>
+                  {countryOptions.map(c => (<option key={c} value={c}>{c}</option>))}
+                </Form.Select>
+              </div>
+              <div className="col-md-2">
+                <label className="form-label">Min Logins</label>
+                <Form.Control type="number" min={0} value={minLogins} onChange={(e) => { setMinLogins(e.target.value); setPage(1); }} />
+              </div>
+              <div className="col-md-2">
+                <label className="form-label">Min Visits</label>
+                <Form.Control type="number" min={0} value={minVisits} onChange={(e) => { setMinVisits(e.target.value); setPage(1); }} />
+              </div>
+              <div className="col-md-3">
+                <div className="form-check mt-4">
+                  <input className="form-check-input" type="checkbox" id="registered-only" checked={registeredOnly} onChange={(e) => { setRegisteredOnly(e.target.checked); setPage(1); }} />
+                  <label className="form-check-label" htmlFor="registered-only">Registered users only</label>
+                </div>
+              </div>
+              <div className="col-md-2">
+                <label className="form-label">From</label>
+                <Form.Control type="date" value={dateFrom} onChange={(e) => { setDateFrom(e.target.value); setPage(1); }} />
+              </div>
+              <div className="col-md-2">
+                <label className="form-label">To</label>
+                <Form.Control type="date" value={dateTo} onChange={(e) => { setDateTo(e.target.value); setPage(1); }} />
+              </div>
+              <div className="col-md-2">
+                <label className="form-label">Page Size</label>
+                <Form.Select value={pageSize} onChange={(e) => { setPageSize(Number(e.target.value)); setPage(1); }}>
+                  {[10, 25, 50, 100].map(n => (<option key={n} value={n}>{n}</option>))}
+                </Form.Select>
+              </div>
+              <div className="col-md-6 text-end">
+                <Button variant="outline-secondary" className="me-2" onClick={resetFilters}>Clear</Button>
+                <Button variant="outline-primary" className="me-2" onClick={fetchAll} disabled={loading}>{loading ? 'Refreshing…' : 'Refresh'}</Button>
+                <Button variant="outline-success" onClick={exportCsv}>Export CSV</Button>
+              </div>
+            </div>
+          </div>
+        </div>
         <div className="row g-3 mb-3">
           <div className="col-md-3"><div className="card"><div className="card-body"><div className="text-muted">Total Visits</div><div className="h4 mb-0">{stats?.totalVisits ?? '-'}</div></div></div></div>
           <div className="col-md-3"><div className="card"><div className="card-body"><div className="text-muted">Visits (24h)</div><div className="h4 mb-0">{stats?.visits24h ?? '-'}</div></div></div></div>
@@ -296,13 +499,23 @@ const MainDashboard: React.FC = () => {
         <div className="row g-3">
           <div className="col-lg-7">
             <div className="card h-100">
-              <div className="card-header d-flex justify-content-between align-items-center"><strong>Recent Users</strong><button className="btn btn-sm btn-outline-secondary" onClick={fetchAll}>Refresh</button></div>
+              <div className="card-header d-flex justify-content-between align-items-center"><strong>Users</strong><div className="small text-muted">{filteredUsers.length} results</div></div>
               <div className="card-body p-0">
                 <div className="table-responsive">
                   <table className="table mb-0">
-                    <thead><tr><th>Email</th><th>Name</th><th>Country</th><th>Last Seen</th><th>Logins</th><th>Registered</th><th>Visits</th></tr></thead>
+                    <thead>
+                      <tr>
+                        <th role="button" onClick={() => toggleSort('email')}>Email {sortKey==='email' ? (sortDir==='asc'?'▲':'▼') : ''}</th>
+                        <th role="button" onClick={() => toggleSort('name')}>Name {sortKey==='name' ? (sortDir==='asc'?'▲':'▼') : ''}</th>
+                        <th role="button" onClick={() => toggleSort('country')}>Country {sortKey==='country' ? (sortDir==='asc'?'▲':'▼') : ''}</th>
+                        <th role="button" onClick={() => toggleSort('lastSeen')}>Last Seen {sortKey==='lastSeen' ? (sortDir==='asc'?'▲':'▼') : ''}</th>
+                        <th role="button" onClick={() => toggleSort('loginCount')}>Logins {sortKey==='loginCount' ? (sortDir==='asc'?'▲':'▼') : ''}</th>
+                        <th role="button" onClick={() => toggleSort('registerCount')}>Registered {sortKey==='registerCount' ? (sortDir==='asc'?'▲':'▼') : ''}</th>
+                        <th role="button" onClick={() => toggleSort('visitCount')}>Visits {sortKey==='visitCount' ? (sortDir==='asc'?'▲':'▼') : ''}</th>
+                      </tr>
+                    </thead>
                     <tbody>
-                      {users.map(u => (
+                      {pagedUsers.map(u => (
                         <tr key={`${u.uid || ''}-${u.email || ''}`}>
                           <td>{u.email || '-'}</td>
                           <td>{u.name || '-'}</td>
@@ -316,15 +529,41 @@ const MainDashboard: React.FC = () => {
                     </tbody>
                   </table>
                 </div>
+                <div className="d-flex justify-content-between align-items-center p-2">
+                  <div className="text-muted small">Page {currentPage} of {totalPages}</div>
+                  <Pagination className="mb-0">
+                    <Pagination.First onClick={() => setPage(1)} disabled={currentPage===1} />
+                    <Pagination.Prev onClick={() => setPage(Math.max(1, currentPage-1))} disabled={currentPage===1} />
+                    <Pagination.Item active>{currentPage}</Pagination.Item>
+                    <Pagination.Next onClick={() => setPage(Math.min(totalPages, currentPage+1))} disabled={currentPage===totalPages} />
+                    <Pagination.Last onClick={() => setPage(totalPages)} disabled={currentPage===totalPages} />
+                  </Pagination>
+                </div>
               </div>
             </div>
           </div>
           <div className="col-lg-5">
             <div className="card h-100">
-              <div className="card-header"><strong>Recent Events</strong></div>
+              <div className="card-header">
+                <div className="d-flex justify-content-between align-items-center">
+                  <strong>Recent Events</strong>
+                  <div className="d-flex gap-2">
+                    <Form.Select size="sm" value={eventType} onChange={(e) => setEventType(e.target.value)}>
+                      <option value="all">All</option>
+                      <option value="user_registered">user_registered</option>
+                      <option value="user_login">user_login</option>
+                      <option value="visit">visit</option>
+                    </Form.Select>
+                    <Form.Control size="sm" placeholder="Search" value={eventSearch} onChange={(e) => { setEventSearch(e.target.value); setEventPage(1); }} />
+                    <Form.Select size="sm" value={eventPageSize} onChange={(e) => { setEventPageSize(Number(e.target.value)); setEventPage(1); }}>
+                      {[10, 25, 50].map(n => (<option key={n} value={n}>{n}/page</option>))}
+                    </Form.Select>
+                  </div>
+                </div>
+              </div>
               <div className="card-body p-0">
                 <div className="list-group list-group-flush">
-                  {events.map(ev => (
+                  {pagedEvents.map(ev => (
                     <div key={ev._id} className="list-group-item">
                       <div className="d-flex justify-content-between">
                         <div><strong>{ev.type}</strong> {ev.email || ''}</div>
@@ -333,6 +572,16 @@ const MainDashboard: React.FC = () => {
                       <div className="text-muted" style={{ fontSize: 12 }}>{ev.path || ''}{ev.ip ? ` · IP: ${ev.ip}` : ''}</div>
                     </div>
                   ))}
+                </div>
+                <div className="d-flex justify-content-between align-items-center p-2">
+                  <div className="text-muted small">Page {currentEventPage} of {totalEventPages}</div>
+                  <Pagination className="mb-0">
+                    <Pagination.First onClick={() => setEventPage(1)} disabled={currentEventPage===1} />
+                    <Pagination.Prev onClick={() => setEventPage(Math.max(1, currentEventPage-1))} disabled={currentEventPage===1} />
+                    <Pagination.Item active>{currentEventPage}</Pagination.Item>
+                    <Pagination.Next onClick={() => setEventPage(Math.min(totalEventPages, currentEventPage+1))} disabled={currentEventPage===totalEventPages} />
+                    <Pagination.Last onClick={() => setEventPage(totalEventPages)} disabled={currentEventPage===totalEventPages} />
+                  </Pagination>
                 </div>
               </div>
             </div>
