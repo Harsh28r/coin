@@ -10,23 +10,11 @@ import { useBlog } from '../context/BlogContext';
 import { BlogPost as BlogPostType } from '../types/blog';
 import BlogForm from '../Components/BlogForm';
 import NewsletterAdmin from '../Components/NewsletterAdmin';
-// Resolve API base with fallbacks
-const getApiBases = (): string[] => {
-  const env = (process.env.REACT_APP_API_URL as string) || '';
-  const rel = typeof window !== 'undefined' ? `${window.location.origin}/api` : '';
-  const bases = [env, rel, 'http://localhost:5000'].filter(Boolean) as string[];
-  return Array.from(new Set(bases));
-};
-const fetchAnyJson = async (path: string, init?: RequestInit): Promise<any> => {
-  for (const base of getApiBases()) {
-    try {
-      const res = await fetch(base + path, init);
-      const ct = res.headers.get('content-type') || '';
-      if (!res.ok || !ct.includes('application/json')) continue;
-      return await res.json();
-    } catch {}
-  }
-  throw new Error('All API bases failed');
+// Single API base (same pattern as BlogHome)
+const API_BASE: string = (process.env.REACT_APP_API_URL as string) || 'http://localhost:5000';
+const fetchJson = async (path: string, init?: RequestInit): Promise<any> => {
+  const res = await fetch(`${API_BASE}${path}`, init);
+  return safeJson(res);
 };
 // Shared JSON helper
 const safeJson = async <T = any>(res: Response): Promise<T> => {
@@ -50,7 +38,7 @@ const AdminNotifications: React.FC = () => {
   const fetchNotifications = async () => {
     try {
       setLoading(true);
-      const data = await fetchAnyJson(`/admin/user-events?limit=50`);
+      const data = await fetchJson(`/admin/user-events?limit=50`);
       if (data?.success) {
         const onlyAuth = (data.data || []).filter((e: any) => e.type === 'user_registered' || e.type === 'user_login');
         setItems(onlyAuth);
@@ -177,9 +165,6 @@ const MainDashboard: React.FC = () => {
     setEditingPost(null);
     setShowModal(true);
   };
-
-  const API_BASE = (process.env.REACT_APP_API_URL as string) || 'http://localhost:5000';
-
   // Social posting section
   const SocialSection: React.FC = () => {
     const [text, setText] = React.useState('');
@@ -192,20 +177,11 @@ const MainDashboard: React.FC = () => {
 
     const postSocial = async () => {
       const payload = { text, imageUrl, platforms: { x: toX, instagram: toIG } };
-      const bases = getApiBases();
-      for (const base of bases) {
-        try {
-          const res = await fetch(base + '/admin/social/post', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload),
-          });
-          const ct = res.headers.get('content-type') || '';
-          if (!res.ok || !ct.includes('application/json')) continue;
-          return await res.json();
-        } catch {}
-      }
-      throw new Error('All API bases failed');
+      return fetchJson(`/admin/social/post`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -286,9 +262,9 @@ const MainDashboard: React.FC = () => {
         setLoading(true);
         setError(null);
         const [s, u, e]: [StatsRes, UsersRes, EventsRes] = await Promise.all([
-          fetchAnyJson(`/admin/user-stats`),
-          fetchAnyJson(`/admin/users`),
-          fetchAnyJson(`/admin/user-events?limit=50`),
+          fetchJson(`/admin/user-stats`),
+          fetchJson(`/admin/users`),
+          fetchJson(`/admin/user-events?limit=50`),
         ]);
         if (!s.success) throw new Error(s.message || 'Stats failed');
         if (!u.success) throw new Error(u.message || 'Users failed');
