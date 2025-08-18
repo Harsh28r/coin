@@ -18,10 +18,22 @@ interface CoinTickerProps {
   perPage?: number;
 }
 
-const CoinTicker: React.FC<CoinTickerProps> = ({ fixed = true, top = 60, height = 44, perPage = 5 }) => {
+const CoinTicker: React.FC<CoinTickerProps> = ({ fixed = true, top = 60, height = 44, perPage = 10 }) => {
   const { currency, formatPrice } = useCurrency();
   const [coins, setCoins] = useState<CryptoPrice[]>([]);
   const [isFallback, setIsFallback] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Detect mobile viewport
+  useEffect(() => {
+    const check = () => {
+      if (typeof window === 'undefined') return;
+      setIsMobile(window.innerWidth <= 640);
+    };
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
 
   // Helpers
   const generateSparkline = (base: number, points: number = 30): number[] => {
@@ -95,6 +107,11 @@ const CoinTicker: React.FC<CoinTickerProps> = ({ fixed = true, top = 60, height 
             { id: 'binancecoin', name: 'BNB', symbol: 'bnb', price: 320, img: 'https://assets.coingecko.com/coins/images/825/small/bnb-icon2_2x.png' },
             { id: 'cardano', name: 'Cardano', symbol: 'ada', price: 0.48, img: 'https://assets.coingecko.com/coins/images/975/small/cardano.png' },
             { id: 'solana', name: 'Solana', symbol: 'sol', price: 150, img: 'https://assets.coingecko.com/coins/images/4128/small/solana.png' },
+            { id: 'ripple', name: 'XRP', symbol: 'xrp', price: 0.6, img: 'https://assets.coingecko.com/coins/images/44/small/xrp-symbol-white-128.png' },
+            { id: 'dogecoin', name: 'Dogecoin', symbol: 'doge', price: 0.12, img: 'https://assets.coingecko.com/coins/images/5/small/dogecoin.png' },
+            { id: 'polkadot', name: 'Polkadot', symbol: 'dot', price: 8, img: 'https://assets.coingecko.com/coins/images/12171/small/polkadot.png' },
+            { id: 'chainlink', name: 'Chainlink', symbol: 'link', price: 18, img: 'https://assets.coingecko.com/coins/images/877/small/chainlink-new-logo.png' },
+            { id: 'litecoin', name: 'Litecoin', symbol: 'ltc', price: 70, img: 'https://assets.coingecko.com/coins/images/2/small/litecoin.png' },
           ];
           return base.slice(0, perPage).map((b) => ({
             id: b.id,
@@ -126,6 +143,17 @@ const CoinTicker: React.FC<CoinTickerProps> = ({ fixed = true, top = 60, height 
 
   if (coins.length === 0) return null;
 
+  // Responsive sizing
+  const numericHeight = typeof height === 'number' ? height : undefined;
+  const finalHeight = isMobile && numericHeight ? Math.round(numericHeight * 1.3) : height;
+  const imgSize = isMobile ? 20 : 18;
+  const symbolFontSize = isMobile ? 13 : 12;
+  const priceFontSize = isMobile ? 13 : 12;
+  const pctFontSize = isMobile ? 12 : 11;
+  const itemGap = isMobile ? '10px' : '8px';
+  const itemPadding = isMobile ? '6px 10px' : '4px 8px';
+  const trackPadding = isMobile ? '12px 0' : '10px 0';
+
   return (
     <>
       <div
@@ -136,7 +164,7 @@ const CoinTicker: React.FC<CoinTickerProps> = ({ fixed = true, top = 60, height 
           left: 0,
           right: 0,
           zIndex: 1100,
-          height: typeof height === 'number' ? `${height}px` : height,
+          height: typeof finalHeight === 'number' ? `${finalHeight}px` : finalHeight,
           width: '100%',
           overflow: 'hidden',
           borderTop: '1px solid rgba(0,0,0,0.06)',
@@ -152,7 +180,7 @@ const CoinTicker: React.FC<CoinTickerProps> = ({ fixed = true, top = 60, height 
               display: 'inline-flex',
               gap: '24px',
               alignItems: 'center',
-              padding: '10px 0',
+              padding: trackPadding,
               animation: 'ticker-scroll 30s linear infinite'
             }}
           >
@@ -163,8 +191,8 @@ const CoinTicker: React.FC<CoinTickerProps> = ({ fixed = true, top = 60, height 
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
-                  gap: '8px',
-                  padding: '4px 8px',
+                  gap: itemGap,
+                  padding: itemPadding,
                   borderRadius: '12px',
                   background: 'rgba(246, 247, 251, 0.6)'
                 }}
@@ -174,18 +202,18 @@ const CoinTicker: React.FC<CoinTickerProps> = ({ fixed = true, top = 60, height 
                   src={coin.image || '/image.png'}
                   alt={coin.name}
                   loading="lazy"
-                  style={{ width: 18, height: 18, borderRadius: 4 }}
+                  style={{ width: imgSize, height: imgSize, borderRadius: 4 }}
                   onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/image.png'; }}
                 />
-                <span style={{ fontWeight: 700, fontSize: 12, color: '#111827' }}>
+                <span style={{ fontWeight: 700, fontSize: symbolFontSize, color: '#111827' }}>
                   {coin.symbol.toUpperCase()}
                 </span>
-                <span style={{ fontSize: 12, color: '#4f46e5', fontWeight: 600 }}>
+                <span style={{ fontSize: priceFontSize, color: '#4f46e5', fontWeight: 600 }}>
                   {formatCrypto(coin.current_price)}
                 </span>
                 <span
                   style={{
-                    fontSize: 11,
+                    fontSize: pctFontSize,
                     fontWeight: 700,
                     color: coin.price_change_percentage_24h >= 0 ? '#059669' : '#dc2626'
                   }}
@@ -198,7 +226,7 @@ const CoinTicker: React.FC<CoinTickerProps> = ({ fixed = true, top = 60, height 
           </div>
         </div>
       </div>
-      {fixed && <div style={{ height: typeof height === 'number' ? `${height}px` : height }} />}
+      {fixed && <div style={{ height: typeof finalHeight === 'number' ? `${finalHeight}px` : finalHeight }} />}
 
       <style>{`
         @keyframes ticker-scroll {

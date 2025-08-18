@@ -12,7 +12,7 @@ import { useLanguage } from '../context/LanguageContext';
 import CoinTicker from './CoinTicker';
 // Import Firebase
 import { initializeApp } from 'firebase/app';
-import { getAuth, GoogleAuthProvider, signInWithPopup, User } from 'firebase/auth';
+import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, User } from 'firebase/auth';
 
 // Initialize Firebase
 const firebaseConfig = {
@@ -67,6 +67,7 @@ export const ScrollingStats = () => {
   const itemsToShow = 15;
   const didInitRef = useRef(false);
   const { currentLanguage, setLanguage } = useLanguage();
+  const [isMobile, setIsMobile] = useState(false);
 
   const formatPrice = (p: string) => {
     const n = Number(p);
@@ -129,6 +130,32 @@ export const ScrollingStats = () => {
     fetchCryptoData();
   }, [fetchCryptoData]);
 
+  // Detect mobile viewport for responsive sizing
+  useEffect(() => {
+    const check = () => {
+      if (typeof window === 'undefined') return;
+      setIsMobile(window.innerWidth <= 640);
+    };
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
+
+  // Complete redirect-based sign-in if needed
+  useEffect(() => {
+    let mounted = true;
+    getRedirectResult(auth)
+      .then((result) => {
+        if (!mounted || !result) return;
+        if (result.user) setUser(result.user);
+      })
+      .catch((err) => {
+        if (!mounted) return;
+        console.error('getRedirectResult error', err);
+      });
+    return () => { mounted = false; };
+  }, []);
+
   // Refresh data every 30s for real-time updates
   useEffect(() => {
     const id = setInterval(fetchCryptoData, 30000);
@@ -153,7 +180,20 @@ export const ScrollingStats = () => {
       const user = result.user;
       setUser(user);
     } catch (error) {
-      // no-op
+      console.error('Firebase sign-in failed', error);
+      const err: any = error || {};
+      const code = err.code || 'unknown';
+      const message = err.message || 'Sign-in failed. Please try again.';
+      // If popups are blocked or environment doesn't support popups, try redirect flow
+      if (code === 'auth/popup-blocked' || code === 'auth/operation-not-supported-in-this-environment') {
+        try {
+          await signInWithRedirect(auth, provider);
+          return;
+        } catch (redirectErr) {
+          console.error('Firebase redirect sign-in failed', redirectErr);
+        }
+      }
+      alert(`Sign-in error (${code}). If this happens only in production, ensure your deployed domain is added under Firebase Auth > Settings > Authorized domains and that the site uses HTTPS.\n\nDetails: ${message}`);
     }
   };
 
@@ -163,7 +203,7 @@ export const ScrollingStats = () => {
       setUser(null);
       setShowProfileCard(false);
     } catch (error) {
-      // no-op
+      console.error('Sign out failed', error);
     }
   };
 
@@ -171,27 +211,35 @@ export const ScrollingStats = () => {
     setShowProfileCard((prev) => !prev);
   };
 
+  const edgeWidth = isMobile ? 4 : 20;
+  const reservedRight = isMobile ? '110px' : '80px';
+  const languageFontSize = isMobile ? '0.9em' : '1em';
+  const userIconSize = isMobile ? '1.4em' : '1.7em';
+
   return (
     <div style={{ width: '95%', margin: '0 auto' }} className="relative h-12 bg-white rounded-lg overflow-hidden d-flex align-items-center">
       {/* Edge fades */}
       <div style={{
-        position: 'absolute', left: 0, top: 0, bottom: 0, width: '60px',
+        position: 'absolute', left: 0, top: 0, bottom: 0, width: `${edgeWidth}px`,
         background: 'linear-gradient(90deg, rgba(255,255,255,1) 0%, rgba(255,255,255,0) 100%)', zIndex: 2
       }} />
       <div style={{
-        position: 'absolute', right: 0, top: 0, bottom: 0, width: '60px',
+        position: 'absolute', right: 0, top: 0, bottom: 0, width: `${edgeWidth}px`,
         background: 'linear-gradient(270deg, rgba(255,255,255,1) 0%, rgba(255,255,255,0) 100%)', zIndex: 2
       }} />
 
       {/* Full-width ticker area with slight left padding and space for right controls */}
-      <div style={{ flex: 1, paddingLeft: '60px', paddingRight: '180px', overflow: 'hidden' }}>
+      <div style={{ flex: 1, paddingLeft: `${edgeWidth}px`, paddingRight: reservedRight, overflow: 'hidden' }}>
         <CoinTicker fixed={false} height={48} perPage={20} />
       </div>
 
       <div className="position-absolute d-flex align-items-center" style={{ zIndex: 3, right: 16 }}>
         <Nav className="flex-nowrap align-items-center justify-content-end">
           <NavDropdown
-            title={<span className="text-black" style={{ fontSize: '1em' }}>{currentLanguage.toUpperCase()}</span>}
+            title={isMobile
+              ? <i className="fa fa-globe" aria-hidden="true" style={{ fontSize: languageFontSize, color: '#111' }} />
+              : <span className="text-black" style={{ fontSize: languageFontSize }}>{currentLanguage.toUpperCase()}</span>
+            }
             id="language-dropdown-ticker"
             onSelect={(key) => {
               const k = (key || '').toString();
@@ -215,7 +263,7 @@ export const ScrollingStats = () => {
               aria-hidden="true"
               title="Sign in"
               onClick={handleUserClick}
-              style={{ fontSize: '1.7em', cursor: 'pointer', color: '#111' }}
+              style={{ fontSize: userIconSize, cursor: 'pointer', color: '#111' }}
             />
           ) : (
             <li
@@ -233,12 +281,12 @@ export const ScrollingStats = () => {
                 onClick={(e) => { e.preventDefault(); toggleProfileCard(); }}
                 style={{ background: 'transparent', border: 'none', padding: 0, display: 'flex', alignItems: 'center' }}
               >
-                <i className="fa fa-user-circle" aria-hidden="true" style={{ fontSize: '1.6em', color: '#111' }} />
+                <i className="fa fa-user-circle" aria-hidden="true" style={{ fontSize: isMobile ? '1.4em' : '1.6em', color: '#111' }} />
               </button>
               {showProfileCard && (
                 <div
                   className="profile-card shadow"
-                  style={{ width: '180px', position: 'absolute', top: '100%', right: 0, left: 'auto', background: '#fff', borderRadius: 8 }}
+                  style={{ width: isMobile ? '160px' : '180px', position: 'absolute', top: '100%', right: 0, left: 'auto', background: '#fff', borderRadius: 8 }}
                   onMouseEnter={() => setShowProfileCard(true)}
                   onMouseLeave={() => setShowProfileCard(false)}
                 >

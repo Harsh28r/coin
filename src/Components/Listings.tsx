@@ -85,12 +85,12 @@ const Listings: React.FC = () => {
   return (
     <Container className="mt-4">
       <Helmet>
-        <title>CoinsClarity | Crypto Exchange Listings & New Token Pairs Today</title>
-        <meta name="description" content="Discover the latest crypto exchange listings, new token pairs, markets, and trading venues updated daily. Track coins across Binance, Coinbase, and more." />
+        <title>CoinsClarity | Crypto News</title>
+        <meta name="description" content="Discover the latest crypto news, exchange listings, new token pairs, markets, and trading venues updated daily. Track coins across Binance, Coinbase, and more." />
         <link rel="canonical" href={`${window.location.origin}/listings`} />
         <meta property="og:type" content="website" />
-        <meta property="og:title" content="CoinsClarity | Crypto Exchange Listings & New Token Pairs Today" />
-        <meta property="og:description" content="Discover the latest crypto exchange listings, new token pairs, markets, and trading venues updated daily." />
+        <meta property="og:title" content="CoinsClarity | Crypto News" />
+        <meta property="og:description" content="Discover the latest crypto news, exchange listings, new token pairs, markets, and trading venues updated daily." />
         <meta property="og:url" content={`${window.location.origin}/listings`} />
         <meta name="twitter:card" content="summary_large_image" />
         {/* Hreflang alternates */}
