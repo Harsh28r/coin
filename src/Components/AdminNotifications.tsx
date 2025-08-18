@@ -8,6 +8,8 @@ interface NotificationItem {
   uid?: string;
   email?: string;
   name?: string | null;
+  ip?: string;
+  country?: string;
   createdAt: string;
   seen: boolean;
 }
@@ -16,16 +18,48 @@ const AdminNotifications: React.FC = () => {
   const [items, setItems] = useState<NotificationItem[]>([]);
   const [unseen, setUnseen] = useState(0);
   const [loading, setLoading] = useState(false);
-  const API_BASE_URL = (process.env.REACT_APP_API_BASE_URL ) || 'https://c-back-2.onrender.com';
+  const API_BASE_URL = (process.env.REACT_APP_API_BASE_URL) || 'https://c-back-2.onrender.com';
+  const getBases = (): string[] => {
+    const list: string[] = [];
+    const env = (process.env.REACT_APP_API_BASE_URL) || '';
+    if (env) list.push(env);
+    if (typeof window !== 'undefined') {
+      list.push(window.location.origin);
+      list.push(`${window.location.origin}/api`);
+    }
+    list.push('http://localhost:5000');
+    return Array.from(new Set(list.filter(Boolean)));
+  };
 
   const fetchNotifications = async () => {
     try {
       setLoading(true);
-      const res = await fetch(`${API_BASE_URL}/admin/notifications?limit=20`);
-      const data = await res.json();
-      if (data.success) {
-        setItems(data.data || []);
-        setUnseen(data.unseenCount || 0);
+      let payload: any = null;
+      for (const base of getBases()) {
+        try {
+          const res = await fetch(`${base}/admin/user-events?limit=50`);
+          if (!res.ok) continue;
+          const data = await res.json();
+          if (data?.success) {
+            const onlyAuth = (data.data || []).filter((e: any) => e.type === 'user_registered' || e.type === 'user_login');
+            payload = onlyAuth;
+            break;
+          }
+        } catch {}
+      }
+      if (Array.isArray(payload)) {
+        setItems(payload);
+        try {
+          const key = 'admin_bell_last_open';
+          const last = localStorage.getItem(key);
+          if (last) {
+            const lastTs = new Date(last).getTime();
+            const count = payload.filter((e: any) => new Date(e.createdAt).getTime() > lastTs).length;
+            setUnseen(count);
+          } else {
+            setUnseen(payload.length);
+          }
+        } catch {}
       }
     } catch (_) {
       // no-op
@@ -36,13 +70,9 @@ const AdminNotifications: React.FC = () => {
 
   const markSeen = async () => {
     try {
-      await fetch(`${API_BASE_URL}/admin/notifications/mark-seen`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-      });
-      setUnseen(0);
-      fetchNotifications();
-    } catch (_) {}
+      localStorage.setItem('admin_bell_last_open', new Date().toISOString());
+    } catch {}
+    setUnseen(0);
   };
 
   useEffect(() => {
@@ -52,8 +82,8 @@ const AdminNotifications: React.FC = () => {
   }, []);
 
   return (
-    <Dropdown align="end">
-      <Dropdown.Toggle variant="light" id="admin-notifications" onClick={markSeen}>
+    <Dropdown align="end" onToggle={(isOpen) => { if (isOpen) { fetchNotifications(); markSeen(); } }}>
+      <Dropdown.Toggle variant="light" id="admin-notifications">
         <div style={{ position: 'relative', display: 'inline-block' }}>
           <Bell size={20} />
           {unseen > 0 && (
@@ -72,17 +102,25 @@ const AdminNotifications: React.FC = () => {
         {items.length === 0 ? (
           <div className="px-3 py-2 text-muted">No notifications</div>
         ) : (
-          items.map((n) => (
+          items.slice(0, 10).map((n) => (
             <Dropdown.Item key={n._id} className="py-2">
               {n.type === 'user_registered' ? (
                 <div>
                   <div><strong>New user</strong> {n.email}</div>
                   <div className="text-muted" style={{ fontSize: 12 }}>{new Date(n.createdAt).toLocaleString()}</div>
+                  {(n.ip || n.country) && <div className="text-muted" style={{ fontSize: 12 }}>IP: {n.ip || '-'}{n.country ? ` · ${n.country}` : ''}</div>}
+                </div>
+              ) : n.type === 'user_login' ? (
+                <div>
+                  <div><strong>User login</strong> {n.email}</div>
+                  <div className="text-muted" style={{ fontSize: 12 }}>{new Date(n.createdAt).toLocaleString()}</div>
+                  {(n.ip || n.country) && <div className="text-muted" style={{ fontSize: 12 }}>IP: {n.ip || '-'}{n.country ? ` · ${n.country}` : ''}</div>}
                 </div>
               ) : (
                 <div>
                   <div>{n.type}</div>
                   <div className="text-muted" style={{ fontSize: 12 }}>{new Date(n.createdAt).toLocaleString()}</div>
+                  {(n.ip || n.country) && <div className="text-muted" style={{ fontSize: 12 }}>IP: {n.ip || '-'}{n.country ? ` · ${n.country}` : ''}</div>}
                 </div>
               )}
             </Dropdown.Item>
