@@ -18,7 +18,7 @@ const AdminNotifications: React.FC = () => {
   const [items, setItems] = useState<NotificationItem[]>([]);
   const [unseen, setUnseen] = useState(0);
   const [loading, setLoading] = useState(false);
-  const API_BASE_URL = (process.env.REACT_APP_API_BASE_URL) || 'https://c-back-2.onrender.com';
+  const API_BASE_URL = (process.env.REACT_APP_API_BASE_URL) || 'https://c-back-seven.vercel.app';
   const getBases = (): string[] => {
     const list: string[] = [];
     const env = (process.env.REACT_APP_API_BASE_URL) || '';
@@ -34,14 +34,21 @@ const AdminNotifications: React.FC = () => {
   const fetchNotifications = async () => {
     try {
       setLoading(true);
-      let payload: any = null;
+      let payload: any[] | null = null;
       for (const base of getBases()) {
         try {
           const res = await fetch(`${base}/admin/user-events?limit=50`);
           if (!res.ok) continue;
           const data = await res.json();
-          if (data?.success) {
-            const onlyAuth = (data.data || []).filter((e: any) => e.type === 'user_registered' || e.type === 'user_login');
+          const items = Array.isArray(data?.data)
+            ? data.data
+            : Array.isArray(data)
+              ? data
+              : Array.isArray((data as any)?.items)
+                ? (data as any).items
+                : null;
+          if (Array.isArray(items)) {
+            const onlyAuth = items.filter((e: any) => e.type === 'user_registered' || e.type === 'user_login');
             payload = onlyAuth;
             break;
           }
@@ -60,6 +67,9 @@ const AdminNotifications: React.FC = () => {
             setUnseen(payload.length);
           }
         } catch {}
+      } else {
+        setItems([]);
+        setUnseen(0);
       }
     } catch (_) {
       // no-op

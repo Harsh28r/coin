@@ -24,7 +24,7 @@ const NewsletterAdmin: React.FC = () => {
   const [sendingNewsletter, setSendingNewsletter] = useState(false);
   const [newsletterResult, setNewsletterResult] = useState<any>(null);
 
-  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://c-back-2.onrender.com';
+  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://c-back-seven.vercel.app';
   const getBases = (): string[] => {
     const list: string[] = [];
     const env = (process.env.REACT_APP_API_BASE_URL ) || '';

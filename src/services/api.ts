@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { BlogPost } from '../types/blog';
 
-const API_BASE: string = (process.env.REACT_APP_API_BASE_URL as string) || 'https://c-back-2.onrender.com';
+const API_BASE: string = (process.env.REACT_APP_API_BASE_URL as string) || 'https://c-back-seven.vercel.app';
 const FALLBACK_BASES: string[] = Array.from(new Set([
   API_BASE,
   API_BASE.endsWith('/api') ? API_BASE.replace(/\/api$/, '') : `${API_BASE}/api`,

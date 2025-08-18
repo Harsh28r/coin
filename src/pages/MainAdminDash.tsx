@@ -11,7 +11,7 @@ import { BlogPost as BlogPostType } from '../types/blog';
 import BlogForm from '../Components/BlogForm';
 import NewsletterAdmin from '../Components/NewsletterAdmin';
 // Single API base (admin side) with multi-base fallback
-const API_BASE_URL: string = (process.env.REACT_APP_API_BASE_URL) || 'https://c-back-2.onrender.com';
+const API_BASE_URL: string = (process.env.REACT_APP_API_BASE_URL) || 'https://c-back-seven.vercel.app';
 const getAdminApiBases = (): string[] => {
   const bases: string[] = [];
   const env = (process.env.REACT_APP_API_BASE_URL ) || '';
