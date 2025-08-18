@@ -12,7 +12,7 @@ import { useLanguage } from '../context/LanguageContext';
 import CoinTicker from './CoinTicker';
 // Import Firebase
 import { initializeApp } from 'firebase/app';
-import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, User } from 'firebase/auth';
+import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, getAdditionalUserInfo, User } from 'firebase/auth';
 
 // Initialize Firebase
 const firebaseConfig = {
@@ -68,6 +68,31 @@ export const ScrollingStats = () => {
   const didInitRef = useRef(false);
   const { currentLanguage, setLanguage } = useLanguage();
   const [isMobile, setIsMobile] = useState(false);
+  const API_BASE = (process.env.REACT_APP_API_URL as string) || (typeof window !== 'undefined' ? `${window.location.origin}/api` : 'http://localhost:5000') || 'http://localhost:5000';
+  const getApiBases = (): string[] => {
+    const env = (process.env.REACT_APP_API_URL as string) || '';
+    const rel = typeof window !== 'undefined' ? `${window.location.origin}/api` : '';
+    const bases = [env, rel, 'http://localhost:5000'].filter(Boolean) as string[];
+    return Array.from(new Set(bases));
+  };
+
+  const notifyAdminUserRegistered = async (u: User, type: 'user_registered' | 'user_login') => {
+    const payload = { uid: u.uid, email: u.email, name: u.displayName, type };
+    for (const base of getApiBases()) {
+      try {
+        const res = await fetch(`${base}/analytics/event`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        if (res.ok) {
+          try { (window as any).__apiOkBase = base; } catch {}
+          return;
+        }
+      } catch {}
+    }
+    console.warn('Failed to send analytics event to any API base');
+  };
 
   const formatPrice = (p: string) => {
     const n = Number(p);
@@ -141,13 +166,44 @@ export const ScrollingStats = () => {
     return () => window.removeEventListener('resize', check);
   }, []);
 
+  // Track page visit analytics
+  useEffect(() => {
+    try {
+      const payload = {
+        type: 'visit',
+        path: typeof window !== 'undefined' ? window.location.pathname : null,
+        referrer: typeof document !== 'undefined' ? document.referrer : null,
+        userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : null,
+      };
+      (async () => {
+        for (const base of getApiBases()) {
+          try {
+            const res = await fetch(`${base}/analytics/event`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload),
+            });
+            if (res.ok) {
+              try { (window as any).__apiOkBase = base; } catch {}
+              break;
+            }
+          } catch {}
+        }
+      })();
+    } catch {}
+  }, []);
+
   // Complete redirect-based sign-in if needed
   useEffect(() => {
     let mounted = true;
     getRedirectResult(auth)
       .then((result) => {
         if (!mounted || !result) return;
-        if (result.user) setUser(result.user);
+        if (result.user) {
+          setUser(result.user);
+          const info = getAdditionalUserInfo(result);
+          notifyAdminUserRegistered(result.user, info?.isNewUser ? 'user_registered' : 'user_login');
+        }
       })
       .catch((err) => {
         if (!mounted) return;
@@ -179,6 +235,8 @@ export const ScrollingStats = () => {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
       setUser(user);
+      const info = getAdditionalUserInfo(result);
+      notifyAdminUserRegistered(user, info?.isNewUser ? 'user_registered' : 'user_login');
     } catch (error) {
       console.error('Firebase sign-in failed', error);
       const err: any = error || {};

@@ -4,7 +4,7 @@ import './App.css';
 import LandingPage from './pages/Landing';
 import BlogPage from './pages/BlogPage';
 import LoginPage from './pages/LoginPage'
-import AdminDashboard from './pages/AdminDashboard'
+// import AdminDashboard from './pages/AdminDashboard'
 import AllNews from './Components/Exnews';
 import PresNews from './Components/PressNews';
 import Exn from './Components/Exn';
@@ -25,6 +25,7 @@ import InDepthNewsPage from './pages/InDepthNewsPage';
 import EventRadar from './Components/EventRadar';
 import Listing from './Components/Listings';
 import DefaultSEO from './Components/DefaultSEO';
+import AdminGate from './Components/AdminGate';
 
 
 const ScrollToTop: React.FC = () => {
@@ -51,7 +52,7 @@ function App() {
                   <Route path="/blog" element={<BlogHome />} />
                   <Route path="/learn" element={<Learn />} />
                   <Route path="/login" element={<LoginPage />} />
-                  <Route path="/admin" element={<AdminDashboard />} />
+                  {/* <Route path="/admin" element={<AdminGate><   MainDashboard/></AdminGate>} /> */}
                   <Route path="/All-exclusive-news" element={<AllNews />} /> 
                   <Route path="/press-news" element={<PresNews />} /> 
                   <Route path="/exclusive-news" element={< Exn/ >} /> 
@@ -61,7 +62,7 @@ function App() {
                   <Route path="/listings" element={<Listing />} />
                   <Route path="/events" element={<EventRadar />} />
                   <Route path="/news/:id" element={<NewsDetail />} />
-                  <Route path="/main-dashboard" element={<   MainDashboard/>} /> 
+                  <Route path="/main-dashboard" element={<AdminGate><   MainDashboard/></AdminGate>} /> 
                   {/* <Route path="/press-release-detail" element={<PressReleaseDetail />} /> */}
                   <Route path="/search" element={<SearchPage />} />
 
