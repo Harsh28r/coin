@@ -14,6 +14,8 @@ import NewsletterAdmin from '../Components/NewsletterAdmin';
 const API_BASE_URL: string = (process.env.REACT_APP_API_BASE_URL) || 'https://c-back-seven.vercel.app';
 const getAdminApiBases = (): string[] => {
   const bases: string[] = [];
+  // Prefer configured or fallback API base first
+  if (API_BASE_URL) bases.push(API_BASE_URL);
   const env = (process.env.REACT_APP_API_BASE_URL ) || '';
   if (env) bases.push(env);
   if (typeof window !== 'undefined') {
@@ -27,7 +29,8 @@ const fetchJson = async (path: string, init?: RequestInit): Promise<any> => {
   let lastErr: any;
   for (const base of getAdminApiBases()) {
     try {
-      const res = await fetch(`${base}${path}`, init);
+      const url = `${base.replace(/\/$/, '')}${path.startsWith('/') ? path : `/${path}`}`;
+      const res = await fetch(url, init);
       const data = await safeJson(res);
       try { (window as any).__adminOkBase = base; } catch {}
       return data;
@@ -195,6 +198,8 @@ const MainDashboard: React.FC = () => {
     const [loading, setLoading] = React.useState(false);
     const [result, setResult] = React.useState<any>(null);
     const [error, setError] = React.useState<string | null>(null);
+    const [showPreview, setShowPreview] = React.useState(false);
+    const [validImage, setValidImage] = React.useState<boolean | null>(null);
 
     const postSocial = async () => {
       const payload = { text, imageUrl, platforms: { x: toX, instagram: toIG } };
@@ -205,12 +210,37 @@ const MainDashboard: React.FC = () => {
       });
     };
 
+    // Restore and persist platform selections
+    React.useEffect(() => {
+      try {
+        const saved = JSON.parse(localStorage.getItem('social_prefs') || 'null');
+        if (saved && typeof saved === 'object') {
+          if (typeof saved.toX === 'boolean') setToX(saved.toX);
+          if (typeof saved.toIG === 'boolean') setToIG(saved.toIG);
+        }
+      } catch {}
+    }, []);
+    React.useEffect(() => {
+      try { localStorage.setItem('social_prefs', JSON.stringify({ toX, toIG })); } catch {}
+    }, [toX, toIG]);
+
+    // Validate image URL format for preview/IG
+    React.useEffect(() => {
+      if (!imageUrl) { setValidImage(null); return; }
+      try {
+        const u = new URL(imageUrl);
+        setValidImage(/^https?:$/i.test(u.protocol));
+      } catch { setValidImage(false); }
+    }, [imageUrl]);
+
     const handleSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
       setError(null);
       setResult(null);
       if (!text.trim()) { setError('Post text is required'); return; }
+      if (!toX && !toIG) { setError('Select at least one platform'); return; }
       if (toIG && !imageUrl.trim()) { setError('Instagram requires an image URL'); return; }
+      if (toIG && validImage === false) { setError('Provide a valid image URL (http/https) for Instagram'); return; }
       try {
         setLoading(true);
         const data = await postSocial();
@@ -219,7 +249,12 @@ const MainDashboard: React.FC = () => {
         setText('');
         setImageUrl('');
       } catch (err: any) {
-        setError(err.message || 'Failed to post');
+        const msg = String(err?.message || '').toLowerCase();
+        if (msg.includes('twitter') || msg.includes('instagram') || msg.includes('credential')) {
+          setError('Posting failed. Check backend Twitter/Instagram credentials.');
+        } else {
+          setError(err.message || 'Failed to post');
+        }
       } finally {
         setLoading(false);
       }
@@ -247,7 +282,16 @@ const MainDashboard: React.FC = () => {
           </div>
           <div className="mb-3">
             <label className="form-label">Image URL (optional, required for Instagram)</label>
-            <input className="form-control" value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} placeholder="https://..." />
+            <div className="d-flex gap-2 align-items-center">
+              <input className="form-control" value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} placeholder="https://..." />
+              <button type="button" className="btn btn-outline-secondary" onClick={() => setShowPreview(p => !p)} disabled={!imageUrl.trim()}>{showPreview ? 'Hide' : 'Preview'}</button>
+            </div>
+            {validImage === false && <div className="form-text text-danger">Invalid image URL</div>}
+            {showPreview && imageUrl && validImage !== false && (
+              <div className="mt-2">
+                <img src={imageUrl} alt="preview" style={{ maxWidth: '100%', maxHeight: 240, borderRadius: 6 }} onError={() => setValidImage(false)} />
+              </div>
+            )}
           </div>
           <div className="mb-3 d-flex gap-3 align-items-center">
             <div className="form-check">

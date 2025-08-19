@@ -24,7 +24,7 @@ const LandingPage: React.FC = () => {
           <meta name="description" content="Real-time crypto news with full articles, new listings, and market insights. Read everything on-platform in your language." />
           <link rel="canonical" href={`${window.location.origin}/`} />
           <meta property="og:type" content="website" />
-          <meta property="og:title" content="CoinsCapture — Crypto News, Listings, Markets" />
+          <meta property="og:title" content="CoinsClarity — Crypto News, Listings, Markets" />
           <meta property="og:description" content="Real-time crypto news with full articles, new listings, and market insights." />
           <meta property="og:url" content={`${window.location.origin}/`} />
           <meta property="og:image" content={`${window.location.origin}/logo3.png`} />

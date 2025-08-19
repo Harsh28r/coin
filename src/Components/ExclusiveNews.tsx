@@ -185,7 +185,7 @@ const ExclusiveNews: React.FC = () => {
   return (
     <Container fluid className="mt-5 skeleton-container" style={{ width: '92%' }}>
       <Helmet>
-        <title>Exclusive News | CoinsCapture</title>
+        <title>Exclusive News | CoinsClarity</title>
         <meta name="description" content="Exclusive crypto stories curated with full content on-platform." />
         <link rel="canonical" href={`${window.location.origin}/exclusive-news`} />
       </Helmet>

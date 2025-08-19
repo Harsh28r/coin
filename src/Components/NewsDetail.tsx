@@ -461,7 +461,7 @@ const NewsDetail: React.FC = () => {
   return (
     <Container className="mt-4 news-detail-container">
       <Helmet>
-        <title>{effectiveItem.title} | CoinsCapture</title>
+        <title>{effectiveItem.title} | CoinsClarity</title>
         <meta name="description" content={effectiveItem.description?.slice(0, 160) || effectiveItem.title} />
         <link rel="canonical" href={window.location.href} />
         <meta property="og:type" content="article" />
@@ -483,7 +483,7 @@ const NewsDetail: React.FC = () => {
           datePublished: effectiveItem.pubDate,
           dateModified: effectiveItem.pubDate,
           mainEntityOfPage: window.location.href,
-          publisher: { '@type': 'Organization', name: 'CoinsCapture', logo: { '@type': 'ImageObject', url: '/logo3.png' } }
+          publisher: { '@type': 'Organization', name: 'CoinsClarity', logo: { '@type': 'ImageObject', url: '/logo3.png' } }
         })}</script>
       </Helmet>
       <div className="reading-progress"><div className="reading-progress__bar" style={{ width: `${progress}%` }} /></div>

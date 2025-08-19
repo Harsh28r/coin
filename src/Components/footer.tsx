@@ -64,7 +64,7 @@ const Footer: React.FC = () => {
           <Col md={5} className="mb-4 mb-md-0 text-center text-md-start">
             <img 
               src="/logo3.png" 
-              alt="CoinsCapture Logo" 
+              alt="CoinsClarity Logo" 
               className="mb-4 d-block mx-auto mx-md-0" 
               style={{ width: '250px', height: 'auto' }}
               onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/image.png'; }}

@@ -26,6 +26,7 @@ import EventRadar from './Components/EventRadar';
 import Listing from './Components/Listings';
 import DefaultSEO from './Components/DefaultSEO';
 import AdminGate from './Components/AdminGate';
+import { Analytics } from '@vercel/analytics/react';
 
 
 const ScrollToTop: React.FC = () => {
@@ -46,6 +47,7 @@ function App() {
               <ScrollToTop />
               <div className="App">
                 <DefaultSEO />
+                <Analytics />
                 <Routes>
                   <Route path="/" element={<LandingPage />} />
                   <Route path="/blog/:id" element={<BlogPage />} />

@@ -82,11 +82,11 @@ const ListingsAll: React.FC = () => {
   return (
     <Container fluid className="mt-4" style={{ width: '92%' }}>
       <Helmet>
-        <title>All Listings | CoinsCapture</title>
+        <title>All Listings | CoinsClarity</title>
         <meta name="description" content="All recent crypto exchange listings and pair updates in one place." />
         <link rel="canonical" href={`${window.location.origin}/listings/all`} />
         <meta property="og:type" content="website" />
-        <meta property="og:title" content="All Listings | CoinsCapture" />
+        <meta property="og:title" content="All Listings | CoinsClarity" />
         <meta property="og:description" content="All recent crypto exchange listings and pair updates." />
         <meta property="og:url" content={`${window.location.origin}/listings/all`} />
         <meta name="twitter:card" content="summary" />

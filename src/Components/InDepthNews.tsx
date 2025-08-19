@@ -103,7 +103,7 @@ const InDepthNews: React.FC = () => {
 	return (
 		<Container fluid className="mt-5" style={{ width: '92%' }}>
 			<Helmet>
-				<title>Beyond the Headlines | CoinsCapture</title>
+				<title>Beyond the Headlines | CoinsClarity</title>
 				<meta name="description" content="In-depth reads with full on-platform content and clean reading experience." />
 				<link rel="canonical" href={`${window.location.origin}/beyond-the-headlines`} />
 			</Helmet>

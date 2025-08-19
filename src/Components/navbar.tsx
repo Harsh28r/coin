@@ -142,7 +142,7 @@ const CoinsNavbar: React.FC = () => {
         <Navbar.Brand as={Link} to="/" className="d-flex align-items-center">
           <img
             src="/logo3.png"
-            alt="CoinsCapture"
+            alt="CoinsClarity"
             loading="eager"
             style={{ height: 56, width: 'auto', objectFit: 'contain', display: 'block' }}
             onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/image.png'; }}

@@ -141,7 +141,7 @@ const PressRelease: React.FC = () => {
       }}
     >
       <Helmet>
-        <title>Press Releases | CoinsCapture</title>
+        <title>Press Releases | CoinsClarity</title>
         <meta name="description" content="Latest announcements and press releases across crypto." />
         <link rel="canonical" href={`${window.location.origin}/press-news`} />
       </Helmet>

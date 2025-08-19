@@ -68,7 +68,7 @@ const Exn: React.FC = () => {
   return (
     <Container fluid className="mt-5" style={{ width: '92%' }}>
       <Helmet>
-        <title>Trending News | CoinsCapture</title>
+        <title>Trending News | CoinsClarity</title>
         <meta name="description" content="Trending crypto news aggregated with full content on-platform." />
         <link rel="canonical" href={`${window.location.origin}/All-Trending-news`} />
       </Helmet>
