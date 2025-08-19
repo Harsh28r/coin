@@ -140,6 +140,9 @@ const FeaturedCarousel: React.FC = () => {
         const res = await fetch(url, { signal: controller.signal });
         if (!res.ok) throw new Error('Bad response');
         return await res.json();
+      } catch (err) {
+        // swallow to keep UI responsive; caller handles nulls
+        return null as any;
       } finally {
         clearTimeout(id);
       }
@@ -148,6 +151,9 @@ const FeaturedCarousel: React.FC = () => {
     // Fetch top-N from each section for LEFT carousel
     const fetchFeatureSlides = async () => {
       setLoadingFeatures(true);
+      // Paint immediately with fallback while real data loads
+      setFeatureSlides(fallbackFeatureSlides);
+      setLoadingFeatures(false);
       try {
         const endpoints = [
           { url: `${API_BASE_URL}/fetch-cointelegraph-rss?limit=3`, label: 'Exclusive' },
@@ -156,7 +162,11 @@ const FeaturedCarousel: React.FC = () => {
           { url: `${API_BASE_URL}/fetch-cryptopotato-rss?limit=3`, label: 'Did You Know' },
         ];
         const results = await Promise.allSettled(
-          endpoints.map(e => fetchJson(e.url, 6000).then(j => ({ j, label: e.label })).catch(() => null))
+          endpoints.map(async (e) => {
+            const j = await fetchJson(e.url, 3500);
+            if (!j) return null;
+            return { j, label: e.label };
+          })
         );
         const slides: any[] = [];
         results.forEach((res: any) => {
@@ -184,7 +194,9 @@ const FeaturedCarousel: React.FC = () => {
             `${API_BASE_URL}/fetch-dailyhodl-rss?limit=6`,
             `${API_BASE_URL}/fetch-another-rss?limit=6`
           ];
-          const pressResults = await Promise.allSettled(pressSources.map(u => fetch(u).then(r => r.json()).catch(() => null)));
+          const pressResults = await Promise.allSettled(
+            pressSources.map(async (u) => await fetchJson(u, 3500))
+          );
           let pressItems: any[] = [];
           pressResults.forEach((r: any) => {
             if (r?.status === 'fulfilled' && r.value?.success && Array.isArray(r.value.data)) {
@@ -219,7 +231,9 @@ const FeaturedCarousel: React.FC = () => {
             'fetch-bitcoinmagazine-rss?limit=30',
             'fetch-coindesk-rss?limit=30'
           ];
-          const listingResponses = await Promise.allSettled(listingSources.map(s => fetch(`${API_BASE_URL}/${s}`).then(r => r.json()).catch(() => null)));
+          const listingResponses = await Promise.allSettled(
+            listingSources.map(async (s) => await fetchJson(`${API_BASE_URL}/${s}`, 3500))
+          );
           let merged: any[] = [];
           listingResponses.forEach((r: any) => {
             if (r?.status === 'fulfilled' && r.value?.success && Array.isArray(r.value.data)) {
