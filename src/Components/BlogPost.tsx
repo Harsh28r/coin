@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Card, Button, Badge, OverlayTrigger, Tooltip } from 'react-bootstrap';
+import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { 
   Pencil, 
@@ -34,6 +35,7 @@ const BlogPost: React.FC<BlogPostProps> = ({
   showActions = true,
   variant = 'default'
 }: BlogPostProps) => {
+  const navigate = useNavigate();
   const [isLiked, setIsLiked] = useState(false);
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -109,6 +111,10 @@ const BlogPost: React.FC<BlogPostProps> = ({
       setActionMessage('Failed to share post');
       setTimeout(() => setActionMessage(null), 2000);
     }
+  };
+
+  const handleReadFullArticle = () => {
+    navigate(`/blog/${post.id}`);
   };
 
   // Get category color
@@ -337,22 +343,23 @@ const BlogPost: React.FC<BlogPostProps> = ({
 
   // Default variant
   return (
-    <Card className="h-100 border-0 shadow-sm hover-lift transition-all">
+    <Card className="h-100 border border-light shadow-sm hover-lift transition-all">
       <div className="position-relative">
         <Card.Img 
           variant="top" 
           src={post.imageUrl} 
           alt={post.title}
           className="object-fit-cover"
-          style={{ height: '200px' }}
+          style={{ height: '220px' }}
           onError={(e) => {
-            e.currentTarget.src = 'https://placehold.co/400x200?text=Blog+Post';
+            e.currentTarget.src = 'https://placehold.co/400x220?text=Blog+Post';
           }}
         />
         <div className="position-absolute top-0 start-0 m-3">
           <Badge 
             bg={getCategoryColor((post as any).category || 'General')}
-            className="px-2 py-1"
+            className="px-3 py-2 fw-semibold"
+            style={{ fontSize: '0.75rem', letterSpacing: '0.5px' }}
           >
             {(post as any).category || 'General'}
           </Badge>
@@ -360,7 +367,7 @@ const BlogPost: React.FC<BlogPostProps> = ({
         
         {/* Action buttons overlay */}
         {showActions && (
-          <div className="position-absolute top-0 end-0 m-3 d-flex gap-1">
+          <div className="position-absolute top-0 end-0 m-3 d-flex gap-2">
             <OverlayTrigger
               placement="top"
               overlay={<Tooltip>Like this post</Tooltip>}
@@ -368,11 +375,16 @@ const BlogPost: React.FC<BlogPostProps> = ({
               <Button
                 variant="light"
                 size="sm"
-                className="rounded-circle p-1"
+                className="rounded-circle p-2 border-0"
                 onClick={handleLike}
-                style={{ width: '32px', height: '32px' }}
+                style={{ 
+                  width: '36px', 
+                  height: '36px',
+                  background: 'rgba(255,255,255,0.95)',
+                  backdropFilter: 'blur(10px)'
+                }}
               >
-                <Heart size={16} className={isLiked ? 'text-danger fill-current' : ''} />
+                <Heart size={16} className={isLiked ? 'text-danger fill-current' : 'text-muted'} />
               </Button>
             </OverlayTrigger>
             
@@ -383,11 +395,16 @@ const BlogPost: React.FC<BlogPostProps> = ({
               <Button
                 variant="light"
                 size="sm"
-                className="rounded-circle p-1"
+                className="rounded-circle p-2 border-0"
                 onClick={handleBookmark}
-                style={{ width: '32px', height: '32px' }}
+                style={{ 
+                  width: '36px', 
+                  height: '36px',
+                  background: 'rgba(255,255,255,0.95)',
+                  backdropFilter: 'blur(10px)'
+                }}
               >
-                <Bookmark size={16} className={isBookmarked ? 'text-warning fill-current' : ''} />
+                <Bookmark size={16} className={isBookmarked ? 'text-warning fill-current' : 'text-muted'} />
               </Button>
             </OverlayTrigger>
             
@@ -398,11 +415,16 @@ const BlogPost: React.FC<BlogPostProps> = ({
               <Button
                 variant="light"
                 size="sm"
-                className="rounded-circle p-1"
+                className="rounded-circle p-2 border-0"
                 onClick={handleShare}
-                style={{ width: '32px', height: '32px' }}
+                style={{ 
+                  width: '36px', 
+                  height: '36px',
+                  background: 'rgba(255,255,255,0.95)',
+                  backdropFilter: 'blur(10px)'
+                }}
               >
-                <Share2 size={16} />
+                <Share2 size={16} className="text-muted" />
               </Button>
             </OverlayTrigger>
           </div>
@@ -410,36 +432,45 @@ const BlogPost: React.FC<BlogPostProps> = ({
       </div>
       
       <Card.Body className="d-flex flex-column p-4">
-        <Card.Title className="h5 fw-bold mb-3 line-clamp-2" style={{ minHeight: '2.5rem' }}>
+        <Card.Title className="h5 fw-bold mb-3 line-clamp-2" style={{ 
+          minHeight: '2.5rem',
+          color: '#1a202c',
+          lineHeight: '1.4'
+        }}>
           {post.title}
         </Card.Title>
         
         <div className="meta-info text-muted mb-3">
-          <div className="d-flex align-items-center mb-2">
-            <div className="d-flex align-items-center me-3">
+          <div className="d-flex align-items-center mb-3">
+            <div className="d-flex align-items-center me-4">
               <div 
                 className="rounded-circle me-2 d-flex align-items-center justify-content-center"
                 style={{
-                  width: '24px',
-                  height: '24px',
-                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                  color: 'white',
-                  fontSize: '0.7rem',
+                  width: '28px',
+                  height: '28px',
+                  background: '#f7fafc',
+                  border: '2px solid #e2e8f0',
+                  color: '#4a5568',
+                  fontSize: '0.8rem',
                   fontWeight: '600'
                 }}
               >
                 {post.author.charAt(0).toUpperCase()}
               </div>
-              <small className="fw-semibold">{post.author}</small>
+              <small className="fw-semibold text-dark">{post.author}</small>
             </div>
             <div className="d-flex align-items-center">
-              <Calendar size={16} className="me-2" />
-              <small>{formattedDate}</small>
+              <Calendar size={16} className="me-2 text-muted" />
+              <small className="text-muted">{formattedDate}</small>
             </div>
           </div>
         </div>
 
-        <Card.Text className="text-muted flex-grow-1 line-clamp-3 mb-4" style={{ minHeight: '4.5rem' }}>
+        <Card.Text className="text-muted flex-grow-1 line-clamp-3 mb-4" style={{ 
+          minHeight: '4.5rem',
+          lineHeight: '1.6',
+          color: '#4a5568'
+        }}>
           {post.content}
         </Card.Text>
 
@@ -461,9 +492,10 @@ const BlogPost: React.FC<BlogPostProps> = ({
             <Button 
               variant="outline-primary" 
               size="sm"
-              className="d-flex align-items-center rounded-pill"
+              className="d-flex align-items-center rounded-3 px-3 py-2"
               onClick={handleEdit}
               disabled={isLoading}
+              style={{ borderWidth: '1.5px' }}
             >
               <Pencil size={14} className="me-2" />
               {isLoading ? 'Editing...' : 'Edit'}
@@ -471,9 +503,10 @@ const BlogPost: React.FC<BlogPostProps> = ({
             <Button 
               variant="outline-danger" 
               size="sm"
-              className="d-flex align-items-center rounded-pill"
+              className="d-flex align-items-center rounded-3 px-3 py-2"
               onClick={handleDelete}
               disabled={isLoading}
+              style={{ borderWidth: '1.5px' }}
             >
               <Trash2 size={14} className="me-2" />
               {isLoading ? 'Deleting...' : 'Delete'}
@@ -484,13 +517,15 @@ const BlogPost: React.FC<BlogPostProps> = ({
         {/* Read More Button */}
         {!isAdmin && (
           <Button 
-            variant="outline-warning" 
+            variant="primary" 
             size="sm"
-            className="mt-auto rounded-pill"
+            className="mt-auto rounded-3 px-4 py-2 fw-semibold"
+            onClick={handleReadFullArticle}
             style={{
-              background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+              background: '#3182ce',
               border: 'none',
-              color: 'white'
+              color: 'white',
+              transition: 'all 0.2s ease'
             }}
           >
             Read Full Article <ExternalLink size={16} className="ms-2" />
@@ -526,8 +561,9 @@ const enhancedStyles = `
   }
   
   .hover-lift:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15) !important;
+    transform: translateY(-4px);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12) !important;
+    border-color: #cbd5e1;
   }
   
   .transition-all {
@@ -551,12 +587,12 @@ const enhancedStyles = `
   .featured-post {
     border: 2px solid transparent;
     background: linear-gradient(white, white) padding-box,
-                linear-gradient(135deg, #667eea 0%, #764ba2 100%) border-box;
+                linear-gradient(135deg, #3182ce 0%, #1e40af 100%) border-box;
   }
   
   .featured-post:hover {
-    transform: translateY(-12px);
-    box-shadow: 0 25px 50px rgba(102, 126, 234, 0.2) !important;
+    transform: translateY(-6px);
+    box-shadow: 0 20px 40px rgba(49, 130, 206, 0.15) !important;
   }
   
   .object-fit-cover {
@@ -565,17 +601,16 @@ const enhancedStyles = `
   
   /* Enhanced button hover effects */
   .btn-outline-primary:hover {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border-color: transparent;
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+    background: #3182ce;
+    border-color: #3182ce;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(49, 130, 206, 0.25);
   }
   
-  .btn-outline-warning:hover {
-    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-    border-color: transparent;
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(245, 158, 11, 0.3);
+  .btn-primary:hover {
+    background: #1e40af;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(49, 130, 206, 0.25);
   }
   
   /* Smooth image transitions */
@@ -584,7 +619,7 @@ const enhancedStyles = `
   }
   
   .hover-lift:hover .card-img-top {
-    transform: scale(1.05);
+    transform: scale(1.02);
   }
   
   /* Enhanced badge styling */
@@ -598,22 +633,22 @@ const enhancedStyles = `
   /* Professional typography */
   .card-title {
     line-height: 1.4;
-    color: #1f2937;
+    color: #1a202c;
   }
   
   .card-text {
     line-height: 1.6;
-    color: #6b7280;
+    color: #4a5568;
   }
   
   /* Responsive adjustments */
   @media (max-width: 768px) {
     .hover-lift:hover {
-      transform: translateY(-4px);
+      transform: translateY(-2px);
     }
     
     .featured-post:hover {
-      transform: translateY(-6px);
+      transform: translateY(-3px);
     }
   }
   
@@ -625,16 +660,16 @@ const enhancedStyles = `
   
   /* Enhanced alert styling */
   .alert-info {
-    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
-    border: 1px solid #93c5fd;
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
     color: #1e40af;
   }
   
   /* Smooth focus states */
   .btn:focus,
   .form-control:focus {
-    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
-    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(49, 130, 206, 0.25);
+    border-color: #3182ce;
   }
 `;
 

@@ -22,16 +22,6 @@ interface CryptoData {
   image: string;
 }
 
-interface NFTData {
-  id: string;
-  name: string;
-  symbol: string;
-  floor_price_usd: number | null;
-  volume_usd_24h: number | null;
-  floor_price_24h_percentage_change: number | null;
-  image: string | null;
-}
-
 interface IChart {
   data: { labels: string[]; prices: number[] };
   title: string;
@@ -151,15 +141,11 @@ const Chart: React.FC<IChart> = ({ data, title, style }) => {
 };
 
 const MarketPriceAndNews: React.FC = () => {
-  const [showAllCrypto, setShowAllCrypto] = useState(false);
-  const [showAllNFTs, setShowAllNFTs] = useState(false);
   const [cryptoData, setCryptoData] = useState<CryptoData[]>([]);
-  const [nftData, setNFTData] = useState<NFTData[]>([]);
   const [selectedCrypto, setSelectedCrypto] = useState<CryptoData | null>(null);
   const [historicalData, setHistoricalData] = useState<{ labels: string[]; prices: number[] } | null>(null);
   const [showChartModal, setShowChartModal] = useState(false);
   const [cryptoLoading, setCryptoLoading] = useState(true);
-  const [nftLoading, setNFTLoading] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [timeRange, setTimeRange] = useState<'1d' | '7d' | '30d'>('1d');
   const [error, setError] = useState<string | null>(null);
@@ -184,57 +170,282 @@ const MarketPriceAndNews: React.FC = () => {
     return data;
   };
 
-  // Fetch with retry mechanism for handling rate limits
-  const fetchWithRetry = async (url: string, retries = 3, delay = 2000) => {
-    for (let i = 0; i < retries; i++) {
-      try {
-        const response = await fetch(API_KEY ? `${url}&x_cg_api_key=${API_KEY}` : url);
-        if (!response.ok) {
-          if (response.status === 429) {
-            console.warn(`Rate limit exceeded. Retrying after ${delay}ms...`);
-            throw new Error('Rate limit exceeded');
-          }
-          throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-        return await response.json();
-      } catch (error: any) {
-        if (i < retries - 1) {
-          console.warn(`Retry ${i + 1}/${retries} for ${url}: ${error.message}`);
-          await new Promise((resolve) => setTimeout(resolve, delay * Math.pow(2, i)));
-          continue;
-        }
-        throw error;
-      }
-    }
-  };
-
   useEffect(() => {
-    // Mock NFT data as fallback
-    const mockNFTData: NFTData[] = [
+    // Mock crypto data as fallback to avoid CORS issues
+    const mockCryptoData: CryptoData[] = [
       {
-        id: 'test-nft-1',
-        name: 'Test NFT 1',
-        symbol: 'TNFT1',
-        floor_price_usd: 1000,
-        volume_usd_24h: 50000,
-        floor_price_24h_percentage_change: 2.5,
-        image: 'https://via.placeholder.com/20',
+        id: 'bitcoin',
+        rank: 1,
+        symbol: 'btc',
+        name: 'Bitcoin',
+        supply: 19400000,
+        max_supply: 21000000,
+        market_cap_usd: 800000000000,
+        volume_usd_24h: 25000000000,
+        price_usd: 41250.50,
+        change_percent_24h: 2.5,
+        image: 'https://assets.coingecko.com/coins/images/1/large/bitcoin.png?1696501400'
       },
       {
-        id: 'test-nft-2',
-        name: 'Test NFT 2',
-        symbol: 'TNFT2',
-        floor_price_usd: 2000,
-        volume_usd_24h: 75000,
-        floor_price_24h_percentage_change: -1.5,
-        image: 'https://via.placeholder.com/20',
+        id: 'ethereum',
+        rank: 2,
+        symbol: 'eth',
+        name: 'Ethereum',
+        supply: 120000000,
+        max_supply: null,
+        market_cap_usd: 280000000000,
+        volume_usd_24h: 15000000000,
+        price_usd: 2333.33,
+        change_percent_24h: -1.2,
+        image: 'https://assets.coingecko.com/coins/images/279/large/ethereum.png?1696501628'
       },
+      {
+        id: 'binancecoin',
+        rank: 3,
+        symbol: 'bnb',
+        name: 'BNB',
+        supply: 155000000,
+        max_supply: 200000000,
+        market_cap_usd: 45000000000,
+        volume_usd_24h: 800000000,
+        price_usd: 290.32,
+        change_percent_24h: 0.8,
+        image: 'https://assets.coingecko.com/coins/images/825/large/bnb-icon2_2x.png?1696501690'
+      },
+      {
+        id: 'solana',
+        rank: 4,
+        symbol: 'sol',
+        name: 'Solana',
+        supply: 400000000,
+        max_supply: null,
+        market_cap_usd: 18000000000,
+        volume_usd_24h: 1200000000,
+        price_usd: 45.00,
+        change_percent_24h: 5.2,
+        image: 'https://assets.coingecko.com/coins/images/4128/large/solana.png?1696501756'
+      },
+      {
+        id: 'cardano',
+        rank: 5,
+        symbol: 'ada',
+        name: 'Cardano',
+        supply: 35000000000,
+        max_supply: 45000000000,
+        market_cap_usd: 15000000000,
+        volume_usd_24h: 600000000,
+        price_usd: 0.43,
+        change_percent_24h: -0.5,
+        image: 'https://assets.coingecko.com/coins/images/975/large/Cardano_Logo.png?1696501792'
+      },
+      {
+        id: 'avalanche',
+        rank: 6,
+        symbol: 'avax',
+        name: 'Avalanche',
+        supply: 350000000,
+        max_supply: 720000000,
+        market_cap_usd: 12000000000,
+        volume_usd_24h: 500000000,
+        price_usd: 34.29,
+        change_percent_24h: 3.1,
+        image: 'https://assets.coingecko.com/coins/images/12559/large/Avalanche_Circle_RedWhite_Trans.png?1696512369'
+      },
+      {
+        id: 'polkadot',
+        rank: 7,
+        symbol: 'dot',
+        name: 'Polkadot',
+        supply: 1200000000,
+        max_supply: null,
+        market_cap_usd: 10000000000,
+        volume_usd_24h: 400000000,
+        price_usd: 8.33,
+        change_percent_24h: -2.1,
+        image: 'https://assets.coingecko.com/coins/images/12171/large/polkadot_new_logo.png?1696512458'
+      },
+      {
+        id: 'chainlink',
+        rank: 8,
+        symbol: 'link',
+        name: 'Chainlink',
+        supply: 1000000000,
+        max_supply: 1000000000,
+        market_cap_usd: 9000000000,
+        volume_usd_24h: 350000000,
+        price_usd: 9.00,
+        change_percent_24h: 1.8,
+        image: 'https://assets.coingecko.com/coins/images/877/large/chainlink-new-logo.png?1696501799'
+      },
+      {
+        id: 'polygon',
+        rank: 9,
+        symbol: 'matic',
+        name: 'Polygon',
+        supply: 10000000000,
+        max_supply: 10000000000,
+        market_cap_usd: 8000000000,
+        volume_usd_24h: 300000000,
+        price_usd: 0.80,
+        change_percent_24h: 4.2,
+        image: 'https://assets.coingecko.com/coins/images/4713/large/matic-token-icon.png?1696501781'
+      },
+      {
+        id: 'uniswap',
+        rank: 10,
+        symbol: 'uni',
+        name: 'Uniswap',
+        supply: 1000000000,
+        max_supply: 1000000000,
+        market_cap_usd: 7000000000,
+        volume_usd_24h: 250000000,
+        price_usd: 7.00,
+        change_percent_24h: -0.7,
+        image: 'https://assets.coingecko.com/coins/images/12504/large/uniswap-uni.png?1696512359'
+      },
+      {
+        id: 'litecoin',
+        rank: 11,
+        symbol: 'ltc',
+        name: 'Litecoin',
+        supply: 74000000,
+        max_supply: 84000000,
+        market_cap_usd: 6500000000,
+        volume_usd_24h: 200000000,
+        price_usd: 87.84,
+        change_percent_24h: 1.5,
+        image: 'https://assets.coingecko.com/coins/images/2/large/litecoin.png?1696501400'
+      },
+      {
+        id: 'stellar',
+        rank: 12,
+        symbol: 'xlm',
+        name: 'Stellar',
+        supply: 25000000000,
+        max_supply: null,
+        market_cap_usd: 6000000000,
+        volume_usd_24h: 180000000,
+        price_usd: 0.24,
+        change_percent_24h: -1.8,
+        image: 'https://assets.coingecko.com/coins/images/100/large/Stellar_symbol_black_RGB.png?1696501753'
+      },
+      {
+        id: 'cosmos',
+        rank: 13,
+        symbol: 'atom',
+        name: 'Cosmos',
+        supply: 300000000,
+        max_supply: null,
+        market_cap_usd: 5500000000,
+        volume_usd_24h: 160000000,
+        price_usd: 18.33,
+        change_percent_24h: 2.9,
+        image: 'https://assets.coingecko.com/coins/images/1481/large/cosmos_hub.png?1696502526'
+      },
+      {
+        id: 'monero',
+        rank: 14,
+        symbol: 'xmr',
+        name: 'Monero',
+        supply: 18000000,
+        max_supply: null,
+        market_cap_usd: 5000000000,
+        volume_usd_24h: 140000000,
+        price_usd: 277.78,
+        change_percent_24h: -0.3,
+        image: 'https://assets.coingecko.com/coins/images/69/large/monero_logo.png?1696501469'
+      },
+      {
+        id: 'algorand',
+        rank: 15,
+        symbol: 'algo',
+        name: 'Algorand',
+        supply: 8000000000,
+        max_supply: 10000000000,
+        market_cap_usd: 4500000000,
+        volume_usd_24h: 120000000,
+        price_usd: 0.56,
+        change_percent_24h: 3.7,
+        image: 'https://assets.coingecko.com/coins/images/4380/large/download.png?1696501738'
+      },
+      {
+        id: 'vechain',
+        rank: 16,
+        symbol: 'vet',
+        name: 'VeChain',
+        supply: 85000000000,
+        max_supply: 86712634466,
+        market_cap_usd: 4000000000,
+        volume_usd_24h: 100000000,
+        price_usd: 0.047,
+        change_percent_24h: 1.2,
+        image: 'https://assets.coingecko.com/coins/images/1167/large/VeChain-Logo-768x725.png?1696501800'
+      },
+      {
+        id: 'filecoin',
+        rank: 17,
+        symbol: 'fil',
+        name: 'Filecoin',
+        supply: 2000000000,
+        max_supply: null,
+        market_cap_usd: 3500000000,
+        volume_usd_24h: 90000000,
+        price_usd: 1.75,
+        change_percent_24h: -2.4,
+        image: 'https://assets.coingecko.com/coins/images/12817/large/filecoin.png?1696512379'
+      },
+      {
+        id: 'internet-computer',
+        rank: 18,
+        symbol: 'icp',
+        name: 'Internet Computer',
+        supply: 500000000,
+        max_supply: null,
+        market_cap_usd: 3000000000,
+        volume_usd_24h: 80000000,
+        price_usd: 6.00,
+        change_percent_24h: 4.8,
+        image: 'https://assets.coingecko.com/coins/images/14495/large/Internet_Computer_logo.png?1696512389'
+      },
+      {
+        id: 'hedera',
+        rank: 19,
+        symbol: 'hbar',
+        name: 'Hedera',
+        supply: 50000000000,
+        max_supply: 50000000000,
+        market_cap_usd: 2500000000,
+        volume_usd_24h: 70000000,
+        price_usd: 0.05,
+        change_percent_24h: 0.9,
+        image: 'https://assets.coingecko.com/coins/images/3688/large/hbar.png?1696501744'
+      },
+      {
+        id: 'tezos',
+        rank: 20,
+        symbol: 'xtz',
+        name: 'Tezos',
+        supply: 1000000000,
+        max_supply: null,
+        market_cap_usd: 2000000000,
+        volume_usd_24h: 60000000,
+        price_usd: 2.00,
+        change_percent_24h: -1.1,
+        image: 'https://assets.coingecko.com/coins/images/976/large/Tezos-logo.png?1696501792'
+      }
     ];
 
     // Fetch crypto market data
     const fetchCryptoData = async () => {
       setCryptoLoading(true);
       try {
+        // For now, use mock data to avoid CORS issues
+        // In production, you would use the actual API
+        console.log('Using mock crypto data to avoid CORS issues');
+        setCryptoData(mockCryptoData);
+        
+        // Uncomment the following code when you have a backend proxy or CORS is resolved
+        /*
         const cachedCryptoData = getCachedData('cryptoData');
         if (cachedCryptoData) {
           console.log('Using cached crypto data:', cachedCryptoData);
@@ -262,94 +473,63 @@ const MarketPriceAndNews: React.FC = () => {
         console.log('Formatted Crypto Data:', formattedData);
         setCryptoData(formattedData);
         cacheData('cryptoData', formattedData, 1000 * 60 * 5); // Cache for 5 minutes
+        */
       } catch (error: any) {
         console.error('Error fetching crypto data:', error);
-        setCryptoData([]);
-        setError(`Failed to load cryptocurrency data: ${error.message}`);
+        // Fallback to mock data if API fails
+        setCryptoData(mockCryptoData);
+        setError(`Using mock data due to API issues: ${error.message}`);
       } finally {
         setCryptoLoading(false);
       }
     };
 
-    // Fetch NFT market data
-    const fetchNFTData = async () => {
-      setNFTLoading(true);
-      try {
-        const cachedNFTData = getCachedData('nftData');
-        if (cachedNFTData) {
-          console.log('Using cached NFT data:', cachedNFTData);
-          setNFTData(cachedNFTData);
-          setNFTLoading(false);
-          return;
-        }
-
-        // Use /nfts/list to get NFT IDs (available in free tier)
-        const nftList = await fetchWithRetry(
-          'https://api.coingecko.com/api/v3/nfts/list?per_page=3&page=1'
-        );
-        console.log('NFT List API Response:', nftList);
-        if (!nftList || nftList.length === 0) {
-          console.warn('No NFT list data returned, using mock data');
-          setNFTData(mockNFTData);
-          setError('No NFT data available from API. Displaying mock data.');
-          return;
-        }
-
-        // Fetch detailed data for a limited number of NFTs to avoid rate limits
-        const formattedData: NFTData[] = [];
-        for (const nft of nftList.slice(0, 6)) { // Limit to 3 NFTs to stay within rate limits
-          try {
-            const nftDetail = await fetchWithRetry(
-              `https://api.coingecko.com/api/v3/nfts/${nft.id}`
-            );
-            console.log(`NFT Detail for ${nft.id}:`, nftDetail);
-            if (nftDetail && nftDetail.id) {
-              formattedData.push({
-                id: nft.id,
-                name: nftDetail.name || 'Unknown NFT',
-                symbol: nftDetail.symbol || 'N/A',
-                floor_price_usd: nftDetail.floor_price?.usd || null,
-                volume_usd_24h: nftDetail.volume_24h?.usd || null,
-                floor_price_24h_percentage_change: nftDetail.floor_price_24h_percentage_change?.usd || null,
-                image: nftDetail.image?.small || nftDetail.image?.thumbnail || '/fallback-nft-image.png',
-              });
-            } else {
-              console.warn(`Invalid data for NFT ${nft.id}, skipping`);
-            }
-            // Add a 500ms delay between requests to avoid rate limits
-            await new Promise((resolve) => setTimeout(resolve, 500));
-          } catch (error: any) {
-            console.error(`Error fetching details for NFT ${nft.id}:`, error.message);
-            continue;
-          }
-        }
-
-        console.log('Formatted NFT Data:', formattedData);
-        if (formattedData.length === 0) {
-          console.warn('No valid NFT details returned, using mock data');
-          setNFTData(mockNFTData);
-          setError('No valid NFT data available from API. Displaying mock data.');
-          return;
-        }
-
-        setNFTData(formattedData);
-        cacheData('nftData', formattedData, 1000 * 60 * 5); // Cache for 5 minutes
-      } catch (error: any) {
-        console.error('Error fetching NFT data:', error);
-        setNFTData(mockNFTData);
-        setError(`Failed to load NFT data: ${error.message}. Displaying mock data.`);
-      } finally {
-        setNFTLoading(false);
-      }
-    };
-
     fetchCryptoData();
-    fetchNFTData();
   }, []);
 
   const fetchHistoricalData = async (crypto: CryptoData, days: number) => {
     setIsLoading(true);
     try {
+      // For now, use mock historical data to avoid CORS issues
+      // In production, you would use the actual API
+      console.log(`Using mock historical data for ${crypto.name} (${days} days)`);
+      
+      // Generate mock historical data
+      const mockLabels = [];
+      const mockPrices = [];
+      const basePrice = crypto.price_usd;
+      
+      if (days === 1) {
+        // 24 hours with hourly data
+        for (let i = 23; i >= 0; i--) {
+          const time = new Date();
+          time.setHours(time.getHours() - i);
+          mockLabels.push(time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }));
+          mockPrices.push(basePrice * (1 + (Math.random() - 0.5) * 0.1)); // ±5% variation
+        }
+      } else if (days === 7) {
+        // 7 days with daily data
+        for (let i = 6; i >= 0; i--) {
+          const date = new Date();
+          date.setDate(date.getDate() - i);
+          mockLabels.push(date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
+          mockPrices.push(basePrice * (1 + (Math.random() - 0.5) * 0.2)); // ±10% variation
+        }
+      } else {
+        // 30 days with daily data
+        for (let i = 29; i >= 0; i--) {
+          const date = new Date();
+          date.setDate(date.getDate() - i);
+          mockLabels.push(date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
+          mockPrices.push(basePrice * (1 + (Math.random() - 0.5) * 0.3)); // ±15% variation
+        }
+      }
+      
+      const mockHistoricalData = { labels: mockLabels, prices: mockPrices };
+      setHistoricalData(mockHistoricalData);
+      
+      // Uncomment the following code when you have a backend proxy or CORS is resolved
+      /*
       // Check cache first
       const cacheKey = `historical_${crypto.id}_${days}`;
       const cachedHistoricalData = getCachedData(cacheKey);
@@ -384,6 +564,7 @@ const MarketPriceAndNews: React.FC = () => {
       const historicalData = { labels, prices };
       setHistoricalData(historicalData);
       cacheData(cacheKey, historicalData, 1000 * 60 * 5); // Cache for 5 minutes
+      */
     } catch (error: any) {
       console.error(`Error fetching ${days}-day historical data for ${crypto.name}:`, error);
       setHistoricalData(null);
@@ -423,7 +604,7 @@ const MarketPriceAndNews: React.FC = () => {
           <h4 className="m-0 mb-4 text-start" style={{ fontWeight: 'bold', letterSpacing: '0.05em' }}>
             Market Price
           </h4>
-          <Card className="rounded-4" style={{ width: '100%', height: showAllCrypto ? 'auto' : '509px', overflow: 'hidden' }}>
+          <Card className="rounded-4" style={{ width: '100%', height: '509px', overflow: 'hidden' }}>
             <Card.Body>
               {cryptoLoading ? (
                 <div>
@@ -463,20 +644,6 @@ const MarketPriceAndNews: React.FC = () => {
                 </div>
               ) : (
                 <>
-                  <div className="d-flex justify-content-between align-items-center mb-2" style={{ fontSize: '0.7rem', padding: '0.2rem' }}>
-                    <div className="ms-auto">
-                      <Button
-                        variant="link"
-                        className="text-warning text-decoration-none"
-                        style={{ fontWeight: 'bold', fontSize: '0.8rem', padding: '0.1rem 0.2rem' }}
-                        onClick={() => {
-                          setShowAllCrypto(!showAllCrypto);
-                        }}
-                      >
-                        {showAllCrypto ? 'View Less' : 'View All'}
-                      </Button>
-                    </div>
-                  </div>
                   <Table responsive hover className="table-responsive" style={{ fontSize: '0.7rem' }}>
                     <thead>
                       <tr>
@@ -489,7 +656,7 @@ const MarketPriceAndNews: React.FC = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {cryptoData.slice(0, showAllCrypto ? cryptoData.length : 10).map((crypto) => (
+                      {cryptoData.slice(0, 10).map((crypto) => (
                         <tr key={crypto.id} onClick={() => handleCryptoClick(crypto)} style={{ cursor: 'pointer' }}>
                           <td>{crypto.rank}</td>
                           <td style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap' }}>
@@ -523,17 +690,17 @@ const MarketPriceAndNews: React.FC = () => {
         </Col>
         <Col lg={5} className="rounded-5">
           <h4 className="m-0 mb-4 text-start" style={{ fontWeight: 'bold', letterSpacing: '0.05em' }}>
-            NFT Marketplace
+            Market Price
           </h4>
-          <Card className="rounded-4" style={{ width: '100%', height: showAllNFTs ? 'auto' : '509px', overflow: 'hidden' }}>
+          <Card className="rounded-4" style={{ width: '100%', height: '509px', overflow: 'hidden' }}>
             <Card.Body>
-              {nftLoading ? (
+              {cryptoLoading ? (
                 <div>
                   <div className="skeleton skeleton-button mb-2 ms-auto" style={{ width: '80px', height: '20px' }}></div>
                   <Table responsive className="table-responsive">
                     <thead>
                       <tr>
-                        {['Name', 'Floor Price', 'Volume (24H)', 'Change (24H)'].map((header) => (
+                        {['Rank', 'Name', 'Price', 'Market Cap', 'Volume (24H)', 'Change (24H)'].map((header) => (
                           <th key={header}>
                             <div className="skeleton skeleton-text" style={{ width: '60px', height: '16px' }}></div>
                           </th>
@@ -543,6 +710,7 @@ const MarketPriceAndNews: React.FC = () => {
                     <tbody>
                       {[...Array(10)].map((_, index) => (
                         <tr key={index}>
+                          <td><div className="skeleton skeleton-text" style={{ width: '30px', height: '16px' }}></div></td>
                           <td>
                             <div className="d-flex align-items-center">
                               <div className="skeleton skeleton-image" style={{ width: '20px', height: '20px', borderRadius: '50%' }}></div>
@@ -551,66 +719,53 @@ const MarketPriceAndNews: React.FC = () => {
                           </td>
                           <td><div className="skeleton skeleton-text" style={{ width: '80px', height: '16px' }}></div></td>
                           <td><div className="skeleton skeleton-text" style={{ width: '100px', height: '16px' }}></div></td>
+                          <td><div className="skeleton skeleton-text" style={{ width: '100px', height: '16px' }}></div></td>
                           <td><div className="skeleton skeleton-text" style={{ width: '60px', height: '16px' }}></div></td>
                         </tr>
                       ))}
                     </tbody>
                   </Table>
                 </div>
-              ) : nftData.length === 0 ? (
+              ) : cryptoData.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '20px' }}>
-                  No NFT data available. Please try again later.
+                  No cryptocurrency data available. Please try again later.
                 </div>
               ) : (
                 <>
-                  <div className="d-flex justify-content-between align-items-center mb-2" style={{ fontSize: '0.7rem', padding: '0.2rem' }}>
-                    <div className="ms-auto">
-                      <Button
-                        variant="link"
-                        className="text-warning text-decoration-none"
-                        style={{ fontWeight: 'bold', fontSize: '0.8rem', padding: '0.1rem 0.2rem' }}
-                        onClick={() => {
-                          setShowAllNFTs(!showAllNFTs);
-                        }}
-                      >
-                        {showAllNFTs ? 'View Less' : 'View All'}
-                      </Button>
-                    </div>
-                  </div>
                   <Table responsive hover className="table-responsive" style={{ fontSize: '0.7rem' }}>
                     <thead>
                       <tr>
+                        <th>Rank</th>
                         <th>Name</th>
-                        <th>Floor Price</th>
+                        <th>Price</th>
+                        <th>Market Cap</th>
                         <th>Volume (24H)</th>
                         <th>Change (24H)</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {nftData.slice(0, showAllNFTs ? nftData.length : 10).map((nft) => (
-                        <tr key={nft.id}>
+                      {cryptoData.slice(10, 20).map((crypto) => (
+                        <tr key={crypto.id} onClick={() => handleCryptoClick(crypto)} style={{ cursor: 'pointer' }}>
+                          <td>{crypto.rank}</td>
                           <td style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap' }}>
                             <img
-                              src={nft.image || '/fallback-nft-image.png'}
-                              alt={nft.symbol}
-                              className="header-nft__icon"
+                              src={crypto.image}
+                              alt={crypto.symbol}
+                              className="header-currency__icon"
                               width="20"
                               height="20"
                               style={{ marginRight: '4px', maxWidth: '100%', height: 'auto' }}
                               onError={(e) => {
-                                e.currentTarget.src = '/fallback-nft-image.png';
+                                e.currentTarget.src = '/fallback-crypto-image.png';
                               }}
                             />
-                            {nft.name} ({nft.symbol.toUpperCase()})
+                            {crypto.name} ({crypto.symbol.toUpperCase()})
                           </td>
-                          <td style={{ textAlign: 'left' }}>
-                            {nft.floor_price_usd ? `$${nft.floor_price_usd.toLocaleString()}` : 'N/A'}
-                          </td>
-                          <td style={{ textAlign: 'left' }}>
-                            {nft.volume_usd_24h ? `$${nft.volume_usd_24h.toLocaleString()}` : 'N/A'}
-                          </td>
-                          <td className={nft.floor_price_24h_percentage_change && nft.floor_price_24h_percentage_change >= 0 ? 'text-success' : 'text-danger'}>
-                            {nft.floor_price_24h_percentage_change ? `${nft.floor_price_24h_percentage_change.toFixed(2)}%` : 'N/A'}
+                          <td style={{ textAlign: 'left' }}>${crypto.price_usd.toLocaleString()}</td>
+                          <td style={{ textAlign: 'left' }}>${crypto.market_cap_usd.toLocaleString()}</td>
+                          <td style={{ textAlign: 'left' }}>${crypto.volume_usd_24h.toLocaleString()}</td>
+                          <td className={crypto.change_percent_24h >= 0 ? 'text-success' : 'text-danger'}>
+                            {crypto.change_percent_24h.toFixed(2)}%
                           </td>
                         </tr>
                       ))}

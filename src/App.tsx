@@ -20,6 +20,7 @@ import PressReleaseDetail from './Components/preRealse'
 import SearchPage from './Components/SearchPage';
 import NewsDetail from './Components/NewsDetail';
 import BlogHome from './Components/BlogHome';
+import BlogPostDetail from './Components/BlogPostDetail';
 import Learn from './Components/Learn';
 import InDepthNewsPage from './pages/InDepthNewsPage';
 import EventRadar from './Components/EventRadar';
@@ -50,7 +51,7 @@ function App() {
                 <Analytics />
                 <Routes>
                   <Route path="/" element={<LandingPage />} />
-                  <Route path="/blog/:id" element={<BlogPage />} />
+                  <Route path="/blog/:id" element={<BlogPostDetail />} />
                   <Route path="/blog" element={<BlogHome />} />
                   <Route path="/learn" element={<Learn />} />
                   <Route path="/login" element={<LoginPage />} />

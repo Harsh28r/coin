@@ -50,70 +50,33 @@ const HomePage: React.FC = () => {
       <div 
         className="blog-hero-section position-relative overflow-hidden"
         style={{
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-          padding: '80px 0',
-          marginBottom: '60px',
-          borderRadius: '0 0 40px 40px'
+          background: '#f8fafc',
+          padding: '100px 0',
+          marginBottom: '80px',
+          borderBottom: '1px solid #e2e8f0'
         }}
       >
-        {/* Decorative Background Elements */}
-        <div 
-          className="position-absolute w-100 h-100"
-          style={{
-            top: 0,
-            left: 0,
-            background: `
-              radial-gradient(circle at 20% 80%, rgba(255,255,255,0.1) 0%, transparent 50%),
-              radial-gradient(circle at 80% 20%, rgba(255,255,255,0.1) 0%, transparent 50%),
-              radial-gradient(circle at 40% 40%, rgba(255,255,255,0.05) 0%, transparent 50%)
-            `
-          }}
-        />
-        
-        {/* Floating Shapes */}
-        <div 
-          className="position-absolute"
-          style={{
-            top: '20%',
-            right: '10%',
-            width: '60px',
-            height: '60px',
-            background: 'rgba(255,255,255,0.1)',
-            borderRadius: '50%',
-            animation: 'float 6s ease-in-out infinite'
-          }}
-        />
-        <div 
-          className="position-absolute"
-          style={{
-            bottom: '30%',
-            left: '15%',
-            width: '40px',
-            height: '40px',
-            background: 'rgba(255,255,255,0.08)',
-            borderRadius: '50%',
-            animation: 'float 8s ease-in-out infinite reverse'
-          }}
-        />
-        
         <Container className="position-relative">
           <Row className="justify-content-center text-center">
             <Col lg={10} xl={8}>
               <h1 
-                className="display-3 fw-bold mb-4 text-white"
+                className="display-4 fw-bold mb-4"
                 style={{
-                  textShadow: '0 4px 20px rgba(0,0,0,0.3)',
-                  letterSpacing: '-0.02em'
+                  color: '#1a202c',
+                  letterSpacing: '-0.02em',
+                  lineHeight: '1.2'
                 }}
               >
                 Welcome to Our Blog
               </h1>
               <p 
-                className="lead mb-4 text-white-50"
+                className="lead mb-5"
                 style={{
-                  fontSize: '1.3rem',
-                  lineHeight: '1.6',
-                  textShadow: '0 2px 10px rgba(0,0,0,0.2)'
+                  fontSize: '1.25rem',
+                  lineHeight: '1.7',
+                  color: '#4a5568',
+                  maxWidth: '600px',
+                  margin: '0 auto'
                 }}
               >
                 Discover fascinating stories, expert insights, and cutting-edge knowledge from our world-class writers and industry experts.
@@ -123,30 +86,42 @@ const HomePage: React.FC = () => {
               <div className="d-flex justify-content-center gap-5 mt-5">
                 <div className="text-center">
                   <div 
-                    className="fw-bold text-white"
-                    style={{ fontSize: '2.5rem', textShadow: '0 2px 10px rgba(0,0,0,0.3)' }}
+                    className="fw-bold"
+                    style={{ 
+                      fontSize: '2.5rem', 
+                      color: '#3182ce',
+                      marginBottom: '0.5rem'
+                    }}
                   >
                     {posts.length}+
                   </div>
-                  <div className="text-white-50 small">Articles Published</div>
+                  <div className="text-muted small fw-medium">Articles Published</div>
                 </div>
                 <div className="text-center">
                   <div 
-                    className="fw-bold text-white"
-                    style={{ fontSize: '2.5rem', textShadow: '0 2px 10px rgba(0,0,0,0.3)' }}
+                    className="fw-bold"
+                    style={{ 
+                      fontSize: '2.5rem', 
+                      color: '#3182ce',
+                      marginBottom: '0.5rem'
+                    }}
                   >
                     50K+
                   </div>
-                  <div className="text-white-50 small">Monthly Readers</div>
+                  <div className="text-muted small fw-medium">Monthly Readers</div>
                 </div>
                 <div className="text-center">
                   <div 
-                    className="fw-bold text-white"
-                    style={{ fontSize: '2.5rem', textShadow: '0 2px 10px rgba(0,0,0,0.3)' }}
+                    className="fw-bold"
+                    style={{ 
+                      fontSize: '2.5rem', 
+                      color: '#3182ce',
+                      marginBottom: '0.5rem'
+                    }}
                   >
                     24/7
                   </div>
-                  <div className="text-white-50 small">Fresh Content</div>
+                  <div className="text-muted small fw-medium">Fresh Content</div>
                 </div>
               </div>
             </Col>
@@ -162,17 +137,21 @@ const HomePage: React.FC = () => {
             className="fw-bold mb-3"
             style={{
               fontSize: '2.2rem',
-              background: 'linear-gradient(135deg, #1f2937 0%, #6b7280 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text'
+              color: '#1a202c',
+              lineHeight: '1.3'
             }}
           >
             Latest Articles
           </h2>
           <p 
             className="text-muted lead"
-            style={{ fontSize: '1.1rem', maxWidth: '600px', margin: '0 auto' }}
+            style={{ 
+              fontSize: '1.1rem', 
+              maxWidth: '600px', 
+              margin: '0 auto',
+              color: '#64748b',
+              lineHeight: '1.6'
+            }}
           >
             Stay updated with our most recent insights and discoveries
           </p>
@@ -190,7 +169,7 @@ const HomePage: React.FC = () => {
                     animation: `fadeInUp 0.6s ease-out ${index * 0.1}s both`
                   }}
                 >
-                  <BlogPost post={post} variant="full" />
+                  <BlogPost post={post} variant="default" />
                 </div>
               ))
             ) : (
@@ -229,18 +208,18 @@ const HomePage: React.FC = () => {
           <Row className="justify-content-center mt-5">
             <Col lg={8}>
               <div 
-                className="text-center p-5 rounded-4"
+                className="text-center p-5 rounded-4 border"
                 style={{
-                  background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
-                  color: 'white',
-                  boxShadow: '0 8px 30px rgba(245, 158, 11, 0.3)'
+                  background: '#ffffff',
+                  borderColor: '#e2e8f0 !important',
+                  boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)'
                 }}
               >
-                <h3 className="fw-bold mb-3">Stay Updated</h3>
-                <p className="mb-4 opacity-90">
+                <h3 className="fw-bold mb-3" style={{ color: '#1a202c' }}>Stay Updated</h3>
+                <p className="mb-4" style={{ color: '#64748b', fontSize: '1.1rem' }}>
                   Get notified when we publish new articles and insights
                 </p>
-                <div className="d-flex flex-column align-items-center gap-2" style={{ maxWidth: '520px', margin: '0 auto' }}>
+                <div className="d-flex flex-column align-items-center gap-3" style={{ maxWidth: '520px', margin: '0 auto' }}>
                   {message && (
                     <Alert 
                       variant={message.type === 'success' ? 'success' : 'danger'} 
@@ -250,13 +229,17 @@ const HomePage: React.FC = () => {
                     </Alert>
                   )}
                   <Form onSubmit={handleSubscribe} className="w-100">
-                    <InputGroup className="mb-2">
+                    <InputGroup className="mb-3">
                       <Form.Control 
                         type="text"
                         placeholder="Your name (optional)"
                         value={name}
                         onChange={(e) => setName(e.target.value)}
-                        style={{ borderRadius: '25px', padding: '12px 20px' }}
+                        style={{ 
+                          borderRadius: '8px', 
+                          padding: '12px 20px',
+                          border: '1.5px solid #e2e8f0'
+                        }}
                       />
                     </InputGroup>
                     <InputGroup>
@@ -266,14 +249,22 @@ const HomePage: React.FC = () => {
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         required
-                        style={{ borderRadius: '25px 0 0 25px', padding: '12px 20px' }}
+                        style={{ 
+                          borderRadius: '8px 0 0 8px', 
+                          padding: '12px 20px',
+                          border: '1.5px solid #e2e8f0'
+                        }}
                       />
                       <Button 
                         type="submit"
-                        variant="light"
+                        variant="primary"
                         disabled={isSubmitting}
                         className="px-4 py-2 fw-semibold"
-                        style={{ borderRadius: '0 25px 25px 0' }}
+                        style={{ 
+                          borderRadius: '0 8px 8px 0',
+                          background: '#3182ce',
+                          border: 'none'
+                        }}
                       >
                         {isSubmitting ? 'Subscribing...' : 'Subscribe'}
                       </Button>
@@ -299,43 +290,22 @@ const HomePage: React.FC = () => {
           }
         }
         
-        @keyframes float {
-          0%, 100% {
-            transform: translateY(0px);
-          }
-          50% {
-            transform: translateY(-20px);
-          }
-        }
-        
         .blog-hero-section {
           position: relative;
           overflow: hidden;
         }
         
-        .blog-hero-section::before {
-          content: '';
-          position: absolute;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          background: linear-gradient(135deg, rgba(102,126,234,0.9) 0%, rgba(118,75,162,0.9) 100%);
-          z-index: 1;
-        }
-        
-        .blog-hero-section > * {
-          position: relative;
-          z-index: 2;
-        }
-        
         /* Enhanced hover effects for stats */
         .blog-hero-section .d-flex > div {
-          transition: transform 0.3s ease;
+          transition: all 0.3s ease;
+          padding: '1rem';
+          border-radius: '8px';
         }
         
         .blog-hero-section .d-flex > div:hover {
-          transform: translateY(-5px);
+          transform: translateY(-3px);
+          background: '#ffffff';
+          box-shadow: '0 8px 25px rgba(0, 0, 0, 0.1)';
         }
         
         /* Responsive adjustments */
