@@ -170,6 +170,15 @@ const Exn: React.FC = () => {
 
   return (
     <Container fluid className="mt-5" style={{ width: '92%' }}>
+      <h1 className="mb-4 text-center" style={{ 
+        fontSize: '2.5rem', 
+        fontWeight: 'bold', 
+        color: '#1f2937',
+        borderBottom: '3px solid #f59e0b',
+        paddingBottom: '1rem'
+      }}>
+        Exclusive Crypto News
+      </h1>
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h4 className="m-0" style={{ fontWeight: 'bold', letterSpacing: '0.05em', borderBottom: '2px solid orange', marginBottom: '1rem' }}>
           {/* {t('news.exclusiveTitle') || 'Exclusive News'} */}Exclusive News

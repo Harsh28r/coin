@@ -67,8 +67,72 @@ const InDepthNewsPage: React.FC = () => {
 
 	return (
 		<Container className="mt-4" style={{ maxWidth: 1200 }}>
+			<h1 className="mb-4 text-center" style={{ 
+				fontSize: '2.5rem', 
+				fontWeight: 'bold', 
+				color: '#1f2937',
+				borderBottom: '3px solid #f59e0b',
+				paddingBottom: '1rem'
+			}}>
+				Beyond the Headlines
+			</h1>
+			
+			{/* Enhanced introduction section for better text-to-HTML ratio */}
+			<div className="mb-5 p-4" style={{ 
+				backgroundColor: '#f8f9fa', 
+				borderRadius: '12px', 
+				border: '1px solid #e9ecef' 
+			}}>
+				<h2 className="h4 mb-3" style={{ color: '#495057', fontWeight: '600' }}>
+					Deep Dive into Cryptocurrency's Most Important Stories
+				</h2>
+				<p className="mb-3" style={{ color: '#6c757d', lineHeight: '1.6' }}>
+					Go beyond the surface-level headlines and explore the deeper implications of cryptocurrency news. 
+					Our in-depth analysis section provides comprehensive coverage of complex topics, regulatory developments, 
+					and technological innovations that shape the future of digital assets.
+				</p>
+				<p className="mb-0" style={{ color: '#6c757d', lineHeight: '1.6' }}>
+					From blockchain scalability solutions and DeFi protocol analysis to regulatory frameworks and 
+					institutional adoption trends, we break down complex concepts into digestible insights that 
+					help you understand the bigger picture of the crypto ecosystem.
+				</p>
+			</div>
+
+			{/* Analysis categories and focus areas */}
+			<div className="mb-4 p-3" style={{ 
+				backgroundColor: '#e7f3ff', 
+				borderRadius: '8px', 
+				border: '1px solid #b3d9ff' 
+			}}>
+				<div className="row text-center">
+					<div className="col-md-3">
+						<div className="p-2">
+							<strong className="d-block text-primary">Technical Analysis</strong>
+							<small className="text-muted">Blockchain & protocols</small>
+						</div>
+					</div>
+					<div className="col-md-3">
+						<div className="p-2">
+							<strong className="d-block text-primary">Regulatory Insights</strong>
+							<small className="text-muted">Legal & compliance</small>
+						</div>
+					</div>
+					<div className="col-md-3">
+						<div className="p-2">
+							<strong className="d-block text-primary">Market Trends</strong>
+							<small className="text-muted">Institutional adoption</small>
+						</div>
+					</div>
+					<div className="col-md-3">
+						<div className="p-2">
+							<strong className="d-block text-primary">Innovation Focus</strong>
+							<small className="text-muted">New technologies</small>
+						</div>
+					</div>
+				</div>
+			</div>
+
 			<div className="d-flex justify-content-between align-items-center mb-3">
-				<h3 className="m-0">Beyond the Headlines</h3>
 				<Button variant="outline-secondary" size="sm" onClick={() => navigate(-1)}>Back</Button>
 			</div>
 			<Row xs={1} sm={2} md={3} lg={4} className="g-4">

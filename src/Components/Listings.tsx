@@ -99,6 +99,11 @@ const Listings: React.FC = () => {
         <link rel="alternate" hrefLang="es" href={`${window.location.origin}/listings`} />
         <link rel="alternate" hrefLang="fr" href={`${window.location.origin}/listings`} />
         <link rel="alternate" hrefLang="de" href={`${window.location.origin}/listings`} />
+        <link rel="alternate" hrefLang="hi" href={`${window.location.origin}/listings`} />
+        <link rel="alternate" hrefLang="zh" href={`${window.location.origin}/listings`} />
+        <link rel="alternate" hrefLang="ja" href={`${window.location.origin}/listings`} />
+        <link rel="alternate" hrefLang="ko" href={`${window.location.origin}/listings`} />
+        <link rel="alternate" hrefLang="ar" href={`${window.location.origin}/listings`} />
         {/* Structured data: CollectionPage */}
         <script type="application/ld+json">
           {JSON.stringify({
@@ -110,35 +115,71 @@ const Listings: React.FC = () => {
           })}
         </script>
       </Helmet>
-      <div className="d-flex justify-content-between align-items-center mb-3">
-        <h1 className="m-0" style={{ fontSize: '1.5rem' }}>Crypto Exchange Listings & New Token Pairs</h1>
-        <div className="d-flex align-items-center gap-2">
-          <Badge bg="dark" className="me-2">{effectiveItems.length} items</Badge>
-          {items.length > 6 && (
-            <Button
-              size="sm"
-              variant="link"
-              className="text-warning text-decoration-none"
-              style={{ fontWeight: 600 }}
-              onClick={() => navigate('/listings/all')}
-            >
-              View All <ChevronRight size={20} />
-            </Button>
-          )}
+      <h1 className="mb-4 text-center" style={{ 
+        fontSize: '2.5rem', 
+        fontWeight: 'bold', 
+        color: '#1f2937',
+        borderBottom: '3px solid #f59e0b',
+        paddingBottom: '1rem'
+      }}>
+        Latest Crypto Listings & Market Pairs
+      </h1>
+      
+      {/* Enhanced introduction section for better text-to-HTML ratio */}
+      <div className="mb-5 p-4" style={{ 
+        backgroundColor: '#f8f9fa', 
+        borderRadius: '12px', 
+        border: '1px solid #e9ecef' 
+      }}>
+        <h2 className="h4 mb-3" style={{ color: '#495057', fontWeight: '600' }}>
+          Track New Token Listings & Trading Opportunities
+        </h2>
+        <p className="mb-3" style={{ color: '#6c757d', lineHeight: '1.6' }}>
+          Stay ahead of the market with real-time updates on new cryptocurrency listings, exchange additions, 
+          and trading pair launches. Our comprehensive listings tracker monitors major exchanges including 
+          Binance, Coinbase, Kraken, and more to bring you the latest opportunities as they go live.
+        </p>
+        <p className="mb-0" style={{ color: '#6c757d', lineHeight: '1.6' }}>
+          From established projects expanding their reach to innovative new tokens making their debut, 
+          discover potential investment opportunities and market movements before they become mainstream. 
+          Each listing includes detailed information about the token, exchange, and trading pairs available.
+        </p>
+      </div>
+
+      {/* Exchange coverage and listing types */}
+      <div className="mb-4 p-3" style={{ 
+        backgroundColor: '#e7f3ff', 
+        borderRadius: '8px', 
+        border: '1px solid #b3d9ff' 
+      }}>
+        <div className="row text-center">
+          <div className="col-md-3">
+            <div className="p-2">
+              <strong className="d-block text-primary">Major Exchanges</strong>
+              <small className="text-muted">Binance, Coinbase, Kraken</small>
+            </div>
+          </div>
+          <div className="col-md-3">
+            <div className="p-2">
+              <strong className="d-block text-primary">New Listings</strong>
+              <small className="text-muted">Fresh token additions</small>
+            </div>
+          </div>
+          <div className="col-md-3">
+            <div className="p-2">
+              <strong className="d-block text-primary">Trading Pairs</strong>
+              <small className="text-muted">USDT, BTC, ETH pairs</small>
+            </div>
+          </div>
+          <div className="col-md-3">
+            <div className="p-2">
+              <strong className="d-block text-primary">Market Data</strong>
+              <small className="text-muted">Volume & price info</small>
+            </div>
+          </div>
         </div>
       </div>
-      {isTranslating && (
-        <small className="text-muted d-block mb-2">
-          🔄 Translating listings to {currentLanguage === 'hi' ? 'Hindi' :
-            currentLanguage === 'es' ? 'Spanish' :
-            currentLanguage === 'fr' ? 'French' :
-            currentLanguage === 'de' ? 'German' :
-            currentLanguage === 'zh' ? 'Chinese' :
-            currentLanguage === 'ja' ? 'Japanese' :
-            currentLanguage === 'ko' ? 'Korean' :
-            currentLanguage === 'ar' ? 'Arabic' : currentLanguage}...
-        </small>
-      )}
+
       {loading ? (
         <Row xs={1} md={2} lg={3} className="g-3">
           {Array.from({ length: 6 }).map((_, i) => (

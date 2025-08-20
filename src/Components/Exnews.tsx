@@ -51,6 +51,52 @@ const AllNews: React.FC = () => {
 
   return (
     <Container fluid className="mt-5" style={{ width: '50%' }}>
+      <h1 className="mb-4 text-center" style={{ 
+        fontSize: '2.5rem', 
+        fontWeight: 'bold', 
+        color: '#1f2937',
+        borderBottom: '3px solid #f59e0b',
+        paddingBottom: '1rem'
+      }}>
+        All Exclusive News
+      </h1>
+      
+      {/* Enhanced introduction section for better text-to-HTML ratio */}
+      <div className="mb-5 p-4" style={{ 
+        backgroundColor: '#f8f9fa', 
+        borderRadius: '12px', 
+        border: '1px solid #e9ecef' 
+      }}>
+        <h2 className="h4 mb-3" style={{ color: '#495057', fontWeight: '600' }}>
+          Stay Ahead with Exclusive Crypto Insights
+        </h2>
+        <p className="mb-3" style={{ color: '#6c757d', lineHeight: '1.6' }}>
+          Discover the most important cryptocurrency news and developments that shape the digital asset landscape. 
+          Our exclusive news section brings you in-depth analysis, breaking stories, and expert insights from 
+          trusted sources across the crypto industry.
+        </p>
+        <p className="mb-0" style={{ color: '#6c757d', lineHeight: '1.6' }}>
+          From market movements and regulatory updates to technological breakthroughs and institutional adoption, 
+          we curate the stories that matter most to crypto enthusiasts, investors, and professionals.
+        </p>
+      </div>
+
+      {/* News count and filtering info */}
+      <div className="mb-4 p-3" style={{ 
+        backgroundColor: '#fff3cd', 
+        borderRadius: '8px', 
+        border: '1px solid #ffeaa7' 
+      }}>
+        <div className="d-flex justify-content-between align-items-center">
+          <span className="text-dark">
+            <strong>{newsItems.length}</strong> exclusive articles available
+          </span>
+          <small className="text-muted">
+            Updated daily • Curated from premium sources
+          </small>
+        </div>
+      </div>
+
       <ul className="list-unstyled">
         {newsItems.map((item, index) => (
           <li key={index} className="mb-4">

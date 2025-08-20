@@ -150,7 +150,73 @@ const PresNews: React.FC = () => {
   }
 
   return (
-    <Container className="press-news-container py-5">
+    <Container fluid className="mt-5" style={{ width: '92%' }}>
+      <h1 className="mb-4 text-center" style={{ 
+        fontSize: '2.5rem', 
+        fontWeight: 'bold', 
+        color: '#1f2937',
+        borderBottom: '3px solid #f59e0b',
+        paddingBottom: '1rem'
+      }}>
+        Press Releases & Announcements
+      </h1>
+      
+      {/* Enhanced introduction section for better text-to-HTML ratio */}
+      <div className="mb-5 p-4" style={{ 
+        backgroundColor: '#f8f9fa', 
+        borderRadius: '12px', 
+        border: '1px solid #e9ecef' 
+      }}>
+        <h2 className="h4 mb-3" style={{ color: '#495057', fontWeight: '600' }}>
+          Official Crypto Industry Updates & Announcements
+        </h2>
+        <p className="mb-3" style={{ color: '#6c757d', lineHeight: '1.6' }}>
+          Stay informed with the latest official press releases, corporate announcements, and industry updates 
+          from leading cryptocurrency companies, exchanges, and blockchain projects. These verified sources 
+          provide direct insights into strategic decisions, partnerships, and developments that impact the crypto ecosystem.
+        </p>
+        <p className="mb-0" style={{ color: '#6c757d', lineHeight: '1.6' }}>
+          From exchange listings and regulatory compliance to technological innovations and market expansions, 
+          our press release section delivers authoritative information directly from the source, helping you 
+          make informed decisions in the dynamic world of digital assets.
+        </p>
+      </div>
+
+      {/* Press release categories and sources info */}
+      <div className="mb-4 p-3" style={{ 
+        backgroundColor: '#e7f3ff', 
+        borderRadius: '8px', 
+        border: '1px solid #b3d9ff' 
+      }}>
+        <div className="row text-center">
+          <div className="col-md-3">
+            <div className="p-2">
+              <strong className="d-block text-primary">Exchange Updates</strong>
+              <small className="text-muted">New listings, trading pairs</small>
+            </div>
+          </div>
+          <div className="col-md-3">
+            <div className="p-2">
+              <strong className="d-block text-primary">Regulatory News</strong>
+              <small className="text-muted">Compliance & legal updates</small>
+            </div>
+          </div>
+          <div className="col-md-3">
+            <div className="p-2">
+              <strong className="d-block text-primary">Partnerships</strong>
+              <small className="text-muted">Strategic collaborations</small>
+            </div>
+          </div>
+          <div className="col-md-3">
+            <div className="p-2">
+              <strong className="d-block text-primary">Product Launches</strong>
+              <small className="text-muted">New features & services</small>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {error && <p className="text-danger">{error}</p>}
       <Row className="mb-4">
         <Col>
           <div className="text-center mb-4">

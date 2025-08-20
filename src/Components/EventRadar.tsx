@@ -37,6 +37,65 @@ const EventRadar: React.FC = () => {
 
   return (
     <Container className="mt-4">
+      <h1 className="mb-4 text-center" style={{ 
+        fontSize: '2.5rem', 
+        fontWeight: 'bold', 
+        color: '#1f2937',
+        borderBottom: '3px solid #f59e0b',
+        paddingBottom: '1rem'
+      }}>
+        Crypto Events & Conferences
+      </h1>
+      
+      {/* Enhanced introduction section for better text-to-HTML ratio */}
+      <div className="mb-5 p-4" style={{ 
+        backgroundColor: '#f8f9fa', 
+        borderRadius: '12px', 
+        border: '1px solid #e9ecef' 
+      }}>
+        <h2 className="h4 mb-3" style={{ color: '#495057', fontWeight: '600' }}>
+          Stay Updated with Crypto Industry Events & Important Dates
+        </h2>
+        <p className="mb-3" style={{ color: '#6c757d', lineHeight: '1.6' }}>
+          Never miss a crucial cryptocurrency event, conference, or important date with our comprehensive 
+          event radar. From major industry conferences like Consensus and Bitcoin Miami to regulatory 
+          deadlines and network upgrades, we track everything that could impact the crypto market.
+        </p>
+        <p className="mb-0" style={{ color: '#6c757d', lineHeight: '1.6' }}>
+          Whether you're a developer, investor, trader, or enthusiast, our event calendar helps you 
+          plan ahead and stay informed about opportunities to network, learn, and make strategic decisions 
+          in the fast-paced world of digital assets.
+        </p>
+      </div>
+
+      {/* Event categories and types */}
+      <div className="mb-4 p-3" style={{ 
+        backgroundColor: '#e7f3ff', 
+        borderRadius: '8px', 
+        border: '1px solid #b3d9ff' 
+      }}>
+        <div className="row text-center">
+          <div className="col-md-4">
+            <div className="p-2">
+              <strong className="d-block text-primary">Conferences</strong>
+              <small className="text-muted">Industry meetups & summits</small>
+            </div>
+          </div>
+          <div className="col-md-4">
+            <div className="p-2">
+              <strong className="d-block text-primary">Network Events</strong>
+              <small className="text-muted">Upgrades & hard forks</small>
+            </div>
+          </div>
+          <div className="col-md-4">
+            <div className="p-2">
+              <strong className="d-block text-primary">Regulatory</strong>
+              <small className="text-muted">Deadlines & compliance</small>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div className="d-flex justify-content-between align-items-center mb-3">
         <h4 className="m-0">Event Radar</h4>
       </div>
