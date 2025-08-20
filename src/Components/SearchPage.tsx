@@ -443,77 +443,8 @@ const SearchPage: React.FC = () => {
   };
 
   return (
-    <Container className="mt-4">
-      <h1 className="mb-4 text-center" style={{ 
-        fontSize: '2.5rem', 
-        fontWeight: 'bold', 
-        color: '#1f2937',
-        borderBottom: '3px solid #f59e0b',
-        paddingBottom: '1rem'
-      }}>
-        Search Results
-      </h1>
-      
-      {/* Enhanced introduction section for better text-to-HTML ratio */}
-      <div className="mb-5 p-4" style={{ 
-        backgroundColor: '#f8f9fa', 
-        borderRadius: '12px', 
-        border: '1px solid #e9ecef' 
-      }}>
-        <h2 className="h4 mb-3" style={{ color: '#495057', fontWeight: '600' }}>
-          Find What You're Looking For in the Crypto World
-        </h2>
-        <p className="mb-3" style={{ color: '#6c757d', lineHeight: '1.6' }}>
-          Our comprehensive search engine scans across multiple data sources to help you find exactly what 
-          you need. Whether you're looking for specific cryptocurrencies, exchange information, NFT collections, 
-          or the latest news, we aggregate results from trusted sources to provide comprehensive answers.
-        </p>
-        <p className="mb-0" style={{ color: '#6c757d', lineHeight: '1.6' }}>
-          Search results include real-time market data, historical information, community discussions, and 
-          expert analysis. Filter by type to focus on coins, exchanges, news, or NFTs, and get the most 
-          relevant information for your crypto research and decision-making.
-        </p>
-      </div>
-
-      {/* Search categories and capabilities */}
-      <div className="mb-4 p-3" style={{ 
-        backgroundColor: '#e7f3ff', 
-        borderRadius: '8px', 
-        border: '1px solid #b3d9ff' 
-      }}>
-        <div className="row text-center">
-          <div className="col-md-3">
-            <div className="p-2">
-              <strong className="d-block text-primary">Cryptocurrencies</strong>
-              <small className="text-muted">Coins, tokens & prices</small>
-            </div>
-          </div>
-          <div className="col-md-3">
-            <div className="p-2">
-              <strong className="d-block text-primary">Exchanges</strong>
-              <small className="text-muted">Trading platforms</small>
-            </div>
-          </div>
-          <div className="col-md-3">
-            <div className="p-2">
-              <strong className="d-block text-primary">News & Analysis</strong>
-              <small className="text-muted">Latest updates</small>
-            </div>
-          </div>
-          <div className="col-md-3">
-            <div className="p-2">
-              <strong className="d-block text-primary">NFT Collections</strong>
-              <small className="text-muted">Digital art & collectibles</small>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {query && (
-        <p className="text-center text-muted mb-4">
-          Showing results for: <strong>"{query}"</strong>
-        </p>
-      )}
+    <Container className="my-5">
+      <h2>Search</h2>
       {renderResults()}
     </Container>
   );

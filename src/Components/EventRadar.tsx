@@ -46,26 +46,128 @@ const EventRadar: React.FC = () => {
       }}>
         Crypto Events & Conferences
       </h1>
-      
-      {/* Enhanced introduction section for better text-to-HTML ratio */}
-      <div className="mb-5 p-4" style={{ 
-        backgroundColor: '#f8f9fa', 
-        borderRadius: '12px', 
-        border: '1px solid #e9ecef' 
+
+      {/* Enhanced introduction section moved to the end for better user experience */}
+      <div className="mb-5 p-5" style={{ 
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        borderRadius: '20px',
+        border: 'none',
+        boxShadow: '0 20px 40px rgba(102, 126, 234, 0.15)',
+        position: 'relative',
+        overflow: 'hidden'
       }}>
-        <h2 className="h4 mb-3" style={{ color: '#495057', fontWeight: '600' }}>
-          Stay Updated with Crypto Industry Events & Important Dates
-        </h2>
-        <p className="mb-3" style={{ color: '#6c757d', lineHeight: '1.6' }}>
-          Never miss a crucial cryptocurrency event, conference, or important date with our comprehensive 
-          event radar. From major industry conferences like Consensus and Bitcoin Miami to regulatory 
-          deadlines and network upgrades, we track everything that could impact the crypto market.
-        </p>
-        <p className="mb-0" style={{ color: '#6c757d', lineHeight: '1.6' }}>
-          Whether you're a developer, investor, trader, or enthusiast, our event calendar helps you 
-          plan ahead and stay informed about opportunities to network, learn, and make strategic decisions 
-          in the fast-paced world of digital assets.
-        </p>
+        <div style={{
+          position: 'absolute',
+          top: '-50%',
+          right: '-50%',
+          width: '200%',
+          height: '200%',
+          background: 'radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%)',
+          transform: 'rotate(45deg)'
+        }}></div>
+        <div style={{ position: 'relative', zIndex: 1 }}>
+          <h2 className="h3 mb-4 text-white fw-bold" style={{ 
+            fontSize: '2rem',
+            textShadow: '0 2px 10px rgba(0,0,0,0.3)',
+            letterSpacing: '0.5px'
+          }}>
+            Stay Connected with the Global Crypto Community
+          </h2>
+          <p className="mb-3 text-white-75" style={{ 
+            fontSize: '1.1rem',
+            lineHeight: '1.7',
+            textShadow: '0 1px 5px rgba(0,0,0,0.2)'
+          }}>
+            Discover upcoming crypto events, conferences, and meetups that bring together industry leaders, developers, 
+            investors, and enthusiasts from around the world. Our comprehensive crypto events calendar keeps you informed.
+          </p>
+          <p className="mb-3 text-white-75" style={{ 
+            fontSize: '1.1rem',
+            lineHeight: '1.7',
+            textShadow: '0 1px 5px rgba(0,0,0,0.2)'
+          }}>
+            From major crypto industry conferences like Consensus and Bitcoin Miami to local meetups and virtual events, 
+            track the most important gatherings that shape the future of blockchain technology and cryptocurrency adoption.
+          </p>
+          <p className="mb-0 text-white-75" style={{ 
+            fontSize: '1.1rem',
+            lineHeight: '1.7',
+            textShadow: '0 1px 5px rgba(0,0,0,0.2)'
+          }}>
+            Network with crypto professionals, learn about the latest developments, and stay ahead of regulatory deadlines 
+            and network upgrades that impact the broader crypto market and blockchain ecosystem.
+          </p>
+        </div>
+      </div>
+
+      {/* Additional informative content section */}
+      <div className="mb-5 p-5" style={{ 
+        background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+        borderRadius: '20px',
+        border: 'none',
+        boxShadow: '0 20px 40px rgba(240, 147, 251, 0.2)',
+        position: 'relative',
+        overflow: 'hidden'
+      }}>
+        <div style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'url("data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23ffffff" fill-opacity="0.1"%3E%3Ccircle cx="30" cy="30" r="2"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")',
+          opacity: 0.3
+        }}></div>
+        <div style={{ position: 'relative', zIndex: 1 }}>
+          <h3 className="h4 mb-4 text-white fw-bold" style={{ 
+            fontSize: '1.8rem',
+            textShadow: '0 2px 10px rgba(0,0,0,0.3)'
+          }}>
+            Comprehensive Crypto Events Coverage & Networking
+          </h3>
+          <p className="mb-4 text-white-75" style={{ 
+            fontSize: '1.1rem',
+            lineHeight: '1.7',
+            textShadow: '0 1px 5px rgba(0,0,0,0.2)'
+          }}>
+            Our crypto events platform provides comprehensive coverage of industry gatherings, helping you stay connected 
+            with the global blockchain community and discover valuable networking opportunities.
+          </p>
+          <div className="row">
+            <div className="col-md-6">
+              <div className="p-4" style={{ 
+                backgroundColor: 'rgba(255,255,255,0.1)',
+                borderRadius: '12px',
+                backdropFilter: 'blur(10px)',
+                border: '1px solid rgba(255,255,255,0.2)'
+              }}>
+                <h6 className="fw-bold text-white mb-3" style={{ fontSize: '1.1rem' }}>🎪 Event Types:</h6>
+                <ul className="list-unstyled mb-0 text-white-75">
+                  <li className="mb-2">• Major crypto conferences</li>
+                  <li className="mb-2">• Industry meetups</li>
+                  <li className="mb-2">• Virtual crypto events</li>
+                  <li className="mb-0">• Regulatory workshops</li>
+                </ul>
+              </div>
+            </div>
+            <div className="col-md-6">
+              <div className="p-4" style={{ 
+                backgroundColor: 'rgba(255,255,255,0.1)',
+                borderRadius: '12px',
+                backdropFilter: 'blur(10px)',
+                border: '1px solid rgba(255,255,255,0.2)'
+              }}>
+                <h6 className="fw-bold text-white mb-3" style={{ fontSize: '1.1rem' }}>🌍 Global Coverage:</h6>
+                <ul className="list-unstyled mb-0 text-white-75">
+                  <li className="mb-2">• North America events</li>
+                  <li className="mb-2">• European conferences</li>
+                  <li className="mb-2">• Asian crypto meetups</li>
+                  <li className="mb-0">• Online gatherings</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Event categories and types */}

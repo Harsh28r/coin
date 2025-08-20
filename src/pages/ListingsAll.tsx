@@ -91,19 +91,46 @@ const ListingsAll: React.FC = () => {
         <meta property="og:url" content={`${window.location.origin}/listings/all`} />
         <meta name="twitter:card" content="summary" />
       </Helmet>
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <div>
+      <div className="d-flex justify-content-between align-items-center mb-4 p-4" style={{
+        background: 'linear-gradient(135deg, #ff7a00 0%, #ff9500 100%)',
+        borderRadius: '16px',
+        border: 'none',
+        boxShadow: '0 8px 25px rgba(255, 122, 0, 0.2)',
+        position: 'relative',
+        overflow: 'hidden'
+      }}>
+        <div style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'url("data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23ffffff" fill-opacity="0.1"%3E%3Ccircle cx="30" cy="30" r="2"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")',
+          opacity: 0.3
+        }}></div>
+        <div style={{ position: 'relative', zIndex: 1 }}>
           <h4
-            className="m-0"
-            style={{ fontWeight: 'bold', letterSpacing: '0.05em', borderBottom: '2px solid orange', marginBottom: '0.35rem' }}
+            className="m-0 text-white"
+            style={{ 
+              fontWeight: 'bold', 
+              letterSpacing: '0.05em', 
+              borderBottom: '2px solid rgba(255,255,255,0.3)', 
+              marginBottom: '0.35rem',
+              textShadow: '0 1px 3px rgba(0,0,0,0.2)'
+            }}
           >
             All Listings
           </h4>
-          <small style={{ color: '#6b7280' }}>Every recent exchange listing and pair update</small>
+          <small style={{ color: 'rgba(255,255,255,0.8)', textShadow: '0 1px 2px rgba(0,0,0,0.1)' }}>Every recent exchange listing and pair update</small>
         </div>
-        <div className="d-flex align-items-center gap-2">
+        <div className="d-flex align-items-center gap-2" style={{ position: 'relative', zIndex: 1 }}>
           <Badge bg="dark" className="me-2">{items.length} items</Badge>
-          <Button size="sm" variant="primary" style={orangeBtnStyle} onClick={() => navigate('/listings')}>Back</Button>
+          <Button size="sm" variant="light" onClick={() => navigate('/listings')} style={{ 
+            backgroundColor: 'rgba(255,255,255,0.9)', 
+            borderColor: 'rgba(255,255,255,0.9)',
+            color: '#ff7a00',
+            fontWeight: '600'
+          }}>Back</Button>
         </div>
       </div>
       {isTranslating && (

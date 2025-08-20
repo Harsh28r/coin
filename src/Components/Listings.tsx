@@ -124,56 +124,36 @@ const Listings: React.FC = () => {
       }}>
         Latest Crypto Listings & Market Pairs
       </h1>
-      
-      {/* Enhanced introduction section for better text-to-HTML ratio */}
-      <div className="mb-5 p-4" style={{ 
-        backgroundColor: '#f8f9fa', 
-        borderRadius: '12px', 
-        border: '1px solid #e9ecef' 
-      }}>
-        <h2 className="h4 mb-3" style={{ color: '#495057', fontWeight: '600' }}>
-          Track New Token Listings & Trading Opportunities
-        </h2>
-        <p className="mb-3" style={{ color: '#6c757d', lineHeight: '1.6' }}>
-          Stay ahead of the market with real-time updates on new cryptocurrency listings, exchange additions, 
-          and trading pair launches. Our comprehensive listings tracker monitors major exchanges including 
-          Binance, Coinbase, Kraken, and more to bring you the latest opportunities as they go live.
-        </p>
-        <p className="mb-0" style={{ color: '#6c757d', lineHeight: '1.6' }}>
-          From established projects expanding their reach to innovative new tokens making their debut, 
-          discover potential investment opportunities and market movements before they become mainstream. 
-          Each listing includes detailed information about the token, exchange, and trading pairs available.
-        </p>
-      </div>
+
 
       {/* Exchange coverage and listing types */}
       <div className="mb-4 p-3" style={{ 
-        backgroundColor: '#e7f3ff', 
+        backgroundColor: '#ff7a00', 
         borderRadius: '8px', 
-        border: '1px solid #b3d9ff' 
+        border: '1px solid #ff7a00' 
       }}>
         <div className="row text-center">
           <div className="col-md-3">
             <div className="p-2">
-              <strong className="d-block text-primary">Major Exchanges</strong>
+              <strong className="d-block text-white">Major Exchanges</strong>
               <small className="text-muted">Binance, Coinbase, Kraken</small>
             </div>
           </div>
           <div className="col-md-3">
             <div className="p-2">
-              <strong className="d-block text-primary">New Listings</strong>
+              <strong className="d-block text-white">New Listings</strong>
               <small className="text-muted">Fresh token additions</small>
             </div>
           </div>
           <div className="col-md-3">
             <div className="p-2">
-              <strong className="d-block text-primary">Trading Pairs</strong>
+              <strong className="d-block text-white">Trading Pairs</strong>
               <small className="text-muted">USDT, BTC, ETH pairs</small>
             </div>
           </div>
           <div className="col-md-3">
             <div className="p-2">
-              <strong className="d-block text-primary">Market Data</strong>
+              <strong className="d-block text-white">Market Data</strong>
               <small className="text-muted">Volume & price info</small>
             </div>
           </div>

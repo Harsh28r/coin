@@ -11,32 +11,32 @@ const DefaultSEO: React.FC = () => {
       '/': {
         title: 'Crypto News, Prices & Market Insights | CoinsClarity',
         description:
-          'Stay updated with real-time crypto prices, market trends, and curated news. Explore in-depth analysis and learn about cryptocurrencies on CoinsClarity.',
+          'Stay updated with real-time crypto news, crypto market trends, and curated cryptocurrency insights. Explore in-depth crypto analysis and learn about cryptocurrencies on CoinsClarity.',
       },
       '/listings': {
         title: 'Latest Crypto Exchange Listings & New Token Pairs | CoinsClarity',
         description:
-          'Discover the newest crypto exchange listings and market pairs. Track listings as they go live and never miss a new token opportunity.',
+          'Discover the newest crypto exchange listings and market pairs. Track crypto listings as they go live and never miss a new token opportunity.',
       },
       '/All-Trending-news': {
         title: 'Top Trending Crypto News Stories Today | CoinsClarity',
         description:
-          'See today\'s top trending crypto stories across major sources. Fast updates with summarized insights and full content on-platform.',
+          'See today\'s top trending crypto news stories across major sources. Fast crypto updates with summarized insights and full content on-platform.',
       },
       '/exclusive-news': {
         title: 'Exclusive Crypto News Stories & In-Depth Features | CoinsClarity',
         description:
-          'Exclusive crypto stories and curated insights. Dive deeper into what matters with full articles, analysis and highlights.',
+          'Exclusive crypto news stories and curated insights. Dive deeper into what matters with full crypto articles, analysis and highlights.',
       },
       '/press-news': {
         title: 'Crypto Press Releases & Official Announcements | CoinsClarity',
         description:
-          'Official crypto press releases and announcements curated from top sources. Stay informed on launches, partnerships and updates.',
+          'Official crypto press releases and announcements curated from top sources. Stay informed on crypto launches, partnerships and updates.',
       },
       '/learn': {
         title: 'Learn Cryptocurrency: Complete Guides & How-To Tutorials | CoinsClarity',
         description:
-          'Beginner to advanced crypto guides, tips and how-tos. Learn key concepts, trading basics and blockchain fundamentals.',
+          'Beginner to advanced crypto guides, tips and how-tos. Learn key crypto concepts, trading basics and blockchain fundamentals.',
       },
       '/events': {
         title: 'Upcoming Crypto Events, Conferences & Important Dates | CoinsClarity',
@@ -48,7 +48,7 @@ const DefaultSEO: React.FC = () => {
       map[location.pathname] || {
         title: 'CoinsClarity | Real-Time Crypto News, Prices & Market Insights',
         description:
-          'Real-time crypto news, market prices and insights. Track coins, NFTs, listings, and read full articles on CoinsClarity.',
+          'Real-time crypto news, crypto market prices and insights. Track coins, NFTs, listings, and read full crypto articles on CoinsClarity.',
       }
     );
   }, [location.pathname]);

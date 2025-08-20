@@ -22,6 +22,19 @@ const InDepthNewsPage: React.FC = () => {
 	const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://c-back-2.onrender.com';
 	const navigate = useNavigate();
 
+	// Crypto-related fallback images
+	const getFallbackImage = (index: number): string => {
+		const images = [
+			'https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=800&h=600&fit=crop', // Bitcoin/blockchain
+			'https://images.unsplash.com/photo-1621416894564-8db3d1a8b8c0?w=800&h=600&fit=crop', // Crypto trading
+			'https://images.unsplash.com/photo-1620321023374-d1a68fbc720d?w=800&h=600&fit=crop', // Digital currency
+			'https://images.unsplash.com/photo-1639762681057-408e52174e2b?w=800&h=600&fit=crop', // Blockchain technology
+			'https://images.unsplash.com/photo-1621416894564-8db3d1a8b8c0?w=800&h=600&fit=crop', // Cryptocurrency concept
+			'https://images.unsplash.com/photo-1620321023374-d1a68fbc720d?w=800&h=600&fit=crop'  // Digital finance
+		];
+		return images[index % images.length];
+	};
+
 	const { displayItems } = useNewsTranslation(items as any);
 	const list = useMemo<InDepthItem[]>(() => (Array.isArray(displayItems) ? (displayItems as unknown as InDepthItem[]) : items), [displayItems, items]);
 
@@ -76,57 +89,48 @@ const InDepthNewsPage: React.FC = () => {
 			}}>
 				Beyond the Headlines
 			</h1>
-			
-			{/* Enhanced introduction section for better text-to-HTML ratio */}
-			<div className="mb-5 p-4" style={{ 
-				backgroundColor: '#f8f9fa', 
-				borderRadius: '12px', 
-				border: '1px solid #e9ecef' 
-			}}>
-				<h2 className="h4 mb-3" style={{ color: '#495057', fontWeight: '600' }}>
-					Deep Dive into Cryptocurrency's Most Important Stories
-				</h2>
-				<p className="mb-3" style={{ color: '#6c757d', lineHeight: '1.6' }}>
-					Go beyond the surface-level headlines and explore the deeper implications of cryptocurrency news. 
-					Our in-depth analysis section provides comprehensive coverage of complex topics, regulatory developments, 
-					and technological innovations that shape the future of digital assets.
-				</p>
-				<p className="mb-0" style={{ color: '#6c757d', lineHeight: '1.6' }}>
-					From blockchain scalability solutions and DeFi protocol analysis to regulatory frameworks and 
-					institutional adoption trends, we break down complex concepts into digestible insights that 
-					help you understand the bigger picture of the crypto ecosystem.
-				</p>
-			</div>
 
 			{/* Analysis categories and focus areas */}
-			<div className="mb-4 p-3" style={{ 
-				backgroundColor: '#e7f3ff', 
-				borderRadius: '8px', 
-				border: '1px solid #b3d9ff' 
+			<div className="mb-4 p-4" style={{ 
+				background: 'linear-gradient(135deg, #ff7a00 0%, #ff9500 100%)',
+				borderRadius: '16px',
+				border: 'none',
+				boxShadow: '0 8px 25px rgba(255, 122, 0, 0.2)',
+				position: 'relative',
+				overflow: 'hidden'
 			}}>
-				<div className="row text-center">
+				<div style={{
+					position: 'absolute',
+					top: 0,
+					left: 0,
+					right: 0,
+					bottom: 0,
+					background: 'url("data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23ffffff" fill-opacity="0.1"%3E%3Ccircle cx="30" cy="30" r="2"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")',
+					opacity: 0.3
+				}}></div>
+				<div className="row text-center" style={{ position: 'relative', zIndex: 1 }}>
 					<div className="col-md-3">
-						<div className="p-2">
-							<strong className="d-block text-primary">Technical Analysis</strong>
-							<small className="text-muted">Blockchain & protocols</small>
+						<div className="p-3">
+							<strong className="d-block text-white mb-2" style={{ fontSize: '1.1rem', textShadow: '0 1px 3px rgba(0,0,0,0.2)' }}>Technical Analysis</strong>
+							<small className="text-white-75" style={{ fontSize: '0.9rem', textShadow: '0 1px 2px rgba(0,0,0,0.1)' }}>Blockchain & protocols</small>
 						</div>
 					</div>
 					<div className="col-md-3">
-						<div className="p-2">
-							<strong className="d-block text-primary">Regulatory Insights</strong>
-							<small className="text-muted">Legal & compliance</small>
+						<div className="p-3">
+							<strong className="d-block text-white mb-2" style={{ fontSize: '1.1rem', textShadow: '0 1px 3px rgba(0,0,0,0.2)' }}>Regulatory Insights</strong>
+							<small className="text-white-75" style={{ fontSize: '0.9rem', textShadow: '0 1px 2px rgba(0,0,0,0.1)' }}>Legal & compliance</small>
 						</div>
 					</div>
 					<div className="col-md-3">
-						<div className="p-2">
-							<strong className="d-block text-primary">Market Trends</strong>
-							<small className="text-muted">Institutional adoption</small>
+						<div className="p-3">
+							<strong className="d-block text-white mb-2" style={{ fontSize: '1.1rem', textShadow: '0 1px 3px rgba(0,0,0,0.2)' }}>Market Trends</strong>
+							<small className="text-white-75" style={{ fontSize: '0.9rem', textShadow: '0 1px 2px rgba(0,0,0,0.1)' }}>Institutional adoption</small>
 						</div>
 					</div>
 					<div className="col-md-3">
-						<div className="p-2">
-							<strong className="d-block text-primary">Innovation Focus</strong>
-							<small className="text-muted">New technologies</small>
+						<div className="p-3">
+							<strong className="d-block text-white mb-2" style={{ fontSize: '1.1rem', textShadow: '0 1px 3px rgba(0,0,0,0.2)' }}>Innovation Focus</strong>
+							<small className="text-white-75" style={{ fontSize: '0.9rem', textShadow: '0 1px 2px rgba(0,0,0,0.1)' }}>New technologies</small>
 						</div>
 					</div>
 				</div>
@@ -143,8 +147,8 @@ const InDepthNewsPage: React.FC = () => {
 						<Card className="h-100 border-0 rounded-4 shadow-sm">
 							{(() => {
 								const isHttp = (u?: string) => typeof u === 'string' && /^https?:\/\//i.test(u) && u.trim().length > 0;
-								const src = isHttp(item.image_url) ? item.image_url : '/image.png';
-								return <Card.Img variant="top" src={src} alt={item.title} loading="lazy" style={{ height: 180, objectFit: 'cover' }} onError={(e: any) => { e.currentTarget.src = '/image.png'; }} referrerPolicy="no-referrer" />
+								const src = isHttp(item.image_url) ? item.image_url : getFallbackImage(i);
+								return <Card.Img variant="top" src={src} alt={item.title} loading="lazy" style={{ height: 180, objectFit: 'cover' }} onError={(e: any) => { e.currentTarget.src = getFallbackImage(i); }} referrerPolicy="no-referrer" />
 							})()}
 							<Card.Body className="d-flex flex-column">
 								<Card.Title className="fs-6 mb-2" style={{ fontWeight: 700, lineHeight: 1.3 }}>
@@ -159,6 +163,10 @@ const InDepthNewsPage: React.FC = () => {
 					</Col>
 				))}
 			</Row>
+
+			
+
+			
 		</Container>
 	);
 };

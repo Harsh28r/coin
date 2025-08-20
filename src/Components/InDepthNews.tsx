@@ -30,6 +30,19 @@ const InDepthNews: React.FC = () => {
 	const [error, setError] = useState<string | null>(null);
 	const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://c-back-2.onrender.com';
 
+	// Crypto-related fallback images
+	const getFallbackImage = (index: number): string => {
+		const images = [
+			'https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=800&h=600&fit=crop', // Bitcoin/blockchain
+			'https://images.unsplash.com/photo-1621416894564-8db3d1a8b8c0?w=800&h=600&fit=crop', // Crypto trading
+			'https://images.unsplash.com/photo-1620321023374-d1a68fbc720d?w=800&h=600&fit=crop', // Digital currency
+			'https://images.unsplash.com/photo-1639762681057-408e52174e2b?w=800&h=600&fit=crop', // Blockchain technology
+			'https://images.unsplash.com/photo-1621416894564-8db3d1a8b8c0?w=800&h=600&fit=crop', // Cryptocurrency concept
+			'https://images.unsplash.com/photo-1620321023374-d1a68fbc720d?w=800&h=600&fit=crop'  // Digital finance
+		];
+		return images[index % images.length];
+	};
+
 	const { displayItems } = useNewsTranslation(items as any);
 	const displayList = useMemo<InDepthItem[]>(
 		() => (Array.isArray(displayItems) ? (displayItems as unknown as InDepthItem[]) : items),
@@ -143,7 +156,7 @@ const InDepthNews: React.FC = () => {
 							>
 								{(() => {
 									const isHttp = (u?: string) => typeof u === 'string' && /^https?:\/\//i.test(u) && u.trim().length > 0;
-									const src = isHttp(item.image_url) ? item.image_url : '/image.png';
+									const src = isHttp(item.image_url) ? item.image_url : getFallbackImage(idx);
 									return (
 										<Card.Img
 											variant="top"
@@ -151,7 +164,7 @@ const InDepthNews: React.FC = () => {
 											alt={item.title}
 											className="rounded-4"
 											loading="lazy"
-											onError={(e: any) => { e.currentTarget.src = '/image.png'; }}
+											onError={(e: any) => { e.currentTarget.src = getFallbackImage(idx); }}
 											referrerPolicy="no-referrer"
 											style={{ height: 180, objectFit: 'cover' }}
 										/>

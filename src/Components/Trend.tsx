@@ -82,27 +82,7 @@ const Exn: React.FC = () => {
         Trending Crypto News
       </h1>
       
-      {/* Enhanced introduction section for better text-to-HTML ratio */}
-      <div className="mb-5 p-4" style={{ 
-        backgroundColor: '#f8f9fa', 
-        borderRadius: '12px', 
-        border: '1px solid #e9ecef' 
-      }}>
-        <h2 className="h4 mb-3" style={{ color: '#495057', fontWeight: '600' }}>
-          What's Hot in the Crypto World Right Now
-        </h2>
-        <p className="mb-3" style={{ color: '#6c757d', lineHeight: '1.6' }}>
-          Discover the most talked-about cryptocurrency stories that are making waves across social media, 
-          news outlets, and trading communities. Our trending news algorithm identifies the hottest topics 
-          based on engagement, social shares, and market impact.
-        </p>
-        <p className="mb-0" style={{ color: '#6c757d', lineHeight: '1.6' }}>
-          From viral memecoins and celebrity endorsements to major market movements and technological breakthroughs, 
-          stay ahead of the curve with real-time trending analysis that helps you understand what's driving 
-          the conversation in the crypto space today.
-        </p>
-      </div>
-
+     
       {/* Trending metrics and insights */}
       <div className="mb-4 p-3" style={{ 
         backgroundColor: '#fff3cd', 
@@ -112,19 +92,19 @@ const Exn: React.FC = () => {
         <div className="row text-center">
           <div className="col-md-4">
             <div className="p-2">
-              <strong className="d-block text-warning">Social Buzz</strong>
-              <small className="text-muted">Viral stories & discussions</small>
+              <strong className="d-block text-warning">Crypto Social Buzz</strong>
+              <small className="text-muted">Viral crypto news & discussions</small>
             </div>
           </div>
           <div className="col-md-4">
             <div className="p-2">
-              <strong className="d-block text-warning">Market Impact</strong>
+              <strong className="d-block text-warning">Crypto Market Impact</strong>
               <small className="text-muted">Price movements & volume</small>
             </div>
           </div>
           <div className="col-md-4">
             <div className="p-2">
-              <strong className="d-block text-warning">Community Interest</strong>
+              <strong className="d-block text-warning">Crypto Community Interest</strong>
               <small className="text-muted">User engagement & shares</small>
             </div>
           </div>
@@ -179,6 +159,78 @@ const Exn: React.FC = () => {
           </Col>
         ))}
       </Row>
+
+
+      {/* Additional informative content section also moved to the end */}
+      <div className="mb-5 p-5" style={{ 
+        background: 'linear-gradient(135deg, #f59e0b 0%,rgb(234, 159, 11) 100%)',
+        borderRadius: '20px',
+        border: 'none',
+        boxShadow: '0 20px 40px rgba(79, 172, 254, 0.15)',
+        position: 'relative',
+        overflow: 'hidden'
+      }}>
+        <div style={{
+          position: 'absolute',
+          top: '-20%',
+          right: '-20%',
+          width: '140%',
+          height: '140%',
+          background: 'radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%)',
+          transform: 'rotate(15deg)'
+        }}></div>
+        <div style={{ position: 'relative', zIndex: 1 }}>
+          <h3 className="h4 mb-4 text-white fw-bold" style={{ 
+            fontSize: '1.8rem',
+            textShadow: '0 2px 10px rgba(0,0,0,0.3)'
+          }}>
+            Understanding Trending Crypto News & Market Dynamics
+          </h3>
+          <p className="mb-4 text-white-75" style={{ 
+            fontSize: '1.1rem',
+            lineHeight: '1.7',
+            textShadow: '0 1px 5px rgba(0,0,0,0.2)'
+          }}>
+            Trending crypto news provides valuable insights into market sentiment, investor behavior, and emerging opportunities 
+            in the cryptocurrency space. Our analysis helps you distinguish between temporary hype and genuine crypto market developments.
+          </p>
+          <div className="row">
+            <div className="col-md-6">
+              <div className="p-4" style={{ 
+                backgroundColor: 'rgba(255,255,255,0.1)',
+                borderRadius: '12px',
+                backdropFilter: 'blur(10px)',
+                border: '1px solid rgba(255,255,255,0.2)'
+              }}>
+                <h6 className="fw-bold text-white mb-3" style={{ fontSize: '1.1rem' }}>🚀 Crypto Market Trends We Track:</h6>
+                <ul className="list-unstyled mb-0 text-white-75">
+                  <li className="mb-2">• Bitcoin & Ethereum price movements</li>
+                  <li className="mb-2">• DeFi protocol developments</li>
+                  <li className="mb-2">• NFT collection launches</li>
+                  <li className="mb-0">• Regulatory crypto news updates</li>
+                </ul>
+              </div>
+            </div>
+            <div className="col-md-6">
+              <div className="p-4" style={{ 
+                backgroundColor: 'rgba(255,255,255,0.1)',
+                borderRadius: '12px',
+                backdropFilter: 'blur(10px)',
+                border: '1px solid rgba(255,255,255,0.2)'
+              }}>
+                <h6 className="fw-bold text-white mb-3" style={{ fontSize: '1.1rem' }}>📰 Crypto News Sources:</h6>
+                <ul className="list-unstyled mb-0 text-white-75">
+                  <li className="mb-2">• Major crypto news outlets</li>
+                  <li className="mb-2">• Social media platforms</li>
+                  <li className="mb-2">• Trading community forums</li>
+                  <li className="mb-0">• Expert crypto analysts</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
     </Container>
   );
 };
