@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useCurrency } from '../context/CurrencyContext';
+import { useNavigate } from 'react-router-dom';
 
 interface CryptoPrice {
   id: string;
@@ -20,6 +21,7 @@ interface CoinTickerProps {
 
 const CoinTicker: React.FC<CoinTickerProps> = ({ fixed = true, top = 60, height = 44, perPage = 10 }) => {
   const { currency, formatPrice } = useCurrency();
+  const navigate = useNavigate();
   const [coins, setCoins] = useState<CryptoPrice[]>([]);
   const [isFallback, setIsFallback] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
@@ -194,9 +196,20 @@ const CoinTicker: React.FC<CoinTickerProps> = ({ fixed = true, top = 60, height 
                   gap: itemGap,
                   padding: itemPadding,
                   borderRadius: '12px',
-                  background: 'rgba(246, 247, 251, 0.6)'
+                  background: 'rgba(246, 247, 251, 0.6)',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease'
                 }}
-                title={coin.name}
+                title={`Click to view ${coin.name} details`}
+                onClick={() => navigate(`/coin/${coin.id}`)}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = 'rgba(59, 130, 246, 0.1)';
+                  e.currentTarget.style.transform = 'scale(1.02)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'rgba(246, 247, 251, 0.6)';
+                  e.currentTarget.style.transform = 'scale(1)';
+                }}
               >
                 <img
                   src={coin.image || '/image.png'}
@@ -234,6 +247,14 @@ const CoinTicker: React.FC<CoinTickerProps> = ({ fixed = true, top = 60, height 
           100% { transform: translateX(-50%); }
         }
         .crypto-ticker:hover .ticker-track { animation-play-state: paused; }
+        
+        .ticker-item {
+          user-select: none;
+        }
+        
+        .ticker-item:hover {
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
       `}</style>
     </>
   );

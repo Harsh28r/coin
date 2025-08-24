@@ -30,12 +30,12 @@ const AllNews: React.FC = () => {
   // Crypto-related fallback images
   const getFallbackImage = (index: number): string => {
     const images = [
-      'https://images.pexels.com/photos/6770774/pexels-photo-6770774.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop', // Crypto trading
-      'https://images.pexels.com/photos/844124/pexels-photo-844124.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop', // Bitcoin/blockchain
-      'https://images.pexels.com/photos/5980645/pexels-photo-5980645.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop', // Blockchain technology
-      'https://images.pexels.com/photos/6772071/pexels-photo-6772071.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop', // Cryptocurrency concept
-      'https://images.pexels.com/photos/8437015/pexels-photo-8437015.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop', // Digital finance
-      'https://images.pexels.com/photos/730547/pexels-photo-730547.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop'  // Digital currency
+      'https://images.pexels.com/photos/844124/pexels-photo-844124.jpeg?w=800&h=600&fit=crop', // Bitcoin/blockchain
+      'https://images.pexels.com/photos/6770774/pexels-photo-6770774.jpeg?w=800&h=600&fit=crop', // Crypto trading
+      'https://images.pexels.com/photos/5980645/pexels-photo-5980645.jpeg?w=800&h=600&fit=crop', // Blockchain tech
+      'https://images.pexels.com/photos/6772071/pexels-photo-6772071.jpeg?w=800&h=600&fit=crop', // Crypto concept
+      'https://images.pexels.com/photos/8437015/pexels-photo-8437015.jpeg?w=800&h=600&fit=crop', // Digital finance
+      'https://images.pexels.com/photos/730547/pexels-photo-730547.jpeg?w=800&h=600&fit=crop'  // Digital currency
     ];
     return images[index % images.length];
   };

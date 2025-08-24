@@ -33,12 +33,12 @@ const InDepthNews: React.FC = () => {
 	// Crypto-related fallback images
 	const getFallbackImage = (index: number): string => {
 		const images = [
-			'https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=800&h=600&fit=crop', // Bitcoin/blockchain
-			'https://images.unsplash.com/photo-1621416894564-8db3d1a8b8c0?w=800&h=600&fit=crop', // Crypto trading
-			'https://images.unsplash.com/photo-1620321023374-d1a68fbc720d?w=800&h=600&fit=crop', // Digital currency
+			'https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=800&h=600&fit=crop', // Bitcoin/blockchain tech
+			'https://images.unsplash.com/photo-1621416894564-8db3d1a8b8c0?w=800&h=600&fit=crop', // Crypto trading tech
+			'https://images.unsplash.com/photo-1620321023374-d1a68fbc720d?w=800&h=600&fit=crop', // Digital currency tech
 			'https://images.unsplash.com/photo-1639762681057-408e52174e2b?w=800&h=600&fit=crop', // Blockchain technology
-			'https://images.unsplash.com/photo-1621416894564-8db3d1a8b8c0?w=800&h=600&fit=crop', // Cryptocurrency concept
-			'https://images.unsplash.com/photo-1620321023374-d1a68fbc720d?w=800&h=600&fit=crop'  // Digital finance
+			'https://images.unsplash.com/photo-1621416894564-8db3d1a8b8c0?w=800&h=600&fit=crop', // Cryptocurrency tech
+			'https://images.unsplash.com/photo-1620321023374-d1a68fbc720d?w=800&h=600&fit=crop' // Digital finance tech
 		];
 		return images[index % images.length];
 	};
@@ -156,7 +156,8 @@ const InDepthNews: React.FC = () => {
 							>
 								{(() => {
 									const isHttp = (u?: string) => typeof u === 'string' && /^https?:\/\//i.test(u) && u.trim().length > 0;
-									const src = isHttp(item.image_url) ? item.image_url : getFallbackImage(idx);
+									const hasValidImage = isHttp(item.image_url) && item.image_url.trim().length > 0;
+									const src = hasValidImage ? item.image_url : getFallbackImage(idx);
 									return (
 										<Card.Img
 											variant="top"
@@ -164,9 +165,13 @@ const InDepthNews: React.FC = () => {
 											alt={item.title}
 											className="rounded-4"
 											loading="lazy"
-											onError={(e: any) => { e.currentTarget.src = getFallbackImage(idx); }}
-											referrerPolicy="no-referrer"
-											style={{ height: 180, objectFit: 'cover' }}
+											onError={(e: any) => { 
+												// Only use fallback if the original image failed and we don't already have a fallback
+												if (hasValidImage && !e.target.src.includes('unsplash')) {
+													e.target.src = getFallbackImage(idx);
+												}
+											}}
+											style={{ height: '200px', objectFit: 'cover' }}
 										/>
 									);
 								})()}

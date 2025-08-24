@@ -27,6 +27,7 @@ import EventRadar from './Components/EventRadar';
 import Listing from './Components/Listings';
 import DefaultSEO from './Components/DefaultSEO';
 import AdminGate from './Components/AdminGate';
+import CoinDetail from './Components/CoinDetail';
 import { Analytics } from '@vercel/analytics/react';
 
 
@@ -65,6 +66,7 @@ function App() {
                   <Route path="/listings" element={<Listing />} />
                   <Route path="/events" element={<EventRadar />} />
                   <Route path="/news/:id" element={<NewsDetail />} />
+                  <Route path="/coin/:coinId" element={<CoinDetail />} />
                   <Route path="/main-dashboard" element={<AdminGate><   MainDashboard/></AdminGate>} /> 
                   {/* <Route path="/press-release-detail" element={<PressReleaseDetail />} /> */}
                   <Route path="/search" element={<SearchPage />} />

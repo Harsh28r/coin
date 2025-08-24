@@ -170,6 +170,41 @@ const MarketPriceAndNews: React.FC = () => {
     return data;
   };
 
+  // Fetch with retry mechanism for handling rate limits
+  const fetchWithRetry = async (url: string, retries = 3, delay = 2000) => {
+    for (let i = 0; i < retries; i++) {
+      try {
+        // Use CORS proxy to avoid CORS issues
+        const corsProxy = 'https://c-back-seven.vercel.app';
+        const proxyUrl = `${corsProxy}${url}`;
+        
+        const response = await fetch(proxyUrl, {
+          method: 'GET',
+          headers: {
+            'Origin': 'http://localhost:3000',
+            'X-Requested-With': 'XMLHttpRequest'
+          }
+        });
+        
+        if (!response.ok) {
+          if (response.status === 429) {
+            console.warn(`Rate limit exceeded. Retrying after ${delay}ms...`);
+            throw new Error('Rate limit exceeded');
+          }
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        return await response.json();
+      } catch (error: any) {
+        if (i < retries - 1) {
+          console.warn(`Retry ${i + 1}/${retries} for ${url}: ${error.message}`);
+          await new Promise((resolve) => setTimeout(resolve, delay * Math.pow(2, i)));
+          continue;
+        }
+        throw error;
+      }
+    }
+  };
+
   useEffect(() => {
     // Mock crypto data as fallback to avoid CORS issues
     const mockCryptoData: CryptoData[] = [
