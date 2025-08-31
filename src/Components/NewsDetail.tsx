@@ -1,9 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { Container, Row, Col, Card, Badge, Button } from 'react-bootstrap';
-import { useLanguage } from '../context/LanguageContext';
-import { useNewsTranslation } from '../hooks/useNewsTranslation';
-import { translateNewsContent } from '../utils/translationUtils';
 import { computeImpactLevel } from '../utils/impact';
 import { ArrowLeft, Share2, Bookmark, Eye, Calendar, User, ExternalLink, Volume2, Square } from 'lucide-react';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -32,10 +29,7 @@ const NewsDetail: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   // Prefer env, fallback to the backend used elsewhere in the app
   const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://c-back-2.onrender.com';
-  const { currentLanguage } = useLanguage();
-  const { displayItems: translatedItems, isTranslating } = useNewsTranslation(newsItem ? [newsItem] : []);
-  const effectiveItem = (translatedItems && translatedItems[0]) || newsItem;
-  const [translatedContent, setTranslatedContent] = useState<string>('');
+  const effectiveItem = newsItem;
 
   // Compute a simple estimated reading time based on content length
   const getReadingTime = (html?: string): number => {
@@ -286,9 +280,7 @@ const NewsDetail: React.FC = () => {
     try {
       const synth = (window as any).speechSynthesis as SpeechSynthesis | undefined;
       if (!synth) return;
-      const rawHtml = (translatedContent && translatedContent.trim().length > 0)
-        ? translatedContent
-        : (effectiveItem?.content || effectiveItem?.description || '');
+      const rawHtml = (newsItem?.content || newsItem?.description || '');
       if (!rawHtml) return;
       const text = rawHtml
         .replace(/<script[\s\S]*?<\/script>/gi, ' ')
@@ -313,26 +305,12 @@ const NewsDetail: React.FC = () => {
         i += end;
       }
       if (chunks.length === 0) return;
-      // language-aware voice selection
-      const resolveLang = (lang: string): string => {
-        switch (lang) {
-          case 'hi': return 'hi-IN';
-          case 'es': return 'es-ES';
-          case 'fr': return 'fr-FR';
-          case 'de': return 'de-DE';
-          case 'zh': return 'zh-CN';
-          case 'ja': return 'ja-JP';
-          case 'ko': return 'ko-KR';
-          case 'ar': return 'ar-SA';
-          default: return 'en-US';
-        }
-      };
-      const langTag = resolveLang(currentLanguage);
+      // Use English voice for TTS
       const voices = (window as any).speechSynthesis?.getVoices() || [];
-      const voice = voices.find((v: SpeechSynthesisVoice) => (v.lang || '').toLowerCase().startsWith(langTag.split('-')[0].toLowerCase()));
+      const voice = voices.find((v: SpeechSynthesisVoice) => (v.lang || '').toLowerCase().startsWith('en'));
       const utterances = chunks.map((c) => {
         const u = new SpeechSynthesisUtterance(c);
-        u.lang = langTag;
+        u.lang = 'en-US';
         if (voice) u.voice = voice;
         return u;
       });
@@ -408,28 +386,6 @@ const NewsDetail: React.FC = () => {
     return paragraphs || `<p>${raw}</p>`;
   };
 
-  // Translate full content when language is not English
-  useEffect(() => {
-    let cancelled = false;
-    const run = async () => {
-      try {
-        setTranslatedContent('');
-        if (!effectiveItem?.content) return;
-        if (currentLanguage === 'en') return;
-        const raw = effectiveItem.content || '';
-        const looksLikeHtml = /<[^>]+>/.test(raw);
-        const textOnly = looksLikeHtml ? raw.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim() : raw;
-        if (!textOnly) return;
-        const translated = await translateNewsContent(textOnly, currentLanguage as any);
-        if (!cancelled && translated) {
-          setTranslatedContent(translated);
-        }
-      } catch {}
-    };
-    run();
-    return () => { cancelled = true; };
-  }, [effectiveItem?.content, currentLanguage]);
-
   if (loading) {
     return (
       <Container className="mt-5">
@@ -460,7 +416,7 @@ const NewsDetail: React.FC = () => {
   //hi
 
   return (
-    <Container className="mt-4 news-detail-container">
+    <Container className="mt-4 news-detail-container" fluid>
       <Helmet>
         <title>{effectiveItem.title} | CoinsClarity</title>
         <meta name="description" content={effectiveItem.description?.slice(0, 160) || effectiveItem.title} />
@@ -489,36 +445,34 @@ const NewsDetail: React.FC = () => {
       </Helmet>
       <div className="reading-progress"><div className="reading-progress__bar" style={{ width: `${progress}%` }} /></div>
       <Row>
-        <Col lg={10} className="mx-auto">
-          {/* Breadcrumb / Back */}
+        <Col lg={10} md={11} sm={12} className="mx-auto">
+          {/* Breadcrumb / Back - Mobile Optimized */}
           <div className="d-flex align-items-center justify-content-between mb-3">
-            <Button onClick={handleBack} variant="outline-secondary" size="sm">
-              <ArrowLeft className="me-2" size={16} /> Back
+            <Button onClick={handleBack} variant="outline-secondary" size="sm" className="d-flex align-items-center">
+              <ArrowLeft className="me-2" size={16} /> 
+              <span className="d-none d-sm-inline">Back</span>
             </Button>
             {effectiveItem && effectiveItem.source_name && (
-              <Badge bg="light" text="dark" className="rounded-pill">
+              <Badge bg="light" text="dark" className="rounded-pill source-badge">
                 {effectiveItem.source_name}
               </Badge>
             )}
           </div>
 
-          {/* Article Header */}
+          {/* Article Header - Mobile Optimized */}
           <div className="article-header mb-4">
             {/* Title */}
             <h1 className="article-title mb-1">
               {effectiveItem.title}
             </h1>
-            {isTranslating && currentLanguage !== 'en' && (
-              <small className="text-muted d-block mb-2">Translating to {currentLanguage.toUpperCase()}…</small>
-            )}
-            {/* Meta */}
+            {/* Meta - Mobile Optimized */}
             <div className="article-meta mb-3">
               <div className="d-flex align-items-center flex-wrap gap-3 text-muted">
                 <div className="d-flex align-items-center small">
                   <User className="me-2" size={16} />
                   <span style={{ color: '#fb923c' }}>{effectiveItem.creator?.[0] || 'Unknown Author'}</span>
                 </div>
-                <div className="vr" />
+                <div className="vr d-none d-md-block" />
                 <div className="d-flex align-items-center small">
                   <Calendar className="me-2" size={16} />
                   {(() => {
@@ -539,18 +493,18 @@ const NewsDetail: React.FC = () => {
                         });
                   })()}
                 </div>
-                <div className="vr" />
+                <div className="vr d-none d-md-block" />
                 <div className="d-flex align-items-center small">
                   <Eye className="me-2" size={16} />
                   {getReadingTime(effectiveItem?.content)} min read
                 </div>
-                <div className="vr" />
+                <div className="vr d-none d-md-block" />
                 <span className="badge bg-light text-dark">
                   {(() => { const r = computeImpactLevel(effectiveItem); return `Impact: ${r.level}${r.affectedCoins.length ? ' • ' + r.affectedCoins.join(', ') : ''}`; })()}
                 </span>
                 {effectiveItem && effectiveItem.category && effectiveItem.category.length > 0 && (
                   <>
-                    <div className="vr" />
+                    <div className="vr d-none d-md-block" />
                     <div className="d-flex align-items-center gap-1">
                       {effectiveItem.category.slice(0, 3).map((cat: string, idx: number) => (
                         <Badge key={idx} bg="light" text="dark" className="rounded-pill">
@@ -562,12 +516,15 @@ const NewsDetail: React.FC = () => {
                 )}
               </div>
             </div>
+            {/* Action Bar - Mobile Optimized */}
             <div className="action-bar d-flex align-items-center gap-2 flex-wrap">
-              <Button onClick={handleShare} variant="outline-primary" size="sm">
-                <Share2 className="me-2" size={16} /> Share
+              <Button onClick={handleShare} variant="outline-primary" size="sm" className="d-flex align-items-center">
+                <Share2 className="me-2" size={16} /> 
+                <span className="d-none d-sm-inline">Share</span>
               </Button>
-              <Button onClick={handleBookmarkToggle} variant={isBookmarked ? 'primary' : 'outline-secondary'} size="sm">
-                <Bookmark className="me-2" size={16} /> {isBookmarked ? 'Saved' : 'Save'}
+              <Button onClick={handleBookmarkToggle} variant={isBookmarked ? 'primary' : 'outline-secondary'} size="sm" className="d-flex align-items-center">
+                <Bookmark className="me-2" size={16} /> 
+                <span className="d-none d-sm-inline">{isBookmarked ? 'Saved' : 'Save'}</span>
               </Button>
               <div className="vr d-none d-md-block" />
               <div className="d-flex align-items-center gap-1">
@@ -576,18 +533,20 @@ const NewsDetail: React.FC = () => {
               </div>
               <div className="vr d-none d-md-block" />
               {!isTtsPlaying ? (
-                <Button variant="outline-secondary" size="sm" onClick={startTts} title="Listen to article">
-                  <Volume2 className="me-2" size={16} /> Brief
+                <Button variant="outline-secondary" size="sm" onClick={startTts} title="Listen to article" className="d-flex align-items-center">
+                  <Volume2 className="me-2" size={16} /> 
+                  <span className="d-none d-sm-inline">Brief</span>
                 </Button>
               ) : (
-                <Button variant="outline-danger" size="sm" onClick={stopTts} title="Stop audio">
-                  <Square className="me-2" size={16} /> Stop
+                <Button variant="outline-danger" size="sm" onClick={stopTts} title="Stop audio" className="d-flex align-items-center">
+                  <Square className="me-2" size={16} /> 
+                  <span className="d-none d-sm-inline">Stop</span>
                 </Button>
               )}
             </div>
           </div>
 
-          {/* Featured Image */}
+          {/* Featured Image - Mobile Optimized */}
           {effectiveItem.image_url && (
             <div className="featured-image-container mb-4">
               <img
@@ -604,39 +563,37 @@ const NewsDetail: React.FC = () => {
             </div>
           )}
 
-          {/* Article Content */}
+          {/* Article Content - Mobile Optimized */}
           <div className="article-content mb-4" ref={contentRef}>
-            {effectiveItem.description && (
-              <div className="article-excerpt mb-4">
-                <p className="lead text-muted" style={{ fontStyle: 'italic' }}>{effectiveItem.description}</p>
-              </div>
-            )}
-            
-            {(effectiveItem.content || translatedContent) && (
+            {(effectiveItem.content) && (
               <div className="article-body" style={{ fontSize: `${(1.0 * fontScale).toFixed(2)}rem` }}>
                 <div
                   className="content-html"
-                  dangerouslySetInnerHTML={{ __html: getNormalizedContentHtml(translatedContent || effectiveItem.content) }}
+                  dangerouslySetInnerHTML={{ __html: getNormalizedContentHtml(effectiveItem.content) }}
                 />
               </div>
             )}
           </div>
 
-          {/* Article Footer */}
+          {/* Article Footer - Mobile Optimized */}
           <div className="article-footer">
             <hr className="my-4" />
             
             <div className="d-flex justify-content-between align-items-center flex-wrap gap-2">
-              <div className="d-flex gap-2">
-                <Button onClick={handleShare} variant="outline-primary" size="sm">
-                  <Share2 className="me-2" size={16} /> Share
+              <div className="d-flex gap-2 flex-wrap">
+                <Button onClick={handleShare} variant="outline-primary" size="sm" className="d-flex align-items-center">
+                  <Share2 className="me-2" size={16} /> 
+                  <span className="d-none d-sm-inline">Share</span>
                 </Button>
-                <Button variant="outline-secondary" size="sm">
-                  <Bookmark className="me-2" size={16} /> Save
+                <Button variant="outline-secondary" size="sm" className="d-flex align-items-center">
+                  <Bookmark className="me-2" size={16} /> 
+                  <span className="d-none d-sm-inline">Save</span>
                 </Button>
               </div>
-              <Button onClick={handleExternalLink} variant="primary" size="sm">
-                <ExternalLink className="me-2" size={16} /> Read on {effectiveItem.source_name || 'Original Source'}
+              <Button onClick={handleExternalLink} variant="primary" size="sm" className="d-flex align-items-center">
+                <ExternalLink className="me-2" size={16} /> 
+                <span className="d-none d-sm-inline">Read on {effectiveItem.source_name || 'Original Source'}</span>
+                <span className="d-inline d-sm-none">Original</span>
               </Button>
             </div>
             {(() => { try { const r = computeImpactLevel(effectiveItem || undefined); return r.affectedCoins && r.affectedCoins.length > 0; } catch { return false; } })() && (
@@ -668,10 +625,21 @@ const NewsDetail: React.FC = () => {
         </Col>
       </Row>
       <div className={`copy-toast ${copyFeedback ? 'show' : ''}`}>{copyFeedback}</div>
+      {/* Mobile Sticky Bar - Enhanced */}
       <div className="mobile-sticky-bar d-md-none">
         <div className="d-flex gap-2 w-100">
-          <Button onClick={handleShare} variant="primary" className="flex-fill">Share</Button>
-          <Button onClick={handleExternalLink} variant="dark" className="flex-fill">Original</Button>
+          <Button onClick={handleShare} variant="primary" className="flex-fill d-flex align-items-center justify-content-center">
+            <Share2 className="me-2" size={16} />
+            <span>Share</span>
+          </Button>
+          <Button onClick={handleBookmarkToggle} variant={isBookmarked ? 'primary' : 'outline-secondary'} className="flex-fill d-flex align-items-center justify-content-center">
+            <Bookmark className="me-2" size={16} />
+            <span>{isBookmarked ? 'Saved' : 'Save'}</span>
+          </Button>
+          <Button onClick={handleExternalLink} variant="dark" className="flex-fill d-flex align-items-center justify-content-center">
+            <ExternalLink className="me-2" size={16} />
+            <span>Original</span>
+          </Button>
         </div>
       </div>
     </Container>

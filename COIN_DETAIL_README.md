@@ -190,3 +190,4 @@ This feature allows users to click on any cryptocurrency in the ticker to view d
 ---
 
 **Ready to explore!** 🚀 Click any coin in the ticker to see detailed information and market analysis.
+
