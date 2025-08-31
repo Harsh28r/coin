@@ -579,6 +579,7 @@ const CoinDetail: React.FC = () => {
               </svg>
               Back to Home
             </button>
+            //h
             <h1 style={{
               fontSize: '28px',
               fontWeight: 800,
