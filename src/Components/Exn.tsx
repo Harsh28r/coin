@@ -5,6 +5,51 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { useNewsTranslation } from '../hooks/useNewsTranslation';
+import { getCryptoFallbackImage, handleImageError } from '../utils/cryptoImages';
+
+// Add CSS animations
+const styles = `
+  @keyframes float {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    50% { transform: translateY(-20px) rotate(5deg); }
+  }
+  
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+  }
+  
+  @keyframes slideInUp {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .crypto-card {
+    animation: slideInUp 0.6s ease-out;
+  }
+  
+  .crypto-card:nth-child(1) { animation-delay: 0.1s; }
+  .crypto-card:nth-child(2) { animation-delay: 0.2s; }
+  .crypto-card:nth-child(3) { animation-delay: 0.3s; }
+  .crypto-card:nth-child(4) { animation-delay: 0.4s; }
+  
+  .live-indicator {
+    animation: pulse 2s infinite;
+  }
+`;
+
+// Inject styles
+if (typeof document !== 'undefined') {
+  const styleSheet = document.createElement('style');
+  styleSheet.textContent = styles;
+  document.head.appendChild(styleSheet);
+}
 
 interface NewsItem {
   article_id?: string;
@@ -75,8 +120,7 @@ const Exn: React.FC = () => {
           `${API_BASE_URL}/fetch-defiant-rss?limit=24`,
           `${API_BASE_URL}/fetch-coindesk-rss?limit=24`,
           `${API_BASE_URL}/fetch-cryptoslate-rss?limit=24`,
-          `${API_BASE_URL}/fetch-decrypt-rss?limit=24`,
-          `${API_BASE_URL}/fetch-newsbtc-rss?limit=24`
+          `${API_BASE_URL}/fetch-decrypt-rss?limit=24`
         ];
 
         let items: any[] = [];
@@ -99,7 +143,7 @@ const Exn: React.FC = () => {
           const normalizedRaw = items.map((item: any, i: number) => {
             let imageUrl = item.image_url || item.image || (typeof item.enclosure === 'string' ? item.enclosure : undefined) || '';
             if (!isValidImageUrl(imageUrl)) {
-              imageUrl = getFallbackImage(i);
+              imageUrl = getFallbackImage(i, item.title);
             }
             return {
               article_id: item.article_id,
@@ -139,17 +183,9 @@ const Exn: React.FC = () => {
     fetchNews();
   }, []);
 
-  // Crypto-related fallback images
-  const getFallbackImage = (index: number): string => {
-    const images = [
-      'https://images.pexels.com/photos/844124/pexels-photo-844124.jpeg?w=800&h=600&fit=crop', // Bitcoin/blockchain
-      'https://images.pexels.com/photos/6770774/pexels-photo-6770774.jpeg?w=800&h=600&fit=crop', // Crypto trading
-      'https://images.pexels.com/photos/5980645/pexels-photo-5980645.jpeg?w=800&h=600&fit=crop', // Blockchain tech
-      'https://images.pexels.com/photos/6772071/pexels-photo-6772071.jpeg?w=800&h=600&fit=crop', // Crypto concept
-      'https://images.pexels.com/photos/8437015/pexels-photo-8437015.jpeg?w=800&h=600&fit=crop', // Digital finance
-      'https://images.pexels.com/photos/730547/pexels-photo-730547.jpeg?w=800&h=600&fit=crop'  // Digital currency
-    ];
-    return images[index % images.length];
+  // Crypto-related fallback images using our crypto utility
+  const getFallbackImage = (index: number, title?: string): string => {
+    return getCryptoFallbackImage(title || `News Item ${index}`, 'news');
   };
 
   // Robust date formatter to handle backend formats like "YYYY-MM-DD HH:mm:ss"
@@ -170,66 +206,221 @@ const Exn: React.FC = () => {
 
   return (
     <Container fluid className="mt-5" style={{ width: '92%' }}>
-      <h1 className="mb-4 text-center" style={{ 
-        fontSize: '2.5rem', 
-        fontWeight: 'bold', 
-        color: '#1f2937',
-        borderBottom: '3px solid #f59e0b',
-        paddingBottom: '1rem'
+      {/* Hero Section with Gradient Background */}
+      <div className="text-center mb-5 p-4 rounded-4" style={{
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        color: 'white',
+        position: 'relative',
+        overflow: 'hidden'
       }}>
-        Exclusive Crypto News
-      </h1>
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <h4 className="m-0" style={{ fontWeight: 'bold', letterSpacing: '0.05em', borderBottom: '2px solid orange', marginBottom: '1rem' }}>
-          {/* {t('news.exclusiveTitle') || 'Exclusive News'} */}Exclusive News
-        </h4>
+        <div style={{
+          position: 'absolute',
+          top: '-50%',
+          left: '-50%',
+          width: '200%',
+          height: '200%',
+          background: 'radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%)',
+          animation: 'float 6s ease-in-out infinite'
+        }}></div>
+        <h1 className="mb-3" style={{ 
+          fontSize: '3rem', 
+          fontWeight: '800',
+          textShadow: '2px 2px 4px rgba(0,0,0,0.3)',
+          position: 'relative',
+          zIndex: 1
+        }}>
+          Exclusive Crypto News
+        </h1>
+        <p className="mb-0 fs-5" style={{ 
+          opacity: 0.9,
+          position: 'relative',
+          zIndex: 1
+        }}>
+          Stay ahead with the latest blockchain insights and market analysis
+        </p>
+      </div>
+
+      {/* Section Header with Crypto Icons */}
+      <div className="d-flex justify-content-between align-items-center mb-4 p-3 rounded-3" style={{
+        background: 'linear-gradient(90deg, #1a1a2e 0%, #16213e 100%)',
+        border: '1px solid #00d4aa',
+        position: 'relative'
+      }}>
+        <div className="d-flex align-items-center">
+          <div className="me-3" style={{
+            width: '40px',
+            height: '40px',
+            background: 'linear-gradient(45deg, #00d4aa, #00ff88)',
+            borderRadius: '50%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '1.2rem',
+            fontWeight: 'bold',
+            color: 'white'
+          }}>
+            C
+          </div>
+          <h4 className="m-0 text-white" style={{ 
+            fontWeight: 'bold', 
+            letterSpacing: '0.05em',
+            textShadow: '1px 1px 2px rgba(0,0,0,0.5)'
+          }}>
+            Latest Market Updates
+          </h4>
+        </div>
+        <div className="d-flex align-items-center">
+          <span className="me-2 text-success live-indicator">●</span>
+          <small className="text-light">Live Updates</small>
+        </div>
       </div>
       <Row xs={1} md={2} lg={4} className="g-4">
         {Array.isArray(displayItems) && displayItems.map((item, index) => (
           <Col key={index}>
-            <Card className="h-100 border-0 shadow-sm rounded-5">
-              <Card.Img 
-                variant="top rounded-4" 
-                src={item.image_url} 
-                alt={item.title}
-                loading="lazy"
-                referrerPolicy="no-referrer"
-                onError={(e) => {
-                  const img = e.currentTarget as HTMLImageElement;
-                  img.onerror = null;
-                  img.src = getFallbackImage(index);
-                }}
-              />
-              <Card.Body className="d-flex flex-column">
-                <Card.Title className="fs-6 mb-3 text-start custom-text" style={{ fontWeight: 'bold', color: 'black', overflow: 'hidden', display: '-webkit-box', WebkitBoxOrient: 'vertical', WebkitLineClamp: 2, maxHeight: '3em' }}>
-                  <a 
-                    href={`/news/${item.article_id || encodeURIComponent(item.link || item.title)}`}
-                    onClick={(e) => { e.preventDefault(); navigate(`/news/${item.article_id || encodeURIComponent(item.link || item.title)}`, { state: { item } }); }}
-                    className="text-black text-decoration-none"
-                    style={{ cursor: 'pointer' }}
-                  >
-                    {decodeHtml(item.title)}
-                  </a>
+            <Card className="h-100 border-0 shadow-lg rounded-4 crypto-card" style={{
+              background: 'linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%)',
+              transition: 'all 0.3s ease',
+              cursor: 'pointer',
+              position: 'relative',
+              overflow: 'hidden'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'translateY(-8px)';
+              e.currentTarget.style.boxShadow = '0 20px 40px rgba(0,0,0,0.15)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = '0 10px 30px rgba(0,0,0,0.1)';
+            }}
+            onClick={() => navigate(`/news/${item.article_id || encodeURIComponent(item.link || item.title)}`, { state: { item } })}>
+              
+              {/* Crypto Badge */}
+              <div style={{
+                position: 'absolute',
+                top: '10px',
+                right: '10px',
+                background: 'linear-gradient(45deg, #00d4aa, #00ff88)',
+                color: 'white',
+                padding: '4px 8px',
+                borderRadius: '12px',
+                fontSize: '0.7rem',
+                fontWeight: 'bold',
+                zIndex: 2,
+                boxShadow: '0 2px 8px rgba(0,212,170,0.3)'
+              }}>
+                CRYPTO
+              </div>
+
+              <div style={{ position: 'relative', overflow: 'hidden' }}>
+                <Card.Img 
+                  variant="top" 
+                  src={item.image_url} 
+                  alt={item.title}
+                  loading="lazy"
+                  referrerPolicy="no-referrer"
+                  style={{
+                    height: '200px',
+                    objectFit: 'cover',
+                    transition: 'transform 0.3s ease'
+                  }}
+                  onError={(e) => {
+                    handleImageError(e, item.title, 'news');
+                  }}
+                />
+                {/* Gradient Overlay */}
+                <div style={{
+                  position: 'absolute',
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  height: '60px',
+                  background: 'linear-gradient(transparent, rgba(0,0,0,0.7))',
+                  zIndex: 1
+                }}></div>
+              </div>
+
+              <Card.Body className="d-flex flex-column p-4">
+                <Card.Title className="fs-6 mb-3 text-start" style={{ 
+                  fontWeight: 'bold', 
+                  color: '#1a1a2e',
+                  overflow: 'hidden', 
+                  display: '-webkit-box', 
+                  WebkitBoxOrient: 'vertical', 
+                  WebkitLineClamp: 2, 
+                  maxHeight: '3em',
+                  lineHeight: '1.4'
+                }}>
+                  {decodeHtml(item.title)}
                 </Card.Title>
-                <Card.Text className="text-muted small flex-grow-1 text-start custom-text fs-7" style={{ overflow: 'hidden', display: '-webkit-box', WebkitBoxOrient: 'vertical', WebkitLineClamp: 2, maxHeight: '3em' }}>
+
+                <Card.Text className="text-muted small flex-grow-1 text-start fs-7 mb-3" style={{ 
+                  overflow: 'hidden', 
+                  display: '-webkit-box', 
+                  WebkitBoxOrient: 'vertical', 
+                  WebkitLineClamp: 3, 
+                  maxHeight: '4.5em',
+                  lineHeight: '1.5'
+                }}>
                   {decodeHtml(item.description)}
                 </Card.Text>
-                 <div className="mt-auto d-flex justify-content-between align-items-center">
-                  <div>
-                    <small className="text-muted">By </small>
-                     <small className="text-warning "> {Array.isArray(item.creator) && item.creator.length > 0 ? item.creator[0] : 'Unknown'}</small>
+
+                <div className="mt-auto">
+                  <div className="d-flex justify-content-between align-items-center mb-3">
+                    <div className="d-flex align-items-center">
+                      <div style={{
+                        width: '24px',
+                        height: '24px',
+                        background: 'linear-gradient(45deg, #ff6b35, #f59e0b)',
+                        borderRadius: '50%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '0.7rem',
+                        fontWeight: 'bold',
+                        color: 'white',
+                        marginRight: '8px'
+                      }}>
+                        A
+                      </div>
+                      <small className="text-muted">
+                        {Array.isArray(item.creator) && item.creator.length > 0 ? item.creator[0] : 'Unknown'}
+                      </small>
+                    </div>
+                    <div className="text-end">
+                      <small className="text-muted" style={{ fontSize: '0.75rem' }}>
+                        {formatDate(item.pubDate)}
+                      </small>
+                    </div>
                   </div>
-                  <div className="ms-auto text-end">
-                    <small className="text-muted">{formatDate(item.pubDate)}</small>
-                  </div>
+
+                  <Button 
+                    variant="outline-warning"
+                    onClick={(e) => { 
+                      e.stopPropagation();
+                      navigate(`/news/${item.article_id || encodeURIComponent(item.link || item.title)}`, { state: { item } }); 
+                    }}
+                    className="w-100"
+                    style={{
+                      background: 'linear-gradient(45deg, #f59e0b, #ff6b35)',
+                      border: 'none',
+                      color: 'white',
+                      fontWeight: 'bold',
+                      padding: '10px',
+                      borderRadius: '8px',
+                      transition: 'all 0.3s ease'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = 'linear-gradient(45deg, #ff6b35, #f59e0b)';
+                      e.currentTarget.style.transform = 'scale(1.02)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = 'linear-gradient(45deg, #f59e0b, #ff6b35)';
+                      e.currentTarget.style.transform = 'scale(1)';
+                    }}
+                  >
+                    Read Full Story
+                  </Button>
                 </div>
-                <Button 
-                  variant="warning"
-                  onClick={() => navigate(`/news/${item.article_id || encodeURIComponent(item.link || item.title)}`, { state: { item } })}
-                  className="mt-3"
-                >
-                  {t('news.readMore') || 'Read More'}
-                </Button>
               </Card.Body>
             </Card>
           </Col>

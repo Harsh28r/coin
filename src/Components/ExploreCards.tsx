@@ -297,7 +297,7 @@ const ExploreSection: React.FC = () => {
               text: item.title || 'Crypto News',
               title: item.title,
               link: item.link,
-              source: item.source_name || 'CryptoSlate',
+              source: 'Crypto News',
               content: item.content || ''
             }));
             allNews.push(...mappedNews);
@@ -316,7 +316,7 @@ const ExploreSection: React.FC = () => {
               text: item.title || 'Crypto News',
               title: item.title,
               link: item.link,
-              source: item.source_name || 'Exclusive News',
+              source: 'Crypto News',
               content: item.content || ''
             }));
             allNews.push(...mappedNews);

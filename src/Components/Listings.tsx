@@ -57,7 +57,7 @@ const Listings: React.FC = () => {
       image_url: (li as any).image_url,
       link: li.link || '',
       content: li.content || li.description || '',
-      source_name: li.source_name || 'RSS',
+      source_name: 'Crypto News',
       keywords: li.coins,
     } as any;
     navigate(`/news/${id}`, { state: { item: stateItem } });
@@ -207,7 +207,6 @@ const Listings: React.FC = () => {
                   </div>
                   <Card.Title style={{ fontSize: '1rem' }}>{li.title}</Card.Title>
                   <div className="d-flex justify-content-between align-items-center mt-3">
-                    <small className="text-muted">{li.source_name}</small>
                     <Button size="sm" variant="primary" style={orangeBtnStyle} onClick={() => openDetail(li)}>Read</Button>
                   </div>
                 </Card.Body>

@@ -8,6 +8,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { useNewsTranslation } from '../hooks/useNewsTranslation';
 import Skeleton from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
+import { getCryptoFallbackImage, handleImageError } from '../utils/cryptoImages';
 
 interface BlogPost {
   id: string;
@@ -79,8 +80,8 @@ const BlogSection: React.FC = () => {
           date: post.date
             ? new Date(post.date).toLocaleDateString()
             : 'Unknown date',
-          image: post.image || post.imageUrl || 'https://placehold.co/300x200?text=Blog',
-          imageUrl: post.imageUrl || post.image || 'https://placehold.co/300x200?text=Blog',
+          image: post.image || post.imageUrl || getCryptoFallbackImage(post.title, 'blog'),
+          imageUrl: post.imageUrl || post.image || getCryptoFallbackImage(post.title, 'blog'),
           content: post.content || 'No content available',
         }));
         setBlogPosts(formattedPosts);
@@ -214,7 +215,7 @@ const BlogSection: React.FC = () => {
                       transition: 'transform 0.3s ease'
                     }}
                     onError={(e) => {
-                      e.currentTarget.src = 'https://placehold.co/400x220?text=Blog+Post';
+                      handleImageError(e, post.title, 'blog');
                     }}
                   />
                   {/* Gradient Overlay */}

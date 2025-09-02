@@ -503,7 +503,7 @@ const FeaturedCarousel: React.FC = () => {
                       pubDate: news.pubDate || news.date || new Date().toISOString(),
                       image_url: news.image_url || news.image,
                       link: news.link || '#',
-                      source_name: news.source || 'Top News',
+                      source_name: 'Crypto News',
                       content: news.content || news.description || news.excerpt || ''
                     };
                     navigate(`/news/${id}`, { state: { item: stateItem } });
@@ -525,7 +525,7 @@ const FeaturedCarousel: React.FC = () => {
                         pubDate: news.pubDate || news.date || new Date().toISOString(),
                         image_url: news.image_url || news.image,
                         link: news.link || '#',
-                        source_name: news.source || 'Top News',
+                        source_name: 'Crypto News',
                         content: news.content || news.description || news.excerpt || ''
                       };
                       navigate(`/news/${id}`, { state: { item: stateItem } });
@@ -548,7 +548,7 @@ const FeaturedCarousel: React.FC = () => {
                         pubDate: news.pubDate || news.date || new Date().toISOString(),
                         image_url: news.image_url || news.image,
                         link: news.link || '#',
-                        source_name: news.source || 'Trending',
+                        source_name: 'Crypto News',
                         content: news.content || news.description || news.excerpt || ''
                       };
                       navigate(`/news/${id}`, { state: { item: stateItem } });
@@ -759,7 +759,7 @@ const FeaturedCarousel: React.FC = () => {
                                 pubDate: news.pubDate || news.date || new Date().toISOString(),
                                 image_url: news.image_url || news.image,
                                 link: news.link || '#',
-                                source_name: news.source || 'Trending',
+                                source_name: 'Crypto News',
                                 content: news.content || news.description || news.excerpt || ''
                               };
                               navigate(`/news/${id}`, { state: { item: stateItem } });

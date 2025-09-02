@@ -245,7 +245,7 @@ export function TopNav() {
                         pubDate: match.pubDate || new Date().toISOString(),
                         image_url: match.image_url || match.image || '',
                         link: match.link || '#',
-                        source_name: match.source_name || 'Crypto',
+                        source_name: 'Crypto News',
                         content: match.content || ''
                       } } });
                     } else {

@@ -120,7 +120,7 @@ export default function NewsCarousel() {
             pubDate: item.pubDate || new Date().toISOString(),
             image_url: item.image_url || '/market.png?height=600&width=1200',
             link: item.link || '#',
-            source: item.source || item.source_name || 'Crypto News',
+            source: 'Crypto News',
             category: item.category || ['Crypto News']
           }));
           

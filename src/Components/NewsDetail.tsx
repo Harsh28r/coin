@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { Container, Row, Col, Card, Badge, Button } from 'react-bootstrap';
 import { computeImpactLevel } from '../utils/impact';
-import { ArrowLeft, Share2, Bookmark, Eye, Calendar, User, ExternalLink, Volume2, Square } from 'lucide-react';
+import { ArrowLeft, Share2, Bookmark, Eye, Calendar, User, Volume2, Square } from 'lucide-react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { Helmet } from 'react-helmet-async';
 import './NewsDetail.css';
@@ -261,11 +261,7 @@ const NewsDetail: React.FC = () => {
     }
   };
 
-  const handleExternalLink = () => {
-    if (newsItem?.link) {
-      window.open(newsItem.link, '_blank', 'noopener,noreferrer');
-    }
-  };
+
 
   const stopTts = () => {
     try {
@@ -452,11 +448,7 @@ const NewsDetail: React.FC = () => {
               <ArrowLeft className="me-2" size={16} /> 
               <span className="d-none d-sm-inline">Back</span>
             </Button>
-            {effectiveItem && effectiveItem.source_name && (
-              <Badge bg="light" text="dark" className="rounded-pill source-badge">
-                {effectiveItem.source_name}
-              </Badge>
-            )}
+
           </div>
 
           {/* Article Header - Mobile Optimized */}
@@ -590,11 +582,7 @@ const NewsDetail: React.FC = () => {
                   <span className="d-none d-sm-inline">Save</span>
                 </Button>
               </div>
-              <Button onClick={handleExternalLink} variant="primary" size="sm" className="d-flex align-items-center">
-                <ExternalLink className="me-2" size={16} /> 
-                <span className="d-none d-sm-inline">Read on {effectiveItem.source_name || 'Original Source'}</span>
-                <span className="d-inline d-sm-none">Original</span>
-              </Button>
+
             </div>
             {(() => { try { const r = computeImpactLevel(effectiveItem || undefined); return r.affectedCoins && r.affectedCoins.length > 0; } catch { return false; } })() && (
               <div className="mt-3">
@@ -636,10 +624,7 @@ const NewsDetail: React.FC = () => {
             <Bookmark className="me-2" size={16} />
             <span>{isBookmarked ? 'Saved' : 'Save'}</span>
           </Button>
-          <Button onClick={handleExternalLink} variant="dark" className="flex-fill d-flex align-items-center justify-content-center">
-            <ExternalLink className="me-2" size={16} />
-            <span>Original</span>
-          </Button>
+
         </div>
       </div>
     </Container>

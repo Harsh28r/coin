@@ -9,6 +9,7 @@ import 'react-loading-skeleton/dist/skeleton.css'; // Import skeleton CSS
 import { useLanguage } from '../context/LanguageContext';
 import { Helmet } from 'react-helmet-async';
 import { useNewsTranslation } from '../hooks/useNewsTranslation';
+import { getCryptoFallbackImage, handleImageError } from '../utils/cryptoImages';
 
 interface NewsItem {
   article_id?: string;
@@ -83,7 +84,6 @@ const ExclusiveNews: React.FC = () => {
           `${API_BASE_URL}/fetch-coindesk-rss?limit=24`,
           `${API_BASE_URL}/fetch-cryptoslate-rss?limit=24`,
           `${API_BASE_URL}/fetch-decrypt-rss?limit=24`,
-          `${API_BASE_URL}/fetch-newsbtc-rss?limit=24`,
           `${API_BASE_URL}/fetch-bitcoinmagazine-rss?limit=24`,
           `${API_BASE_URL}/fetch-ambcrypto-rss?limit=24`,
           `${API_BASE_URL}/fetch-dailycoin-rss?limit=24`,
@@ -109,7 +109,7 @@ const ExclusiveNews: React.FC = () => {
           const normalizedRaw = items.map((item: any, i: number) => {
             let imageUrl = item.image_url || item.image || '';
             if (!isValidImageUrl(imageUrl)) {
-              imageUrl = getFallbackImage(i);
+              imageUrl = getFallbackImage(i, item.title);
             }
             return {
               article_id: item.article_id,
@@ -149,17 +149,9 @@ const ExclusiveNews: React.FC = () => {
     fetchNews();
   }, []);
 
-  // Crypto-related fallback images
-  const getFallbackImage = (index: number): string => {
-    const images = [
-      'https://images.pexels.com/photos/844124/pexels-photo-844124.jpeg?w=800&h=600&fit=crop', // Bitcoin/blockchain
-      'https://images.pexels.com/photos/6770774/pexels-photo-6770774.jpeg?w=800&h=600&fit=crop', // Crypto trading
-      'https://images.pexels.com/photos/5980645/pexels-photo-5980645.jpeg?w=800&h=600&fit=crop', // Blockchain tech
-      'https://images.pexels.com/photos/6772071/pexels-photo-6772071.jpeg?w=800&h=600&fit=crop', // Crypto concept
-      'https://images.pexels.com/photos/8437015/pexels-photo-8437015.jpeg?w=800&h=600&fit=crop', // Digital finance
-      'https://images.pexels.com/photos/730547/pexels-photo-730547.jpeg?w=800&h=600&fit=crop'  // Digital currency
-    ];
-    return images[index % images.length];
+  // Crypto-related fallback images using our crypto utility
+  const getFallbackImage = (index: number, title?: string): string => {
+    return getCryptoFallbackImage(title || `News Item ${index}`, 'news');
   };
 
   // Format date consistently with fallback for backend format "YYYY-MM-DD HH:mm:ss"
@@ -225,7 +217,7 @@ const ExclusiveNews: React.FC = () => {
                          <Col key={index}>
                <Card className="h-100 border-0 shadow-sm rounded-4">
                  <img 
-                   src={getFallbackImage(index)} 
+                   src={getFallbackImage(index, `Loading ${index + 1}`)} 
                    alt={`Loading card ${index + 1}`}
                    className="img-fluid rounded-4"
                    style={{ height: '200px', width: '100%', objectFit: 'cover' }}
@@ -259,10 +251,10 @@ const ExclusiveNews: React.FC = () => {
                                  <Card.Img
                    variant="top"
                    className="rounded-4"
-                   src={item.image_url || getFallbackImage(index)}
+                   src={item.image_url || getFallbackImage(index, item.title)}
                    alt={item.title}
                    onError={(e) => {
-                     e.currentTarget.src = getFallbackImage(index);
+                     handleImageError(e, item.title, 'news');
                    }}
                  />
                 <Card.Body className="d-flex flex-column">

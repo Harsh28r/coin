@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useCurrency } from '../context/CurrencyContext';
+import { createChart, IChartApi, ISeriesApi, LineData, Time } from 'lightweight-charts';
 
 interface CoinData {
   id: string;
@@ -35,8 +36,8 @@ interface CoinData {
 }
 
 interface ChartDataPoint {
-  price: number;
-  timestamp: number;
+  time: Time;
+  value: number;
 }
 
 const CoinDetail: React.FC = () => {
@@ -46,11 +47,13 @@ const CoinDetail: React.FC = () => {
   const [coin, setCoin] = useState<CoinData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [timeframe, setTimeframe] = useState<'1D' | '7D' | '30D' | '1Y'>('7D');
+  const [timeframe, setTimeframe] = useState<'1D' | '7D' | '30D' | '1Y'>('1D');
   const [chartData, setChartData] = useState<ChartDataPoint[]>([]);
   const [chartLoading, setChartLoading] = useState(false);
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
-  const chartRef = useRef<HTMLCanvasElement>(null);
+  const chartRef = useRef<HTMLDivElement>(null);
+  const chartInstanceRef = useRef<IChartApi | null>(null);
+  const seriesRef = useRef<any>(null);
 
   // Fetch coin data with real-time updates
   useEffect(() => {
@@ -112,16 +115,12 @@ const CoinDetail: React.FC = () => {
         // Calculate days based on timeframe
         const days = timeframe === '1D' ? 1 : timeframe === '7D' ? 7 : timeframe === '30D' ? 30 : 365;
         
-        // Fetch real data from CoinGecko
-        const response = await fetch(
-          `https://api.coingecko.com/api/v3/coins/${coinId}/market_chart?vs_currency=${currency.toLowerCase()}&days=${days}&interval=${timeframe === '1D' ? 'hourly' : 'daily'}`,
-          {
-            headers: {
-              'Accept': 'application/json',
-              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-            }
-          }
-        );
+        // Use CORS proxy to fetch real data
+        try {
+          const proxyUrl = 'https://api.allorigins.win/raw?url=';
+          const apiUrl = `https://api.coingecko.com/api/v3/coins/${coinId}/market_chart?vs_currency=${currency.toLowerCase()}&days=${days}&interval=${timeframe === '1D' ? 'hourly' : 'daily'}`;
+          
+          const response = await fetch(proxyUrl + encodeURIComponent(apiUrl));
         
         if (response.ok) {
           const data = await response.json();
@@ -129,15 +128,19 @@ const CoinDetail: React.FC = () => {
           
           if (prices.length > 0) {
             const chartDataPoints: ChartDataPoint[] = prices.map((price: [number, number]) => ({
-              timestamp: price[0],
-              price: price[1]
+                time: Math.floor(price[0] / 1000) as Time,
+                value: price[1]
             }));
             
             setChartData(chartDataPoints);
-            renderChart(chartDataPoints);
+              if (chartInstanceRef.current && seriesRef.current) {
+                updateChartData(chartDataPoints);
+              }
+              return;
+            }
           }
-        } else {
-          throw new Error(`Chart API Error: ${response.status}`);
+        } catch (proxyError) {
+          console.log('CORS proxy failed, using fallback...');
         }
         
       } catch (err) {
@@ -146,7 +149,9 @@ const CoinDetail: React.FC = () => {
         const daysForFallback = timeframe === '1D' ? 1 : timeframe === '7D' ? 7 : timeframe === '30D' ? 30 : 365;
         const mockData = generateRealisticChartData(daysForFallback, coin?.current_price || 100);
         setChartData(mockData);
-        renderChart(mockData);
+        if (chartInstanceRef.current && seriesRef.current) {
+          updateChartData(mockData);
+        }
       } finally {
         setChartLoading(false);
       }
@@ -155,6 +160,14 @@ const CoinDetail: React.FC = () => {
     fetchChartData();
   }, [coinId, currency, timeframe, coin?.current_price]);
 
+  // Auto-generate 1D chart data when component loads
+  useEffect(() => {
+    if (coin && chartData.length === 0) {
+      const mockData = generateRealisticChartData(1, coin.current_price || 100);
+      setChartData(mockData);
+    }
+  }, [coin]);
+
   // Generate realistic chart data for fallback
   const generateRealisticChartData = (days: number, basePrice: number): ChartDataPoint[] => {
     const data: ChartDataPoint[] = [];
@@ -162,157 +175,394 @@ const CoinDetail: React.FC = () => {
     const interval = timeframe === '1D' ? 3600000 : 86400000; // 1 hour or 1 day in ms
     
     let currentPrice = basePrice;
+    let trend = 0;
+    
     for (let i = days; i >= 0; i--) {
       const timestamp = now - (i * interval);
+      const time = Math.floor(timestamp / 1000) as Time;
       
-      // Create realistic price movements with trends and volatility
-      const trend = Math.sin(i * 0.1) * 0.015; // Small trend component
-      const volatility = (Math.random() - 0.5) * 0.02; // ±1% volatility
-      const change = trend + volatility;
+      // Create more realistic price movements
+      const marketTrend = Math.sin(i * 0.05) * 0.01; // Longer-term trend
+      const volatility = (Math.random() - 0.5) * 0.03; // ±1.5% volatility
+      const momentum = trend * 0.1; // Some momentum from previous changes
       
-      currentPrice = Math.max(0.01, currentPrice * (1 + change));
-      data.push({ timestamp, price: currentPrice });
+      const change = marketTrend + volatility + momentum;
+      trend = change; // Store for momentum
+      
+      const newPrice = Math.max(0.01, currentPrice * (1 + change));
+      
+      data.push({ 
+        time, 
+        value: newPrice
+      });
+      
+      currentPrice = newPrice;
     }
     
     return data;
   };
 
-  // Render chart using HTML5 Canvas with CoinGecko-like styling
-  const renderChart = (data: ChartDataPoint[]) => {
+  // Initialize TradingView chart
+  const initializeChart = () => {
     if (!chartRef.current) return;
     
-    const ctx = chartRef.current.getContext('2d');
-    if (!ctx) return;
-    
-    if (data.length === 0) return;
-    
-    // Set canvas dimensions
-    const rect = chartRef.current.getBoundingClientRect();
-    chartRef.current.width = rect.width;
-    chartRef.current.height = rect.height;
-    
-    const prices = data.map(point => point.price);
-    const minPrice = Math.min(...prices);
-    const maxPrice = Math.max(...prices);
-    const priceRange = maxPrice - minPrice;
-    
-    // Clear canvas
-    ctx.clearRect(0, 0, rect.width, rect.height);
-    
-    // Draw background
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, rect.width, rect.height);
-    
-    // Draw grid lines (CoinGecko style)
-    ctx.strokeStyle = '#f1f5f9';
-    ctx.lineWidth = 1;
-    
-    // Vertical grid lines
-    for (let i = 0; i <= 4; i++) {
-      const x = (i / 4) * rect.width;
-      ctx.beginPath();
-      ctx.moveTo(x, 0);
-      ctx.lineTo(x, rect.height);
-      ctx.stroke();
+    // Clean up existing chart
+    if (chartInstanceRef.current) {
+      chartInstanceRef.current.remove();
+      chartInstanceRef.current = null;
+      seriesRef.current = null;
     }
     
-    // Horizontal grid lines
-    for (let i = 0; i <= 4; i++) {
-      const y = (i / 4) * rect.height;
-      ctx.beginPath();
-      ctx.moveTo(0, y);
-      ctx.lineTo(rect.width, y);
-      ctx.stroke();
-    }
+    // Clear container
+    chartRef.current.innerHTML = '';
     
-    // Draw price line with CoinGecko-like styling
-    ctx.strokeStyle = '#3b82f6';
-    ctx.lineWidth = 2;
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
-    
-    // Create gradient for the line
-    const gradient = ctx.createLinearGradient(0, 0, 0, rect.height);
-    gradient.addColorStop(0, '#3b82f6');
-    gradient.addColorStop(1, '#1d4ed8');
-    ctx.strokeStyle = gradient;
-    
-    ctx.beginPath();
-    
-    prices.forEach((price, index) => {
-      const x = (index / (prices.length - 1)) * rect.width;
-      const y = rect.height - ((price - minPrice) / priceRange) * rect.height;
-      
-      if (index === 0) {
-        ctx.moveTo(x, y);
+    const chart = createChart(chartRef.current, {
+      width: chartRef.current.clientWidth,
+      height: 700,
+      layout: {
+        background: { color: '#ffffff' },
+        textColor: '#333',
+      },
+      grid: {
+        vertLines: { color: '#f1f5f9' },
+        horzLines: { color: '#f1f5f9' },
+      },
+      crosshair: {
+        mode: 1,
+      },
+      rightPriceScale: {
+        borderColor: '#e2e8f0',
+      },
+      timeScale: {
+        borderColor: '#e2e8f0',
+        timeVisible: true,
+        secondsVisible: false,
+      },
+    });
+
+    // Try different methods to add line series
+    let lineSeries;
+    try {
+      // Method 1: Try addLineSeries if it exists
+      if (typeof (chart as any).addLineSeries === 'function') {
+        lineSeries = (chart as any).addLineSeries({
+          color: '#f97316',
+          lineWidth: 2,
+          priceLineVisible: true,
+          lastValueVisible: true,
+        });
       } else {
-        ctx.lineTo(x, y);
+        // Method 2: Try addSeries with Line type
+        lineSeries = (chart as any).addSeries('Line', {
+          color: '#f97316',
+          lineWidth: 2,
+          priceLineVisible: true,
+          lastValueVisible: true,
+        });
       }
-    });
-    
-    ctx.stroke();
-    
-    // Add price area fill (CoinGecko style)
-    ctx.fillStyle = 'rgba(59, 130, 246, 0.1)';
-    ctx.beginPath();
-    ctx.moveTo(0, rect.height);
-    
-    prices.forEach((price, index) => {
-      const x = (index / (prices.length - 1)) * rect.width;
-      const y = rect.height - ((price - minPrice) / priceRange) * rect.height;
-      ctx.lineTo(x, y);
-    });
-    
-    ctx.lineTo(rect.width, rect.height);
-    ctx.closePath();
-    ctx.fill();
-    
-    // Add price labels on the right
-    ctx.fillStyle = '#64748b';
-    ctx.font = '12px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-    ctx.textAlign = 'right';
-    
-    for (let i = 0; i <= 4; i++) {
-      const y = (i / 4) * rect.height;
-      const price = maxPrice - (i / 4) * priceRange;
-      ctx.fillText(formatPrice(price, currency), rect.width - 8, y + 4);
+    } catch (error) {
+      console.error('Error adding line series:', error);
+      // Fallback: try without type specification
+      lineSeries = (chart as any).addSeries({
+        color: '#f97316',
+        lineWidth: 2,
+        priceLineVisible: true,
+        lastValueVisible: true,
+      });
     }
-    
-    // Add time labels at the bottom
-    ctx.textAlign = 'center';
-    ctx.fillStyle = '#94a3b8';
-    
-    for (let i = 0; i <= 4; i++) {
-      const x = (i / 4) * rect.width;
-      const timestamp = data[Math.floor((i / 4) * (data.length - 1))]?.timestamp;
-      if (timestamp) {
-        const date = new Date(timestamp);
-        const label = timeframe === '1D' 
-          ? date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
-          : date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-        ctx.fillText(label, x, rect.height - 8);
-      }
-    }
-  };
 
-  // Render chart whenever chartData changes
-  useEffect(() => {
-    if (chartData.length > 0 && chartRef.current) {
-      renderChart(chartData);
-    }
-  }, [chartData, currency]);
+    chartInstanceRef.current = chart;
+    seriesRef.current = lineSeries;
 
-  // Handle window resize for responsive canvas
-  useEffect(() => {
+    // Handle resize
     const handleResize = () => {
-      if (chartData.length > 0 && chartRef.current) {
-        renderChart(chartData);
+      if (chartRef.current && chartInstanceRef.current) {
+        chartInstanceRef.current.applyOptions({
+          width: chartRef.current.clientWidth,
+        });
       }
     };
 
     window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      if (chartInstanceRef.current) {
+        chartInstanceRef.current.remove();
+        chartInstanceRef.current = null;
+        seriesRef.current = null;
+      }
+    };
+  };
+
+  // Update chart data
+  const updateChartData = (data: ChartDataPoint[]) => {
+    if (!seriesRef.current || data.length === 0) return;
+    
+    try {
+      seriesRef.current.setData(data);
+      
+      if (chartInstanceRef.current) {
+        chartInstanceRef.current.timeScale().fitContent();
+      }
+    } catch (error) {
+      console.error('Error updating chart data:', error);
+      // Fallback to SVG chart
+      createFallbackChart(data);
+    }
+  };
+
+  // Create fallback SVG chart
+  const createFallbackChart = (data: ChartDataPoint[]) => {
+    if (!chartRef.current) return;
+    
+    const container = chartRef.current;
+    container.innerHTML = '';
+    
+    const width = container.clientWidth;
+    const height = 700;
+    
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('width', width.toString());
+    svg.setAttribute('height', height.toString());
+    svg.style.background = 'white';
+    
+    if (data.length === 0) return;
+    
+    const values = data.map(d => d.value);
+    const minValue = Math.min(...values);
+    const maxValue = Math.max(...values);
+    const range = maxValue - minValue;
+    
+    // Create gradient
+    const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+    const gradient = document.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');
+    gradient.setAttribute('id', 'chartGradient');
+    gradient.setAttribute('x1', '0%');
+    gradient.setAttribute('y1', '0%');
+    gradient.setAttribute('x2', '0%');
+    gradient.setAttribute('y2', '100%');
+    
+    const stop1 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+    stop1.setAttribute('offset', '0%');
+    stop1.setAttribute('stop-color', '#f97316');
+    stop1.setAttribute('stop-opacity', '0.3');
+    
+    const stop2 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+    stop2.setAttribute('offset', '100%');
+    stop2.setAttribute('stop-color', '#ea580c');
+    stop2.setAttribute('stop-opacity', '0.1');
+    
+    gradient.appendChild(stop1);
+    gradient.appendChild(stop2);
+    defs.appendChild(gradient);
+    svg.appendChild(defs);
+    
+    // Create path
+    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    let pathData = '';
+    
+    data.forEach((point, index) => {
+      const x = (index / (data.length - 1)) * width;
+      const y = height - ((point.value - minValue) / range) * height;
+      
+      if (index === 0) {
+        pathData += `M ${x} ${y}`;
+      } else {
+        pathData += ` L ${x} ${y}`;
+      }
+    });
+    
+    path.setAttribute('d', pathData);
+    path.setAttribute('stroke', '#f97316');
+    path.setAttribute('stroke-width', '2');
+    path.setAttribute('fill', 'none');
+    path.setAttribute('stroke-linecap', 'round');
+    path.setAttribute('stroke-linejoin', 'round');
+    
+    // Create area
+    const areaPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    const areaData = pathData + ` L ${width} ${height} L 0 ${height} Z`;
+    areaPath.setAttribute('d', areaData);
+    areaPath.setAttribute('fill', 'url(#chartGradient)');
+    
+    // Add grid lines
+    for (let i = 0; i <= 4; i++) {
+      const y = (i / 4) * height;
+      const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      line.setAttribute('x1', '0');
+      line.setAttribute('y1', y.toString());
+      line.setAttribute('x2', width.toString());
+      line.setAttribute('y2', y.toString());
+      line.setAttribute('stroke', '#f1f5f9');
+      line.setAttribute('stroke-width', '1');
+      svg.appendChild(line);
+    }
+    
+    for (let i = 0; i <= 4; i++) {
+      const x = (i / 4) * width;
+      const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      line.setAttribute('x1', x.toString());
+      line.setAttribute('y1', '0');
+      line.setAttribute('x2', x.toString());
+      line.setAttribute('y2', height.toString());
+      line.setAttribute('stroke', '#f1f5f9');
+      line.setAttribute('stroke-width', '1');
+      svg.appendChild(line);
+    }
+    
+    // Add price labels on the right
+    for (let i = 0; i <= 4; i++) {
+      const y = (i / 4) * height;
+      const price = maxValue - (i / 4) * range;
+      const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      label.setAttribute('x', (width - 8).toString());
+      label.setAttribute('y', (y + 4).toString());
+      label.setAttribute('font-family', 'Arial, sans-serif');
+      label.setAttribute('font-size', '10');
+      label.setAttribute('fill', '#64748b');
+      label.setAttribute('text-anchor', 'end');
+      label.textContent = formatPrice(price, currency);
+      svg.appendChild(label);
+    }
+    
+    // Add time labels at the bottom
+    for (let i = 0; i <= 4; i++) {
+      const x = (i / 4) * width;
+      const dataIndex = Math.floor((i / 4) * (data.length - 1));
+      const timestamp = data[dataIndex]?.time;
+      if (timestamp) {
+        const date = new Date(Number(timestamp) * 1000);
+        const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        label.setAttribute('x', x.toString());
+        label.setAttribute('y', (height - 8).toString());
+        label.setAttribute('font-family', 'Arial, sans-serif');
+        label.setAttribute('font-size', '10');
+        label.setAttribute('fill', '#94a3b8');
+        label.setAttribute('text-anchor', 'middle');
+        const timeLabel = timeframe === '1D' 
+          ? date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+          : date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        label.textContent = timeLabel;
+        svg.appendChild(label);
+      }
+    }
+    
+    svg.appendChild(areaPath);
+    svg.appendChild(path);
+    
+    // Add title
+    const title = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    title.setAttribute('x', '20');
+    title.setAttribute('y', '30');
+    title.setAttribute('font-family', 'Arial, sans-serif');
+    title.setAttribute('font-size', '18');
+    title.setAttribute('font-weight', 'bold');
+    title.setAttribute('fill', '#f97316');
+    title.textContent = `${coin?.name || 'Crypto'} Price Chart`;
+    
+    // Add subtitle with timeframe
+    const subtitle = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    subtitle.setAttribute('x', '20');
+    subtitle.setAttribute('y', '50');
+    subtitle.setAttribute('font-family', 'Arial, sans-serif');
+    subtitle.setAttribute('font-size', '12');
+    subtitle.setAttribute('fill', '#64748b');
+    subtitle.textContent = `${timeframe} timeframe • ${data.length} data points`;
+    
+    // Add current price
+    const currentPrice = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    currentPrice.setAttribute('x', '20');
+    currentPrice.setAttribute('y', '70');
+    currentPrice.setAttribute('font-family', 'Arial, sans-serif');
+    currentPrice.setAttribute('font-size', '14');
+    currentPrice.setAttribute('font-weight', 'bold');
+    currentPrice.setAttribute('fill', '#0f172a');
+    currentPrice.textContent = `Current: ${formatPrice(data[data.length - 1]?.value || 0, currency)}`;
+    
+    // Add price change
+    const priceChange = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    const change = data.length > 1 ? ((data[data.length - 1].value - data[0].value) / data[0].value * 100) : 0;
+    priceChange.setAttribute('x', '20');
+    priceChange.setAttribute('y', '90');
+    priceChange.setAttribute('font-family', 'Arial, sans-serif');
+    priceChange.setAttribute('font-size', '14');
+    priceChange.setAttribute('font-weight', 'bold');
+    priceChange.setAttribute('fill', change >= 0 ? '#059669' : '#dc2626');
+    priceChange.textContent = `Change: ${change >= 0 ? '+' : ''}${change.toFixed(2)}%`;
+    
+    svg.appendChild(title);
+    svg.appendChild(subtitle);
+    svg.appendChild(currentPrice);
+    svg.appendChild(priceChange);
+    
+    // Add status indicator
+    const statusCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    statusCircle.setAttribute('cx', (width - 30).toString());
+    statusCircle.setAttribute('cy', '30');
+    statusCircle.setAttribute('r', '8');
+    statusCircle.setAttribute('fill', '#f97316');
+    
+    const statusText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    statusText.setAttribute('x', (width - 15).toString());
+    statusText.setAttribute('y', '35');
+    statusText.setAttribute('font-family', 'Arial, sans-serif');
+    statusText.setAttribute('font-size', '12');
+    statusText.setAttribute('font-weight', 'bold');
+    statusText.setAttribute('fill', '#ea580c');
+    statusText.textContent = 'LIVE';
+    
+    svg.appendChild(statusCircle);
+    svg.appendChild(statusText);
+    
+    container.appendChild(svg);
+  };
+
+  // Initialize chart when component mounts
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      try {
+        initializeChart();
+      } catch (error) {
+        console.error('Error initializing TradingView chart:', error);
+        // If TradingView fails, we'll use the fallback SVG chart when data is available
+      }
+    }, 100);
+    
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Update chart data whenever chartData changes
+  useEffect(() => {
+    if (chartData.length > 0) {
+      if (!chartInstanceRef.current || !seriesRef.current) {
+        // Try to initialize TradingView chart
+        try {
+          initializeChart();
+          setTimeout(() => {
+            if (seriesRef.current) {
+              updateChartData(chartData);
+            } else {
+              // Fallback to SVG chart
+              createFallbackChart(chartData);
+            }
+          }, 300);
+        } catch (error) {
+          console.error('TradingView chart failed, using SVG fallback:', error);
+          createFallbackChart(chartData);
+        }
+      } else {
+        updateChartData(chartData);
+      }
+    }
   }, [chartData]);
+
+  // Re-initialize chart when timeframe changes
+  useEffect(() => {
+    if (chartInstanceRef.current) {
+      initializeChart();
+    }
+  }, [timeframe]);
 
   const formatNumber = (num: number) => {
     if (num >= 1e12) return (num / 1e12).toFixed(2) + 'T';
@@ -488,7 +738,7 @@ const CoinDetail: React.FC = () => {
   return (
     <div style={{ 
       minHeight: '100vh', 
-      background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #cbd5e1 100%)',
+      background: 'linear-gradient(135deg, #fff7ed 0%, #fed7aa 50%, #fdba74 100%)',
       position: 'relative'
     }}>
       {/* Animated background elements */}
@@ -507,7 +757,7 @@ const CoinDetail: React.FC = () => {
           left: '10%',
           width: '200px',
           height: '200px',
-          background: 'radial-gradient(circle, rgba(59, 130, 246, 0.1) 0%, transparent 70%)',
+          background: 'radial-gradient(circle, rgba(251, 146, 60, 0.1) 0%, transparent 70%)',
           borderRadius: '50%',
           animation: 'float 6s ease-in-out infinite'
         }}></div>
@@ -517,7 +767,7 @@ const CoinDetail: React.FC = () => {
           right: '15%',
           width: '150px',
           height: '150px',
-          background: 'radial-gradient(circle, rgba(139, 92, 246, 0.1) 0%, transparent 70%)',
+          background: 'radial-gradient(circle, rgba(249, 115, 22, 0.1) 0%, transparent 70%)',
           borderRadius: '50%',
           animation: 'float 8s ease-in-out infinite reverse'
         }}></div>
@@ -636,19 +886,19 @@ const CoinDetail: React.FC = () => {
         
         {/* Real-time Data Indicator */}
         <div style={{
-          background: 'linear-gradient(135deg, #dbeafe 0%, #e0e7ff 100%)',
-          border: '2px solid #3b82f6',
+          background: 'linear-gradient(135deg, #fed7aa 0%, #fdba74 100%)',
+          border: '2px solid #f97316',
           borderRadius: '20px',
           padding: '24px',
           marginBottom: '40px',
-          boxShadow: '0 20px 40px rgba(59, 130, 246, 0.2)',
+          boxShadow: '0 20px 40px rgba(249, 115, 22, 0.2)',
           transform: 'translateY(0)',
           animation: 'slideIn 0.6s ease-out 0.1s both'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div style={{ display: 'flex', alignItems: 'center' }}>
               <div style={{ 
-                color: '#2563eb', 
+                color: '#ea580c', 
                 fontSize: '28px', 
                 marginRight: '20px',
                 background: 'white',
@@ -659,10 +909,10 @@ const CoinDetail: React.FC = () => {
                 alignItems: 'center',
                 justifyContent: 'center',
                 boxShadow: '0 8px 20px rgba(0, 0, 0, 0.1)'
-              }}>🔄</div>
+              }}>●</div>
               <div>
-                <p style={{ color: '#1e40af', fontWeight: 700, margin: 0, fontSize: '18px' }}>Live Data Mode</p>
-                <p style={{ color: '#3b82f6', fontSize: '16px', margin: '12px 0 0 0', lineHeight: '1.6' }}>
+                <p style={{ color: '#c2410c', fontWeight: 700, margin: 0, fontSize: '18px' }}>Live Data Mode</p>
+                <p style={{ color: '#f97316', fontSize: '16px', margin: '12px 0 0 0', lineHeight: '1.6' }}>
                   Real-time data updates every 60 seconds • Last update: {lastUpdate.toLocaleTimeString()}
                 </p>
               </div>
@@ -670,8 +920,8 @@ const CoinDetail: React.FC = () => {
             <div style={{
               width: '24px',
               height: '24px',
-              border: '3px solid #dbeafe',
-              borderTop: '3px solid #2563eb',
+              border: '3px solid #fed7aa',
+              borderTop: '3px solid #ea580c',
               borderRadius: '50%',
               animation: 'spin 1s linear infinite'
             }}></div>
@@ -941,73 +1191,81 @@ const CoinDetail: React.FC = () => {
               </div>
             </div>
 
-            {/* Timeframe Selector */}
-            <div style={{
-              display: 'flex',
-              justifyContent: 'center',
-              gap: '16px',
-              background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
-              padding: '20px',
-              borderRadius: '20px',
-              boxShadow: '0 20px 40px rgba(0, 0, 0, 0.1)',
-              border: '2px solid rgba(255,255,255,0.8)'
-            }}>
-              {(['1D', '7D', '30D', '1Y'] as const).map((tf) => (
-                <button
-                  key={tf}
-                  onClick={() => {
-                    setTimeframe(tf);
-                    // Show immediate feedback
-                    setChartLoading(true);
-                    // Generate mock data immediately for the new timeframe
-                    const daysForMock = tf === '1D' ? 1 : tf === '7D' ? 7 : tf === '30D' ? 30 : 365;
-                    const mockData = generateRealisticChartData(daysForMock, coin?.current_price || 100);
-                    setChartData(mockData);
-                    setChartLoading(false);
-                  }}
-                  style={{
-                    padding: '16px 28px',
-                    borderRadius: '16px',
-                    fontWeight: 700,
-                    border: 'none',
-                    cursor: 'pointer',
-                    fontSize: '16px',
-                    transition: 'all 0.3s ease',
-                    backgroundColor: timeframe === tf ? 'linear-gradient(135deg, #3b82f6, #8b5cf6)' : 'linear-gradient(135deg, #f8fafc, #e2e8f0)',
-                    color: timeframe === tf ? 'white' : '#64748b',
-                    boxShadow: timeframe === tf ? '0 8px 20px rgba(59, 130, 246, 0.3)' : '0 4px 12px rgba(0, 0, 0, 0.1)',
-                    transform: timeframe === tf ? 'scale(1.05)' : 'scale(1)'
-                  }}
-                  onMouseEnter={(e) => {
-                    if (timeframe !== tf) {
-                      e.currentTarget.style.transform = 'translateY(-2px) scale(1.02)';
-                      e.currentTarget.style.boxShadow = '0 8px 20px rgba(0, 0, 0, 0.15)';
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (timeframe !== tf) {
-                      e.currentTarget.style.transform = 'translateY(0) scale(1)';
-                      e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.1)';
-                    }
-                  }}
-                >
-                  {tf}
-                </button>
-              ))}
-            </div>
+                         {/* Timeframe Selector */}
+             <div style={{
+               display: 'flex',
+               justifyContent: 'center',
+               gap: '16px',
+               background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
+               padding: '20px',
+               borderRadius: '20px',
+               boxShadow: '0 20px 40px rgba(0, 0, 0, 0.1)',
+               border: '2px solid rgba(255,255,255,0.8)'
+             }}>
+               {(['1D', '7D', '30D', '1Y'] as const).map((tf) => (
+                 <button
+                   key={tf}
+                   onClick={() => {
+                     setTimeframe(tf);
+                     setChartLoading(true);
+                     // Generate mock data immediately for the new timeframe
+                     const daysForMock = tf === '1D' ? 1 : tf === '7D' ? 7 : tf === '30D' ? 30 : 365;
+                     const mockData = generateRealisticChartData(daysForMock, coin?.current_price || 100);
+                     setChartData(mockData);
+                     setTimeout(() => setChartLoading(false), 500);
+                   }}
+                   style={{
+                     padding: '16px 28px',
+                     borderRadius: '16px',
+                     fontWeight: 700,
+                     border: 'none',
+                     cursor: 'pointer',
+                     fontSize: '16px',
+                     transition: 'all 0.3s ease',
+                     background: timeframe === tf 
+                       ? 'linear-gradient(135deg, #f97316, #ea580c)' 
+                       : 'linear-gradient(135deg, #f8fafc, #e2e8f0)',
+                     color: timeframe === tf ? 'white' : '#64748b',
+                     boxShadow: timeframe === tf 
+                       ? '0 8px 20px rgba(249, 115, 22, 0.3)' 
+                       : '0 4px 12px rgba(0, 0, 0, 0.1)',
+                     transform: timeframe === tf ? 'scale(1.05)' : 'scale(1)'
+                   }}
+                   onMouseEnter={(e) => {
+                     if (timeframe !== tf) {
+                       e.currentTarget.style.transform = 'translateY(-2px) scale(1.02)';
+                       e.currentTarget.style.boxShadow = '0 8px 20px rgba(0, 0, 0, 0.15)';
+                       e.currentTarget.style.background = 'linear-gradient(135deg, #f97316, #ea580c)';
+                       e.currentTarget.style.color = 'white';
+                     }
+                   }}
+                   onMouseLeave={(e) => {
+                     if (timeframe !== tf) {
+                       e.currentTarget.style.transform = 'translateY(0) scale(1)';
+                       e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.1)';
+                       e.currentTarget.style.background = 'linear-gradient(135deg, #f8fafc, #e2e8f0)';
+                       e.currentTarget.style.color = '#64748b';
+                     }
+                   }}
+                 >
+                   {tf}
+                 </button>
+               ))}
+             </div>
           </div>
         </div>
 
         {/* Chart Section */}
         <div style={{
           background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 50%, #f1f5f9 100%)',
-          borderRadius: '20px',
-          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
-          border: '1px solid #e2e8f0',
-          padding: '40px',
-          marginBottom: '40px',
+          borderRadius: '24px',
+          boxShadow: '0 32px 64px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.8)',
+          border: '2px solid rgba(249, 115, 22, 0.1)',
+          padding: '80px',
+          marginBottom: '48px',
           position: 'relative',
-          overflow: 'hidden'
+          overflow: 'hidden',
+          backdropFilter: 'blur(20px)'
         }}>
           {/* Background Pattern */}
           <div style={{
@@ -1016,7 +1274,17 @@ const CoinDetail: React.FC = () => {
             left: '-50%',
             width: '200%',
             height: '200%',
-            background: 'radial-gradient(circle, rgba(59, 130, 246, 0.02) 0%, transparent 70%)',
+            background: 'radial-gradient(circle, rgba(249, 115, 22, 0.03) 0%, transparent 70%)',
+            zIndex: 0
+          }}></div>
+          <div style={{
+            position: 'absolute',
+            top: '20%',
+            right: '10%',
+            width: '120px',
+            height: '120px',
+            background: 'linear-gradient(135deg, rgba(249, 115, 22, 0.1), rgba(234, 88, 12, 0.05))',
+            borderRadius: '50%',
             zIndex: 0
           }}></div>
           
@@ -1033,7 +1301,7 @@ const CoinDetail: React.FC = () => {
                 gap: '16px'
               }}>
                 <div style={{
-                  background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
+                  background: 'linear-gradient(135deg, #f97316, #ea580c)',
                   color: 'white',
                   width: '56px',
                   height: '56px',
@@ -1042,8 +1310,9 @@ const CoinDetail: React.FC = () => {
                   alignItems: 'center',
                   justifyContent: 'center',
                   fontSize: '28px',
-                  boxShadow: '0 10px 25px -5px rgba(59, 130, 246, 0.3)'
-                }}>📈</div>
+                  boxShadow: '0 10px 25px -5px rgba(249, 115, 22, 0.3)',
+                  fontWeight: 'bold'
+                }}>CH</div>
                 <div>
                   <h2 style={{
                     fontSize: '28px',
@@ -1052,7 +1321,7 @@ const CoinDetail: React.FC = () => {
                     margin: 0,
                     letterSpacing: '-0.025em'
                   }}>
-                    Price Chart & Analytics
+                    Advanced Price Analytics
                   </h2>
                   <p style={{
                     color: '#64748b',
@@ -1060,7 +1329,7 @@ const CoinDetail: React.FC = () => {
                     margin: '8px 0 0 0',
                     fontWeight: 500
                   }}>
-                    {timeframe} price performance analysis
+                    Live Market Data • {timeframe} timeframe • Real-time updates
                   </p>
                 </div>
               </div>
@@ -1084,14 +1353,14 @@ const CoinDetail: React.FC = () => {
                     <div style={{
                       width: '20px',
                       height: '20px',
-                      border: '2px solid #dbeafe',
-                      borderTop: '2px solid #2563eb',
+                      border: '2px solid #fed7aa',
+                      borderTop: '2px solid #f97316',
                       borderRadius: '50%',
                       animation: 'spin 1s linear infinite'
                     }}></div>
                     <span style={{
                       fontSize: '12px',
-                      color: '#3b82f6',
+                      color: '#f97316',
                       fontWeight: 600
                     }}>Updating...</span>
                   </div>
@@ -1120,13 +1389,15 @@ const CoinDetail: React.FC = () => {
             </div>
             
             <div style={{
-              height: '450px',
+              height: '700px',
               position: 'relative',
-              borderRadius: '16px',
+              borderRadius: '20px',
               overflow: 'hidden',
-              background: 'white',
-              border: '1px solid #e2e8f0',
-              boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+              background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
+              border: '2px solid rgba(226, 232, 240, 0.5)',
+              boxShadow: '0 20px 40px -12px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
+              backdropFilter: 'blur(10px)',
+              minHeight: '700px'
             }}>
               {chartLoading && chartData.length === 0 ? (
                 <div style={{
@@ -1134,122 +1405,312 @@ const CoinDetail: React.FC = () => {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  background: 'linear-gradient(135deg, #f8fafc 0%, #ffffff 50%, #f1f5f9 100%)'
+                  background: 'linear-gradient(135deg, #f8fafc 0%, #ffffff 50%, #f1f5f9 100%)',
+                  position: 'relative'
                 }}>
-                  <div style={{ textAlign: 'center', color: '#64748b' }}>
+                  <div style={{ textAlign: 'center', color: '#64748b', position: 'relative', zIndex: 1 }}>
                     <div style={{ 
-                      fontSize: '64px', 
-                      marginBottom: '24px',
-                      opacity: 0.7
-                    }}>📊</div>
+                      fontSize: '80px', 
+                      marginBottom: '32px',
+                      opacity: 0.8,
+                      background: 'linear-gradient(135deg, #f97316, #ea580c)',
+                      WebkitBackgroundClip: 'text',
+                      WebkitTextFillColor: 'transparent',
+                      fontWeight: 'bold'
+                    }}>CH</div>
                     <p style={{ 
-                      fontSize: '20px', 
-                      fontWeight: 700, 
+                      fontSize: '24px', 
+                      fontWeight: 800, 
                       margin: 0,
-                      color: '#0f172a'
-                    }}>Loading Chart Data...</p>
+                      color: '#0f172a',
+                      letterSpacing: '-0.025em'
+                    }}>Loading Advanced Analytics...</p>
                     <p style={{ 
-                      fontSize: '16px', 
-                      margin: '12px 0 0 0',
-                      color: '#64748b'
-                    }}>Fetching {timeframe} price history from CoinGecko</p>
+                      fontSize: '18px', 
+                      margin: '16px 0 0 0',
+                      color: '#64748b',
+                      fontWeight: 500
+                    }}>Preparing {timeframe} market data visualization</p>
+                    <div style={{
+                      marginTop: '24px',
+                      display: 'flex',
+                      justifyContent: 'center',
+                      gap: '8px'
+                    }}>
+                      <div style={{
+                        width: '8px',
+                        height: '8px',
+                        background: '#f97316',
+                        borderRadius: '50%',
+                        animation: 'pulse 1.5s infinite'
+                      }}></div>
+                      <div style={{
+                        width: '8px',
+                        height: '8px',
+                        background: '#ea580c',
+                        borderRadius: '50%',
+                        animation: 'pulse 1.5s infinite 0.2s'
+                      }}></div>
+                      <div style={{
+                        width: '8px',
+                        height: '8px',
+                        background: '#c2410c',
+                        borderRadius: '50%',
+                        animation: 'pulse 1.5s infinite 0.4s'
+                      }}></div>
+                    </div>
                   </div>
                 </div>
               ) : (
-                <canvas
+                <div
                   ref={chartRef}
                   style={{
                     width: '100%',
                     height: '100%',
-                    display: 'block'
+                    minHeight: '700px',
+                    display: 'block',
+                    position: 'relative',
+                    background: 'transparent'
                   }}
                 />
               )}
             </div>
             
+            {/* Chart Statistics & Analytics */}
             {chartData.length > 0 && (
               <div style={{
-                marginTop: '24px',
+                marginTop: '32px',
                 display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-                gap: '20px'
+                gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+                gap: '24px'
               }}>
+                {/* Price Statistics */}
                 <div style={{
-                  background: 'white',
-                  padding: '20px',
-                  borderRadius: '16px',
-                  border: '1px solid #e2e8f0',
-                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                  background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
+                  borderRadius: '20px',
+                  padding: '24px',
+                  border: '2px solid rgba(249, 115, 22, 0.1)',
+                  boxShadow: '0 8px 25px -5px rgba(249, 115, 22, 0.1)',
+                  position: 'relative',
+                  overflow: 'hidden'
                 }}>
-                  <p style={{
-                    fontSize: '12px',
-                    color: '#94a3b8',
-                    margin: '0 0 8px 0',
-                    fontWeight: 500,
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.05em'
-                  }}>Data Period</p>
-                  <p style={{
-                    fontSize: '16px',
-                    color: '#0f172a',
-                    margin: 0,
-                    fontWeight: 600
-                  }}>
-                    {new Date(chartData[0]?.timestamp || Date.now()).toLocaleDateString()} - {new Date(chartData[chartData.length - 1]?.timestamp || Date.now()).toLocaleDateString()}
-                  </p>
+                  <div style={{
+                    position: 'absolute',
+                    top: '-20px',
+                    right: '-20px',
+                    width: '80px',
+                    height: '80px',
+                    background: 'linear-gradient(135deg, rgba(249, 115, 22, 0.1), rgba(234, 88, 12, 0.05))',
+                    borderRadius: '50%'
+                  }}></div>
+                  <div style={{ position: 'relative', zIndex: 1 }}>
+                    <h3 style={{
+                      fontSize: '18px',
+                      fontWeight: 700,
+                      color: '#f97316',
+                      marginBottom: '20px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px'
+                    }}>
+                      <span style={{
+                        width: '8px',
+                        height: '8px',
+                        background: '#f97316',
+                        borderRadius: '50%',
+                        animation: 'pulse 2s infinite'
+                      }}></span>
+                      Price Statistics
+                    </h3>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ color: '#64748b', fontSize: '14px', fontWeight: 500 }}>Period High</span>
+                        <span style={{ color: '#059669', fontSize: '16px', fontWeight: 700 }}>
+                          {formatPrice(Math.max(...chartData.map(d => d.value)), currency)}
+                        </span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ color: '#64748b', fontSize: '14px', fontWeight: 500 }}>Period Low</span>
+                        <span style={{ color: '#dc2626', fontSize: '16px', fontWeight: 700 }}>
+                          {formatPrice(Math.min(...chartData.map(d => d.value)), currency)}
+                        </span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ color: '#64748b', fontSize: '14px', fontWeight: 500 }}>Price Range</span>
+                        <span style={{ color: '#0f172a', fontSize: '16px', fontWeight: 700 }}>
+                          {formatPrice(Math.max(...chartData.map(d => d.value)) - Math.min(...chartData.map(d => d.value)), currency)}
+                        </span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ color: '#64748b', fontSize: '14px', fontWeight: 500 }}>Average Price</span>
+                        <span style={{ color: '#0f172a', fontSize: '16px', fontWeight: 700 }}>
+                          {formatPrice(chartData.reduce((sum, d) => sum + d.value, 0) / chartData.length, currency)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                
+
+                {/* Performance Metrics */}
                 <div style={{
-                  background: 'white',
-                  padding: '20px',
-                  borderRadius: '16px',
-                  border: '1px solid #e2e8f0',
-                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                  background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
+                  borderRadius: '20px',
+                  padding: '24px',
+                  border: '2px solid rgba(249, 115, 22, 0.1)',
+                  boxShadow: '0 8px 25px -5px rgba(249, 115, 22, 0.1)',
+                  position: 'relative',
+                  overflow: 'hidden'
                 }}>
-                  <p style={{
-                    fontSize: '12px',
-                    color: '#94a3b8',
-                    margin: '0 0 8px 0',
-                    fontWeight: 500,
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.05em'
-                  }}>Price Range</p>
-                  <p style={{
-                    fontSize: '16px',
-                    color: '#0f172a',
-                    margin: 0,
-                    fontWeight: 600
-                  }}>
-                    {formatPrice(Math.min(...chartData.map(d => d.price)), currency)} - {formatPrice(Math.max(...chartData.map(d => d.price)), currency)}
-                  </p>
+                  <div style={{
+                    position: 'absolute',
+                    top: '-20px',
+                    right: '-20px',
+                    width: '80px',
+                    height: '80px',
+                    background: 'linear-gradient(135deg, rgba(249, 115, 22, 0.1), rgba(234, 88, 12, 0.05))',
+                    borderRadius: '50%'
+                  }}></div>
+                  <div style={{ position: 'relative', zIndex: 1 }}>
+                    <h3 style={{
+                      fontSize: '18px',
+                      fontWeight: 700,
+                      color: '#f97316',
+                      marginBottom: '20px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px'
+                    }}>
+                      <span style={{
+                        width: '8px',
+                        height: '8px',
+                        background: '#f97316',
+                        borderRadius: '50%',
+                        animation: 'pulse 2s infinite 0.5s'
+                      }}></span>
+                      Performance Metrics
+                    </h3>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ color: '#64748b', fontSize: '14px', fontWeight: 500 }}>Period Change</span>
+                        <span style={{ 
+                          color: chartData[chartData.length - 1]?.value > chartData[0]?.value ? '#059669' : '#dc2626', 
+                          fontSize: '16px', 
+                          fontWeight: 700 
+                        }}>
+                          {chartData.length > 1 ? (
+                            ((chartData[chartData.length - 1].value - chartData[0].value) / chartData[0].value * 100).toFixed(2)
+                          ) : '0.00'}%
+                        </span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ color: '#64748b', fontSize: '14px', fontWeight: 500 }}>Volatility</span>
+                        <span style={{ color: '#0f172a', fontSize: '16px', fontWeight: 700 }}>
+                          {chartData.length > 1 ? (
+                            (Math.sqrt(chartData.reduce((sum, d, i) => {
+                              if (i === 0) return 0;
+                              const change = (d.value - chartData[i-1].value) / chartData[i-1].value;
+                              return sum + change * change;
+                            }, 0) / (chartData.length - 1)) * 100).toFixed(2)
+                          ) : '0.00'}%
+                        </span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ color: '#64748b', fontSize: '14px', fontWeight: 500 }}>Data Points</span>
+                        <span style={{ color: '#0f172a', fontSize: '16px', fontWeight: 700 }}>
+                          {chartData.length} {timeframe === '1D' ? 'hourly' : 'daily'} intervals
+                        </span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ color: '#64748b', fontSize: '14px', fontWeight: 500 }}>Time Period</span>
+                        <span style={{ color: '#0f172a', fontSize: '16px', fontWeight: 700 }}>
+                          {chartData[0]?.time ? new Date(Number(chartData[0].time) * 1000).toLocaleDateString() : 'N/A'} - {chartData[chartData.length - 1]?.time ? new Date(Number(chartData[chartData.length - 1].time) * 1000).toLocaleDateString() : 'N/A'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                
+
+                {/* Market Analysis */}
                 <div style={{
-                  background: 'white',
-                  padding: '20px',
-                  borderRadius: '16px',
-                  border: '1px solid #e2e8f0',
-                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                  background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
+                  borderRadius: '20px',
+                  padding: '24px',
+                  border: '2px solid rgba(249, 115, 22, 0.1)',
+                  boxShadow: '0 8px 25px -5px rgba(249, 115, 22, 0.1)',
+                  position: 'relative',
+                  overflow: 'hidden'
                 }}>
-                  <p style={{
-                    fontSize: '12px',
-                    color: '#94a3b8',
-                    margin: '0 0 8px 0',
-                    fontWeight: 500,
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.05em'
-                  }}>Data Points</p>
-                  <p style={{
-                    fontSize: '16px',
-                    color: '#0f172a',
-                    margin: 0,
-                    fontWeight: 600
-                  }}>
-                    {chartData.length} {timeframe === '1D' ? 'hourly' : 'daily'} intervals
-                  </p>
+                  <div style={{
+                    position: 'absolute',
+                    top: '-20px',
+                    right: '-20px',
+                    width: '80px',
+                    height: '80px',
+                    background: 'linear-gradient(135deg, rgba(249, 115, 22, 0.1), rgba(234, 88, 12, 0.05))',
+                    borderRadius: '50%'
+                  }}></div>
+                  <div style={{ position: 'relative', zIndex: 1 }}>
+                    <h3 style={{
+                      fontSize: '18px',
+                      fontWeight: 700,
+                      color: '#f97316',
+                      marginBottom: '20px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px'
+                    }}>
+                      <span style={{
+                        width: '8px',
+                        height: '8px',
+                        background: '#f97316',
+                        borderRadius: '50%',
+                        animation: 'pulse 2s infinite 1s'
+                      }}></span>
+                      Market Analysis
+                    </h3>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ color: '#64748b', fontSize: '14px', fontWeight: 500 }}>Trend Direction</span>
+                        <span style={{ 
+                          color: chartData[chartData.length - 1]?.value > chartData[0]?.value ? '#059669' : '#dc2626', 
+                          fontSize: '16px', 
+                          fontWeight: 700 
+                        }}>
+                          {chartData.length > 1 ? (
+                            chartData[chartData.length - 1].value > chartData[0].value ? '↗ Bullish' : '↘ Bearish'
+                          ) : '→ Neutral'}
+                        </span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ color: '#64748b', fontSize: '14px', fontWeight: 500 }}>Support Level</span>
+                        <span style={{ color: '#059669', fontSize: '16px', fontWeight: 700 }}>
+                          {formatPrice(Math.min(...chartData.map(d => d.value)) * 0.98, currency)}
+                        </span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ color: '#64748b', fontSize: '14px', fontWeight: 500 }}>Resistance Level</span>
+                        <span style={{ color: '#dc2626', fontSize: '16px', fontWeight: 700 }}>
+                          {formatPrice(Math.max(...chartData.map(d => d.value)) * 1.02, currency)}
+                        </span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ color: '#64748b', fontSize: '14px', fontWeight: 500 }}>Market Sentiment</span>
+                        <span style={{ 
+                          color: chartData[chartData.length - 1]?.value > chartData[0]?.value ? '#059669' : '#dc2626', 
+                          fontSize: '16px', 
+                          fontWeight: 700 
+                        }}>
+                          {chartData.length > 1 ? (
+                            chartData[chartData.length - 1].value > chartData[0].value ? 'Positive' : 'Negative'
+                          ) : 'Neutral'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
+
           </div>
         </div>
 
@@ -1288,7 +1749,7 @@ const CoinDetail: React.FC = () => {
                 marginBottom: '32px'
               }}>
                 <div style={{
-                  background: 'linear-gradient(135deg, #10b981, #059669)',
+                  background: 'linear-gradient(135deg, #f97316, #ea580c)',
                   color: 'white',
                   width: '56px',
                   height: '56px',
@@ -1298,8 +1759,9 @@ const CoinDetail: React.FC = () => {
                   justifyContent: 'center',
                   fontSize: '28px',
                   marginRight: '20px',
-                  boxShadow: '0 10px 25px -5px rgba(16, 185, 129, 0.3)'
-                }}>💰</div>
+                  boxShadow: '0 10px 25px -5px rgba(249, 115, 22, 0.3)',
+                  fontWeight: 'bold'
+                }}>MD</div>
                 <div>
                   <h2 style={{
                     fontSize: '28px',
@@ -1474,7 +1936,7 @@ const CoinDetail: React.FC = () => {
                 marginBottom: '32px'
               }}>
                 <div style={{
-                  background: 'linear-gradient(135deg, #ef4444, #dc2626)',
+                  background: 'linear-gradient(135deg, #f97316, #ea580c)',
                   color: 'white',
                   width: '56px',
                   height: '56px',
@@ -1484,8 +1946,9 @@ const CoinDetail: React.FC = () => {
                   justifyContent: 'center',
                   fontSize: '28px',
                   marginRight: '20px',
-                  boxShadow: '0 10px 25px -5px rgba(239, 68, 68, 0.3)'
-                }}>📊</div>
+                  boxShadow: '0 10px 25px -5px rgba(249, 115, 22, 0.3)',
+                  fontWeight: 'bold'
+                }}>PC</div>
                 <div>
                   <h2 style={{
                     fontSize: '28px',
@@ -1612,7 +2075,14 @@ const CoinDetail: React.FC = () => {
               display: 'flex',
               alignItems: 'center'
             }}>
-              <span style={{ fontSize: '30px', marginRight: '12px' }}>📖</span>
+              <span style={{ 
+                fontSize: '20px', 
+                marginRight: '12px',
+                background: 'linear-gradient(135deg, #f97316, #ea580c)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                fontWeight: 'bold'
+              }}>AB</span>
               About {coin.name}
             </h2>
             <div style={{ color: '#374151', lineHeight: '1.6' }}>
@@ -1638,7 +2108,14 @@ const CoinDetail: React.FC = () => {
               display: 'flex',
               alignItems: 'center'
             }}>
-              <span style={{ fontSize: '30px', marginRight: '12px' }}>🔗</span>
+              <span style={{ 
+                fontSize: '20px', 
+                marginRight: '12px',
+                background: 'linear-gradient(135deg, #f97316, #ea580c)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                fontWeight: 'bold'
+              }}>LN</span>
               Useful Links
             </h2>
             <div style={{
@@ -1668,7 +2145,7 @@ const CoinDetail: React.FC = () => {
                     e.currentTarget.style.backgroundColor = '#f9fafb';
                   }}
                 >
-                  <span>🌐 Official Website</span>
+                  <span>Official Website</span>
                 </a>
               )}
               {coin.links.blockchain_site?.[0] && (
@@ -1693,7 +2170,7 @@ const CoinDetail: React.FC = () => {
                     e.currentTarget.style.backgroundColor = '#f9fafb';
                   }}
                 >
-                  <span>🔍 Blockchain Explorer</span>
+                  <span>Blockchain Explorer</span>
                 </a>
               )}
             </div>
@@ -1724,9 +2201,20 @@ const CoinDetail: React.FC = () => {
           }
         }
         
+        @keyframes pulse {
+          0%, 100% {
+            opacity: 1;
+            transform: scale(1);
+          }
+          50% {
+            opacity: 0.5;
+            transform: scale(0.95);
+          }
+        }
+        
         .chart-container {
           position: relative;
-          height: 450px;
+          height: 700px;
           width: 100%;
         }
         

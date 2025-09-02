@@ -8,6 +8,7 @@ import Skeleton from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css'; // Import skeleton CSS
 import { useLanguage } from '../context/LanguageContext';
 import { useNewsTranslation } from '../hooks/useNewsTranslation';
+import { getCryptoFallbackImage, handleImageError } from '../utils/cryptoImages';
 import { Helmet } from 'react-helmet-async';
 
 interface PressReleaseItem {
@@ -76,7 +77,7 @@ const PressRelease: React.FC = () => {
             description: item.description || 'No description available',
             author: item.author || 'Unknown',
             date: formatMDY(item.pubDate || new Date()),
-            image: item.image || 'https://via.placeholder.com/300x200?text=No+Image',
+            image: item.image || getCryptoFallbackImage(item.title, 'news'),
             link: item.link || '#',
           }));
           setOtherReleases(formattedReleases);
@@ -101,7 +102,7 @@ const PressRelease: React.FC = () => {
             description: item.description || 'No description available',
             author: item.creator?.join(', ') || 'Unknown',
             date: formatMDY(item.pubDate || new Date()),
-            image: item.image_url || 'https://via.placeholder.com/300x200?text=No+Image',
+            image: item.image_url || getCryptoFallbackImage(item.title, 'news'),
             link: item.link || item.url || '#',
           }));
           setOtherReleases(formattedReleases);
@@ -121,15 +122,7 @@ const PressRelease: React.FC = () => {
     fetchReleases();
   }, []);
 
-  // Helper: Extract source/domain from link
-  const getSourceName = (url: string): string => {
-    try {
-      const u = new URL(url);
-      return u.hostname.replace('www.', '');
-    } catch {
-      return 'source';
-    }
-  };
+
 
   return (
     <Container
@@ -240,7 +233,7 @@ const PressRelease: React.FC = () => {
                     pubDate: effectiveMainArticle.date,
                     image_url: effectiveMainArticle.image,
                     link: effectiveMainArticle.link,
-                    source_name: getSourceName(effectiveMainArticle.link),
+                    source_name: 'Crypto News',
                     content: effectiveMainArticle.description || ''
                   } } });
                 }}
@@ -251,7 +244,7 @@ const PressRelease: React.FC = () => {
                     alt={effectiveMainArticle.title}
                     style={{ height: '100%', width: '100%', objectFit: 'cover' }}
                     onError={(e) => {
-                      (e.currentTarget as HTMLImageElement).src = 'https://via.placeholder.com/800x450?text=No+Image';
+                      handleImageError(e, effectiveMainArticle.title, 'news');
                     }}
                   />
                   {/* Overlay gradient */}
@@ -265,19 +258,7 @@ const PressRelease: React.FC = () => {
                   {/* Content overlay */}
                   <div style={{ position: 'absolute', bottom: 0, padding: '18px 20px', color: '#fff', width: '100%' }}>
                     <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
-                      <span
-                        style={{
-                          background: 'linear-gradient(135deg, rgba(249,115,22,0.25), rgba(251,146,60,0.2))',
-                          border: '1px solid rgba(249,115,22,0.35)',
-                          color: '#ffedd5',
-                          padding: '6px 10px',
-                          borderRadius: 999,
-                          fontSize: 12,
-                          backdropFilter: 'blur(6px)',
-                        }}
-                      >
-                        {getSourceName(effectiveMainArticle.link)}
-                      </span>
+
                     </div>
                     <div style={{ fontWeight: 800, fontSize: '1.35rem', lineHeight: 1.25, marginBottom: 6 }}>{effectiveMainArticle.title}</div>
                     <div
@@ -327,7 +308,7 @@ const PressRelease: React.FC = () => {
                     pubDate: release.date,
                     image_url: release.image,
                     link: release.link,
-                    source_name: getSourceName(release.link),
+                    source_name: 'Crypto News',
                     content: release.description || ''
                   } } });
                 }}
@@ -344,18 +325,7 @@ const PressRelease: React.FC = () => {
                   <Col xs={8}>
                     <Card.Body className="d-flex flex-column justify-content-between">
                       <div className="d-flex align-items-center mb-1" style={{ gap: 6 }}>
-                        <span
-                          style={{
-                            background: 'linear-gradient(135deg, rgba(251,146,60,0.18), rgba(249,115,22,0.18))',
-                            color: '#b45309',
-                            padding: '4px 10px',
-                            borderRadius: 999,
-                            fontSize: 11,
-                            border: '1px solid rgba(249,115,22,0.35)'
-                          }}
-                        >
-                          {getSourceName(release.link)}
-                        </span>
+
                       </div>
                       <Card.Title className="h2 text-start" style={{ fontSize: '0.98rem', fontWeight: 800 }}>
                         {release.title}
@@ -396,7 +366,7 @@ const PressRelease: React.FC = () => {
                       className="h-100 object-fit-cover rounded-3"
                       style={{ height: 'auto', maxHeight: '120px' }}
                       onError={(e) => {
-                        (e.currentTarget as HTMLImageElement).src = 'https://via.placeholder.com/300x200?text=No+Image';
+                        handleImageError(e, release.title, 'news');
                       }}
                     />
                   </Col>
