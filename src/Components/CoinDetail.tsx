@@ -218,7 +218,7 @@ const CoinDetail: React.FC = () => {
     
     const chart = createChart(chartRef.current, {
       width: chartRef.current.clientWidth,
-      height: 700,
+      height: window.innerWidth < 768 ? 350 : 700,
       layout: {
         background: { color: '#ffffff' },
         textColor: '#333',
@@ -277,8 +277,10 @@ const CoinDetail: React.FC = () => {
     // Handle resize
     const handleResize = () => {
       if (chartRef.current && chartInstanceRef.current) {
+        const newHeight = window.innerWidth < 768 ? 350 : 700;
         chartInstanceRef.current.applyOptions({
           width: chartRef.current.clientWidth,
+          height: newHeight,
         });
       }
     };
@@ -320,7 +322,7 @@ const CoinDetail: React.FC = () => {
     container.innerHTML = '';
     
     const width = container.clientWidth;
-    const height = 700;
+    const height = window.innerWidth < 768 ? 350 : 700;
     
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     svg.setAttribute('width', width.toString());
@@ -829,7 +831,7 @@ const CoinDetail: React.FC = () => {
               </svg>
               Back to Home
             </button>
-            //h
+            
             <h1 style={{
               fontSize: '28px',
               fontWeight: 800,
@@ -843,7 +845,7 @@ const CoinDetail: React.FC = () => {
         </div>
       </div>
 
-      <div style={{
+      <div className="coin-detail-container" style={{
         maxWidth: '1200px',
         margin: '0 auto',
         padding: '40px 24px',
@@ -929,7 +931,7 @@ const CoinDetail: React.FC = () => {
         </div>
         
         {/* Coin Header */}
-        <div style={{
+        <div className="coin-header" style={{
           background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 50%, #f1f5f9 100%)',
           borderRadius: '24px',
           boxShadow: '0 32px 64px -12px rgba(0, 0, 0, 0.25)',
@@ -953,12 +955,20 @@ const CoinDetail: React.FC = () => {
           }}></div>
           
           <div style={{ position: 'relative', zIndex: 1 }}>
-            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '40px' }}>
-              <div style={{
+            <div className="coin-header-content" style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              marginBottom: '40px',
+              flexDirection: 'row',
+              textAlign: 'left'
+            }}>
+              <div className="coin-image-container" style={{
                 position: 'relative',
-                marginRight: '40px'
+                marginRight: '40px',
+                marginBottom: '0'
               }}>
                 <img
+                  className="coin-image"
                   src={coin.image}
                   alt={coin.name}
                   style={{
@@ -999,7 +1009,7 @@ const CoinDetail: React.FC = () => {
                 </div>
               </div>
               <div>
-                <h1 style={{
+                <h1 className="coin-title" style={{
                   fontSize: '48px',
                   fontWeight: 900,
                   background: 'linear-gradient(135deg, #1e293b 0%, #475569 100%)',
@@ -1010,11 +1020,13 @@ const CoinDetail: React.FC = () => {
                 }}>
                   {coin.name}
                 </h1>
-                <div style={{
+                <div className="coin-badges" style={{
                   display: 'flex',
                   alignItems: 'center',
                   gap: '20px',
-                  marginBottom: '20px'
+                  marginBottom: '20px',
+                  flexWrap: 'wrap',
+                  justifyContent: 'flex-start'
                 }}>
                   <span style={{
                     background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
@@ -1052,13 +1064,13 @@ const CoinDetail: React.FC = () => {
             </div>
 
             {/* Price Section */}
-            <div style={{
+            <div className="price-grid" style={{
               display: 'grid',
               gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
               gap: '32px',
               marginBottom: '40px'
             }}>
-              <div style={{ 
+              <div className="price-card" style={{ 
                 textAlign: 'center', 
                 position: 'relative',
                 background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
@@ -1085,7 +1097,7 @@ const CoinDetail: React.FC = () => {
                   textTransform: 'uppercase',
                   letterSpacing: '0.05em'
                 }}>Current Price</p>
-                <p style={{
+                <p className="price-value" style={{
                   fontSize: '40px',
                   fontWeight: 900,
                   background: 'linear-gradient(135deg, #1e293b 0%, #475569 100%)',
@@ -1191,72 +1203,74 @@ const CoinDetail: React.FC = () => {
               </div>
             </div>
 
-                         {/* Timeframe Selector */}
-             <div style={{
-               display: 'flex',
-               justifyContent: 'center',
-               gap: '16px',
-               background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
-               padding: '20px',
-               borderRadius: '20px',
-               boxShadow: '0 20px 40px rgba(0, 0, 0, 0.1)',
-               border: '2px solid rgba(255,255,255,0.8)'
-             }}>
-               {(['1D', '7D', '30D', '1Y'] as const).map((tf) => (
-                 <button
-                   key={tf}
-                   onClick={() => {
-                     setTimeframe(tf);
-                     setChartLoading(true);
-                     // Generate mock data immediately for the new timeframe
-                     const daysForMock = tf === '1D' ? 1 : tf === '7D' ? 7 : tf === '30D' ? 30 : 365;
-                     const mockData = generateRealisticChartData(daysForMock, coin?.current_price || 100);
-                     setChartData(mockData);
+            {/* Timeframe Selector */}
+             <div className="timeframe-selector" style={{
+              display: 'flex',
+              justifyContent: 'center',
+              gap: '16px',
+              background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
+              padding: '20px',
+              borderRadius: '20px',
+              boxShadow: '0 20px 40px rgba(0, 0, 0, 0.1)',
+               border: '2px solid rgba(255,255,255,0.8)',
+               flexWrap: 'wrap'
+            }}>
+              {(['1D', '7D', '30D', '1Y'] as const).map((tf) => (
+                <button
+                  key={tf}
+                  className="timeframe-button"
+                  onClick={() => {
+                    setTimeframe(tf);
+                    setChartLoading(true);
+                    // Generate mock data immediately for the new timeframe
+                    const daysForMock = tf === '1D' ? 1 : tf === '7D' ? 7 : tf === '30D' ? 30 : 365;
+                    const mockData = generateRealisticChartData(daysForMock, coin?.current_price || 100);
+                    setChartData(mockData);
                      setTimeout(() => setChartLoading(false), 500);
-                   }}
-                   style={{
-                     padding: '16px 28px',
-                     borderRadius: '16px',
-                     fontWeight: 700,
-                     border: 'none',
-                     cursor: 'pointer',
-                     fontSize: '16px',
-                     transition: 'all 0.3s ease',
+                  }}
+                  style={{
+                    padding: '16px 28px',
+                    borderRadius: '16px',
+                    fontWeight: 700,
+                    border: 'none',
+                    cursor: 'pointer',
+                    fontSize: '16px',
+                    transition: 'all 0.3s ease',
                      background: timeframe === tf 
                        ? 'linear-gradient(135deg, #f97316, #ea580c)' 
                        : 'linear-gradient(135deg, #f8fafc, #e2e8f0)',
-                     color: timeframe === tf ? 'white' : '#64748b',
+                    color: timeframe === tf ? 'white' : '#64748b',
                      boxShadow: timeframe === tf 
                        ? '0 8px 20px rgba(249, 115, 22, 0.3)' 
                        : '0 4px 12px rgba(0, 0, 0, 0.1)',
-                     transform: timeframe === tf ? 'scale(1.05)' : 'scale(1)'
-                   }}
-                   onMouseEnter={(e) => {
-                     if (timeframe !== tf) {
-                       e.currentTarget.style.transform = 'translateY(-2px) scale(1.02)';
-                       e.currentTarget.style.boxShadow = '0 8px 20px rgba(0, 0, 0, 0.15)';
+                    transform: timeframe === tf ? 'scale(1.05)' : 'scale(1)'
+                  }}
+                  onMouseEnter={(e) => {
+                    if (timeframe !== tf) {
+                      e.currentTarget.style.transform = 'translateY(-2px) scale(1.02)';
+                      e.currentTarget.style.boxShadow = '0 8px 20px rgba(0, 0, 0, 0.15)';
                        e.currentTarget.style.background = 'linear-gradient(135deg, #f97316, #ea580c)';
                        e.currentTarget.style.color = 'white';
-                     }
-                   }}
-                   onMouseLeave={(e) => {
-                     if (timeframe !== tf) {
-                       e.currentTarget.style.transform = 'translateY(0) scale(1)';
-                       e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.1)';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (timeframe !== tf) {
+                      e.currentTarget.style.transform = 'translateY(0) scale(1)';
+                      e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.1)';
                        e.currentTarget.style.background = 'linear-gradient(135deg, #f8fafc, #e2e8f0)';
                        e.currentTarget.style.color = '#64748b';
-                     }
-                   }}
-                 >
-                   {tf}
-                 </button>
-               ))}
-             </div>
+                    }
+                  }}
+                >
+                  {tf}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
         {/* Chart Section */}
-        <div style={{
+        <div className="chart-section" style={{
           background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 50%, #f1f5f9 100%)',
           borderRadius: '24px',
           boxShadow: '0 32px 64px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.8)',
@@ -1289,11 +1303,13 @@ const CoinDetail: React.FC = () => {
           }}></div>
           
           <div style={{ position: 'relative', zIndex: 1 }}>
-            <div style={{
+            <div className="chart-header" style={{
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
-              marginBottom: '32px'
+              marginBottom: '32px',
+              flexDirection: 'row',
+              gap: '0'
             }}>
               <div style={{
                 display: 'flex',
@@ -1314,7 +1330,7 @@ const CoinDetail: React.FC = () => {
                   fontWeight: 'bold'
                 }}>CH</div>
                 <div>
-                  <h2 style={{
+                  <h2 className="chart-title" style={{
                     fontSize: '28px',
                     fontWeight: 800,
                     color: '#0f172a',
@@ -1388,7 +1404,7 @@ const CoinDetail: React.FC = () => {
               </div>
             </div>
             
-            <div style={{
+            <div className="chart-container" style={{
               height: '700px',
               position: 'relative',
               borderRadius: '20px',
@@ -1463,6 +1479,7 @@ const CoinDetail: React.FC = () => {
                 </div>
               ) : (
                 <div
+                  className="chart-content"
                   ref={chartRef}
                   style={{
                     width: '100%',
@@ -1478,7 +1495,7 @@ const CoinDetail: React.FC = () => {
             
             {/* Chart Statistics & Analytics */}
             {chartData.length > 0 && (
-              <div style={{
+              <div className="chart-stats" style={{
                 marginTop: '32px',
                 display: 'grid',
                 gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
@@ -1550,7 +1567,7 @@ const CoinDetail: React.FC = () => {
                     </div>
                   </div>
                 </div>
-
+                
                 {/* Performance Metrics */}
                 <div style={{
                   background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
@@ -1594,7 +1611,7 @@ const CoinDetail: React.FC = () => {
                         <span style={{ color: '#64748b', fontSize: '14px', fontWeight: 500 }}>Period Change</span>
                         <span style={{ 
                           color: chartData[chartData.length - 1]?.value > chartData[0]?.value ? '#059669' : '#dc2626', 
-                          fontSize: '16px', 
+                    fontSize: '16px',
                           fontWeight: 700 
                         }}>
                           {chartData.length > 1 ? (
@@ -1629,7 +1646,7 @@ const CoinDetail: React.FC = () => {
                     </div>
                   </div>
                 </div>
-
+                
                 {/* Market Analysis */}
                 <div style={{
                   background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
@@ -1673,7 +1690,7 @@ const CoinDetail: React.FC = () => {
                         <span style={{ color: '#64748b', fontSize: '14px', fontWeight: 500 }}>Trend Direction</span>
                         <span style={{ 
                           color: chartData[chartData.length - 1]?.value > chartData[0]?.value ? '#059669' : '#dc2626', 
-                          fontSize: '16px', 
+                    fontSize: '16px',
                           fontWeight: 700 
                         }}>
                           {chartData.length > 1 ? (
@@ -1715,7 +1732,7 @@ const CoinDetail: React.FC = () => {
         </div>
 
         {/* Market Stats */}
-        <div style={{
+        <div className="market-stats" style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))',
           gap: '32px',
@@ -2178,7 +2195,7 @@ const CoinDetail: React.FC = () => {
         )}
       </div>
       
-      {/* CSS Animations */}
+      {/* CSS Animations and Mobile Responsive */}
       <style>{`
         @keyframes spin {
           0% { transform: rotate(0deg); }
@@ -2252,6 +2269,208 @@ const CoinDetail: React.FC = () => {
         
         .timeframe-button:hover {
           transform: translateY(-2px) scale(1.05);
+        }
+
+        /* Mobile Responsive Styles */
+        @media (max-width: 768px) {
+          .coin-detail-container {
+            padding: 20px 16px !important;
+          }
+          
+          .coin-header {
+            padding: 24px !important;
+            margin-bottom: 24px !important;
+            border-radius: 16px !important;
+          }
+          
+          .coin-header-content {
+            flex-direction: column !important;
+            text-align: center !important;
+            margin-bottom: 24px !important;
+          }
+          
+          .coin-image-container {
+            margin-right: 0 !important;
+            margin-bottom: 20px !important;
+          }
+          
+          .coin-image {
+            width: 80px !important;
+            height: 80px !important;
+            border-radius: 16px !important;
+          }
+          
+          .coin-title {
+            font-size: 32px !important;
+          }
+          
+          .coin-badges {
+            gap: 12px !important;
+            justify-content: center !important;
+          }
+          
+          .price-grid {
+            grid-template-columns: 1fr !important;
+            gap: 16px !important;
+            margin-bottom: 24px !important;
+          }
+          
+          .price-card {
+            padding: 20px !important;
+            border-radius: 16px !important;
+          }
+          
+          .price-value {
+            font-size: 28px !important;
+          }
+          
+          .timeframe-selector {
+            gap: 8px !important;
+            padding: 16px !important;
+            border-radius: 16px !important;
+          }
+          
+          .timeframe-button {
+            padding: 12px 20px !important;
+            font-size: 14px !important;
+          }
+          
+          .chart-section {
+            padding: 20px !important;
+            margin-bottom: 24px !important;
+            border-radius: 16px !important;
+          }
+          
+          .chart-header {
+            flex-direction: column !important;
+            align-items: flex-start !important;
+            margin-bottom: 20px !important;
+            gap: 16px !important;
+          }
+          
+          .chart-title {
+            font-size: 20px !important;
+          }
+          
+          .chart-container {
+            height: 400px !important;
+            border-radius: 16px !important;
+          }
+          
+          .chart-content {
+            min-height: 400px !important;
+          }
+          
+          .chart-stats {
+            margin-top: 20px !important;
+            grid-template-columns: 1fr !important;
+            gap: 16px !important;
+          }
+          
+          .market-stats {
+            grid-template-columns: 1fr !important;
+            gap: 20px !important;
+            margin-bottom: 24px !important;
+          }
+        }
+
+        /* Additional Mobile Chart Card Fixes */
+        @media (max-width: 768px) {
+          /* Chart section mobile optimizations */
+          .chart-section {
+            padding: 16px !important;
+            margin: 0 0 20px 0 !important;
+          }
+          
+          /* Chart header mobile layout */
+          .chart-header {
+            flex-direction: column !important;
+            align-items: stretch !important;
+            gap: 12px !important;
+            margin-bottom: 16px !important;
+          }
+          
+          /* Chart title mobile sizing */
+          .chart-title {
+            font-size: 18px !important;
+            line-height: 1.3 !important;
+          }
+          
+          /* Chart container mobile sizing */
+          .chart-container {
+            height: 350px !important;
+            min-height: 350px !important;
+            border-radius: 12px !important;
+            margin: 0 !important;
+          }
+          
+          /* Chart content mobile sizing */
+          .chart-content {
+            min-height: 350px !important;
+            height: 350px !important;
+          }
+          
+          /* Chart stats mobile layout */
+          .chart-stats {
+            margin-top: 16px !important;
+            grid-template-columns: 1fr !important;
+            gap: 12px !important;
+          }
+          
+          /* Individual chart stat cards */
+          .chart-stats > div {
+            padding: 16px !important;
+            border-radius: 12px !important;
+            margin: 0 !important;
+          }
+          
+          /* Chart stat titles */
+          .chart-stats h3 {
+            font-size: 16px !important;
+            margin-bottom: 12px !important;
+          }
+          
+          /* Chart stat content */
+          .chart-stats .flex {
+            flex-direction: column !important;
+            gap: 8px !important;
+          }
+          
+          /* Chart stat labels and values */
+          .chart-stats span {
+            font-size: 13px !important;
+            line-height: 1.4 !important;
+          }
+          
+          /* Market stats mobile layout */
+          .market-stats {
+            grid-template-columns: 1fr !important;
+            gap: 16px !important;
+            margin-bottom: 20px !important;
+          }
+          
+          /* Market data cards mobile */
+          .market-stats > div {
+            padding: 20px !important;
+            border-radius: 16px !important;
+          }
+          
+          /* Market data headers */
+          .market-stats h2 {
+            font-size: 20px !important;
+          }
+          
+          /* Market data content */
+          .market-stats .flex {
+            flex-direction: column !important;
+            gap: 12px !important;
+          }
+          
+          /* Market data inner cards */
+          .market-stats .bg-white {
+            padding: 16px !important;
+            border-radius: 12px !important;
+          }
         }
       `}</style>
     </div>
