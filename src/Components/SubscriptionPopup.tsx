@@ -113,13 +113,18 @@ const SubscriptionPopup: React.FC<SubscriptionPopupProps> = ({ onClose, onSubscr
       }}>
         {/* Close button */}
         <button
-          onClick={onClose}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('Close button clicked');
+            onClose();
+          }}
           style={{
             position: 'absolute',
             top: '16px',
             right: '16px',
-            background: 'rgba(255, 255, 255, 0.2)',
-            border: 'none',
+            background: 'rgba(0, 0, 0, 0.3)',
+            border: '2px solid rgba(255, 255, 255, 0.5)',
             borderRadius: '50%',
             width: '40px',
             height: '40px',
@@ -129,14 +134,18 @@ const SubscriptionPopup: React.FC<SubscriptionPopupProps> = ({ onClose, onSubscr
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            transition: 'all 0.3s ease'
+            transition: 'all 0.3s ease',
+            zIndex: 10,
+            outline: 'none'
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.3)';
+            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)';
+            e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.8)';
             e.currentTarget.style.transform = 'scale(1.1)';
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)';
+            e.currentTarget.style.background = 'rgba(0, 0, 0, 0.3)';
+            e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.5)';
             e.currentTarget.style.transform = 'scale(1)';
           }}
         >
