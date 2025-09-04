@@ -13,9 +13,19 @@ import  NewsCarousel from '../Components/carusal'
 import { Helmet } from 'react-helmet-async';
 import {ScrollingStats} from '../Components/scroll'
 import NewsListing from '../Components/Listings';
+import SubscriptionPopup from '../Components/SubscriptionPopup';
+import { useSubscriptionPopup } from '../hooks/useSubscriptionPopup';
 // import  './LandingPage.css'
 
 const LandingPage: React.FC = () => {
+  const { showPopup, setShowPopup } = useSubscriptionPopup();
+
+  const handleSubscribe = () => {
+    // Mark user as subscribed to prevent future popups
+    localStorage.setItem('user-subscribed', 'true');
+  };
+
+
   return (
     <div className="LandingPage">
       <div className="content-wrapper">
@@ -43,6 +53,14 @@ const LandingPage: React.FC = () => {
        
         <Footer />
       </div>
+
+      {/* Subscription Popup */}
+      {showPopup && (
+        <SubscriptionPopup
+          onClose={() => setShowPopup(false)}
+          onSubscribe={handleSubscribe}
+        />
+      )}
     </div>
   );
 };

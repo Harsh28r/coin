@@ -10,6 +10,7 @@ import Skeleton from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css'; // Import skeleton CSS
 import { useLanguage } from '../context/LanguageContext';
 import CoinTicker from './CoinTicker';
+import SubscriptionManagement from './SubscriptionManagement';
 // Import Firebase
 import { initializeApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, getAdditionalUserInfo, User } from 'firebase/auth';
@@ -64,6 +65,7 @@ export const ScrollingStats = () => {
   const [loading, setLoading] = useState(true); // Add loading state
   const [user, setUser] = useState<User | null>(null);
   const [showProfileCard, setShowProfileCard] = useState(false);
+  const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
   const itemsToShow = 15;
   const didInitRef = useRef(false);
   const { currentLanguage, setLanguage } = useLanguage();
@@ -357,6 +359,16 @@ export const ScrollingStats = () => {
                   <button
                     className="dropdown-item w-100 text-start px-3 py-2"
                     style={{ fontSize: '0.8em', background: 'transparent', border: 'none' }}
+                    onClick={() => {
+                      setShowProfileCard(false);
+                      setShowSubscriptionModal(true);
+                    }}
+                  >
+                    📧 Newsletter
+                  </button>
+                  <button
+                    className="dropdown-item w-100 text-start px-3 py-2"
+                    style={{ fontSize: '0.8em', background: 'transparent', border: 'none' }}
                     onClick={handleLogout}
                   >
                     Sign out
@@ -367,6 +379,28 @@ export const ScrollingStats = () => {
           )}
         </Nav>
       </div>
+
+      {/* Subscription Management Modal */}
+      {showSubscriptionModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 10000,
+          padding: '20px'
+        }}>
+          <SubscriptionManagement
+            userEmail={user?.email || undefined}
+            onClose={() => setShowSubscriptionModal(false)}
+          />
+        </div>
+      )}
     </div>
   );
 };
