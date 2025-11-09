@@ -23,7 +23,6 @@ const decodeHtml = (html: string) => {
 
 const AllNews: React.FC = () => {
   const [newsItems, setNewsItems] = useState<NewsItem[]>([]);
-  const [expandedIndex, setExpandedIndex] = useState<number | null>(null); // Track expanded item
   const navigate = useNavigate();
   const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://c-back-1.onrender.com';
 
@@ -56,11 +55,7 @@ const AllNews: React.FC = () => {
     };
 
     fetchNews();
-  }, []);
-
-  const toggleContent = (index: number) => {
-    setExpandedIndex(expandedIndex === index ? null : index); // Toggle expanded state
-  };
+  }, [API_BASE_URL]);
 
   return (
     <Container fluid className="mt-5" style={{ width: '50%' }}>

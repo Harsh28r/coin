@@ -10,11 +10,6 @@ const FALLBACK_BASES: string[] = Array.from(new Set([
   'https://c-back-2.onrender.com'
 ]));
 
-const api = axios.create({
-  baseURL: API_BASE,
-  headers: { 'Content-Type': 'application/json' }
-});
-
 type AnyRecord = Record<string, any>;
 
 const mapPost = (raw: AnyRecord): BlogPost => {

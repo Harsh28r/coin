@@ -26,7 +26,7 @@ const EVENT_KEYWORDS: Array<{ re: RegExp; kind: EventItem['kind'] }> = [
   { re: /court|hearing|injunction|lawsuit|settlement/i, kind: 'Court' },
 ];
 
-const DATE_REGEX = /\b(\d{4}[-\/\.](\d{1,2})[-\/\.]\d{1,2}|(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)\.?\s+\d{1,2}(,\s*\d{4})?)\b/i;
+const DATE_REGEX = /\b(\d{4}[-/.](\d{1,2})[-/.]\d{1,2}|(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)\.?\s+\d{1,2}(,\s*\d{4})?)\b/i;
 
 export function extractEvents(items: RawItem[]): EventItem[] {
   const events: EventItem[] = [];

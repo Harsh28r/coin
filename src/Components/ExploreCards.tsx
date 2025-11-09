@@ -1,6 +1,6 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, Card, Nav, Button, Carousel, Badge, ProgressBar, Form, Alert, InputGroup } from 'react-bootstrap';
-import { ChevronLeft, ChevronRight, Sparkles, Zap, Brain, Lightbulb, Target, Trophy, Star, Heart, Share2, Bookmark, Eye } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Sparkles, Brain, Lightbulb, Target, Trophy, Heart, Bookmark, Eye } from 'lucide-react';
 import QuizSection from './QuizSection';
 import Skeleton from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
@@ -29,11 +29,100 @@ interface ExploreCard {
   content?: string;
 }
 
+const FALLBACK_EXPLORE_CARDS: ExploreCard[] = [
+  { 
+    id: 1, 
+    image: '/web3.png?height=300&width=200&text=Crypto', 
+    text: '🚀 In January of 2016, Chiasso, Switzerland started accepting taxes in Bitcoin! This marked a historic moment for crypto adoption.',
+    title: 'Switzerland Bitcoin Tax Revolution',
+    source: 'Crypto History'
+  },
+  { 
+    id: 2, 
+    image: '/web3_1.png?height=300&width=200&text=Bitcoin', 
+    text: '💎 90% of all bitcoin addresses have less than 0.1 BTC - showing the concentration of wealth in the crypto space.',
+    title: 'Bitcoin Wealth Distribution',
+    source: 'Crypto Analytics'
+  },
+  { 
+    id: 3, 
+    image: '/web3_2.png?height=300&width=200&text=Cryptocurrencies', 
+    text: '🌍 There are over 10,000 cryptocurrencies in the market today! The crypto ecosystem is exploding with innovation.',
+    title: 'Crypto Market Explosion',
+    source: 'Market Research'
+  },
+  { 
+    id: 4, 
+    image: '/web3_3.png?height=300&width=200&text=Bitcoin Pizza', 
+    text: '🍕 Bitcoin Pizza Day: On May 22, 2010 two pizzas cost 10,000 BTC - worth over $400 million today!',
+    title: 'The Most Expensive Pizza Ever',
+    source: 'Crypto Legends'
+  },
+  { 
+    id: 5, 
+    image: '/trd1.png?height=300&width=200&text=Blockchain', 
+    text: '🔗 The first blockchain was conceptualized in 2008 by Satoshi Nakamoto, revolutionizing digital trust forever.',
+    title: 'Birth of Blockchain',
+    source: 'Tech History'
+  },
+  { 
+    id: 6, 
+    image: '/trd2.png?height=300&width=200&text=Security', 
+    text: '🛡️ Blockchain technology could revolutionize cybersecurity with its immutable and transparent nature.',
+    title: 'Future of Security',
+    source: 'Tech Innovation'
+  }
+];
+
+const TRENDING_NEWS_ITEMS: TrendingNewsItem[] = [
+  {
+    title: "🚀 AI Revolution: ChatGPT-5 Breaks All Records",
+    excerpt: "OpenAI's latest breakthrough shatters previous AI benchmarks, opening new possibilities for human-AI collaboration...",
+    author: "Dr. Sarah Chen",
+    date: "2 hours ago",
+    image: "/image.png"
+  },
+  {
+    title: "💎 Bitcoin Surges Past $50K: What's Next?",
+    excerpt: "The king of crypto makes a spectacular comeback, with analysts predicting even higher gains in the coming weeks...",
+    author: "Mike Rodriguez",
+    date: "4 hours ago",
+    image: "/web3_1.png"
+  },
+  {
+    title: "🌱 Green Energy Breakthrough: Solar Efficiency Hits 50%",
+    excerpt: "Revolutionary solar panel technology could make renewable energy the dominant power source worldwide...",
+    author: "Dr. Emily Watson",
+    date: "6 hours ago",
+    image: "/web3_2.png"
+  },
+  {
+    title: "🎮 Metaverse Gaming: The Future of Entertainment",
+    excerpt: "Virtual reality gaming platforms are attracting billions in investment, reshaping how we play and socialize...",
+    author: "Alex Thompson",
+    date: "8 hours ago",
+    image: "/web3.png"
+  },
+  {
+    title: "🔬 Quantum Computing: Google's New Milestone",
+    excerpt: "Quantum supremacy achieved again as Google demonstrates unprecedented computational power...",
+    author: "Dr. James Wilson",
+    date: "10 hours ago",
+    image: "/image.png"
+  },
+  {
+    title: "🌍 Climate Tech: Carbon Capture Innovation",
+    excerpt: "Startup develops revolutionary technology to remove CO2 from atmosphere at scale...",
+    author: "Lisa Park",
+    date: "12 hours ago",
+    image: "/image.png"
+  },
+];
+
 const ExploreSection: React.FC = () => {
   const { t } = useLanguage();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('did-you-know');
-  const scrollableRef = useRef<HTMLDivElement>(null);
   const [exploreCards, setExploreCards] = useState<ExploreCard[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -53,98 +142,8 @@ const ExploreSection: React.FC = () => {
 
 
   const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://c-back-1.onrender.com';
-
-  // Fallback static explore cards with enhanced content (limited to 6)
-  const fallbackExploreCards: ExploreCard[] = [
-    { 
-      id: 1, 
-      image: '/web3.png?height=300&width=200&text=Crypto', 
-      text: '🚀 In January of 2016, Chiasso, Switzerland started accepting taxes in Bitcoin! This marked a historic moment for crypto adoption.',
-      title: 'Switzerland Bitcoin Tax Revolution',
-      source: 'Crypto History'
-    },
-    { 
-      id: 2, 
-      image: '/web3_1.png?height=300&width=200&text=Bitcoin', 
-      text: '💎 90% of all bitcoin addresses have less than 0.1 BTC - showing the concentration of wealth in the crypto space.',
-      title: 'Bitcoin Wealth Distribution',
-      source: 'Crypto Analytics'
-    },
-    { 
-      id: 3, 
-      image: '/web3_2.png?height=300&width=200&text=Cryptocurrencies', 
-      text: '🌍 There are over 10,000 cryptocurrencies in the market today! The crypto ecosystem is exploding with innovation.',
-      title: 'Crypto Market Explosion',
-      source: 'Market Research'
-    },
-    { 
-      id: 4, 
-      image: '/web3_3.png?height=300&width=200&text=Bitcoin Pizza', 
-      text: '🍕 Bitcoin Pizza Day: On May 22, 2010 two pizzas cost 10,000 BTC - worth over $400 million today!',
-      title: 'The Most Expensive Pizza Ever',
-      source: 'Crypto Legends'
-    },
-    { 
-      id: 5, 
-      image: '/trd1.png?height=300&width=200&text=Blockchain', 
-      text: '🔗 The first blockchain was conceptualized in 2008 by Satoshi Nakamoto, revolutionizing digital trust forever.',
-      title: 'Birth of Blockchain',
-      source: 'Tech History'
-    },
-    { 
-      id: 6, 
-      image: '/trd2.png?height=300&width=200&text=Security', 
-      text: '🛡️ Blockchain technology could revolutionize cybersecurity with its immutable and transparent nature.',
-      title: 'Future of Security',
-      source: 'Tech Innovation'
-    }
-  ];
-
-  // Enhanced trending news with better content
-  const trendingNews: TrendingNewsItem[] = [
-    {
-      title: "🚀 AI Revolution: ChatGPT-5 Breaks All Records",
-      excerpt: "OpenAI's latest breakthrough shatters previous AI benchmarks, opening new possibilities for human-AI collaboration...",
-      author: "Dr. Sarah Chen",
-      date: "2 hours ago",
-      image: "/image.png"
-    },
-    {
-      title: "💎 Bitcoin Surges Past $50K: What's Next?",
-      excerpt: "The king of crypto makes a spectacular comeback, with analysts predicting even higher gains in the coming weeks...",
-      author: "Mike Rodriguez",
-      date: "4 hours ago",
-      image: "/web3_1.png"
-    },
-    {
-      title: "🌱 Green Energy Breakthrough: Solar Efficiency Hits 50%",
-      excerpt: "Revolutionary solar panel technology could make renewable energy the dominant power source worldwide...",
-      author: "Dr. Emily Watson",
-      date: "6 hours ago",
-      image: "/web3_2.png"
-    },
-    {
-      title: "🎮 Metaverse Gaming: The Future of Entertainment",
-      excerpt: "Virtual reality gaming platforms are attracting billions in investment, reshaping how we play and socialize...",
-      author: "Alex Thompson",
-      date: "8 hours ago",
-      image: "/web3.png"
-    },
-    {
-      title: "🔬 Quantum Computing: Google's New Milestone",
-      excerpt: "Quantum supremacy achieved again as Google demonstrates unprecedented computational power...",
-      author: "Dr. James Wilson",
-      date: "10 hours ago",
-      image: "/image.png"
-    },
-    {
-      title: "🌍 Climate Tech: Carbon Capture Innovation",
-      excerpt: "Startup develops revolutionary technology to remove CO2 from atmosphere at scale...",
-      author: "Lisa Park",
-      date: "12 hours ago",
-      image: "/image.png"
-    },
-  ];
+  const fallbackExploreCards = React.useMemo(() => FALLBACK_EXPLORE_CARDS, []);
+  const trendingNews = React.useMemo(() => TRENDING_NEWS_ITEMS, []);
 
   // Carousel state for Learn a Little
   const [carouselIndex, setCarouselIndex] = useState(0);
@@ -269,9 +268,6 @@ const ExploreSection: React.FC = () => {
     const fetchExploreContent = async () => {
       if (activeTab !== 'did-you-know') return;
       
-      // Prevent multiple simultaneous fetches
-      if (isLoading) return;
-      
       setIsLoading(true);
       setError(null);
       
@@ -390,7 +386,7 @@ const ExploreSection: React.FC = () => {
         console.error('Error fetching explore content:', error);
         setError('Using enhanced fallback content');
         // Use exactly 6 fallback cards
-        setExploreCards(fallbackExploreCards);
+        setExploreCards([...fallbackExploreCards]);
       } finally {
         setIsLoading(false);
       }
@@ -402,7 +398,7 @@ const ExploreSection: React.FC = () => {
     return () => {
       // Cancel any pending operations if component unmounts
     };
-  }, [activeTab, API_BASE_URL]);
+  }, [activeTab, API_BASE_URL, fallbackExploreCards]);
 
   // Interactive functions
   const handleCardLike = (cardId: number) => {
@@ -487,40 +483,26 @@ const ExploreSection: React.FC = () => {
     }
   };
 
-  const handleMouseDown = (e: React.MouseEvent) => {
-    const scrollable = scrollableRef.current;
-    if (scrollable) {
-      const startY = e.clientY;
-      const scrollTop = scrollable.scrollTop;
-
-      const handleMouseMove = (moveEvent: MouseEvent) => {
-        const newY = moveEvent.clientY;
-        const scroll = scrollTop + (startY - newY);
-        scrollable.scrollTop = scroll;
-      };
-
-      const handleMouseUp = () => {
-        window.removeEventListener('mousemove', handleMouseMove);
-        window.removeEventListener('mouseup', handleMouseUp);
-      };
-
-      window.addEventListener('mousemove', handleMouseMove);
-      window.addEventListener('mouseup', handleMouseUp);
-    }
-  };
-
   const renderTrendingNews = () => {
+    const sourceItems = (displayTrendingNews.length > 0 ? displayTrendingNews : trendingNews) as Array<any>;
     return (
       <Row xs={1} sm={2} md={3} lg={4} className="g-4">
-        {trendingNews.map((newsItem, index) => (
-          <Col key={index}>
+        {sourceItems.map((newsItem, index) => {
+          const title = newsItem.title || newsItem.text || 'Trending story';
+          const excerpt = newsItem.excerpt || newsItem.description || newsItem.content || '';
+          const author = newsItem.author || (Array.isArray(newsItem.creator) ? newsItem.creator[0] : 'Unknown');
+          const date = newsItem.date || newsItem.pubDate || '';
+          const image = newsItem.image || newsItem.image_url || '/image.png';
+          const articleId = newsItem.article_id || encodeURIComponent(newsItem.link || title || String(index));
+          return (
+          <Col key={articleId}>
             <Card className="h-100 border-0 shadow-sm rounded-4 news-card-interactive">
-              <Card.Img variant="top" src={newsItem.image} alt={newsItem.title} className="rounded-5" />
+              <Card.Img variant="top" src={image} alt={title} className="rounded-5" />
               <Card.Body>
-                <Card.Title className="news-title-interactive">{newsItem.title}</Card.Title>
-                <Card.Text className="news-excerpt-interactive">{newsItem.excerpt}</Card.Text>
+                <Card.Title className="news-title-interactive">{title}</Card.Title>
+                <Card.Text className="news-excerpt-interactive">{excerpt}</Card.Text>
                 <Card.Text className="text-muted news-meta-interactive">
-                  <span className="author-badge">{newsItem.author}</span> - {newsItem.date}
+                  <span className="author-badge">{author}</span> - {date}
                 </Card.Text>
                 <div className="news-actions-interactive">
                   <Button
@@ -528,19 +510,18 @@ const ExploreSection: React.FC = () => {
                     size="sm"
                     className="action-btn"
                     onClick={() => {
-                      const id = newsItem.article_id || encodeURIComponent(newsItem.title);
-                      navigate(`/news/${id}`, {
+                      navigate(`/news/${articleId}`, {
                         state: {
                           item: {
-                            article_id: id,
-                            title: newsItem.title,
-                            description: newsItem.excerpt,
-                            creator: [newsItem.author],
-                            pubDate: newsItem.date,
-                            image_url: newsItem.image,
-                            link: '#',
+                            article_id: articleId,
+                            title,
+                            description: excerpt,
+                            creator: [author],
+                            pubDate: date,
+                            image_url: image,
+                            link: newsItem.link || '#',
                             source_name: 'Trending News',
-                            content: newsItem.excerpt,
+                            content: excerpt,
                           },
                         },
                       });
@@ -557,7 +538,7 @@ const ExploreSection: React.FC = () => {
               </Card.Body>
             </Card>
           </Col>
-        ))}
+        );})}
       </Row>
     );
   };
@@ -602,7 +583,6 @@ const ExploreSection: React.FC = () => {
                   const imgSrc = card.image || card.image_url || `/web3_${(index % 4) + 1}.png`;
                   const titleText = card.title || card.text || card.description || `Explore card ${index + 1}`;
                   const usedSource = card.source || card.source_name || 'Crypto';
-                  const linkHref = card.link || '#';
                   return (
                   <Col key={card.article_id || card.id || index}>
                     <Card 

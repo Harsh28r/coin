@@ -26,9 +26,9 @@ function extractCoins(text: string): string[] {
   const paren = text.match(/\(([A-Z0-9]{2,10})\)/g) || [];
   paren.forEach(p => set.add(p.replace(/[()]/g, '').toUpperCase()));
   // plain tokens before \/USDT or -USDT etc.
-  const pair = text.match(/\b([A-Z0-9]{2,10})[\/-](USDT|USD|BTC|ETH|EUR)\b/g) || [];
+  const pair = text.match(/\b([A-Z0-9]{2,10})[/-](USDT|USD|BTC|ETH|EUR)\b/g) || [];
   pair.forEach(m => {
-    const t = m.split(/[\/-]/)[0];
+    const t = m.split(/[/-]/)[0];
     set.add(t.toUpperCase());
   });
   // Heuristic: ALLCAPS 2-6 chars near 'lists' word

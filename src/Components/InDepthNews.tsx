@@ -1,11 +1,10 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { Container, Row, Col, Card, Button, Badge } from 'react-bootstrap';
+import { Container, Row, Col, Card, Button, Badge, Alert } from 'react-bootstrap';
 import { ChevronRight, BookOpen } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Skeleton from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
-import { useLanguage } from '../context/LanguageContext';
 import { useNewsTranslation } from '../hooks/useNewsTranslation';
 
 interface InDepthItem {
@@ -24,7 +23,6 @@ interface InDepthItem {
 
 const InDepthNews: React.FC = () => {
 	const navigate = useNavigate();
-	const { t } = useLanguage();
 	const [items, setItems] = useState<InDepthItem[]>([]);
 	const [loading, setLoading] = useState<boolean>(true);
 	const [error, setError] = useState<string | null>(null);
@@ -129,6 +127,12 @@ const InDepthNews: React.FC = () => {
 					More <ChevronRight size={16} />
 				</Button>
 			</div>
+
+			{error && (
+				<Alert variant="warning" className="mb-3">
+					{error}
+				</Alert>
+			)}
 
 			<Row xs={1} sm={2} md={3} lg={4} className="g-4">
 				{loading ? (

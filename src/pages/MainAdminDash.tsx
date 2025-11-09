@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import {
   Container, Row, Col, Nav, Navbar, Card, Button, Form, ListGroup, Badge,
-  ProgressBar, Dropdown, Table, Modal, Pagination
+  ProgressBar, Dropdown, Modal, Pagination
 } from 'react-bootstrap';
-import { BarChart2, Users, FileText, Settings, Bell, User, Search, Plus, BookOpen, Mail, Activity, Send } from 'lucide-react';
+import { BarChart2, Users, FileText, Settings, Bell, User, Search, Plus, BookOpen, Mail, Send } from 'lucide-react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import BlogPost from '../Components/BlogPost';
 import { useBlog } from '../context/BlogContext';
@@ -58,7 +58,6 @@ const AdminNotifications: React.FC = () => {
   const [items, setItems] = React.useState<Array<{ _id: string; type: string; email?: string; ip?: string; country?: string; createdAt: string; seen: boolean }>>([]);
   const [unseen, setUnseen] = React.useState(0);
   const [loading, setLoading] = React.useState(false);
-  const [open, setOpen] = React.useState(false);
   const fetchNotifications = async () => {
     try {
       setLoading(true);
@@ -98,7 +97,6 @@ const AdminNotifications: React.FC = () => {
 
   return (
     <Dropdown align="end" onToggle={(isOpen) => {
-      setOpen(!!isOpen);
       if (isOpen) {
         fetchNotifications();
         markSeen();

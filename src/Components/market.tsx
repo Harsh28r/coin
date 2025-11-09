@@ -703,7 +703,8 @@ const MarketPriceAndNews: React.FC = () => {
                               height="20"
                               style={{ marginRight: '4px', maxWidth: '100%', height: 'auto' }}
                               onError={(e) => {
-                                e.currentTarget.src = '/fallback-crypto-image.png';
+                                e.currentTarget.onerror = null;
+                                e.currentTarget.src = '/web3.png';
                               }}
                             />
                             {crypto.name} ({crypto.symbol.toUpperCase()})
@@ -791,7 +792,8 @@ const MarketPriceAndNews: React.FC = () => {
                               height="20"
                               style={{ marginRight: '4px', maxWidth: '100%', height: 'auto' }}
                               onError={(e) => {
-                                e.currentTarget.src = '/fallback-crypto-image.png';
+                                e.currentTarget.onerror = null;
+                                e.currentTarget.src = '/web3.png';
                               }}
                             />
                             {crypto.name} ({crypto.symbol.toUpperCase()})
