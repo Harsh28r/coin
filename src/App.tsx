@@ -1,8 +1,7 @@
-import React, { useEffect, lazy, Suspense } from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Route, Routes, useLocation } from 'react-router-dom';
 import './App.css';
 import LandingPage from './pages/Landing';
-import BlogPage from './pages/BlogPage';
 import LoginPage from './pages/LoginPage'
 // import AdminDashboard from './pages/AdminDashboard'
 import AllNews from './Components/Exnews';
@@ -16,7 +15,6 @@ import { AuthProvider } from './context/AuthContext';
 import { BlogProvider } from './context/BlogContext';
 import { LanguageProvider } from './context/LanguageContext';
 import { CurrencyProvider } from './context/CurrencyContext';
-import PressReleaseDetail from './Components/preRealse'
 import SearchPage from './Components/SearchPage';
 import NewsDetail from './Components/NewsDetail';
 import BlogHome from './Components/BlogHome';

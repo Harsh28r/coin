@@ -7,12 +7,10 @@ import {
   Trash2, 
   User, 
   Calendar, 
-  Eye, 
   Heart, 
   Share2, 
   Bookmark,
   Clock,
-  Tag,
   ExternalLink
 } from 'lucide-react';
 import { BlogPost as BlogPostType } from '../types/blog';

@@ -9,7 +9,6 @@ import {
   Share2, 
   Bookmark,
   Clock,
-  ExternalLink
 } from 'lucide-react';
 import { useBlog } from '../context/BlogContext';
 import { format } from 'date-fns';
