@@ -20,6 +20,7 @@ import AINews from '../Components/AINews';
 
 const LandingPage: React.FC = () => {
   const { showPopup, setShowPopup } = useSubscriptionPopup();
+  //e
 
   const handleSubscribe = () => {
     // Mark user as subscribed to prevent future popups
