@@ -23,7 +23,7 @@ const LandingPage: React.FC = () => {
   //e
 
   const handleSubscribe = () => {
-    // Mark user as subscribed to prevent future popups
+    // Mark user as subscribed to prevent future popupsvhg
     localStorage.setItem('user-subscribed', 'true');
   };
 
