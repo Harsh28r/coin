@@ -608,18 +608,14 @@ const ExploreSection: React.FC = () => {
                         } } });
                       }}
                     >
-                      <Card.Img 
-                        variant="top" 
-                        src={imgSrc} 
+                      <Card.Img
+                        variant="top"
+                        src={imgSrc}
                         alt={titleText}
-                        className="rounded-4 card-image-interactive" 
-                        style={{ height: '100%', objectFit: 'cover' }}
-                        onError={(e) => {
-                          // Better fallback image with source name
-                          const fallbackImage = `/web3_${(index % 4) + 1}.png?height=300&width=200&text=${encodeURIComponent(usedSource)}`;
-                          e.currentTarget.src = fallbackImage;
-                          console.log(`Image failed to load for card ${index}, using fallback: ${fallbackImage}`);
-                        }}
+                        className="rounded-4 card-image-interactive"
+                        style={{ height: '100%', objectFit: 'cover', backgroundColor: '#1a1a1a' }}
+                        loading="lazy"
+                        decoding="async"
                       />
                       
                       {/* Interactive Overlay */}

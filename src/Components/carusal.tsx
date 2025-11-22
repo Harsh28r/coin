@@ -217,50 +217,25 @@ export default function NewsCarousel() {
       >
         {typedDisplayItems.map((item, index) => (
           <Carousel.Item key={item.article_id || index}>
-            <div className="position-relative" style={{ height: '600px' }}>
+            <a
+              href={item.link}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="d-block"
+              style={{ height: '600px', backgroundColor: '#1a1a1a' }}
+            >
               <img
                 src={item.image_url}
                 alt={item.title}
+                loading="lazy"
+                decoding="async"
                 className="w-100 h-100 object-fit-cover"
-                style={{ objectPosition: 'center' }}
-                onError={(e) => {
-                  e.currentTarget.src = '/market.png?height=600&width=1200';
+                style={{
+                  objectPosition: 'center',
+                  transition: 'opacity 0.3s ease-in-out'
                 }}
               />
-              <div 
-                className="position-absolute bottom-0 start-0 w-100 p-4"
-                style={{
-                  background: 'linear-gradient(transparent, rgba(0,0,0,0.8))',
-                  minHeight: '50%'
-                }}
-              >
-                <div className="d-flex justify-content-between align-items-center mb-3">
-                  <Badge bg="primary" className="fs-6">
-                    {getCategoryDisplay(item)}
-                  </Badge>
-                  <div className="text-white opacity-75">
-                    <span className="me-3">By {item.creator[0] || 'Unknown'}</span>
-                    <span>{formatDate(item.pubDate)}</span>
-                  </div>
-                </div>
-                <h2 className="display-5 fw-bold text-white mb-3">
-                  <a
-                    href={item.link}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-white text-decoration-none"
-                    style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.8)' }}
-                  >
-                    {decodeHtml(item.title)}
-                  </a>
-                </h2>
-                <p className="lead text-white mb-0" style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.8)' }}>
-                  {decodeHtml(item.description.length > 150 
-                    ? item.description.substring(0, 150) + '...' 
-                    : item.description)}
-                </p>
-              </div>
-            </div>
+            </a>
           </Carousel.Item>
         ))}
       </Carousel>

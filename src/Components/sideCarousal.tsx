@@ -32,6 +32,7 @@ const FeaturedCarousel: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [showTranslationIndicator, setShowTranslationIndicator] = useState(false);
   const scrollableRef = useRef<HTMLDivElement>(null);
+  const dragCleanupRef = useRef<(() => void) | null>(null);
   const navigate = useNavigate();
   
   // Quick fallback slides to avoid empty UI
@@ -429,12 +430,28 @@ const FeaturedCarousel: React.FC = () => {
       const handleMouseUp = () => {
         window.removeEventListener('mousemove', handleMouseMove);
         window.removeEventListener('mouseup', handleMouseUp);
+        dragCleanupRef.current = null;
+      };
+
+      // Store cleanup function for potential unmount during drag
+      dragCleanupRef.current = () => {
+        window.removeEventListener('mousemove', handleMouseMove);
+        window.removeEventListener('mouseup', handleMouseUp);
       };
 
       window.addEventListener('mousemove', handleMouseMove);
       window.addEventListener('mouseup', handleMouseUp);
     }
   };
+
+  // Cleanup drag listeners on unmount
+  useEffect(() => {
+    return () => {
+      if (dragCleanupRef.current) {
+        dragCleanupRef.current();
+      }
+    };
+  }, []);
 
   // NFT Market section removed per request
 
@@ -530,9 +547,8 @@ const FeaturedCarousel: React.FC = () => {
                       };
                       navigate(`/news/${id}`, { state: { item: stateItem } });
                     }}
-                    onError={(e) => {
-                      (e.currentTarget as HTMLImageElement).src = '/image.png?height=450&width=800&text=News';
-                    }}
+                    loading="lazy"
+                    decoding="async"
                   />
                   <Card.ImgOverlay
                     className="d-flex flex-column justify-content-end rounded-5"
@@ -817,13 +833,12 @@ const FeaturedCarousel: React.FC = () => {
                         </Col>
                         <Col xs={4}>
                           <img
-                            src={news.image || news.image_url || '/image.png?height=103&width=160&text=News'}
+                            src={news.image || news.image_url}
                             alt={news.title}
                             className="img-fluid rounded"
-                            style={{ height: '103px', objectFit: 'cover' }}
-                            onError={(e) => {
-                              (e.currentTarget as HTMLImageElement).src = '/image.png?height=103&width=160&text=News';
-                            }}
+                            style={{ height: '103px', objectFit: 'cover', backgroundColor: '#1a1a1a' }}
+                            loading="lazy"
+                            decoding="async"
                           />
                         </Col>
                       </Row>

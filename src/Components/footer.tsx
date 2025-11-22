@@ -58,39 +58,38 @@ const Footer: React.FC = () => {
   };
 
   return (
-    <footer className="text-light py-5 mt-5" style={{ backgroundColor: '#333333' }}>
+    <footer className="text-light py-5 mt-5" style={{ backgroundColor: '#1f2937' }}>
       <Container style={{ width: '100%', maxWidth: '1200px', padding: '0 16px' }}>
         <Row className="mb-5 gy-4" style={{ maxWidth: '100%' }}>
           <Col md={5} className="mb-4 mb-md-0 text-center text-md-start">
-            <img 
-              src="/logo3.png" 
-              alt="CoinsClarity Logo" 
-              className="mb-4 d-block mx-auto mx-md-0" 
+            <img
+              src="/logo3.png"
+              alt="CoinsClarity Logo"
+              className="mb-4 d-block mx-auto mx-md-0"
               style={{ width: '250px', height: 'auto' }}
               onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/image.png'; }}
             />
-            <p className="text-light small mx-auto mx-md-0" style={{ lineHeight: '1.6', maxWidth: 520 }}>
+            <p className="mx-auto mx-md-0" style={{ lineHeight: '1.6', maxWidth: 520, color: '#e5e7eb', fontSize: '0.875rem' }}>
               {t('footer.companyDescription')}
             </p>
-            <p className="text-light mt-3 small">{t('footer.copyright')}</p>
+            <p className="mt-3" style={{ color: '#d1d5db', fontSize: '0.875rem' }}>{t('footer.copyright')}</p>
           </Col>
           <Col md={2} className="mb-2 mb-md-0 text-center text-md-start">
             <h6 className="text-white mb-3 fw-bold">Our Company</h6>
             <ul className="list-unstyled" style={{ paddingLeft: '0' }}>
-              <li className="mb-2"><a href="/" className="text-light small text-decoration-none hover-underline d-inline-block">{t('nav.home')}</a></li>
-              <li className="mb-2"><a href="/exclusive-news" className="text-light small text-decoration-none hover-underline d-inline-block">{t('news.exclusive')}</a></li>
-              <li className="mb-2"><a href="/All-Trending-news" className="text-light small text-decoration-none hover-underline d-inline-block">{t('news.trending')}</a></li>
-              <li className="mb-2"><a href="/press-news" className="text-light small text-decoration-none hover-underline d-inline-block">{t('news.press')}</a></li>
-              <li className="mb-2"><a href="/listings" className="text-light small text-decoration-none hover-underline d-inline-block">Listings</a></li>
-              {/* Removed search link as requested */}
+              <li className="mb-2"><a href="/" className="small text-decoration-none hover-underline d-inline-block" style={{ color: '#e5e7eb' }}>{t('nav.home')}</a></li>
+              <li className="mb-2"><a href="/exclusive-news" className="small text-decoration-none hover-underline d-inline-block" style={{ color: '#e5e7eb' }}>{t('news.exclusive')}</a></li>
+              <li className="mb-2"><a href="/All-Trending-news" className="small text-decoration-none hover-underline d-inline-block" style={{ color: '#e5e7eb' }}>{t('news.trending')}</a></li>
+              <li className="mb-2"><a href="/press-news" className="small text-decoration-none hover-underline d-inline-block" style={{ color: '#e5e7eb' }}>{t('news.press')}</a></li>
+              <li className="mb-2"><a href="/listings" className="small text-decoration-none hover-underline d-inline-block" style={{ color: '#e5e7eb' }}>Listings</a></li>
             </ul>
           </Col>
           <Col md={2} className="mb-2 mb-md-0 text-center text-md-start">
             <h6 className="text-white mb-3 fw-bold">Interesting</h6>
             <ul className="list-unstyled">
-              <li className="mb-2"><a href="/explore/cryptocurrencies" className="text-light small text-decoration-none hover-underline d-inline-block">{t('explore.didYouKnow')}</a></li>
-              <li className="mb-2"><a href="/explore/defi" className="text-light small text-decoration-none hover-underline d-inline-block">{t('explore.learnALittle')}</a></li>
-              <li className="mb-2"><a href="/explore/nfts" className="text-light small text-decoration-none hover-underline d-inline-block">{t('explore.testKnowledge')}</a></li>
+              <li className="mb-2"><a href="/explore/cryptocurrencies" className="small text-decoration-none hover-underline d-inline-block" style={{ color: '#e5e7eb' }}>{t('explore.didYouKnow')}</a></li>
+              <li className="mb-2"><a href="/explore/defi" className="small text-decoration-none hover-underline d-inline-block" style={{ color: '#e5e7eb' }}>{t('explore.learnALittle')}</a></li>
+              <li className="mb-2"><a href="/explore/nfts" className="small text-decoration-none hover-underline d-inline-block" style={{ color: '#e5e7eb' }}>{t('explore.testKnowledge')}</a></li>
             </ul>
           </Col>
           <Col md={3} className="mb-4 mb-md-0 text-center text-md-start">
@@ -127,17 +126,17 @@ const Footer: React.FC = () => {
                       height: '40px'
                     }}
                   />
-                  <Button 
-                    variant="warning" 
-                    type="submit" 
+                  <Button
+                    variant="warning"
+                    type="submit"
                     disabled={isSubmitting}
-                    className="footer-button d-flex align-items-center justify-content-center" 
-                    style={{ 
-                      backgroundColor: 'orange',
-                      fontSize: '1rem', 
-                      color: 'white', 
-                      height: '40px', 
-                      border: '2px solid transparent', 
+                    className="footer-button d-flex align-items-center justify-content-center"
+                    style={{
+                      backgroundColor: '#f97316',
+                      fontSize: '1rem',
+                      color: 'white',
+                      height: '40px',
+                      border: '2px solid transparent',
                       transition: 'all 0.3s ease'
                     }}
                   >
@@ -156,7 +155,7 @@ const Footer: React.FC = () => {
                     )}
                   </Button>
                 </InputGroup>
-                <small className="text-light mt-2" style={{ fontSize: '0.8rem', opacity: 0.8 }}>
+                <small className="mt-2" style={{ fontSize: '0.8rem', color: '#d1d5db' }}>
                   {t('footer.subscriptionText')}
                 </small>
               </Form>

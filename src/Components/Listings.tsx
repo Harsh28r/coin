@@ -13,8 +13,55 @@ const Listings: React.FC = () => {
   const [items, setItems] = useState<ListingItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [showAll, setShowAll] = useState<boolean>(false);
+  const [searchFilter, setSearchFilter] = useState<string>('');
+  const [exchangeFilter, setExchangeFilter] = useState<string>('all');
+  const [timeFilter, setTimeFilter] = useState<string>('all');
   const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://c-back-2.onrender.com';
   const { displayItems: displayListings, isTranslating, currentLanguage } = useNewsTranslation(items as any);
+
+  // Get unique exchanges from items
+  const exchanges = useMemo(() => {
+    const exchangeSet = new Set<string>();
+    items.forEach(item => {
+      if (item.exchange) exchangeSet.add(item.exchange);
+    });
+    return Array.from(exchangeSet).sort();
+  }, [items]);
+
+  // Filter items based on search, exchange, and time
+  const filteredItems = useMemo(() => {
+    let result = displayListings && (displayListings as any).length ? (displayListings as any) : items;
+
+    // Search filter
+    if (searchFilter.trim()) {
+      const search = searchFilter.toLowerCase();
+      result = result.filter((item: ListingItem) =>
+        item.title.toLowerCase().includes(search) ||
+        item.coins.some(coin => coin.toLowerCase().includes(search)) ||
+        (item.exchange && item.exchange.toLowerCase().includes(search))
+      );
+    }
+
+    // Exchange filter
+    if (exchangeFilter !== 'all') {
+      result = result.filter((item: ListingItem) => item.exchange === exchangeFilter);
+    }
+
+    // Time filter
+    if (timeFilter !== 'all') {
+      const now = new Date();
+      result = result.filter((item: ListingItem) => {
+        const itemDate = new Date(item.pubDate || '');
+        const diffDays = (now.getTime() - itemDate.getTime()) / (1000 * 60 * 60 * 24);
+        if (timeFilter === 'today') return diffDays < 1;
+        if (timeFilter === 'week') return diffDays < 7;
+        if (timeFilter === 'month') return diffDays < 30;
+        return true;
+      });
+    }
+
+    return result;
+  }, [items, displayListings, searchFilter, exchangeFilter, timeFilter]);
 
   useEffect(() => {
     const run = async () => {
@@ -63,7 +110,7 @@ const Listings: React.FC = () => {
     navigate(`/news/${id}`, { state: { item: stateItem } });
   };
 
-  const effectiveItems: ListingItem[] = useMemo(() => (displayListings && (displayListings as any).length ? (displayListings as any) : items), [displayListings, items]);
+  const effectiveItems: ListingItem[] = useMemo(() => filteredItems, [filteredItems]);
 
   const grouped = useMemo(() => {
     const today = new Date();
@@ -125,6 +172,76 @@ const Listings: React.FC = () => {
         Latest Crypto Listings & Market Pairs
       </h1>
 
+      {/* Filter Controls */}
+      <div className="mb-4 p-3" style={{
+        backgroundColor: '#f8fafc',
+        borderRadius: '12px',
+        border: '1px solid #e2e8f0'
+      }}>
+        <Row className="g-3 align-items-end">
+          <Col md={4}>
+            <label className="form-label small fw-bold text-muted">Search</label>
+            <input
+              type="text"
+              className="form-control"
+              placeholder="Search coins, tokens..."
+              value={searchFilter}
+              onChange={(e) => setSearchFilter(e.target.value)}
+              style={{ fontSize: '0.9rem' }}
+              aria-label="Search listings"
+            />
+          </Col>
+          <Col md={3}>
+            <label className="form-label small fw-bold text-muted">Exchange</label>
+            <select
+              className="form-select"
+              value={exchangeFilter}
+              onChange={(e) => setExchangeFilter(e.target.value)}
+              style={{ fontSize: '0.9rem' }}
+              aria-label="Filter by exchange"
+            >
+              <option value="all">All Exchanges</option>
+              {exchanges.map(ex => (
+                <option key={ex} value={ex}>{ex}</option>
+              ))}
+            </select>
+          </Col>
+          <Col md={3}>
+            <label className="form-label small fw-bold text-muted">Time Period</label>
+            <select
+              className="form-select"
+              value={timeFilter}
+              onChange={(e) => setTimeFilter(e.target.value)}
+              style={{ fontSize: '0.9rem' }}
+              aria-label="Filter by time period"
+            >
+              <option value="all">All Time</option>
+              <option value="today">Today</option>
+              <option value="week">This Week</option>
+              <option value="month">This Month</option>
+            </select>
+          </Col>
+          <Col md={2}>
+            <Button
+              variant="outline-secondary"
+              size="sm"
+              onClick={() => {
+                setSearchFilter('');
+                setExchangeFilter('all');
+                setTimeFilter('all');
+              }}
+              className="w-100"
+            >
+              Clear Filters
+            </Button>
+          </Col>
+        </Row>
+        {filteredItems.length !== items.length && (
+          <div className="mt-2 text-muted small">
+            Showing {filteredItems.length} of {items.length} listings
+          </div>
+        )}
+      </div>
 
       {/* Exchange coverage and listing types */}
       <div className="mb-4 p-3" style={{ 
@@ -189,8 +306,8 @@ const Listings: React.FC = () => {
       ) : (
         <Row xs={1} md={2} lg={3} className="g-3">
           {flat.slice(0, 6).map((li, i) => (
-            <Col key={`${li.title}-${i}`}>
-              <Card className="h-100 border-0 shadow-sm rounded-4">
+            <Col key={`${li.title}-${i}`} className="stagger-enter">
+              <Card className="h-100 border-0 shadow-sm rounded-4 card-hover-lift" style={{ transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)' }}>
                 {li.image_url && (
                   <div style={{ width: '100%', height: 160, overflow: 'hidden', background: '#0b0b0b' }}>
                     <img src={li.image_url} alt={li.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e: any) => { e.currentTarget.style.display = 'none'; }} />
@@ -207,7 +324,7 @@ const Listings: React.FC = () => {
                   </div>
                   <Card.Title style={{ fontSize: '1rem' }}>{li.title}</Card.Title>
                   <div className="d-flex justify-content-between align-items-center mt-3">
-                    <Button size="sm" variant="primary" style={orangeBtnStyle} onClick={() => openDetail(li)}>Read</Button>
+                    <Button size="sm" variant="primary" className="btn-interactive btn-ripple" style={orangeBtnStyle} onClick={() => openDetail(li)}>Read</Button>
                   </div>
                 </Card.Body>
               </Card>

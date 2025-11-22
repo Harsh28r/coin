@@ -58,7 +58,7 @@ const AllNews: React.FC = () => {
   }, [API_BASE_URL]);
 
   return (
-    <Container fluid className="mt-5" style={{ width: '50%' }}>
+    <Container fluid className="mt-5 px-3 px-md-4" style={{ maxWidth: '900px', margin: '0 auto' }}>
       <h1 className="mb-4 text-center" style={{ 
         fontSize: '2.5rem', 
         fontWeight: 'bold', 
@@ -109,15 +109,14 @@ const AllNews: React.FC = () => {
             <Card className="border-0 shadow-sm rounded-4">
               <Row className="g-0">
                 <Col md={4}>
-                  <Card.Img 
-                    variant="top" 
-                    src={item.image_url || getFallbackImage(index)} 
+                  <Card.Img
+                    variant="top"
+                    src={item.image_url}
                     alt={item.title}
                     className="rounded-start-4"
-                    style={{ height: '200px', objectFit: 'cover' }}
-                    onError={(e: any) => { 
-                      e.currentTarget.src = getFallbackImage(index); 
-                    }}
+                    style={{ height: '200px', objectFit: 'cover', backgroundColor: '#1a1a1a' }}
+                    loading="lazy"
+                    decoding="async"
                   />
                 </Col>
                 <Col md={8}>

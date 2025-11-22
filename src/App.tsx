@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Route, Routes, useLocation } from 'react-router-dom';
 import './App.css';
+import './styles/animations.css';
 import LandingPage from './pages/Landing';
 import LoginPage from './pages/LoginPage'
 // import AdminDashboard from './pages/AdminDashboard'
@@ -15,6 +16,8 @@ import { AuthProvider } from './context/AuthContext';
 import { BlogProvider } from './context/BlogContext';
 import { LanguageProvider } from './context/LanguageContext';
 import { CurrencyProvider } from './context/CurrencyContext';
+import { WatchlistProvider } from './context/WatchlistContext';
+import Watchlist from './Components/Watchlist';
 import SearchPage from './Components/SearchPage';
 import NewsDetail from './Components/NewsDetail';
 import BlogHome from './Components/BlogHome';
@@ -26,6 +29,10 @@ import Listing from './Components/Listings';
 import DefaultSEO from './Components/DefaultSEO';
 import AdminGate from './Components/AdminGate';
 import CoinDetail from './Components/CoinDetail';
+import NotFound from './pages/NotFound';
+import AllAINews from './pages/AllAINews';
+import BackToTop from './Components/BackToTop';
+import ScrollProgress from './Components/ScrollProgress';
 import { Analytics } from '@vercel/analytics/react';
 
 
@@ -43,11 +50,14 @@ function App() {
       <AuthProvider>
         <BlogProvider>
           <CurrencyProvider>
+            <WatchlistProvider>
             <Router>
               <ScrollToTop />
+              <ScrollProgress />
               <div className="App">
                 <DefaultSEO />
                 <Analytics />
+                <BackToTop />
                 <Routes>
                   <Route path="/" element={<LandingPage />} />
                   <Route path="/blog/:id" element={<BlogPostDetail />} />
@@ -63,19 +73,18 @@ function App() {
                   <Route path="/beyond-the-headlines" element={<InDepthNewsPage />} />
                   <Route path="/listings" element={<Listing />} />
                   <Route path="/events" element={<EventRadar />} />
+                  <Route path="/ai-news" element={<AllAINews />} />
                   <Route path="/news/:id" element={<NewsDetail />} />
                   <Route path="/coin/:coinId" element={<CoinDetail />} />
                   <Route path="/main-dashboard" element={<AdminGate><   MainDashboard/></AdminGate>} /> 
                   {/* <Route path="/press-release-detail" element={<PressReleaseDetail />} /> */}
                   <Route path="/search" element={<SearchPage />} />
-
-
-
-
-                 
+                  <Route path="/watchlist" element={<Watchlist />} />
+                  <Route path="*" element={<NotFound />} />
                 </Routes>
               </div>
             </Router>
+            </WatchlistProvider>
           </CurrencyProvider>
         </BlogProvider>
       </AuthProvider>

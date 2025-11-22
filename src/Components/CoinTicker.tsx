@@ -104,16 +104,16 @@ const CoinTicker: React.FC<CoinTickerProps> = ({ fixed = true, top = 60, height 
         setCoins((prev) => {
           if (prev && prev.length) return nudgePrices(prev);
           const base = [
-            { id: 'bitcoin', name: 'Bitcoin', symbol: 'btc', price: 45000, img: 'https://assets.coingecko.com/coins/images/1/small/bitcoin.png' },
-            { id: 'ethereum', name: 'Ethereum', symbol: 'eth', price: 3200, img: 'https://assets.coingecko.com/coins/images/279/small/ethereum.png' },
-            { id: 'binancecoin', name: 'BNB', symbol: 'bnb', price: 320, img: 'https://assets.coingecko.com/coins/images/825/small/bnb-icon2_2x.png' },
-            { id: 'cardano', name: 'Cardano', symbol: 'ada', price: 0.48, img: 'https://assets.coingecko.com/coins/images/975/small/cardano.png' },
-            { id: 'solana', name: 'Solana', symbol: 'sol', price: 150, img: 'https://assets.coingecko.com/coins/images/4128/small/solana.png' },
-            { id: 'ripple', name: 'XRP', symbol: 'xrp', price: 0.6, img: 'https://assets.coingecko.com/coins/images/44/small/xrp-symbol-white-128.png' },
-            { id: 'dogecoin', name: 'Dogecoin', symbol: 'doge', price: 0.12, img: 'https://assets.coingecko.com/coins/images/5/small/dogecoin.png' },
-            { id: 'polkadot', name: 'Polkadot', symbol: 'dot', price: 8, img: 'https://assets.coingecko.com/coins/images/12171/small/polkadot.png' },
-            { id: 'chainlink', name: 'Chainlink', symbol: 'link', price: 18, img: 'https://assets.coingecko.com/coins/images/877/small/chainlink-new-logo.png' },
-            { id: 'litecoin', name: 'Litecoin', symbol: 'ltc', price: 70, img: 'https://assets.coingecko.com/coins/images/2/small/litecoin.png' },
+            { id: 'bitcoin', name: 'Bitcoin', symbol: 'btc', price: 45000, img: '' },
+            { id: 'ethereum', name: 'Ethereum', symbol: 'eth', price: 3200, img: '' },
+            { id: 'binancecoin', name: 'BNB', symbol: 'bnb', price: 320, img: '' },
+            { id: 'cardano', name: 'Cardano', symbol: 'ada', price: 0.48, img: '' },
+            { id: 'solana', name: 'Solana', symbol: 'sol', price: 150, img: '' },
+            { id: 'ripple', name: 'XRP', symbol: 'xrp', price: 0.6, img: '' },
+            { id: 'dogecoin', name: 'Dogecoin', symbol: 'doge', price: 0.12, img: '' },
+            { id: 'polkadot', name: 'Polkadot', symbol: 'dot', price: 8, img: '' },
+            { id: 'chainlink', name: 'Chainlink', symbol: 'link', price: 18, img: '' },
+            { id: 'litecoin', name: 'Litecoin', symbol: 'ltc', price: 70, img: '' },
           ];
           return base.slice(0, perPage).map((b) => ({
             id: b.id,
@@ -212,11 +212,11 @@ const CoinTicker: React.FC<CoinTickerProps> = ({ fixed = true, top = 60, height 
                 }}
               >
                 <img
-                  src={coin.image || '/image.png'}
+                  src={coin.image || ''}
                   alt={coin.name}
                   loading="lazy"
                   style={{ width: imgSize, height: imgSize, borderRadius: 4 }}
-                  onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/image.png'; }}
+                  onError={(e) => { (e.currentTarget as HTMLImageElement).src = ''; }}
                 />
                 <span style={{ fontWeight: 700, fontSize: symbolFontSize, color: '#111827' }}>
                   {coin.symbol.toUpperCase()}

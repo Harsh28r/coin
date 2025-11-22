@@ -15,6 +15,7 @@ import {ScrollingStats} from '../Components/scroll'
 import NewsListing from '../Components/Listings';
 import SubscriptionPopup from '../Components/SubscriptionPopup';
 import { useSubscriptionPopup } from '../hooks/useSubscriptionPopup';
+import AINews from '../Components/AINews';
 // import  './LandingPage.css'
 
 const LandingPage: React.FC = () => {
@@ -28,7 +29,7 @@ const LandingPage: React.FC = () => {
 
   return (
     <div className="LandingPage">
-      <div className="content-wrapper">
+      <div className="content-wrapper" style={{ background: 'linear-gradient(180deg, #fff7ed 0%, #ffffff 15%, #ffffff 100%)' }}>
         <Helmet>
           <title> Coinsclarity— Crypto News, Listings, Markets</title>
           <meta name="description" content="Real-time crypto news with full articles, new listings, and market insights. Read everything on-platform in your language." />
@@ -45,6 +46,7 @@ const LandingPage: React.FC = () => {
         <FeaturedCarousel />
         <ExclusiveNews />
         <MarketPriceAndNews />
+        <AINews />
         <ExploreSection />
         <PressRelease />
         <InDepthNews />

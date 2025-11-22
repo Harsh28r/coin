@@ -7,12 +7,58 @@ interface SubscriptionPopupProps {
   onSubscribe?: () => void;
 }
 
+// Check if popup should be shown based on frequency limits
+export const shouldShowPopup = (): boolean => {
+  const lastShown = localStorage.getItem('subscription_popup_last_shown');
+  const dismissed = localStorage.getItem('subscription_popup_dismissed');
+  const subscribed = localStorage.getItem('subscription_popup_subscribed');
+
+  // Never show if user subscribed
+  if (subscribed === 'true') return false;
+
+  // Never show again if user clicked "Don't show again"
+  if (dismissed === 'permanent') return false;
+
+  // Show once per session
+  const sessionShown = sessionStorage.getItem('subscription_popup_shown_this_session');
+  if (sessionShown === 'true') return false;
+
+  // If dismissed temporarily, wait 7 days
+  if (lastShown) {
+    const daysSinceShown = (Date.now() - parseInt(lastShown)) / (1000 * 60 * 60 * 24);
+    if (daysSinceShown < 7) return false;
+  }
+
+  return true;
+};
+
+// Mark popup as shown
+export const markPopupShown = () => {
+  localStorage.setItem('subscription_popup_last_shown', Date.now().toString());
+  sessionStorage.setItem('subscription_popup_shown_this_session', 'true');
+};
+
+// Mark as permanently dismissed
+export const dismissPopupPermanently = () => {
+  localStorage.setItem('subscription_popup_dismissed', 'permanent');
+};
+
+// Mark as subscribed
+export const markAsSubscribed = () => {
+  localStorage.setItem('subscription_popup_subscribed', 'true');
+};
+
 const SubscriptionPopup: React.FC<SubscriptionPopupProps> = ({ onClose, onSubscribe }) => {
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState<'success' | 'error' | ''>('');
+
+  // Mark as shown when component mounts
+  useEffect(() => {
+    markPopupShown();
+  }, []);
 
   const validateEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -56,8 +102,9 @@ const SubscriptionPopup: React.FC<SubscriptionPopupProps> = ({ onClose, onSubscr
         setMessageType('success');
         setEmail('');
         setName('');
+        markAsSubscribed();
         onSubscribe?.();
-        
+
         // Close popup after 2 seconds on success
         setTimeout(() => {
           onClose();
@@ -317,14 +364,14 @@ const SubscriptionPopup: React.FC<SubscriptionPopupProps> = ({ onClose, onSubscr
             Join 10,000+ crypto enthusiasts. Unsubscribe anytime.
           </div>
 
-          {/* Skip button */}
-          <div style={{ textAlign: 'center', marginTop: '12px' }}>
+          {/* Skip buttons */}
+          <div style={{ textAlign: 'center', marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'center' }}>
             <button
               onClick={onClose}
               style={{
                 background: 'none',
                 border: 'none',
-                color: 'rgba(255, 255, 255, 0.7)',
+                color: 'rgba(255, 255, 255, 0.8)',
                 fontSize: '12px',
                 cursor: 'pointer',
                 textDecoration: 'underline',
@@ -332,6 +379,22 @@ const SubscriptionPopup: React.FC<SubscriptionPopupProps> = ({ onClose, onSubscr
               }}
             >
               Skip for now
+            </button>
+            <button
+              onClick={() => {
+                dismissPopupPermanently();
+                onClose();
+              }}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: 'rgba(255, 255, 255, 0.5)',
+                fontSize: '11px',
+                cursor: 'pointer',
+                padding: '4px'
+              }}
+            >
+              Don't show again
             </button>
           </div>
         </div>

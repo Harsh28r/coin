@@ -15,15 +15,15 @@ import SubscriptionManagement from './SubscriptionManagement';
 import { initializeApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, getAdditionalUserInfo, User } from 'firebase/auth';
 
-// Initialize Firebase
+// Initialize Firebase using environment variables
 const firebaseConfig = {
-  apiKey: "AIzaSyBihukpSoBFphMnUD4bX6gWBC8zVu_76Bs",
-  authDomain: "dazzling-being-395413.firebaseapp.com",
-  projectId: "dazzling-being-395413",
-  storageBucket: "dazzling-being-395413.firebasestorage.app",
-  messagingSenderId: "1067678083591",
-  appId: "1:1067678083591:web:8baf5d4979ce1dae09d8a2",
-  measurementId: "G-GWNVGYWWYB"
+  apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
+  authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.REACT_APP_FIREBASE_APP_ID,
+  measurementId: process.env.REACT_APP_FIREBASE_MEASUREMENT_ID
 };
 
 const app = initializeApp(firebaseConfig);

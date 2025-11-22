@@ -19,7 +19,17 @@ const CoinsNavbar: React.FC = () => {
   const [suggestions, setSuggestions] = useState<SearchSuggestion[]>([]);
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isScrolled, setIsScrolled] = useState(false);
   const navigate = useNavigate();
+
+  // Add scroll listener for glassmorphism effect
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
   const COINGECKO_API_BASE_URL = 'https://api.coingecko.com/api/v3';
@@ -135,8 +145,14 @@ const CoinsNavbar: React.FC = () => {
       expand="lg"
       expanded={expanded}
       onToggle={(next) => setExpanded(Boolean(next))}
-      className="border-bottom py-3"
-      style={{ boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)' }}
+      className={`border-bottom py-3 ${isScrolled ? 'navbar-glass' : ''}`}
+      style={{
+        boxShadow: isScrolled ? '0 4px 30px rgba(0, 0, 0, 0.1)' : '0 2px 4px rgba(0, 0, 0, 0.1)',
+        position: 'sticky',
+        top: 0,
+        zIndex: 1000,
+        transition: 'all 0.3s ease'
+      }}
     >
       <Container fluid style={{ maxWidth: '90%', margin: '0 auto' }}>
         <Navbar.Brand as={Link} to="/" className="d-flex align-items-center">
@@ -170,18 +186,27 @@ const CoinsNavbar: React.FC = () => {
               <NavDropdown.Divider />
               <NavDropdown.Item as={NavLink} to="/listings">Listings</NavDropdown.Item>
             </NavDropdown>
-            <Nav.Link as={NavLink} to="/learn">Learn</Nav.Link>
-            <Nav.Link as={NavLink} to="/press-news">Press Releases</Nav.Link>
-            <Nav.Link as={NavLink} to="/listings">Listings</Nav.Link>
-            <Nav.Link as={NavLink} to="/blog">Blog</Nav.Link>
+            <Nav.Link as={NavLink} to="/learn" className="hover-underline">Learn</Nav.Link>
+            <Nav.Link as={NavLink} to="/press-news" className="hover-underline">Press Releases</Nav.Link>
+            <Nav.Link as={NavLink} to="/listings" className="hover-underline">Listings</Nav.Link>
+            <Nav.Link as={NavLink} to="/blog" className="hover-underline">Blog</Nav.Link>
+            <Nav.Link as={NavLink} to="/watchlist" className="hover-underline">⭐ Watchlist</Nav.Link>
           </Nav>
           <Form className="d-flex justify-content-center me-2" onSubmit={handleSearch}>
             <div className="position-relative search-container">
               <FormControl
                 type="search"
-                placeholder="Search coins, news, exchanges, NFTs..."
+                placeholder="Search coins, news, exchanges..."
                 aria-label="Search"
-                style={{ width: '250px', height: '36px', fontSize: '16px' }}
+                className="form-control-animated"
+                style={{
+                  width: '280px',
+                  height: '40px',
+                  fontSize: '15px',
+                  borderRadius: '12px',
+                  border: '2px solid #e5e7eb',
+                  paddingRight: '40px'
+                }}
                 value={searchQuery}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
               />
@@ -224,6 +249,7 @@ const CoinsNavbar: React.FC = () => {
           <Nav.Link as={NavLink} to="/advertise" className="me-2 mt-1">
             <Button
               variant="warning"
+              className="btn-interactive btn-ripple"
               style={{ fontSize: '16px', padding: '8px 20px', color: 'white', backgroundColor: '#f90', borderRadius: '0.7rem' }}
             >
               Advertise

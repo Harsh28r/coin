@@ -2,6 +2,13 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useCurrency } from '../context/CurrencyContext';
 import { createChart, IChartApi, ISeriesApi, LineData, Time } from 'lightweight-charts';
+import WatchlistButton from './WatchlistButton';
+
+
+
+
+
+
 
 interface CoinData {
   id: string;
@@ -107,42 +114,57 @@ const CoinDetail: React.FC = () => {
   // Fetch chart data when timeframe changes
   useEffect(() => {
     if (!coinId || !currency) return;
-    
+
     const fetchChartData = async () => {
       try {
         setChartLoading(true);
-        
+
         // Calculate days based on timeframe
         const days = timeframe === '1D' ? 1 : timeframe === '7D' ? 7 : timeframe === '30D' ? 30 : 365;
-        
-        // Use CORS proxy to fetch real data
+
+        // Try direct API first, then fallback to proxy
+        let response;
+        const apiUrl = `https://api.coingecko.com/api/v3/coins/${coinId}/market_chart?vs_currency=${currency.toLowerCase()}&days=${days}&interval=${timeframe === '1D' ? 'hourly' : 'daily'}`;
+
         try {
-          const proxyUrl = 'https://api.allorigins.win/raw?url=';
-          const apiUrl = `https://api.coingecko.com/api/v3/coins/${coinId}/market_chart?vs_currency=${currency.toLowerCase()}&days=${days}&interval=${timeframe === '1D' ? 'hourly' : 'daily'}`;
-          
-          const response = await fetch(proxyUrl + encodeURIComponent(apiUrl));
-        
-        if (response.ok) {
+          // Try direct CoinGecko API first
+          response = await fetch(apiUrl, {
+            headers: {
+              'Accept': 'application/json'
+            }
+          });
+
+          if (!response.ok) {
+            throw new Error('Direct API failed');
+          }
+        } catch (directError) {
+          // Try CORS proxy as fallback
+          console.log('Direct API failed, trying proxy...');
+          const proxyUrl = 'https://corsproxy.io/?';
+          response = await fetch(proxyUrl + encodeURIComponent(apiUrl));
+        }
+
+        if (response && response.ok) {
           const data = await response.json();
           const prices = data.prices || [];
-          
+
           if (prices.length > 0) {
             const chartDataPoints: ChartDataPoint[] = prices.map((price: [number, number]) => ({
-                time: Math.floor(price[0] / 1000) as Time,
-                value: price[1]
+              time: Math.floor(price[0] / 1000) as Time,
+              value: price[1]
             }));
-            
+
             setChartData(chartDataPoints);
-              if (chartInstanceRef.current && seriesRef.current) {
-                updateChartData(chartDataPoints);
-              }
-              return;
+            if (chartInstanceRef.current && seriesRef.current) {
+              updateChartData(chartDataPoints);
             }
+            return;
           }
-        } catch (proxyError) {
-          console.log('CORS proxy failed, using fallback...');
         }
-        
+
+        // If we get here, data fetch failed - use fallback
+        throw new Error('Failed to fetch chart data');
+
       } catch (err) {
         console.error('Error fetching chart data:', err);
         // Generate realistic mock data as fallback
@@ -216,68 +238,114 @@ const CoinDetail: React.FC = () => {
     // Clear container
     chartRef.current.innerHTML = '';
     
+    const chartHeight = window.innerWidth < 768 ? 300 : 400;
+
     const chart = createChart(chartRef.current, {
       width: chartRef.current.clientWidth,
-      height: window.innerWidth < 768 ? 350 : 700,
+      height: chartHeight,
       layout: {
         background: { color: '#ffffff' },
-        textColor: '#333',
+        textColor: '#64748b',
+        fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
       },
       grid: {
-        vertLines: { color: '#f1f5f9' },
-        horzLines: { color: '#f1f5f9' },
+        vertLines: { color: '#f1f5f9', style: 1 },
+        horzLines: { color: '#f1f5f9', style: 1 },
       },
       crosshair: {
-        mode: 1,
+        mode: 0,
+        vertLine: {
+          color: '#f97316',
+          width: 1,
+          style: 2,
+          labelBackgroundColor: '#f97316',
+        },
+        horzLine: {
+          color: '#f97316',
+          width: 1,
+          style: 2,
+          labelBackgroundColor: '#f97316',
+        },
       },
       rightPriceScale: {
         borderColor: '#e2e8f0',
+        scaleMargins: {
+          top: 0.1,
+          bottom: 0.1,
+        },
       },
       timeScale: {
         borderColor: '#e2e8f0',
         timeVisible: true,
         secondsVisible: false,
+        tickMarkFormatter: (time: any) => {
+          const date = new Date(time * 1000);
+          return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        },
+      },
+      handleScroll: {
+        mouseWheel: true,
+        pressedMouseMove: true,
+      },
+      handleScale: {
+        axisPressedMouseMove: true,
+        mouseWheel: true,
+        pinch: true,
       },
     });
 
-    // Try different methods to add line series
-    let lineSeries;
+    // Try different methods to add area series for better visual
+    let areaSeries;
     try {
-      // Method 1: Try addLineSeries if it exists
-      if (typeof (chart as any).addLineSeries === 'function') {
-        lineSeries = (chart as any).addLineSeries({
+      // Method 1: Try addAreaSeries if it exists (lightweight-charts v4+)
+      if (typeof (chart as any).addAreaSeries === 'function') {
+        areaSeries = (chart as any).addAreaSeries({
+          lineColor: '#f97316',
+          topColor: 'rgba(249, 115, 22, 0.4)',
+          bottomColor: 'rgba(249, 115, 22, 0.05)',
+          lineWidth: 2,
+          priceLineVisible: true,
+          lastValueVisible: true,
+          crosshairMarkerVisible: true,
+          crosshairMarkerRadius: 4,
+          crosshairMarkerBorderColor: '#f97316',
+          crosshairMarkerBackgroundColor: '#ffffff',
+        });
+      } else if (typeof (chart as any).addLineSeries === 'function') {
+        // Fallback to line series
+        areaSeries = (chart as any).addLineSeries({
           color: '#f97316',
           lineWidth: 2,
           priceLineVisible: true,
           lastValueVisible: true,
+          crosshairMarkerVisible: true,
+          crosshairMarkerRadius: 4,
         });
       } else {
-        // Method 2: Try addSeries with Line type
-        lineSeries = (chart as any).addSeries('Line', {
-          color: '#f97316',
+        // Method 2: Try addSeries with Area type
+        areaSeries = (chart as any).addSeries('Area', {
+          lineColor: '#f97316',
+          topColor: 'rgba(249, 115, 22, 0.4)',
+          bottomColor: 'rgba(249, 115, 22, 0.05)',
           lineWidth: 2,
-          priceLineVisible: true,
-          lastValueVisible: true,
         });
       }
     } catch (error) {
-      console.error('Error adding line series:', error);
-      // Fallback: try without type specification
-      lineSeries = (chart as any).addSeries({
+      console.error('Error adding area series:', error);
+      // Final fallback
+      areaSeries = (chart as any).addLineSeries({
         color: '#f97316',
         lineWidth: 2,
-        priceLineVisible: true,
-        lastValueVisible: true,
       });
     }
 
     chartInstanceRef.current = chart;
-    seriesRef.current = lineSeries;
+    seriesRef.current = areaSeries;
 
     // Handle resize
     const handleResize = () => {
       if (chartRef.current && chartInstanceRef.current) {
-        const newHeight = window.innerWidth < 768 ? 350 : 700;
+        const newHeight = window.innerWidth < 768 ? 300 : 400;
         chartInstanceRef.current.applyOptions({
           width: chartRef.current.clientWidth,
           height: newHeight,
@@ -317,12 +385,12 @@ const CoinDetail: React.FC = () => {
   // Create fallback SVG chart
   const createFallbackChart = (data: ChartDataPoint[]) => {
     if (!chartRef.current) return;
-    
+
     const container = chartRef.current;
     container.innerHTML = '';
-    
+
     const width = container.clientWidth;
-    const height = window.innerWidth < 768 ? 350 : 700;
+    const height = window.innerWidth < 768 ? 300 : 400;
     
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     svg.setAttribute('width', width.toString());
@@ -522,16 +590,22 @@ const CoinDetail: React.FC = () => {
 
   // Initialize chart when component mounts
   useEffect(() => {
+    let cleanup: (() => void) | undefined;
     const timer = setTimeout(() => {
       try {
-        initializeChart();
+        cleanup = initializeChart();
       } catch (error) {
         console.error('Error initializing TradingView chart:', error);
         // If TradingView fails, we'll use the fallback SVG chart when data is available
       }
     }, 100);
-    
-    return () => clearTimeout(timer);
+
+    return () => {
+      clearTimeout(timer);
+      if (cleanup) {
+        cleanup();
+      }
+    };
   }, []);
 
   // Update chart data whenever chartData changes
@@ -589,11 +663,56 @@ const CoinDetail: React.FC = () => {
     return change.toFixed(2);
   };
 
+  // Get coin image URL from various sources
+  const getCoinImageUrl = (coinId: string): string => {
+    // Map of popular coin IDs to their CoinGecko image URLs
+    const coinImageMap: { [key: string]: string } = {
+      'bitcoin': 'https://assets.coingecko.com/coins/images/1/large/bitcoin.png',
+      'ethereum': 'https://assets.coingecko.com/coins/images/279/large/ethereum.png',
+      'tether': 'https://assets.coingecko.com/coins/images/325/large/Tether.png',
+      'binancecoin': 'https://assets.coingecko.com/coins/images/825/large/bnb-icon2_2x.png',
+      'ripple': 'https://assets.coingecko.com/coins/images/44/large/xrp-symbol-white-128.png',
+      'usd-coin': 'https://assets.coingecko.com/coins/images/6319/large/USD_Coin_icon.png',
+      'solana': 'https://assets.coingecko.com/coins/images/4128/large/solana.png',
+      'cardano': 'https://assets.coingecko.com/coins/images/975/large/cardano.png',
+      'dogecoin': 'https://assets.coingecko.com/coins/images/5/large/dogecoin.png',
+      'tron': 'https://assets.coingecko.com/coins/images/1094/large/tron-logo.png',
+      'polkadot': 'https://assets.coingecko.com/coins/images/12171/large/polkadot.png',
+      'polygon': 'https://assets.coingecko.com/coins/images/4713/large/matic-token-icon.png',
+      'litecoin': 'https://assets.coingecko.com/coins/images/2/large/litecoin.png',
+      'shiba-inu': 'https://assets.coingecko.com/coins/images/11939/large/shiba.png',
+      'avalanche-2': 'https://assets.coingecko.com/coins/images/12559/large/Avalanche_Circle_RedWhite_Trans.png',
+      'chainlink': 'https://assets.coingecko.com/coins/images/877/large/chainlink-new-logo.png',
+      'uniswap': 'https://assets.coingecko.com/coins/images/12504/large/uniswap-uni.png',
+      'stellar': 'https://assets.coingecko.com/coins/images/100/large/Stellar_symbol_black_RGB.png',
+      'monero': 'https://assets.coingecko.com/coins/images/69/large/monero_logo.png',
+      'cosmos': 'https://assets.coingecko.com/coins/images/1481/large/cosmos_hub.png',
+      'ethereum-classic': 'https://assets.coingecko.com/coins/images/453/large/ethereum-classic-logo.png',
+      'filecoin': 'https://assets.coingecko.com/coins/images/12817/large/filecoin.png',
+      'hedera-hashgraph': 'https://assets.coingecko.com/coins/images/3688/large/hbar.png',
+      'internet-computer': 'https://assets.coingecko.com/coins/images/14495/large/Internet_Computer_logo.png',
+      'aptos': 'https://assets.coingecko.com/coins/images/26455/large/aptos_round.png',
+      'arbitrum': 'https://assets.coingecko.com/coins/images/16547/large/photo_2023-03-29_21.47.00.jpeg',
+      'optimism': 'https://assets.coingecko.com/coins/images/25244/large/Optimism.png',
+      'near': 'https://assets.coingecko.com/coins/images/10365/large/near.jpg',
+      'vechain': 'https://assets.coingecko.com/coins/images/1167/large/VET_Token_Icon.png',
+      'aave': 'https://assets.coingecko.com/coins/images/12645/large/AAVE.png',
+    };
+
+    // Return from map if available
+    if (coinImageMap[coinId]) {
+      return coinImageMap[coinId];
+    }
+
+    // Try CoinGecko's thumb endpoint as fallback (smaller but reliable)
+    return `https://assets.coingecko.com/coins/images/1/small/${coinId}.png`;
+  };
+
   // Create basic mock data as fallback
   const createBasicMockCoinData = (id: string): CoinData => {
     return {
       id: id,
-      name: id.charAt(0).toUpperCase() + id.slice(1),
+      name: id.charAt(0).toUpperCase() + id.slice(1).replace(/-/g, ' '),
       symbol: id.slice(0, 3).toUpperCase(),
       current_price: 100,
       price_change_percentage_24h: 0,
@@ -605,7 +724,7 @@ const CoinDetail: React.FC = () => {
       circulating_supply: 1000000,
       total_supply: 1000000,
       max_supply: null,
-      image: `https://api.dicebear.com/7.x/shapes/svg?seed=${id}&backgroundColor=1a1a2e&shape1Color=00ff88&size=200`,
+      image: getCoinImageUrl(id),
       description: { en: `Sample data for ${id}. This is placeholder information while we attempt to fetch live data from the API.` },
       links: {
         homepage: [],
@@ -738,49 +857,17 @@ const CoinDetail: React.FC = () => {
   }
 
   return (
-    <div style={{ 
-      minHeight: '100vh', 
-      background: 'linear-gradient(135deg, #fff7ed 0%, #fed7aa 50%, #fdba74 100%)',
+    <div style={{
+      minHeight: '100vh',
+      background: '#f8fafc',
       position: 'relative'
     }}>
-      {/* Animated background elements */}
-      <div style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        zIndex: 0,
-        overflow: 'hidden'
-      }}>
-        <div style={{
-          position: 'absolute',
-          top: '10%',
-          left: '10%',
-          width: '200px',
-          height: '200px',
-          background: 'radial-gradient(circle, rgba(251, 146, 60, 0.1) 0%, transparent 70%)',
-          borderRadius: '50%',
-          animation: 'float 6s ease-in-out infinite'
-        }}></div>
-        <div style={{
-          position: 'absolute',
-          top: '60%',
-          right: '15%',
-          width: '150px',
-          height: '150px',
-          background: 'radial-gradient(circle, rgba(249, 115, 22, 0.1) 0%, transparent 70%)',
-          borderRadius: '50%',
-          animation: 'float 8s ease-in-out infinite reverse'
-        }}></div>
-      </div>
 
       {/* Header */}
       <div style={{
-        backgroundColor: 'rgba(255,255,255,0.95)',
-        backdropFilter: 'blur(20px)',
-        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
-        borderBottom: '1px solid rgba(255,255,255,0.2)',
+        backgroundColor: '#ffffff',
+        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+        borderBottom: '1px solid #e5e7eb',
         position: 'sticky',
         top: 0,
         zIndex: 1000
@@ -794,53 +881,42 @@ const CoinDetail: React.FC = () => {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            padding: '24px 0'
+            padding: '16px 0'
           }}>
             <button
               onClick={() => navigate('/')}
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                color: '#64748b',
-                border: '2px solid #e2e8f0',
-                background: 'rgba(255,255,255,0.8)',
+                color: '#6b7280',
+                border: 'none',
+                background: 'transparent',
                 cursor: 'pointer',
-                fontSize: '16px',
-                fontWeight: 600,
-                padding: '14px 20px',
-                borderRadius: '12px',
-                transition: 'all 0.3s ease',
-                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-                backdropFilter: 'blur(10px)'
+                fontSize: '14px',
+                fontWeight: 500,
+                padding: '8px 0',
+                transition: 'color 0.2s ease'
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = '#3b82f6';
-                e.currentTarget.style.color = '#3b82f6';
-                e.currentTarget.style.transform = 'translateY(-2px)';
-                e.currentTarget.style.boxShadow = '0 8px 20px rgba(59, 130, 246, 0.2)';
+                e.currentTarget.style.color = '#f97316';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = '#e2e8f0';
-                e.currentTarget.style.color = '#64748b';
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.1)';
+                e.currentTarget.style.color = '#6b7280';
               }}
             >
-              <svg style={{ width: '18px', height: '18px', marginRight: '10px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg style={{ width: '16px', height: '16px', marginRight: '6px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
-              Back to Home
+              Back
             </button>
-            
-            <h1 style={{
-              fontSize: '28px',
-              fontWeight: 800,
-              background: 'linear-gradient(135deg, #1e293b 0%, #475569 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              margin: 0
-            }}>Cryptocurrency Details</h1>
-            <div style={{ width: '120px' }}></div>
+
+            <span style={{
+              fontSize: '12px',
+              color: '#9ca3af',
+              fontWeight: 500
+            }}>
+              Last updated: {lastUpdate.toLocaleTimeString()}
+            </span>
           </div>
         </div>
       </div>
@@ -848,417 +924,218 @@ const CoinDetail: React.FC = () => {
       <div className="coin-detail-container" style={{
         maxWidth: '1200px',
         margin: '0 auto',
-        padding: '40px 24px',
+        padding: '32px 24px',
         position: 'relative',
         zIndex: 1
       }}>
-        {/* Data Source Indicator */}
+        {/* Error Indicator */}
         {error && (
           <div style={{
-            background: 'linear-gradient(135deg, #fef3c7 0%, #fed7aa 100%)',
-            border: '2px solid #f59e0b',
-            borderRadius: '20px',
-            padding: '24px',
-            marginBottom: '40px',
-            boxShadow: '0 20px 40px rgba(245, 158, 11, 0.2)',
-            transform: 'translateY(0)',
-            animation: 'slideIn 0.6s ease-out'
+            background: '#fef3c7',
+            border: '1px solid #fbbf24',
+            borderRadius: '12px',
+            padding: '16px 20px',
+            marginBottom: '24px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px'
           }}>
-            <div style={{ display: 'flex', alignItems: 'center' }}>
-              <div style={{ 
-                color: '#d97706', 
-                fontSize: '28px', 
-                marginRight: '20px',
-                background: 'white',
-                borderRadius: '50%',
-                width: '56px',
-                height: '56px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                boxShadow: '0 8px 20px rgba(0, 0, 0, 0.1)'
-              }}>⚠️</div>
-              <div>
-                <p style={{ color: '#92400e', fontWeight: 700, margin: 0, fontSize: '18px' }}>Sample Data Mode</p>
-                <p style={{ color: '#a16207', fontSize: '16px', margin: '12px 0 0 0', lineHeight: '1.6' }}>Showing sample information while we attempt to fetch live data from CoinGecko API.</p>
-              </div>
-            </div>
+            <span style={{ fontSize: '18px' }}>⚠️</span>
+            <p style={{ color: '#92400e', fontWeight: 500, margin: 0, fontSize: '14px' }}>
+              Showing sample data. Live data unavailable.
+            </p>
           </div>
         )}
         
-        {/* Real-time Data Indicator */}
-        <div style={{
-          background: 'linear-gradient(135deg, #fed7aa 0%, #fdba74 100%)',
-          border: '2px solid #f97316',
-          borderRadius: '20px',
-          padding: '24px',
-          marginBottom: '40px',
-          boxShadow: '0 20px 40px rgba(249, 115, 22, 0.2)',
-          transform: 'translateY(0)',
-          animation: 'slideIn 0.6s ease-out 0.1s both'
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div style={{ display: 'flex', alignItems: 'center' }}>
-              <div style={{ 
-                color: '#ea580c', 
-                fontSize: '28px', 
-                marginRight: '20px',
-                background: 'white',
-                borderRadius: '50%',
-                width: '56px',
-                height: '56px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                boxShadow: '0 8px 20px rgba(0, 0, 0, 0.1)'
-              }}>●</div>
-              <div>
-                <p style={{ color: '#c2410c', fontWeight: 700, margin: 0, fontSize: '18px' }}>Live Data Mode</p>
-                <p style={{ color: '#f97316', fontSize: '16px', margin: '12px 0 0 0', lineHeight: '1.6' }}>
-                  Real-time data updates every 60 seconds • Last update: {lastUpdate.toLocaleTimeString()}
-                </p>
-              </div>
-            </div>
-            <div style={{
-              width: '24px',
-              height: '24px',
-              border: '3px solid #fed7aa',
-              borderTop: '3px solid #ea580c',
-              borderRadius: '50%',
-              animation: 'spin 1s linear infinite'
-            }}></div>
-          </div>
-        </div>
-        
         {/* Coin Header */}
         <div className="coin-header" style={{
-          background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 50%, #f1f5f9 100%)',
-          borderRadius: '24px',
-          boxShadow: '0 32px 64px -12px rgba(0, 0, 0, 0.25)',
-          border: '2px solid rgba(255,255,255,0.8)',
-          padding: '48px',
-          marginBottom: '48px',
+          background: '#ffffff',
+          borderRadius: '16px',
+          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+          border: '1px solid #e5e7eb',
+          padding: '32px',
+          marginBottom: '24px',
           position: 'relative',
-          overflow: 'hidden',
-          transform: 'translateY(0)',
-          animation: 'slideIn 0.6s ease-out 0.2s both'
+          overflow: 'hidden'
         }}>
-          {/* Background Pattern */}
-          <div style={{
-            position: 'absolute',
-            top: '-50%',
-            right: '-50%',
-            width: '200%',
-            height: '200%',
-            background: 'radial-gradient(circle, rgba(59, 130, 246, 0.05) 0%, transparent 70%)',
-            zIndex: 0
-          }}></div>
-          
-          <div style={{ position: 'relative', zIndex: 1 }}>
-            <div className="coin-header-content" style={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              marginBottom: '40px',
-              flexDirection: 'row',
-              textAlign: 'left'
+          <div>
+            <div className="coin-header-content" style={{
+              display: 'flex',
+              alignItems: 'center',
+              marginBottom: '24px'
             }}>
-              <div className="coin-image-container" style={{
-                position: 'relative',
-                marginRight: '40px',
-                marginBottom: '0'
-              }}>
-                <img
-                  className="coin-image"
-                  src={coin.image}
-                  alt={coin.name}
-                  style={{
-                    width: '100px',
-                    height: '100px',
-                    borderRadius: '24px',
-                    boxShadow: '0 25px 50px -5px rgba(0, 0, 0, 0.15)',
-                    border: '4px solid white',
-                    transition: 'transform 0.3s ease'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = 'scale(1.05) rotate(5deg)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = 'scale(1) rotate(0deg)';
-                  }}
-                />
-                <div style={{
-                  position: 'absolute',
-                  bottom: '-12px',
-                  right: '-12px',
-                  width: '32px',
-                  height: '32px',
-                  background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                  borderRadius: '50%',
-                  border: '4px solid white',
-                  boxShadow: '0 8px 20px rgba(16, 185, 129, 0.3)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}>
-                  <div style={{
-                    width: '12px',
-                    height: '12px',
-                    backgroundColor: 'white',
-                    borderRadius: '50%'
-                  }}></div>
+              <img
+                src={coin.image}
+                alt={coin.name}
+                style={{
+                  width: '64px',
+                  height: '64px',
+                  borderRadius: '12px',
+                  marginRight: '20px',
+                  backgroundColor: '#f3f4f6',
+                  objectFit: 'contain'
+                }}
+                loading="lazy"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  // Try CoinGecko CDN if current image fails
+                  if (!target.src.includes('coingecko')) {
+                    target.src = `https://assets.coingecko.com/coins/images/1/large/${coin.id}.png`;
+                  } else {
+                    // Final fallback - show coin initial
+                    target.style.display = 'none';
+                    const parent = target.parentElement;
+                    if (parent && !parent.querySelector('.coin-fallback-icon')) {
+                      const fallback = document.createElement('div');
+                      fallback.className = 'coin-fallback-icon';
+                      fallback.style.cssText = 'width: 64px; height: 64px; border-radius: 12px; margin-right: 20px; background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 24px;';
+                      fallback.textContent = coin.symbol?.charAt(0) || coin.name?.charAt(0) || '?';
+                      parent.insertBefore(fallback, target);
+                    }
+                  }
+                }}
+              />
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '4px' }}>
+                  <h1 style={{
+                    fontSize: '24px',
+                    fontWeight: 700,
+                    color: '#1f2937',
+                    margin: 0
+                  }}>{coin.name}</h1>
+                  <span style={{
+                    fontSize: '14px',
+                    fontWeight: 600,
+                    color: '#6b7280',
+                    textTransform: 'uppercase',
+                    background: '#f3f4f6',
+                    padding: '4px 8px',
+                    borderRadius: '6px'
+                  }}>{coin.symbol}</span>
+                  {coin.market_cap_rank && (
+                    <span style={{
+                      fontSize: '12px',
+                      fontWeight: 600,
+                      color: '#f97316',
+                      background: '#fff7ed',
+                      padding: '4px 8px',
+                      borderRadius: '6px'
+                    }}>Rank #{coin.market_cap_rank}</span>
+                  )}
                 </div>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: '12px' }}>
+                  <span style={{
+                    fontSize: '32px',
+                    fontWeight: 700,
+                    color: '#1f2937'
+                  }}>{formatPrice(coin.current_price)}</span>
+                  <span style={{
+                    fontSize: '16px',
+                    fontWeight: 600,
+                    color: coin.price_change_percentage_24h >= 0 ? '#10b981' : '#ef4444'
+                  }}>
+                    {coin.price_change_percentage_24h >= 0 ? '↑' : '↓'} {Math.abs(coin.price_change_percentage_24h || 0).toFixed(2)}%
+                  </span>
+                </div>
+              </div>
+              <div style={{ marginLeft: 'auto' }}>
+                <WatchlistButton
+                  coin={{
+                    id: coin.id,
+                    symbol: coin.symbol,
+                    name: coin.name,
+                    image: coin.image,
+                    priceAtAdd: coin.current_price
+                  }}
+                  variant="button"
+                />
+              </div>
+            </div>
+
+            {/* Stats Grid */}
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
+              gap: '16px',
+              padding: '20px 0',
+              borderTop: '1px solid #e5e7eb'
+            }}>
+              <div>
+                <p style={{ fontSize: '12px', color: '#6b7280', margin: '0 0 4px 0', fontWeight: 500 }}>Market Cap</p>
+                <p style={{ fontSize: '16px', color: '#1f2937', margin: 0, fontWeight: 600 }}>{formatPrice(coin.market_cap)}</p>
               </div>
               <div>
-                <h1 className="coin-title" style={{
-                  fontSize: '48px',
-                  fontWeight: 900,
-                  background: 'linear-gradient(135deg, #1e293b 0%, #475569 100%)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  marginBottom: '16px',
-                  letterSpacing: '-0.025em'
-                }}>
-                  {coin.name}
-                </h1>
-                <div className="coin-badges" style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '20px',
-                  marginBottom: '20px',
-                  flexWrap: 'wrap',
-                  justifyContent: 'flex-start'
-                }}>
-                  <span style={{
-                    background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
-                    color: 'white',
-                    padding: '12px 20px',
-                    borderRadius: '24px',
-                    fontSize: '20px',
-                    fontWeight: 800,
-                    letterSpacing: '0.05em',
-                    boxShadow: '0 8px 20px rgba(59, 130, 246, 0.3)'
-                  }}>
-                    {coin.symbol.toUpperCase()}
-                  </span>
-                  <span style={{
-                    background: 'linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%)',
-                    color: '#64748b',
-                    padding: '10px 16px',
-                    borderRadius: '20px',
-                    fontSize: '16px',
-                    fontWeight: 700,
-                    border: '2px solid rgba(255,255,255,0.8)'
-                  }}>
-                    Rank #{coin.market_cap_rank || 'N/A'}
-                  </span>
-                </div>
-                <p style={{ 
-                  color: '#64748b', 
-                  fontSize: '18px',
-                  margin: 0,
-                  fontWeight: 600
-                }}>
-                  Market Cap: {formatPrice(coin.market_cap || 0, currency)}
-                </p>
+                <p style={{ fontSize: '12px', color: '#6b7280', margin: '0 0 4px 0', fontWeight: 500 }}>24h Volume</p>
+                <p style={{ fontSize: '16px', color: '#1f2937', margin: 0, fontWeight: 600 }}>{formatPrice(coin.total_volume)}</p>
               </div>
+              <div>
+                <p style={{ fontSize: '12px', color: '#6b7280', margin: '0 0 4px 0', fontWeight: 500 }}>Circulating Supply</p>
+                <p style={{ fontSize: '16px', color: '#1f2937', margin: 0, fontWeight: 600 }}>{coin.circulating_supply?.toLocaleString() || 'N/A'}</p>
+              </div>
+              {coin.max_supply && (
+                <div>
+                  <p style={{ fontSize: '12px', color: '#6b7280', margin: '0 0 4px 0', fontWeight: 500 }}>Max Supply</p>
+                  <p style={{ fontSize: '16px', color: '#1f2937', margin: 0, fontWeight: 600 }}>{coin.max_supply.toLocaleString()}</p>
+                </div>
+              )}
             </div>
+          </div>
+        </div>
 
-            {/* Price Section */}
-            <div className="price-grid" style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-              gap: '32px',
-              marginBottom: '40px'
-            }}>
-              <div className="price-card" style={{ 
-                textAlign: 'center', 
-                position: 'relative',
-                background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
-                padding: '32px',
-                borderRadius: '20px',
-                boxShadow: '0 20px 40px rgba(0, 0, 0, 0.1)',
-                border: '2px solid rgba(255,255,255,0.8)',
-                transition: 'transform 0.3s ease, box-shadow 0.3s ease'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-8px)';
-                e.currentTarget.style.boxShadow = '0 25px 50px rgba(0, 0, 0, 0.15)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 20px 40px rgba(0, 0, 0, 0.1)';
-              }}
-              >
-                <p style={{
-                  fontSize: '16px',
-                  color: '#64748b',
-                  marginBottom: '12px',
-                  fontWeight: 600,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.05em'
-                }}>Current Price</p>
-                <p className="price-value" style={{
-                  fontSize: '40px',
-                  fontWeight: 900,
-                  background: 'linear-gradient(135deg, #1e293b 0%, #475569 100%)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  margin: 0,
-                  letterSpacing: '-0.025em'
-                }}>
-                  {formatPrice(coin.current_price || 0, currency)}
-                </p>
-                <div style={{
-                  position: 'absolute',
-                  top: '20px',
-                  right: '20px',
-                  background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                  color: 'white',
-                  padding: '6px 12px',
-                  borderRadius: '16px',
-                  fontSize: '12px',
-                  fontWeight: 800,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.05em',
-                  boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)'
-                }}>Live</div>
-              </div>
-              
-              <div style={{ 
-                textAlign: 'center',
-                background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
-                padding: '32px',
-                borderRadius: '20px',
-                boxShadow: '0 20px 40px rgba(0, 0, 0, 0.1)',
-                border: '2px solid rgba(255,255,255,0.8)',
-                transition: 'transform 0.3s ease, box-shadow 0.3s ease'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-8px)';
-                e.currentTarget.style.boxShadow = '0 25px 50px rgba(0, 0, 0, 0.15)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 20px 40px rgba(0, 0, 0, 0.1)';
-              }}
-              >
-                <p style={{
-                  fontSize: '16px',
-                  color: '#64748b',
-                  marginBottom: '12px',
-                  fontWeight: 600,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.05em'
-                }}>24h Change</p>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <span style={{
-                    fontSize: '36px',
-                    fontWeight: 900,
-                    color: getPriceChangeColor(coin.price_change_percentage_24h),
-                    letterSpacing: '-0.025em'
-                  }}>
-                    {getPriceChangeIcon(coin.price_change_percentage_24h)}
-                    {formatPriceChange(coin.price_change_percentage_24h)}%
-                  </span>
-                </div>
-              </div>
-              
-              <div style={{ 
-                textAlign: 'center',
-                background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
-                padding: '32px',
-                borderRadius: '20px',
-                boxShadow: '0 20px 40px rgba(0, 0, 0, 0.1)',
-                border: '2px solid rgba(255,255,255,0.8)',
-                transition: 'transform 0.3s ease, box-shadow 0.3s ease'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-8px)';
-                e.currentTarget.style.boxShadow = '0 25px 50px rgba(0, 0, 0, 0.15)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 20px 40px rgba(0, 0, 0, 0.1)';
-              }}
-              >
-                <p style={{
-                  fontSize: '16px',
-                  color: '#64748b',
-                  marginBottom: '12px',
-                  fontWeight: 600,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.05em'
-                }}>7d Change</p>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <span style={{
-                    fontSize: '36px',
-                    fontWeight: 900,
-                    color: getPriceChangeColor(coin.price_change_percentage_7d),
-                    letterSpacing: '-0.025em'
-                  }}>
-                    {getPriceChangeIcon(coin.price_change_percentage_7d)}
-                    {formatPriceChange(coin.price_change_percentage_7d)}%
-                  </span>
-                </div>
-              </div>
+        {/* Chart Section */}
+        <div style={{
+          background: '#ffffff',
+          borderRadius: '16px',
+          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+          border: '1px solid #e5e7eb',
+          padding: '24px',
+          marginBottom: '24px'
+        }}>
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '20px',
+            flexWrap: 'wrap',
+            gap: '12px'
+          }}>
+            <div>
+              <h2 style={{ fontSize: '18px', fontWeight: 600, color: '#1f2937', margin: '0 0 4px 0' }}>Price Chart</h2>
+              <p style={{ fontSize: '12px', color: '#9ca3af', margin: 0 }}>
+                {coin?.name} price over time
+              </p>
             </div>
-
-            {/* Timeframe Selector */}
-             <div className="timeframe-selector" style={{
+            <div style={{
               display: 'flex',
-              justifyContent: 'center',
-              gap: '16px',
-              background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
-              padding: '20px',
-              borderRadius: '20px',
-              boxShadow: '0 20px 40px rgba(0, 0, 0, 0.1)',
-               border: '2px solid rgba(255,255,255,0.8)',
-               flexWrap: 'wrap'
+              gap: '6px',
+              background: '#f3f4f6',
+              padding: '4px',
+              borderRadius: '10px'
             }}>
               {(['1D', '7D', '30D', '1Y'] as const).map((tf) => (
                 <button
                   key={tf}
-                  className="timeframe-button"
-                  onClick={() => {
-                    setTimeframe(tf);
-                    setChartLoading(true);
-                    // Generate mock data immediately for the new timeframe
-                    const daysForMock = tf === '1D' ? 1 : tf === '7D' ? 7 : tf === '30D' ? 30 : 365;
-                    const mockData = generateRealisticChartData(daysForMock, coin?.current_price || 100);
-                    setChartData(mockData);
-                     setTimeout(() => setChartLoading(false), 500);
-                  }}
+                  onClick={() => setTimeframe(tf)}
                   style={{
-                    padding: '16px 28px',
-                    borderRadius: '16px',
-                    fontWeight: 700,
+                    padding: '8px 16px',
+                    borderRadius: '8px',
                     border: 'none',
+                    fontSize: '13px',
+                    fontWeight: 600,
                     cursor: 'pointer',
-                    fontSize: '16px',
-                    transition: 'all 0.3s ease',
-                     background: timeframe === tf 
-                       ? 'linear-gradient(135deg, #f97316, #ea580c)' 
-                       : 'linear-gradient(135deg, #f8fafc, #e2e8f0)',
-                    color: timeframe === tf ? 'white' : '#64748b',
-                     boxShadow: timeframe === tf 
-                       ? '0 8px 20px rgba(249, 115, 22, 0.3)' 
-                       : '0 4px 12px rgba(0, 0, 0, 0.1)',
-                    transform: timeframe === tf ? 'scale(1.05)' : 'scale(1)'
+                    background: timeframe === tf ? '#ffffff' : 'transparent',
+                    color: timeframe === tf ? '#f97316' : '#6b7280',
+                    boxShadow: timeframe === tf ? '0 1px 3px rgba(0, 0, 0, 0.1)' : 'none',
+                    transition: 'all 0.2s ease'
                   }}
                   onMouseEnter={(e) => {
                     if (timeframe !== tf) {
-                      e.currentTarget.style.transform = 'translateY(-2px) scale(1.02)';
-                      e.currentTarget.style.boxShadow = '0 8px 20px rgba(0, 0, 0, 0.15)';
-                       e.currentTarget.style.background = 'linear-gradient(135deg, #f97316, #ea580c)';
-                       e.currentTarget.style.color = 'white';
+                      e.currentTarget.style.color = '#f97316';
                     }
                   }}
                   onMouseLeave={(e) => {
                     if (timeframe !== tf) {
-                      e.currentTarget.style.transform = 'translateY(0) scale(1)';
-                      e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.1)';
-                       e.currentTarget.style.background = 'linear-gradient(135deg, #f8fafc, #e2e8f0)';
-                       e.currentTarget.style.color = '#64748b';
+                      e.currentTarget.style.color = '#6b7280';
                     }
                   }}
                 >
@@ -1267,1214 +1144,146 @@ const CoinDetail: React.FC = () => {
               ))}
             </div>
           </div>
-        </div>
-
-        {/* Chart Section */}
-        <div className="chart-section" style={{
-          background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 50%, #f1f5f9 100%)',
-          borderRadius: '24px',
-          boxShadow: '0 32px 64px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.8)',
-          border: '2px solid rgba(249, 115, 22, 0.1)',
-          padding: '80px',
-          marginBottom: '48px',
-          position: 'relative',
-          overflow: 'hidden',
-          backdropFilter: 'blur(20px)'
-        }}>
-          {/* Background Pattern */}
           <div style={{
-            position: 'absolute',
-            top: '-50%',
-            left: '-50%',
-            width: '200%',
-            height: '200%',
-            background: 'radial-gradient(circle, rgba(249, 115, 22, 0.03) 0%, transparent 70%)',
-            zIndex: 0
-          }}></div>
-          <div style={{
-            position: 'absolute',
-            top: '20%',
-            right: '10%',
-            width: '120px',
-            height: '120px',
-            background: 'linear-gradient(135deg, rgba(249, 115, 22, 0.1), rgba(234, 88, 12, 0.05))',
-            borderRadius: '50%',
-            zIndex: 0
-          }}></div>
-          
-          <div style={{ position: 'relative', zIndex: 1 }}>
-            <div className="chart-header" style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              marginBottom: '32px',
-              flexDirection: 'row',
-              gap: '0'
-            }}>
+            position: 'relative',
+            height: window.innerWidth < 768 ? '300px' : '400px',
+            width: '100%',
+            borderRadius: '8px',
+            overflow: 'hidden'
+          }}>
+            <div ref={chartRef} style={{ height: '100%', width: '100%' }}></div>
+            {chartLoading && (
               <div style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
                 display: 'flex',
                 alignItems: 'center',
-                gap: '16px'
+                justifyContent: 'center',
+                background: 'rgba(255, 255, 255, 0.9)',
+                backdropFilter: 'blur(4px)'
               }}>
-                <div style={{
-                  background: 'linear-gradient(135deg, #f97316, #ea580c)',
-                  color: 'white',
-                  width: '56px',
-                  height: '56px',
-                  borderRadius: '16px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '28px',
-                  boxShadow: '0 10px 25px -5px rgba(249, 115, 22, 0.3)',
-                  fontWeight: 'bold'
-                }}>CH</div>
-                <div>
-                  <h2 className="chart-title" style={{
-                    fontSize: '28px',
-                    fontWeight: 800,
-                    color: '#0f172a',
-                    margin: 0,
-                    letterSpacing: '-0.025em'
-                  }}>
-                    Advanced Price Analytics
-                  </h2>
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{
+                    width: '40px',
+                    height: '40px',
+                    border: '3px solid #f3f4f6',
+                    borderTop: '3px solid #f97316',
+                    borderRadius: '50%',
+                    animation: 'spin 1s linear infinite',
+                    margin: '0 auto 12px'
+                  }}></div>
                   <p style={{
-                    color: '#64748b',
-                    fontSize: '16px',
-                    margin: '8px 0 0 0',
+                    margin: 0,
+                    fontSize: '14px',
+                    color: '#6b7280',
                     fontWeight: 500
-                  }}>
-                    Live Market Data • {timeframe} timeframe • Real-time updates
-                  </p>
-                </div>
-              </div>
-              
-              <div style={{
-                display: 'flex',
-                gap: '16px',
-                alignItems: 'center',
-                background: 'white',
-                padding: '16px 20px',
-                borderRadius: '16px',
-                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-                border: '1px solid #e2e8f0'
-              }}>
-                {chartLoading && (
-                  <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px'
-                  }}>
-                    <div style={{
-                      width: '20px',
-                      height: '20px',
-                      border: '2px solid #fed7aa',
-                      borderTop: '2px solid #f97316',
-                      borderRadius: '50%',
-                      animation: 'spin 1s linear infinite'
-                    }}></div>
-                    <span style={{
-                      fontSize: '12px',
-                      color: '#f97316',
-                      fontWeight: 600
-                    }}>Updating...</span>
-                  </div>
-                )}
-                <div style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'flex-end'
-                }}>
-                  <span style={{ 
-                    fontSize: '14px', 
-                    color: '#64748b',
-                    fontWeight: 500
-                  }}>
-                    {chartData.length > 0 ? `${chartData.length} data points` : 'Loading...'}
-                  </span>
-                  <span style={{ 
-                    fontSize: '12px', 
-                    color: '#94a3b8',
-                    marginTop: '2px'
-                  }}>
-                    {timeframe} timeframe
-                  </span>
-                </div>
-              </div>
-            </div>
-            
-            <div className="chart-container" style={{
-              height: '700px',
-              position: 'relative',
-              borderRadius: '20px',
-              overflow: 'hidden',
-              background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
-              border: '2px solid rgba(226, 232, 240, 0.5)',
-              boxShadow: '0 20px 40px -12px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
-              backdropFilter: 'blur(10px)',
-              minHeight: '700px'
-            }}>
-              {chartLoading && chartData.length === 0 ? (
-                <div style={{
-                  height: '100%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  background: 'linear-gradient(135deg, #f8fafc 0%, #ffffff 50%, #f1f5f9 100%)',
-                  position: 'relative'
-                }}>
-                  <div style={{ textAlign: 'center', color: '#64748b', position: 'relative', zIndex: 1 }}>
-                    <div style={{ 
-                      fontSize: '80px', 
-                      marginBottom: '32px',
-                      opacity: 0.8,
-                      background: 'linear-gradient(135deg, #f97316, #ea580c)',
-                      WebkitBackgroundClip: 'text',
-                      WebkitTextFillColor: 'transparent',
-                      fontWeight: 'bold'
-                    }}>CH</div>
-                    <p style={{ 
-                      fontSize: '24px', 
-                      fontWeight: 800, 
-                      margin: 0,
-                      color: '#0f172a',
-                      letterSpacing: '-0.025em'
-                    }}>Loading Advanced Analytics...</p>
-                    <p style={{ 
-                      fontSize: '18px', 
-                      margin: '16px 0 0 0',
-                      color: '#64748b',
-                      fontWeight: 500
-                    }}>Preparing {timeframe} market data visualization</p>
-                    <div style={{
-                      marginTop: '24px',
-                      display: 'flex',
-                      justifyContent: 'center',
-                      gap: '8px'
-                    }}>
-                      <div style={{
-                        width: '8px',
-                        height: '8px',
-                        background: '#f97316',
-                        borderRadius: '50%',
-                        animation: 'pulse 1.5s infinite'
-                      }}></div>
-                      <div style={{
-                        width: '8px',
-                        height: '8px',
-                        background: '#ea580c',
-                        borderRadius: '50%',
-                        animation: 'pulse 1.5s infinite 0.2s'
-                      }}></div>
-                      <div style={{
-                        width: '8px',
-                        height: '8px',
-                        background: '#c2410c',
-                        borderRadius: '50%',
-                        animation: 'pulse 1.5s infinite 0.4s'
-                      }}></div>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div
-                  className="chart-content"
-                  ref={chartRef}
-                  style={{
-                    width: '100%',
-                    height: '100%',
-                    minHeight: '700px',
-                    display: 'block',
-                    position: 'relative',
-                    background: 'transparent'
-                  }}
-                />
-              )}
-            </div>
-            
-            {/* Chart Statistics & Analytics */}
-            {chartData.length > 0 && (
-              <div className="chart-stats" style={{
-                marginTop: '32px',
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-                gap: '24px'
-              }}>
-                {/* Price Statistics */}
-                <div style={{
-                  background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
-                  borderRadius: '20px',
-                  padding: '24px',
-                  border: '2px solid rgba(249, 115, 22, 0.1)',
-                  boxShadow: '0 8px 25px -5px rgba(249, 115, 22, 0.1)',
-                  position: 'relative',
-                  overflow: 'hidden'
-                }}>
-                  <div style={{
-                    position: 'absolute',
-                    top: '-20px',
-                    right: '-20px',
-                    width: '80px',
-                    height: '80px',
-                    background: 'linear-gradient(135deg, rgba(249, 115, 22, 0.1), rgba(234, 88, 12, 0.05))',
-                    borderRadius: '50%'
-                  }}></div>
-                  <div style={{ position: 'relative', zIndex: 1 }}>
-                    <h3 style={{
-                      fontSize: '18px',
-                      fontWeight: 700,
-                      color: '#f97316',
-                      marginBottom: '20px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px'
-                    }}>
-                      <span style={{
-                        width: '8px',
-                        height: '8px',
-                        background: '#f97316',
-                        borderRadius: '50%',
-                        animation: 'pulse 2s infinite'
-                      }}></span>
-                      Price Statistics
-                    </h3>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ color: '#64748b', fontSize: '14px', fontWeight: 500 }}>Period High</span>
-                        <span style={{ color: '#059669', fontSize: '16px', fontWeight: 700 }}>
-                          {formatPrice(Math.max(...chartData.map(d => d.value)), currency)}
-                        </span>
-                      </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ color: '#64748b', fontSize: '14px', fontWeight: 500 }}>Period Low</span>
-                        <span style={{ color: '#dc2626', fontSize: '16px', fontWeight: 700 }}>
-                          {formatPrice(Math.min(...chartData.map(d => d.value)), currency)}
-                        </span>
-                      </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ color: '#64748b', fontSize: '14px', fontWeight: 500 }}>Price Range</span>
-                        <span style={{ color: '#0f172a', fontSize: '16px', fontWeight: 700 }}>
-                          {formatPrice(Math.max(...chartData.map(d => d.value)) - Math.min(...chartData.map(d => d.value)), currency)}
-                        </span>
-                      </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ color: '#64748b', fontSize: '14px', fontWeight: 500 }}>Average Price</span>
-                        <span style={{ color: '#0f172a', fontSize: '16px', fontWeight: 700 }}>
-                          {formatPrice(chartData.reduce((sum, d) => sum + d.value, 0) / chartData.length, currency)}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Performance Metrics */}
-                <div style={{
-                  background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
-                  borderRadius: '20px',
-                  padding: '24px',
-                  border: '2px solid rgba(249, 115, 22, 0.1)',
-                  boxShadow: '0 8px 25px -5px rgba(249, 115, 22, 0.1)',
-                  position: 'relative',
-                  overflow: 'hidden'
-                }}>
-                  <div style={{
-                    position: 'absolute',
-                    top: '-20px',
-                    right: '-20px',
-                    width: '80px',
-                    height: '80px',
-                    background: 'linear-gradient(135deg, rgba(249, 115, 22, 0.1), rgba(234, 88, 12, 0.05))',
-                    borderRadius: '50%'
-                  }}></div>
-                  <div style={{ position: 'relative', zIndex: 1 }}>
-                    <h3 style={{
-                      fontSize: '18px',
-                      fontWeight: 700,
-                      color: '#f97316',
-                      marginBottom: '20px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px'
-                    }}>
-                      <span style={{
-                        width: '8px',
-                        height: '8px',
-                        background: '#f97316',
-                        borderRadius: '50%',
-                        animation: 'pulse 2s infinite 0.5s'
-                      }}></span>
-                      Performance Metrics
-                    </h3>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ color: '#64748b', fontSize: '14px', fontWeight: 500 }}>Period Change</span>
-                        <span style={{ 
-                          color: chartData[chartData.length - 1]?.value > chartData[0]?.value ? '#059669' : '#dc2626', 
-                    fontSize: '16px',
-                          fontWeight: 700 
-                        }}>
-                          {chartData.length > 1 ? (
-                            ((chartData[chartData.length - 1].value - chartData[0].value) / chartData[0].value * 100).toFixed(2)
-                          ) : '0.00'}%
-                        </span>
-                      </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ color: '#64748b', fontSize: '14px', fontWeight: 500 }}>Volatility</span>
-                        <span style={{ color: '#0f172a', fontSize: '16px', fontWeight: 700 }}>
-                          {chartData.length > 1 ? (
-                            (Math.sqrt(chartData.reduce((sum, d, i) => {
-                              if (i === 0) return 0;
-                              const change = (d.value - chartData[i-1].value) / chartData[i-1].value;
-                              return sum + change * change;
-                            }, 0) / (chartData.length - 1)) * 100).toFixed(2)
-                          ) : '0.00'}%
-                        </span>
-                      </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ color: '#64748b', fontSize: '14px', fontWeight: 500 }}>Data Points</span>
-                        <span style={{ color: '#0f172a', fontSize: '16px', fontWeight: 700 }}>
-                          {chartData.length} {timeframe === '1D' ? 'hourly' : 'daily'} intervals
-                        </span>
-                      </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ color: '#64748b', fontSize: '14px', fontWeight: 500 }}>Time Period</span>
-                        <span style={{ color: '#0f172a', fontSize: '16px', fontWeight: 700 }}>
-                          {chartData[0]?.time ? new Date(Number(chartData[0].time) * 1000).toLocaleDateString() : 'N/A'} - {chartData[chartData.length - 1]?.time ? new Date(Number(chartData[chartData.length - 1].time) * 1000).toLocaleDateString() : 'N/A'}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Market Analysis */}
-                <div style={{
-                  background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
-                  borderRadius: '20px',
-                  padding: '24px',
-                  border: '2px solid rgba(249, 115, 22, 0.1)',
-                  boxShadow: '0 8px 25px -5px rgba(249, 115, 22, 0.1)',
-                  position: 'relative',
-                  overflow: 'hidden'
-                }}>
-                  <div style={{
-                    position: 'absolute',
-                    top: '-20px',
-                    right: '-20px',
-                    width: '80px',
-                    height: '80px',
-                    background: 'linear-gradient(135deg, rgba(249, 115, 22, 0.1), rgba(234, 88, 12, 0.05))',
-                    borderRadius: '50%'
-                  }}></div>
-                  <div style={{ position: 'relative', zIndex: 1 }}>
-                    <h3 style={{
-                      fontSize: '18px',
-                      fontWeight: 700,
-                      color: '#f97316',
-                      marginBottom: '20px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px'
-                    }}>
-                      <span style={{
-                        width: '8px',
-                        height: '8px',
-                        background: '#f97316',
-                        borderRadius: '50%',
-                        animation: 'pulse 2s infinite 1s'
-                      }}></span>
-                      Market Analysis
-                    </h3>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ color: '#64748b', fontSize: '14px', fontWeight: 500 }}>Trend Direction</span>
-                        <span style={{ 
-                          color: chartData[chartData.length - 1]?.value > chartData[0]?.value ? '#059669' : '#dc2626', 
-                    fontSize: '16px',
-                          fontWeight: 700 
-                        }}>
-                          {chartData.length > 1 ? (
-                            chartData[chartData.length - 1].value > chartData[0].value ? '↗ Bullish' : '↘ Bearish'
-                          ) : '→ Neutral'}
-                        </span>
-                      </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ color: '#64748b', fontSize: '14px', fontWeight: 500 }}>Support Level</span>
-                        <span style={{ color: '#059669', fontSize: '16px', fontWeight: 700 }}>
-                          {formatPrice(Math.min(...chartData.map(d => d.value)) * 0.98, currency)}
-                        </span>
-                      </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ color: '#64748b', fontSize: '14px', fontWeight: 500 }}>Resistance Level</span>
-                        <span style={{ color: '#dc2626', fontSize: '16px', fontWeight: 700 }}>
-                          {formatPrice(Math.max(...chartData.map(d => d.value)) * 1.02, currency)}
-                        </span>
-                      </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ color: '#64748b', fontSize: '14px', fontWeight: 500 }}>Market Sentiment</span>
-                        <span style={{ 
-                          color: chartData[chartData.length - 1]?.value > chartData[0]?.value ? '#059669' : '#dc2626', 
-                          fontSize: '16px', 
-                          fontWeight: 700 
-                        }}>
-                          {chartData.length > 1 ? (
-                            chartData[chartData.length - 1].value > chartData[0].value ? 'Positive' : 'Negative'
-                          ) : 'Neutral'}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
+                  }}>Loading chart...</p>
                 </div>
               </div>
             )}
-
-          </div>
-        </div>
-
-        {/* Market Stats */}
-        <div className="market-stats" style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))',
-          gap: '32px',
-          marginBottom: '40px'
-        }}>
-          {/* Market Data */}
-          <div style={{
-            background: 'linear-gradient(135deg, #ffffff 0%, #f0fdf4 50%, #d1fae5 100%)',
-            borderRadius: '20px',
-            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
-            border: '1px solid #e2e8f0',
-            padding: '40px',
-            position: 'relative',
-            overflow: 'hidden'
-          }}>
-            {/* Background Pattern */}
-            <div style={{
-              position: 'absolute',
-              top: '-50%',
-              right: '-50%',
-              width: '200%',
-              height: '200%',
-              background: 'radial-gradient(circle, rgba(16, 185, 129, 0.03) 0%, transparent 70%)',
-              zIndex: 0
-            }}></div>
-            
-            <div style={{ position: 'relative', zIndex: 1 }}>
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                marginBottom: '32px'
-              }}>
-                <div style={{
-                  background: 'linear-gradient(135deg, #f97316, #ea580c)',
-                  color: 'white',
-                  width: '56px',
-                  height: '56px',
-                  borderRadius: '16px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '28px',
-                  marginRight: '20px',
-                  boxShadow: '0 10px 25px -5px rgba(249, 115, 22, 0.3)',
-                  fontWeight: 'bold'
-                }}>MD</div>
-                <div>
-                  <h2 style={{
-                    fontSize: '28px',
-                    fontWeight: 800,
-                    color: '#0f172a',
-                    margin: 0,
-                    letterSpacing: '-0.025em'
-                  }}>
-                    Market Data
-                  </h2>
-                  <p style={{
-                    color: '#64748b',
-                    fontSize: '16px',
-                    margin: '8px 0 0 0',
-                    fontWeight: 500
-                  }}>
-                    Key market metrics and statistics
-                  </p>
-                </div>
-              </div>
-              
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                <div style={{
-                  background: 'white',
-                  padding: '20px',
-                  borderRadius: '16px',
-                  border: '1px solid #e2e8f0',
-                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
-                }}>
-                  <div style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    marginBottom: '8px'
-                  }}>
-                    <span style={{ 
-                      color: '#64748b',
-                      fontSize: '14px',
-                      fontWeight: 500,
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.05em'
-                    }}>Market Cap Rank</span>
-                    <span style={{ 
-                      fontWeight: 700,
-                      fontSize: '18px',
-                      color: '#0f172a'
-                    }}>#{coin.market_cap_rank}</span>
-                  </div>
-                  <div style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center'
-                  }}>
-                    <span style={{ 
-                      color: '#64748b',
-                      fontSize: '14px',
-                      fontWeight: 500,
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.05em'
-                    }}>Market Cap</span>
-                    <span style={{ 
-                      fontWeight: 700,
-                      fontSize: '18px',
-                      color: '#0f172a'
-                    }}>{formatPrice(coin.market_cap || 0, currency)}</span>
-                  </div>
-                </div>
-                
-                <div style={{
-                  background: 'white',
-                  padding: '20px',
-                  borderRadius: '16px',
-                  border: '1px solid #e2e8f0',
-                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
-                }}>
-                  <div style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    marginBottom: '8px'
-                  }}>
-                    <span style={{ 
-                      color: '#64748b',
-                      fontSize: '14px',
-                      fontWeight: 500,
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.05em'
-                    }}>24h Volume</span>
-                    <span style={{ 
-                      fontWeight: 700,
-                      fontSize: '18px',
-                      color: '#0f172a'
-                    }}>{formatPrice(coin.total_volume || 0, currency)}</span>
-                  </div>
-                  <div style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center'
-                  }}>
-                    <span style={{ 
-                      color: '#64748b',
-                      fontSize: '14px',
-                      fontWeight: 500,
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.05em'
-                    }}>Circulating Supply</span>
-                    <span style={{ 
-                      fontWeight: 700,
-                      fontSize: '18px',
-                      color: '#0f172a'
-                    }}>{formatNumber(coin.circulating_supply || 0)} {coin.symbol.toUpperCase()}</span>
-                  </div>
-                </div>
-                
-                {coin.max_supply && (
-                  <div style={{
-                    background: 'white',
-                    padding: '20px',
-                    borderRadius: '16px',
-                    border: '1px solid #e2e8f0',
-                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
-                  }}>
-                                      <div style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center'
-                  }}>
-                    <span style={{ 
-                      color: '#64748b',
-                      fontSize: '14px',
-                      fontWeight: 500,
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.05em'
-                    }}>Max Supply</span>
-                    <span style={{ 
-                      fontWeight: 700,
-                      fontSize: '18px',
-                      color: '#0f172a'
-                    }}>{formatNumber(coin.max_supply || 0)} {coin.symbol.toUpperCase()}</span>
-                  </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Price Changes */}
-          <div style={{
-            background: 'linear-gradient(135deg, #ffffff 0%, #fef2f2 50%, #fce7f3 100%)',
-            borderRadius: '20px',
-            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
-            border: '1px solid #e2e8f0',
-            padding: '40px',
-            position: 'relative',
-            overflow: 'hidden'
-          }}>
-            {/* Background Pattern */}
-            <div style={{
-              position: 'absolute',
-              top: '-50%',
-              left: '-50%',
-              width: '200%',
-              height: '200%',
-              background: 'radial-gradient(circle, rgba(239, 68, 68, 0.03) 0%, transparent 70%)',
-              zIndex: 0
-            }}></div>
-            
-            <div style={{ position: 'relative', zIndex: 1 }}>
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                marginBottom: '32px'
-              }}>
-                <div style={{
-                  background: 'linear-gradient(135deg, #f97316, #ea580c)',
-                  color: 'white',
-                  width: '56px',
-                  height: '56px',
-                  borderRadius: '16px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '28px',
-                  marginRight: '20px',
-                  boxShadow: '0 10px 25px -5px rgba(249, 115, 22, 0.3)',
-                  fontWeight: 'bold'
-                }}>PC</div>
-                <div>
-                  <h2 style={{
-                    fontSize: '28px',
-                    fontWeight: 800,
-                    color: '#0f172a',
-                    margin: 0,
-                    letterSpacing: '-0.025em'
-                  }}>
-                    Price Changes
-                  </h2>
-                  <p style={{
-                    color: '#64748b',
-                    fontSize: '16px',
-                    margin: '8px 0 0 0',
-                    fontWeight: 500
-                  }}>
-                    Performance across different timeframes
-                  </p>
-                </div>
-              </div>
-              
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                <div style={{
-                  background: 'white',
-                  padding: '20px',
-                  borderRadius: '16px',
-                  border: '1px solid #e2e8f0',
-                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
-                }}>
-                  <div style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    marginBottom: '8px'
-                  }}>
-                    <span style={{ 
-                      color: '#64748b',
-                      fontSize: '14px',
-                      fontWeight: 500,
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.05em'
-                    }}>24h Change</span>
-                    <span style={{ 
-                      fontWeight: 700,
-                      fontSize: '18px',
-                      color: getPriceChangeColor(coin.price_change_percentage_24h)
-                    }}>
-                      {(coin.price_change_percentage_24h ?? 0) >= 0 ? '+' : ''}
-                      {formatPriceChange(coin.price_change_percentage_24h)}%
-                    </span>
-                  </div>
-                  <div style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center'
-                  }}>
-                    <span style={{ 
-                      color: '#64748b',
-                      fontSize: '14px',
-                      fontWeight: 500,
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.05em'
-                    }}>7d Change</span>
-                    <span style={{ 
-                      fontWeight: 700,
-                      fontSize: '18px',
-                      color: getPriceChangeColor(coin.price_change_percentage_7d)
-                    }}>
-                      {(coin.price_change_percentage_7d ?? 0) >= 0 ? '+' : ''}
-                      {formatPriceChange(coin.price_change_percentage_7d)}%
-                    </span>
-                  </div>
-                </div>
-                
-                <div style={{
-                  background: 'white',
-                  padding: '20px',
-                  borderRadius: '16px',
-                  border: '1px solid #e2e8f0',
-                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
-                }}>
-                  <div style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center'
-                  }}>
-                    <span style={{ 
-                      color: '#64748b',
-                      fontSize: '14px',
-                      fontWeight: 500,
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.05em'
-                    }}>30d Change</span>
-                    <span style={{ 
-                      fontWeight: 700,
-                      fontSize: '18px',
-                      color: getPriceChangeColor(coin.price_change_percentage_30d)
-                    }}>
-                      {(coin.price_change_percentage_30d ?? 0) >= 0 ? '+' : ''}
-                      {formatPriceChange(coin.price_change_percentage_30d)}%
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
 
         {/* Description */}
         {coin.description?.en && (
           <div style={{
-            background: 'linear-gradient(135deg, #ffffff 0%, #faf5ff 50%, #e0e7ff 100%)',
+            background: '#ffffff',
             borderRadius: '16px',
-            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)',
+            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
             border: '1px solid #e5e7eb',
-            padding: '32px',
-            marginBottom: '32px'
+            padding: '24px',
+            marginBottom: '24px'
           }}>
-            <h2 style={{
-              fontSize: '24px',
-              fontWeight: 700,
-              color: '#111827',
-              marginBottom: '24px',
-              display: 'flex',
-              alignItems: 'center'
-            }}>
-              <span style={{ 
-                fontSize: '20px', 
-                marginRight: '12px',
-                background: 'linear-gradient(135deg, #f97316, #ea580c)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                fontWeight: 'bold'
-              }}>AB</span>
-              About {coin.name}
-            </h2>
-            <div style={{ color: '#374151', lineHeight: '1.6' }}>
-              {coin.description.en}
-            </div>
-          </div>
-        )}
-
-        {/* Links */}
-        {coin.links && (
-          <div style={{
-            background: 'linear-gradient(135deg, #ffffff 0%, #fffbeb 50%, #fed7aa 100%)',
-            borderRadius: '16px',
-            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)',
-            border: '1px solid #e5e7eb',
-            padding: '32px'
-          }}>
-            <h2 style={{
-              fontSize: '24px',
-              fontWeight: 700,
-              color: '#111827',
-              marginBottom: '24px',
-              display: 'flex',
-              alignItems: 'center'
-            }}>
-              <span style={{ 
-                fontSize: '20px', 
-                marginRight: '12px',
-                background: 'linear-gradient(135deg, #f97316, #ea580c)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                fontWeight: 'bold'
-              }}>LN</span>
-              Useful Links
-            </h2>
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-              gap: '16px'
-            }}>
-              {coin.links.homepage?.[0] && (
-                <a
-                  href={coin.links.homepage[0]}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    padding: '12px',
-                    backgroundColor: '#f9fafb',
-                    borderRadius: '8px',
-                    textDecoration: 'none',
-                    color: '#374151',
-                    transition: 'background-color 0.3s ease'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = '#f3f4f6';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = '#f9fafb';
-                  }}
-                >
-                  <span>Official Website</span>
-                </a>
-              )}
-              {coin.links.blockchain_site?.[0] && (
-                <a
-                  href={coin.links.blockchain_site[0]}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    padding: '12px',
-                    backgroundColor: '#f9fafb',
-                    borderRadius: '8px',
-                    textDecoration: 'none',
-                    color: '#374151',
-                    transition: 'background-color 0.3s ease'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = '#f3f4f6';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = '#f9fafb';
-                  }}
-                >
-                  <span>Blockchain Explorer</span>
-                </a>
-              )}
-            </div>
+            <h2 style={{ fontSize: '18px', fontWeight: 600, color: '#1f2937', margin: '0 0 16px 0' }}>About {coin.name}</h2>
+            <p style={{
+              fontSize: '14px',
+              color: '#4b5563',
+              lineHeight: '1.7',
+              margin: 0
+            }} dangerouslySetInnerHTML={{
+              __html: coin.description.en.split('. ').slice(0, 3).join('. ') + '.'
+            }} />
           </div>
         )}
       </div>
-      
-      {/* CSS Animations and Mobile Responsive */}
+
       <style>{`
         @keyframes spin {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
-        }
-        
-        @keyframes float {
-          0%, 100% { transform: translateY(0px) rotate(0deg); }
-          50% { transform: translateY(-20px) rotate(180deg); }
-        }
-        
-        @keyframes slideIn {
-          from {
-            opacity: 0;
-            transform: translateY(30px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        
-        @keyframes pulse {
-          0%, 100% {
-            opacity: 1;
-            transform: scale(1);
-          }
-          50% {
-            opacity: 0.5;
-            transform: scale(0.95);
-          }
-        }
-        
-        .chart-container {
-          position: relative;
-          height: 700px;
-          width: 100%;
-        }
-        
-        .chart-loading {
-          position: absolute;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          background: rgba(255, 255, 255, 0.9);
-          z-index: 10;
-        }
-        
-        .chart-canvas {
-          width: 100% !important;
-          height: 100% !important;
-          display: block;
-        }
-        
-        .price-card {
-          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        
-        .price-card:hover {
-          transform: translateY(-8px) scale(1.02);
-          box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
-        }
-        
-        .timeframe-button {
-          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        
-        .timeframe-button:hover {
-          transform: translateY(-2px) scale(1.05);
-        }
-
-        /* Mobile Responsive Styles */
-        @media (max-width: 768px) {
-          .coin-detail-container {
-            padding: 20px 16px !important;
-          }
-          
-          .coin-header {
-            padding: 24px !important;
-            margin-bottom: 24px !important;
-            border-radius: 16px !important;
-          }
-          
-          .coin-header-content {
-            flex-direction: column !important;
-            text-align: center !important;
-            margin-bottom: 24px !important;
-          }
-          
-          .coin-image-container {
-            margin-right: 0 !important;
-            margin-bottom: 20px !important;
-          }
-          
-          .coin-image {
-            width: 80px !important;
-            height: 80px !important;
-            border-radius: 16px !important;
-          }
-          
-          .coin-title {
-            font-size: 32px !important;
-          }
-          
-          .coin-badges {
-            gap: 12px !important;
-            justify-content: center !important;
-          }
-          
-          .price-grid {
-            grid-template-columns: 1fr !important;
-            gap: 16px !important;
-            margin-bottom: 24px !important;
-          }
-          
-          .price-card {
-            padding: 20px !important;
-            border-radius: 16px !important;
-          }
-          
-          .price-value {
-            font-size: 28px !important;
-          }
-          
-          .timeframe-selector {
-            gap: 8px !important;
-            padding: 16px !important;
-            border-radius: 16px !important;
-          }
-          
-          .timeframe-button {
-            padding: 12px 20px !important;
-            font-size: 14px !important;
-          }
-          
-          .chart-section {
-            padding: 20px !important;
-            margin-bottom: 24px !important;
-            border-radius: 16px !important;
-          }
-          
-          .chart-header {
-            flex-direction: column !important;
-            align-items: flex-start !important;
-            margin-bottom: 20px !important;
-            gap: 16px !important;
-          }
-          
-          .chart-title {
-            font-size: 20px !important;
-          }
-          
-          .chart-container {
-            height: 400px !important;
-            border-radius: 16px !important;
-          }
-          
-          .chart-content {
-            min-height: 400px !important;
-          }
-          
-          .chart-stats {
-            margin-top: 20px !important;
-            grid-template-columns: 1fr !important;
-            gap: 16px !important;
-          }
-          
-          .market-stats {
-            grid-template-columns: 1fr !important;
-            gap: 20px !important;
-            margin-bottom: 24px !important;
-          }
-        }
-
-        /* Additional Mobile Chart Card Fixes */
-        @media (max-width: 768px) {
-          /* Chart section mobile optimizations */
-          .chart-section {
-            padding: 16px !important;
-            margin: 0 0 20px 0 !important;
-          }
-          
-          /* Chart header mobile layout */
-          .chart-header {
-            flex-direction: column !important;
-            align-items: stretch !important;
-            gap: 12px !important;
-            margin-bottom: 16px !important;
-          }
-          
-          /* Chart title mobile sizing */
-          .chart-title {
-            font-size: 18px !important;
-            line-height: 1.3 !important;
-          }
-          
-          /* Chart container mobile sizing */
-          .chart-container {
-            height: 350px !important;
-            min-height: 350px !important;
-            border-radius: 12px !important;
-            margin: 0 !important;
-          }
-          
-          /* Chart content mobile sizing */
-          .chart-content {
-            min-height: 350px !important;
-            height: 350px !important;
-          }
-          
-          /* Chart stats mobile layout */
-          .chart-stats {
-            margin-top: 16px !important;
-            grid-template-columns: 1fr !important;
-            gap: 12px !important;
-          }
-          
-          /* Individual chart stat cards */
-          .chart-stats > div {
-            padding: 16px !important;
-            border-radius: 12px !important;
-            margin: 0 !important;
-          }
-          
-          /* Chart stat titles */
-          .chart-stats h3 {
-            font-size: 16px !important;
-            margin-bottom: 12px !important;
-          }
-          
-          /* Chart stat content */
-          .chart-stats .flex {
-            flex-direction: column !important;
-            gap: 8px !important;
-          }
-          
-          /* Chart stat labels and values */
-          .chart-stats span {
-            font-size: 13px !important;
-            line-height: 1.4 !important;
-          }
-          
-          /* Market stats mobile layout */
-          .market-stats {
-            grid-template-columns: 1fr !important;
-            gap: 16px !important;
-            margin-bottom: 20px !important;
-          }
-          
-          /* Market data cards mobile */
-          .market-stats > div {
-            padding: 20px !important;
-            border-radius: 16px !important;
-          }
-          
-          /* Market data headers */
-          .market-stats h2 {
-            font-size: 20px !important;
-          }
-          
-          /* Market data content */
-          .market-stats .flex {
-            flex-direction: column !important;
-            gap: 12px !important;
-          }
-          
-          /* Market data inner cards */
-          .market-stats .bg-white {
-            padding: 16px !important;
-            border-radius: 12px !important;
-          }
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
         }
       `}</style>
     </div>
   );
 };
+
+// Helper function to get coin image URL
+function getDefaultCoinImageUrl(coinId: string): string {
+  const coinImageMap: { [key: string]: string } = {
+    'bitcoin': 'https://assets.coingecko.com/coins/images/1/large/bitcoin.png',
+    'ethereum': 'https://assets.coingecko.com/coins/images/279/large/ethereum.png',
+    'tether': 'https://assets.coingecko.com/coins/images/325/large/Tether.png',
+    'binancecoin': 'https://assets.coingecko.com/coins/images/825/large/bnb-icon2_2x.png',
+    'ripple': 'https://assets.coingecko.com/coins/images/44/large/xrp-symbol-white-128.png',
+    'usd-coin': 'https://assets.coingecko.com/coins/images/6319/large/USD_Coin_icon.png',
+    'solana': 'https://assets.coingecko.com/coins/images/4128/large/solana.png',
+    'cardano': 'https://assets.coingecko.com/coins/images/975/large/cardano.png',
+    'dogecoin': 'https://assets.coingecko.com/coins/images/5/large/dogecoin.png',
+    'tron': 'https://assets.coingecko.com/coins/images/1094/large/tron-logo.png',
+    'polkadot': 'https://assets.coingecko.com/coins/images/12171/large/polkadot.png',
+    'polygon': 'https://assets.coingecko.com/coins/images/4713/large/matic-token-icon.png',
+    'litecoin': 'https://assets.coingecko.com/coins/images/2/large/litecoin.png',
+    'shiba-inu': 'https://assets.coingecko.com/coins/images/11939/large/shiba.png',
+    'avalanche-2': 'https://assets.coingecko.com/coins/images/12559/large/Avalanche_Circle_RedWhite_Trans.png',
+    'chainlink': 'https://assets.coingecko.com/coins/images/877/large/chainlink-new-logo.png',
+    'uniswap': 'https://assets.coingecko.com/coins/images/12504/large/uniswap-uni.png',
+  };
+
+  if (coinImageMap[coinId]) {
+    return coinImageMap[coinId];
+  }
+
+  // Use CoinGecko CDN pattern as fallback
+  return `https://assets.coingecko.com/coins/images/1/large/${coinId}.png`;
+}
+
+// Helper function to create mock coin data
+function createBasicMockCoinData(coinId: string | undefined): CoinData {
+  const id = coinId || 'unknown';
+  return {
+    id: id,
+    name: coinId ? coinId.charAt(0).toUpperCase() + coinId.slice(1).replace(/-/g, ' ') : 'Unknown Coin',
+    symbol: coinId?.substring(0, 4).toUpperCase() || 'UNK',
+    current_price: Math.random() * 1000,
+    price_change_percentage_24h: (Math.random() - 0.5) * 20,
+    price_change_percentage_7d: (Math.random() - 0.5) * 30,
+    price_change_percentage_30d: (Math.random() - 0.5) * 50,
+    market_cap: Math.floor(Math.random() * 10000000000),
+    market_cap_rank: Math.floor(Math.random() * 100) + 1,
+    total_volume: Math.floor(Math.random() * 1000000000),
+    circulating_supply: Math.floor(Math.random() * 100000000),
+    total_supply: Math.floor(Math.random() * 200000000),
+    max_supply: Math.random() > 0.5 ? Math.floor(Math.random() * 500000000) : null,
+    image: getDefaultCoinImageUrl(id),
+    description: { en: 'Sample cryptocurrency data. Live data is currently unavailable.' },
+    links: {
+      homepage: [],
+      blockchain_site: [],
+      official_forum_url: [],
+      chat_url: [],
+      announcement_url: [],
+      repos_url: { github: [], bitbucket: [] }
+    },
+    market_data: {
+      price_change_24h_in_currency: {},
+      market_cap_change_24h_in_currency: {},
+      total_volume: {},
+      market_cap: {}
+    }
+  };
+}
 
 export default CoinDetail;
