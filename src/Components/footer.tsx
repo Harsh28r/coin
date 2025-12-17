@@ -78,9 +78,9 @@ const Footer: React.FC = () => {
             <h6 className="text-white mb-3 fw-bold">Our Company</h6>
             <ul className="list-unstyled" style={{ paddingLeft: '0' }}>
               <li className="mb-2"><a href="/" className="small text-decoration-none hover-underline d-inline-block" style={{ color: '#e5e7eb' }}>{t('nav.home')}</a></li>
-              <li className="mb-2"><a href="/exclusive-news" className="small text-decoration-none hover-underline d-inline-block" style={{ color: '#e5e7eb' }}>{t('news.exclusive')}</a></li>
-              <li className="mb-2"><a href="/All-Trending-news" className="small text-decoration-none hover-underline d-inline-block" style={{ color: '#e5e7eb' }}>{t('news.trending')}</a></li>
-              <li className="mb-2"><a href="/press-news" className="small text-decoration-none hover-underline d-inline-block" style={{ color: '#e5e7eb' }}>{t('news.press')}</a></li>
+              <li className="mb-2"><a href="/about" className="small text-decoration-none hover-underline d-inline-block" style={{ color: '#e5e7eb' }}>About Us</a></li>
+              <li className="mb-2"><a href="/contact" className="small text-decoration-none hover-underline d-inline-block" style={{ color: '#e5e7eb' }}>Contact</a></li>
+              <li className="mb-2"><a href="/advertise" className="small text-decoration-none hover-underline d-inline-block" style={{ color: '#e5e7eb' }}>Advertise</a></li>
               <li className="mb-2"><a href="/listings" className="small text-decoration-none hover-underline d-inline-block" style={{ color: '#e5e7eb' }}>Listings</a></li>
             </ul>
           </Col>
@@ -90,6 +90,9 @@ const Footer: React.FC = () => {
               <li className="mb-2"><a href="/explore/cryptocurrencies" className="small text-decoration-none hover-underline d-inline-block" style={{ color: '#e5e7eb' }}>{t('explore.didYouKnow')}</a></li>
               <li className="mb-2"><a href="/explore/defi" className="small text-decoration-none hover-underline d-inline-block" style={{ color: '#e5e7eb' }}>{t('explore.learnALittle')}</a></li>
               <li className="mb-2"><a href="/explore/nfts" className="small text-decoration-none hover-underline d-inline-block" style={{ color: '#e5e7eb' }}>{t('explore.testKnowledge')}</a></li>
+              <li className="mb-2"><a href="/privacy-policy" className="small text-decoration-none hover-underline d-inline-block" style={{ color: '#e5e7eb' }}>Privacy Policy</a></li>
+              <li className="mb-2"><a href="/terms" className="small text-decoration-none hover-underline d-inline-block" style={{ color: '#e5e7eb' }}>Terms of Service</a></li>
+              <li className="mb-2"><a href="/faq" className="small text-decoration-none hover-underline d-inline-block" style={{ color: '#e5e7eb' }}>FAQ</a></li>
             </ul>
           </Col>
           <Col md={3} className="mb-4 mb-md-0 text-center text-md-start">

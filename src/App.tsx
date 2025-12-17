@@ -31,6 +31,11 @@ import AdminGate from './Components/AdminGate';
 import CoinDetail from './Components/CoinDetail';
 import NotFound from './pages/NotFound';
 import AllAINews from './pages/AllAINews';
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import FAQ from './pages/FAQ';
+import About from './pages/About';
+import Contact from './pages/Contact';
+import Terms from './pages/Terms';
 import BackToTop from './Components/BackToTop';
 import ScrollProgress from './Components/ScrollProgress';
 import { Analytics } from '@vercel/analytics/react';
@@ -80,6 +85,11 @@ function App() {
                   {/* <Route path="/press-release-detail" element={<PressReleaseDetail />} /> */}
                   <Route path="/search" element={<SearchPage />} />
                   <Route path="/watchlist" element={<Watchlist />} />
+                  <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+                  <Route path="/faq" element={<FAQ />} />
+                  <Route path="/about" element={<About />} />
+                  <Route path="/contact" element={<Contact />} />
+                  <Route path="/terms" element={<Terms />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </div>
