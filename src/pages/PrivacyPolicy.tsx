@@ -140,7 +140,7 @@ const PrivacyPolicy: React.FC = () => {
                 If you have any questions about this Privacy Policy, please contact us at:
               </p>
               <ul style={{ paddingLeft: '20px', marginTop: '10px', listStyle: 'none' }}>
-                {/* <li>Email: privacy@coinsclarity.com</li> */}
+                {/* <li>Email: <a href="mailto:harshgupta0028@gmail.com" style={{ color: '#f97316' }}>harshgupta0028@gmail.com</a></li> */}
                 <li>Website: <a href="https://coinsclarity.com" style={{ color: '#f97316' }}>coinsclarity.com</a></li>
               </ul>
             </section>

@@ -233,7 +233,7 @@ const FAQ: React.FC = () => {
               Can't find what you're looking for? Reach out to us!
             </p>
             <a
-              href="mailto:support@coinsclarity.com"
+              href="mailto:harshgupta0028@gmail.com"
               style={{
                 display: 'inline-block',
                 padding: '12px 30px',

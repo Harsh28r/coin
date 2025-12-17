@@ -92,6 +92,7 @@ const Footer: React.FC = () => {
               <li className="mb-2"><a href="/explore/nfts" className="small text-decoration-none hover-underline d-inline-block" style={{ color: '#e5e7eb' }}>{t('explore.testKnowledge')}</a></li>
               <li className="mb-2"><a href="/privacy-policy" className="small text-decoration-none hover-underline d-inline-block" style={{ color: '#e5e7eb' }}>Privacy Policy</a></li>
               <li className="mb-2"><a href="/terms" className="small text-decoration-none hover-underline d-inline-block" style={{ color: '#e5e7eb' }}>Terms of Service</a></li>
+              <li className="mb-2"><a href="/disclaimer" className="small text-decoration-none hover-underline d-inline-block" style={{ color: '#e5e7eb' }}>Disclaimer</a></li>
               <li className="mb-2"><a href="/faq" className="small text-decoration-none hover-underline d-inline-block" style={{ color: '#e5e7eb' }}>FAQ</a></li>
             </ul>
           </Col>

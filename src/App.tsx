@@ -36,6 +36,7 @@ import FAQ from './pages/FAQ';
 import About from './pages/About';
 import Contact from './pages/Contact';
 import Terms from './pages/Terms';
+import Disclaimer from './pages/Disclaimer';
 import BackToTop from './Components/BackToTop';
 import ScrollProgress from './Components/ScrollProgress';
 import { Analytics } from '@vercel/analytics/react';
@@ -90,6 +91,7 @@ function App() {
                   <Route path="/about" element={<About />} />
                   <Route path="/contact" element={<Contact />} />
                   <Route path="/terms" element={<Terms />} />
+                  <Route path="/disclaimer" element={<Disclaimer />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </div>

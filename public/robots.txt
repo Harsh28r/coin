@@ -1,8 +1,12 @@
+# CoinsClarity Robots.txt
+# https://www.robotstxt.org/robotstxt.html
+
 User-agent: *
 Allow: /
 
-Sitemap: https://coinsclarity.com/sitemap.xml
+# Disallow admin/login pages
+Disallow: /login
+Disallow: /main-dashboard
 
-# https://www.robotstxt.org/robotstxt.html
-User-agent: *
-Disallow:
+# Sitemap
+Sitemap: https://coinsclarity.com/sitemap.xml
