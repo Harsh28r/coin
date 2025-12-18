@@ -79,29 +79,34 @@ const NewsDetail: React.FC = () => {
         setLoading(true);
       }
 
-      // Backend URLs to try
+      // Camify backend (AWS)
       const CAMIFY_BASE = 'https://camify.fun.coinsclarity.com';
-      const RENDER_BASES = [
-        'https://camify.fun.coinsclarity.com',
-        // 'https://c-back-1.onrender.com',
+      
+      // All RSS endpoints on camify
+      const RSS_ENDPOINTS = [
+        '/fetch-cryptoslate-rss?limit=50',
+        '/fetch-cointelegraph-rss?limit=50',
+        '/fetch-coindesk-rss?limit=50',
+        '/fetch-decrypt-rss?limit=50',
+        '/fetch-bitcoinist-rss?limit=50',
+        '/fetch-rss?limit=50',
+        '/fetch-all-rss?limit=100',
       ];
 
       try {
         if (!fromState) setLoading(true);
         let resolved: NewsItem | null = null;
 
-        // 1) Try camify backend first (/posts endpoint)
+        // 1) Try /posts endpoint for blog posts
         try {
           const postsRes = await fetch(`${CAMIFY_BASE}/posts`);
           if (postsRes.ok) {
             const postsData = await postsRes.json();
             if (postsData.success && Array.isArray(postsData.data)) {
               const match = postsData.data.find((item: any) => {
-                // Match by _id or article_id
                 return item._id === id || item.article_id === id;
               });
               if (match) {
-                // Map camify format to NewsItem format
                 resolved = {
                   article_id: match._id || match.article_id,
                   title: match.title,
@@ -118,36 +123,33 @@ const NewsDetail: React.FC = () => {
           }
         } catch {}
 
-        // 2) Fallback: Try Render backends
+        // 2) Try search endpoint
         if (!resolved) {
-          for (const base of RENDER_BASES) {
-            if (resolved) break;
-            
-            // Search DB
-            try {
-              const searchResponse = await fetch(`${base}/search-db-news?query=${encodeURIComponent(id)}`);
-              if (searchResponse.ok) {
-                const searchData = await searchResponse.json();
-                if (searchData.success && Array.isArray(searchData.data)) {
-                  const foundItem = searchData.data.find((item: any) => {
-                    return item.article_id === id || (item.link && item.link.includes(id));
-                  });
-                  if (foundItem) {
-                    resolved = foundItem;
-                    break;
-                  }
-                }
+          try {
+            const searchRes = await fetch(`${CAMIFY_BASE}/search-db-news?query=${encodeURIComponent(id)}`);
+            if (searchRes.ok) {
+              const searchData = await searchRes.json();
+              if (searchData.success && Array.isArray(searchData.data)) {
+                const match = searchData.data.find((item: any) => {
+                  return item.article_id === id || item._id === id;
+                });
+                if (match) resolved = match;
               }
-            } catch {}
+            }
+          } catch {}
+        }
 
-            // Fetch RSS
+        // 3) Try all RSS endpoints
+        if (!resolved) {
+          for (const endpoint of RSS_ENDPOINTS) {
+            if (resolved) break;
             try {
-              const rssRes = await fetch(`${base}/`);
+              const rssRes = await fetch(`${CAMIFY_BASE}${endpoint}`);
               if (rssRes.ok) {
                 const rssData = await rssRes.json();
                 if (rssData.success && Array.isArray(rssData.data)) {
                   const match = rssData.data.find((it: any) => {
-                    return it.article_id === id || (it.link && it.link.includes(id));
+                    return it.article_id === id || it._id === id;
                   });
                   if (match) {
                     resolved = match;
@@ -305,8 +307,6 @@ const NewsDetail: React.FC = () => {
       try {
         const basesToTry = [
           'https://camify.fun.coinsclarity.com',
-          'https://c-back-2.onrender.com',
-          'https://c-back-1.onrender.com',
         ];
 
         for (const base of basesToTry) {
