@@ -1,6 +1,12 @@
 {
   "rewrites": [
+    { "source": "/news/:id", "destination": "/api/news/:id" },
     { "source": "/(.*)", "destination": "/index.html" }
-  ]
+  ],
+  "functions": {
+    "api/**/*.js": {
+      "memory": 128,
+      "maxDuration": 10
+    }
+  }
 }
-
