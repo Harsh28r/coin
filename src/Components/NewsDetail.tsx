@@ -79,129 +79,91 @@ const NewsDetail: React.FC = () => {
         setLoading(true);
       }
 
-      const isLocalBase = /localhost|127\.0\.0\.1|:\\d{2,5}$/.test(API_BASE_URL);
-      const bases = isLocalBase
-        ? Array.from(new Set([
-            'https://c-back-1.onrender.com',
-            'https://c-back-2.onrender.com',
-            API_BASE_URL,
-          ]))
-        : Array.from(new Set([
-            API_BASE_URL,
-            'https://c-back-1.onrender.com',
-            'https://c-back-2.onrender.com',
-          ]));
+      // Backend URLs to try
+      const CAMIFY_BASE = 'https://camify.fun.coinsclarity.com';
+      const RENDER_BASES = [
+        'https://c-back-2.onrender.com',
+        'https://c-back-1.onrender.com',
+      ];
 
       try {
         if (!fromState) setLoading(true);
         let resolved: NewsItem | null = null;
 
-        for (const base of bases) {
-          if (resolved) break;
-          // 1) Search DB first (most reliable across deployments)
-          try {
-            const searchResponse = await fetch(`${base}/search-db-news?query=${encodeURIComponent(id)}`);
-            if (searchResponse.ok) {
-              const searchData = await searchResponse.json();
-              if (searchData.success && Array.isArray(searchData.data)) {
-                const idLower = id.toLowerCase();
-                const foundItem = searchData.data.find((item: any) => {
-                  const linkHit = item.link && typeof item.link === 'string' && item.link.includes(id);
-                  const idHit = item.article_id && String(item.article_id) === id;
-                  const titleHit = item.title && typeof item.title === 'string' && (item.title.toLowerCase().includes(idLower) || idLower.includes(item.title.toLowerCase()));
-                  return idHit || linkHit || titleHit;
-                });
-                if (foundItem) {
-                  resolved = foundItem;
-                  break;
-                }
-              }
-            }
-          } catch {}
-
-          // 2) Fallback: unified RSS and match (broad coverage)
-          try {
-            if (/localhost|127\.0\.0\.1/.test(base)) throw new Error('skip all-rss on local');
-            const allRssRes = await fetch(`${base}/fetch-all-rss?limit=50`);
-            if (allRssRes.ok) {
-              const allRssData = await allRssRes.json();
-              if (allRssData.success && Array.isArray(allRssData.data)) {
-                const idLower = id.toLowerCase();
-                const match = allRssData.data.find((it: any) => {
-                  const linkHit = it.link && typeof it.link === 'string' && it.link.includes(id);
-                  const idHit = it.article_id && String(it.article_id) === id;
-                  const titleHit = it.title && typeof it.title === 'string' && (it.title.toLowerCase().includes(idLower) || idLower.includes(it.title.toLowerCase()));
-                  return idHit || linkHit || titleHit;
-                });
-                if (match) {
-                  resolved = match;
-                  break;
-                }
-              }
-            }
-          } catch {}
-
-          // 3) Fallback: generic RSS endpoint and match
-          try {
-            const rssRes = await fetch(`${base}/fetch-rss?limit=50`);
-            if (rssRes.ok) {
-              const rssData = await rssRes.json();
-              if (rssData.success && Array.isArray(rssData.data)) {
-                const idLower = id.toLowerCase();
-                const match = rssData.data.find((it: any) => {
-                  const linkHit = it.link && typeof it.link === 'string' && it.link.includes(id);
-                  const idHit = it.article_id && String(it.article_id) === id;
-                  const titleHit = it.title && typeof it.title === 'string' && (it.title.toLowerCase().includes(idLower) || idLower.includes(it.title.toLowerCase()));
-                  return idHit || linkHit || titleHit;
-                });
-                if (match) {
-                  resolved = match;
-                  break;
-                }
-              }
-            }
-          } catch {}
-
-          // 4) Fallback: dedicated by-id endpoint (may not exist on some deployments)
-          try {
-            const byIdRes = await fetch(`${base}/news-by-id?id=${encodeURIComponent(id)}`);
-            if (byIdRes.ok) {
-              const byIdData = await byIdRes.json();
-              if (byIdData.success && byIdData.data) {
-                resolved = byIdData.data;
-                break;
-              }
-            }
-          } catch {}
-
-          // 5) Fallback: The Defiant feed (might be missing on some deployments)
-          try {
-            if (/localhost|127\.0\.0\.1/.test(base)) throw new Error('skip defiant on local');
-            const defiantRes = await fetch(`${base}/fetch-defiant-rss?limit=20`);
-          if (defiantRes.ok) {
-            const defiantData = await defiantRes.json();
-            if (defiantData.success && Array.isArray(defiantData.data)) {
-                const idLower = id.toLowerCase();
-                const match = defiantData.data.find((it: any) => {
-                  const linkHit = it.link && typeof it.link === 'string' && it.link.includes(id);
-                  const idHit = it.article_id && String(it.article_id) === id;
-                  const titleHit = it.title && typeof it.title === 'string' && (it.title.toLowerCase().includes(idLower) || idLower.includes(it.title.toLowerCase()));
-                  return idHit || linkHit || titleHit;
-                });
+        // 1) Try camify backend first (/posts endpoint)
+        try {
+          const postsRes = await fetch(`${CAMIFY_BASE}/posts`);
+          if (postsRes.ok) {
+            const postsData = await postsRes.json();
+            if (postsData.success && Array.isArray(postsData.data)) {
+              const match = postsData.data.find((item: any) => {
+                // Match by _id or article_id
+                return item._id === id || item.article_id === id;
+              });
               if (match) {
-                  resolved = match;
-                  break;
-                }
+                // Map camify format to NewsItem format
+                resolved = {
+                  article_id: match._id || match.article_id,
+                  title: match.title,
+                  description: match.content?.substring(0, 200) || '',
+                  content: match.content,
+                  creator: match.author ? [match.author] : [],
+                  pubDate: match.date,
+                  image_url: match.imageUrl,
+                  link: '',
+                  source_name: 'CoinsClarity',
+                } as NewsItem;
               }
             }
-          } catch {}
+          }
+        } catch {}
+
+        // 2) Fallback: Try Render backends
+        if (!resolved) {
+          for (const base of RENDER_BASES) {
+            if (resolved) break;
+            
+            // Search DB
+            try {
+              const searchResponse = await fetch(`${base}/search-db-news?query=${encodeURIComponent(id)}`);
+              if (searchResponse.ok) {
+                const searchData = await searchResponse.json();
+                if (searchData.success && Array.isArray(searchData.data)) {
+                  const foundItem = searchData.data.find((item: any) => {
+                    return item.article_id === id || (item.link && item.link.includes(id));
+                  });
+                  if (foundItem) {
+                    resolved = foundItem;
+                    break;
+                  }
+                }
+              }
+            } catch {}
+
+            // Fetch RSS
+            try {
+              const rssRes = await fetch(`${base}/fetch-rss?limit=50`);
+              if (rssRes.ok) {
+                const rssData = await rssRes.json();
+                if (rssData.success && Array.isArray(rssData.data)) {
+                  const match = rssData.data.find((it: any) => {
+                    return it.article_id === id || (it.link && it.link.includes(id));
+                  });
+                  if (match) {
+                    resolved = match;
+                    break;
+                  }
+                }
+              }
+            } catch {}
+          }
         }
 
         if (resolved) {
           setNewsItem(resolved);
           setError(null);
         } else if (!fromState) {
-        setError('News article not found');
+          setError('News article not found');
         }
         if (!fromState) setLoading(false);
       } catch (err) {
@@ -341,11 +303,11 @@ const NewsDetail: React.FC = () => {
       if (!effectiveItem.link) return;
 
       try {
-        const basesToTry = Array.from(new Set([
-          API_BASE_URL,
-          'https://c-back-1.onrender.com',
+        const basesToTry = [
+          'https://camify.fun.coinsclarity.com',
           'https://c-back-2.onrender.com',
-        ]));
+          'https://c-back-1.onrender.com',
+        ];
 
         for (const base of basesToTry) {
           try {
