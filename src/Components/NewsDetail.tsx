@@ -385,11 +385,14 @@ const NewsDetail: React.FC = () => {
   if (loading) {
     return (
       <Container className="mt-5">
-        <div className="text-center">
-          <div className="spinner-border" role="status">
+        <div className="text-center" style={{ backgroundColor: '#111827', minHeight: '60vh', paddingTop: '80px' }}>
+          <div className="spinner-border" role="status" style={{ color: '#f97316' }}>
             <span className="visually-hidden">Loading...</span>
           </div>
-          <p className="mt-3">Loading news article...</p>
+          <p className="mt-3" style={{ color: '#fff' }}>Loading news article...</p>
+          <p style={{ color: '#6b7280', fontSize: '0.85rem' }}>
+            This may take a moment if the server is waking up
+          </p>
         </div>
       </Container>
     );
@@ -398,13 +401,21 @@ const NewsDetail: React.FC = () => {
   if (!effectiveItem) {
     return (
       <Container className="mt-5">
-        <div className="text-center">
-          <h3>Article Not Found</h3>
-          <p className="text-muted">{error || 'The requested news article could not be found.'}</p>
-          <Button onClick={handleBack} variant="primary">
-            <ArrowLeft className="me-2" size={16} />
-            Go Back
-          </Button>
+        <div className="text-center" style={{ backgroundColor: '#111827', minHeight: '60vh', paddingTop: '80px' }}>
+          <h3 style={{ color: '#fff' }}>Article Not Found</h3>
+          <p style={{ color: '#9ca3af' }}>{error || 'The requested news article could not be found.'}</p>
+          <p style={{ color: '#6b7280', fontSize: '0.9rem', marginBottom: '20px' }}>
+            This may happen if the server is waking up. Try refreshing the page.
+          </p>
+          <div className="d-flex justify-content-center gap-3">
+            <Button onClick={() => window.location.reload()} variant="warning" style={{ backgroundColor: '#f97316', border: 'none' }}>
+              Retry
+            </Button>
+            <Button onClick={handleBack} variant="outline-secondary">
+              <ArrowLeft className="me-2" size={16} />
+              Go Back
+            </Button>
+          </div>
         </div>
       </Container>
     );
