@@ -82,8 +82,8 @@ const NewsDetail: React.FC = () => {
       // Backend URLs to try
       const CAMIFY_BASE = 'https://camify.fun.coinsclarity.com';
       const RENDER_BASES = [
-        'https://c-back-2.onrender.com',
-        'https://c-back-1.onrender.com',
+        'https://camify.fun.coinsclarity.com',
+        // 'https://c-back-1.onrender.com',
       ];
 
       try {
@@ -142,7 +142,7 @@ const NewsDetail: React.FC = () => {
 
             // Fetch RSS
             try {
-              const rssRes = await fetch(`${base}/fetch-rss?limit=50`);
+              const rssRes = await fetch(`${base}/`);
               if (rssRes.ok) {
                 const rssData = await rssRes.json();
                 if (rssData.success && Array.isArray(rssData.data)) {
