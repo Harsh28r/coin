@@ -61,6 +61,53 @@ const NewsDetail: React.FC = () => {
     try { const raw = localStorage.getItem('followingCoins'); return raw ? JSON.parse(raw) : []; } catch { return []; }
   });
 
+  // Engagement features
+  const [userReaction, setUserReaction] = useState<string | null>(() => {
+    if (!id) return null;
+    return localStorage.getItem(`reaction:${id}`) || null;
+  });
+  const [reactionCounts, setReactionCounts] = useState<Record<string, number>>({
+    '🚀': 0, '📈': 0, '📉': 0, '🤔': 0, '💎': 0
+  });
+  const [userPrediction, setUserPrediction] = useState<'bullish' | 'bearish' | null>(() => {
+    if (!id) return null;
+    return localStorage.getItem(`prediction:${id}`) as any || null;
+  });
+  const [predictionStats, setPredictionStats] = useState({ bullish: 67, bearish: 33 });
+  const [showPredictionResult, setShowPredictionResult] = useState(false);
+
+  // Handle reaction click
+  const handleReaction = (emoji: string) => {
+    if (!id) return;
+    const prev = userReaction;
+    if (prev === emoji) {
+      setUserReaction(null);
+      localStorage.removeItem(`reaction:${id}`);
+      setReactionCounts(c => ({ ...c, [emoji]: Math.max(0, (c[emoji] || 0) - 1) }));
+    } else {
+      setUserReaction(emoji);
+      localStorage.setItem(`reaction:${id}`, emoji);
+      setReactionCounts(c => ({
+        ...c,
+        ...(prev ? { [prev]: Math.max(0, (c[prev] || 0) - 1) } : {}),
+        [emoji]: (c[emoji] || 0) + 1
+      }));
+    }
+  };
+
+  // Handle prediction
+  const handlePrediction = (vote: 'bullish' | 'bearish') => {
+    if (!id || userPrediction) return;
+    setUserPrediction(vote);
+    localStorage.setItem(`prediction:${id}`, vote);
+    // Simulate community stats update
+    setPredictionStats(s => ({
+      bullish: vote === 'bullish' ? s.bullish + 1 : s.bullish,
+      bearish: vote === 'bearish' ? s.bearish + 1 : s.bearish
+    }));
+    setShowPredictionResult(true);
+  };
+
   useEffect(() => {
     const fetchNewsDetail = async () => {
       if (!id) return;
@@ -729,9 +776,290 @@ const NewsDetail: React.FC = () => {
                 </a>
               </div>
             </div>
+
+            {/* ===== ENGAGEMENT SECTION ===== */}
+            
+            {/* 1. Quick Reactions */}
+            <div className="reactions-section mt-4 p-4 rounded-3" style={{ backgroundColor: '#f8fafc', border: '1px solid #e2e8f0' }}>
+              <h6 className="mb-3" style={{ color: '#334155', fontWeight: '600' }}>
+                What's your reaction?
+              </h6>
+              <div className="d-flex flex-wrap gap-2 justify-content-center">
+                {['🚀', '📈', '📉', '🤔', '💎'].map((emoji) => (
+                  <button
+                    key={emoji}
+                    onClick={() => handleReaction(emoji)}
+                    className="btn position-relative"
+                    style={{
+                      fontSize: '1.5rem',
+                      padding: '8px 16px',
+                      backgroundColor: userReaction === emoji ? '#fef3c7' : '#fff',
+                      border: userReaction === emoji ? '2px solid #f59e0b' : '1px solid #e2e8f0',
+                      borderRadius: '12px',
+                      transition: 'all 0.2s ease',
+                      transform: userReaction === emoji ? 'scale(1.1)' : 'scale(1)'
+                    }}
+                  >
+                    {emoji}
+                    {reactionCounts[emoji] > 0 && (
+                      <span 
+                        className="position-absolute badge rounded-pill"
+                        style={{ 
+                          top: '-5px', 
+                          right: '-5px', 
+                          backgroundColor: '#f59e0b',
+                          fontSize: '0.7rem'
+                        }}
+                      >
+                        {reactionCounts[emoji]}
+                      </span>
+                    )}
+                  </button>
+                ))}
+              </div>
+              <p className="text-center text-muted mt-2 mb-0" style={{ fontSize: '0.8rem' }}>
+                {userReaction ? 'Thanks for your reaction!' : 'React to show others how you feel about this news'}
+              </p>
+            </div>
+
+            {/* 2. Community Prediction Poll */}
+            <div className="prediction-poll mt-4 p-4 rounded-3" style={{ 
+              background: 'linear-gradient(135deg, #1e293b 0%, #334155 100%)', 
+              border: '1px solid #475569' 
+            }}>
+              <h6 className="mb-3 text-white d-flex align-items-center">
+                <span className="me-2">🔮</span> Community Prediction
+              </h6>
+              <p className="text-light mb-3" style={{ fontSize: '0.9rem', opacity: 0.9 }}>
+                Based on this news, where do you think the market is heading?
+              </p>
+              
+              {!userPrediction ? (
+                <div className="d-flex gap-3 justify-content-center">
+                  <button
+                    onClick={() => handlePrediction('bullish')}
+                    className="btn btn-lg flex-fill"
+                    style={{ 
+                      backgroundColor: '#10b981', 
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '12px',
+                      padding: '12px 24px'
+                    }}
+                  >
+                    📈 Bullish
+                  </button>
+                  <button
+                    onClick={() => handlePrediction('bearish')}
+                    className="btn btn-lg flex-fill"
+                    style={{ 
+                      backgroundColor: '#ef4444', 
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '12px',
+                      padding: '12px 24px'
+                    }}
+                  >
+                    📉 Bearish
+                  </button>
+                </div>
+              ) : (
+                <div className="prediction-results">
+                  <div className="d-flex justify-content-between mb-2">
+                    <span className="text-success">📈 Bullish</span>
+                    <span className="text-light">{predictionStats.bullish}%</span>
+                  </div>
+                  <div className="progress mb-3" style={{ height: '12px', backgroundColor: '#475569' }}>
+                    <div 
+                      className="progress-bar bg-success" 
+                      style={{ width: `${predictionStats.bullish}%`, transition: 'width 0.5s ease' }}
+                    />
+                  </div>
+                  <div className="d-flex justify-content-between mb-2">
+                    <span className="text-danger">📉 Bearish</span>
+                    <span className="text-light">{predictionStats.bearish}%</span>
+                  </div>
+                  <div className="progress" style={{ height: '12px', backgroundColor: '#475569' }}>
+                    <div 
+                      className="progress-bar bg-danger" 
+                      style={{ width: `${predictionStats.bearish}%`, transition: 'width 0.5s ease' }}
+                    />
+                  </div>
+                  <p className="text-center mt-3 mb-0" style={{ color: '#94a3b8', fontSize: '0.85rem' }}>
+                    You voted <strong style={{ color: userPrediction === 'bullish' ? '#10b981' : '#ef4444' }}>
+                      {userPrediction === 'bullish' ? '📈 Bullish' : '📉 Bearish'}
+                    </strong>
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* 3. Newsletter CTA */}
+            <div className="newsletter-cta mt-4 p-4 rounded-3 text-center" style={{ 
+              background: 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)',
+              border: 'none'
+            }}>
+              <h6 className="text-white mb-2">🔔 Never Miss Breaking Crypto News</h6>
+              <p className="text-white mb-3" style={{ opacity: 0.9, fontSize: '0.9rem' }}>
+                Get daily market summaries and breaking news alerts delivered to your inbox
+              </p>
+              <div className="d-flex gap-2 justify-content-center flex-wrap">
+                <input 
+                  type="email" 
+                  placeholder="Enter your email"
+                  className="form-control"
+                  style={{ 
+                    maxWidth: '250px', 
+                    borderRadius: '8px',
+                    border: 'none'
+                  }}
+                />
+                <button 
+                  className="btn"
+                  style={{ 
+                    backgroundColor: '#1e293b', 
+                    color: 'white',
+                    borderRadius: '8px',
+                    padding: '8px 20px'
+                  }}
+                >
+                  Subscribe Free
+                </button>
+              </div>
+              <p className="text-white mt-2 mb-0" style={{ fontSize: '0.75rem', opacity: 0.8 }}>
+                Join 10,000+ crypto enthusiasts. Unsubscribe anytime.
+              </p>
+            </div>
+
+            {/* 4. Share Challenge */}
+            <div className="share-challenge mt-4 p-4 rounded-3" style={{ backgroundColor: '#fdf4ff', border: '1px solid #e879f9' }}>
+              <div className="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                <div>
+                  <h6 className="mb-1" style={{ color: '#86198f' }}>
+                    🎁 Share & Earn Rewards
+                  </h6>
+                  <p className="mb-0" style={{ color: '#a21caf', fontSize: '0.85rem' }}>
+                    Share this article and earn points towards exclusive perks
+                  </p>
+                </div>
+                <div className="d-flex gap-2">
+                  <button 
+                    onClick={handleShare}
+                    className="btn btn-sm"
+                    style={{ backgroundColor: '#1DA1F2', color: 'white', borderRadius: '8px' }}
+                  >
+                    𝕏 Tweet
+                  </button>
+                  <a 
+                    href={`https://t.me/share/url?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(effectiveItem.title)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn btn-sm"
+                    style={{ backgroundColor: '#0088cc', color: 'white', borderRadius: '8px' }}
+                  >
+                    Telegram
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            {/* 5. Quick Quiz */}
+            <div className="quick-quiz mt-4 p-4 rounded-3" style={{ backgroundColor: '#f0fdf4', border: '1px solid #86efac' }}>
+              <h6 className="mb-3" style={{ color: '#166534' }}>
+                🧠 Quick Quiz - Test Your Knowledge
+              </h6>
+              <p style={{ color: '#15803d', fontSize: '0.9rem' }}>
+                Based on this article, what's the most important takeaway for crypto investors?
+              </p>
+              <div className="d-flex flex-column gap-2">
+                <button 
+                  className="btn text-start"
+                  style={{ backgroundColor: '#dcfce7', color: '#166534', border: '1px solid #86efac' }}
+                  onClick={() => alert('Great thinking! Keep reading CoinsClarity for more insights.')}
+                >
+                  A) Always do your own research before investing
+                </button>
+                <button 
+                  className="btn text-start"
+                  style={{ backgroundColor: '#dcfce7', color: '#166534', border: '1px solid #86efac' }}
+                  onClick={() => alert('That\'s one perspective! Check our Learn section for more.')}
+                >
+                  B) Market sentiment can change quickly
+                </button>
+                <button 
+                  className="btn text-start"
+                  style={{ backgroundColor: '#dcfce7', color: '#166534', border: '1px solid #86efac' }}
+                  onClick={() => alert('Staying informed is key! You\'re on the right track.')}
+                >
+                  C) Stay updated with reliable news sources
+                </button>
+              </div>
+            </div>
           </div>
         </Col>
       </Row>
+
+      {/* Daily Streak Banner */}
+      <div className="daily-streak-banner mt-4 mx-auto p-3 rounded-3" style={{ 
+        maxWidth: '800px',
+        background: 'linear-gradient(90deg, #fbbf24 0%, #f59e0b 50%, #d97706 100%)',
+        boxShadow: '0 4px 15px rgba(245, 158, 11, 0.3)'
+      }}>
+        <div className="d-flex align-items-center justify-content-between flex-wrap gap-2">
+          <div className="d-flex align-items-center gap-3">
+            <span style={{ fontSize: '2rem' }}>🔥</span>
+            <div>
+              <p className="mb-0 text-white fw-bold">Daily Reading Streak</p>
+              <p className="mb-0 text-white" style={{ opacity: 0.9, fontSize: '0.85rem' }}>
+                {(() => {
+                  const today = new Date().toDateString();
+                  const lastVisit = localStorage.getItem('lastVisitDate');
+                  let streak = parseInt(localStorage.getItem('readingStreak') || '0');
+                  
+                  if (lastVisit !== today) {
+                    const yesterday = new Date(Date.now() - 86400000).toDateString();
+                    if (lastVisit === yesterday) {
+                      streak += 1;
+                    } else {
+                      streak = 1;
+                    }
+                    localStorage.setItem('lastVisitDate', today);
+                    localStorage.setItem('readingStreak', streak.toString());
+                  }
+                  
+                  return `${streak} day${streak !== 1 ? 's' : ''} streak! Keep it going!`;
+                })()}
+              </p>
+            </div>
+          </div>
+          <div className="d-flex gap-1">
+            {[1,2,3,4,5,6,7].map((day) => {
+              const streak = parseInt(localStorage.getItem('readingStreak') || '1');
+              const isActive = day <= (streak % 7 || 7);
+              return (
+                <div 
+                  key={day}
+                  style={{
+                    width: '28px',
+                    height: '28px',
+                    borderRadius: '50%',
+                    backgroundColor: isActive ? '#fff' : 'rgba(255,255,255,0.3)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '0.7rem',
+                    fontWeight: '600',
+                    color: isActive ? '#d97706' : 'rgba(255,255,255,0.6)'
+                  }}
+                >
+                  {isActive ? '✓' : day}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
       <div className={`copy-toast ${copyFeedback ? 'show' : ''}`}>{copyFeedback}</div>
       {/* Mobile Sticky Bar - Enhanced */}
       <div className="mobile-sticky-bar d-md-none">
