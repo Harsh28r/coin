@@ -248,30 +248,23 @@ const PresNews: React.FC = () => {
                   </Card.Text>
                   
                   <div className="news-actions">
-                    <button 
-                      onClick={() => toggleContent(index)} 
-                      className="btn btn-outline-primary btn-sm"
+                    <a 
+                      href={item.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="btn btn-primary btn-sm"
                     >
-                      {expandedIndex === index ? (
-                        <>
-                          <i className="fas fa-compress-alt me-1"></i>
-                          {t('news.showLess') || 'Show Less'}
-                        </>
-                      ) : (
-                        <>
-                          <i className="fas fa-expand-alt me-1"></i>
-                          {t('news.readMore') || 'Read More'}
-                        </>
-                      )}
-                    </button>
+                      <i className="fas fa-external-link-alt me-1"></i>
+                      {t('news.readOriginal') || 'Read Original →'}
+                    </a>
                     
                     <a 
                       href={`/news/${item.article_id || encodeURIComponent(item.title)}`}
-                      className="btn btn-primary btn-sm ms-2"
+                      className="btn btn-outline-secondary btn-sm ms-2"
                       onClick={(e) => { e.preventDefault(); const targetId = item.article_id || encodeURIComponent(item.title); navigate(`/news/${targetId}`, { state: { item: { ...item, content: item.content || item.description || '' } } }); }}
                     >
-                      <i className="fas fa-newspaper me-1"></i>
-                      {t('news.readFullArticle') || 'Read Full Article'}
+                      <i className="fas fa-info-circle me-1"></i>
+                      {t('news.viewSummary') || 'View Summary'}
                     </a>
                   </div>
                 </Card.Body>

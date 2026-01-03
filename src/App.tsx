@@ -40,6 +40,7 @@ import Disclaimer from './pages/Disclaimer';
 import BackToTop from './Components/BackToTop';
 import ScrollProgress from './Components/ScrollProgress';
 import { Analytics } from '@vercel/analytics/react';
+import useAdSenseControl from './Components/AdSenseControl';
 
 
 const ScrollToTop: React.FC = () => {
@@ -47,6 +48,12 @@ const ScrollToTop: React.FC = () => {
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [location.pathname]);
+  return null;
+};
+
+// AdSense control - disable ads on aggregated content pages
+const AdSenseController: React.FC = () => {
+  useAdSenseControl();
   return null;
 };
 
@@ -59,6 +66,7 @@ function App() {
             <WatchlistProvider>
             <Router>
               <ScrollToTop />
+              <AdSenseController />
               <ScrollProgress />
               <div className="App">
                 <DefaultSEO />

@@ -296,40 +296,9 @@ const NewsDetail: React.FC = () => {
     } catch {}
   };
 
-  // Background: if we have a link and content is short/empty, try to extract full article HTML from backend
-  useEffect(() => {
-    const maybeExtract = async () => {
-      if (!effectiveItem) return;
-      const contentLen = (effectiveItem.content || '').trim().length;
-      if (contentLen > 80) return;
-      if (!effectiveItem.link) return;
-
-      try {
-        const basesToTry = [
-          'https://camify.fun.coinsclarity.com',
-        ];
-
-        for (const base of basesToTry) {
-          try {
-            const resp = await fetch(`${base}/extract-article?url=${encodeURIComponent(effectiveItem.link)}`);
-            if (!resp.ok) continue;
-            const data = await resp.json();
-            if (data.success && (data.html || data.text)) {
-              const merged = { ...effectiveItem, content: data.html || (data.text || '').replace(/\n/g, '<br>') } as NewsItem;
-              setNewsItem(merged);
-              break;
-            }
-          } catch {
-            // continue to next base
-          }
-        }
-      } catch {
-        // ignore extraction errors silently
-      }
-    };
-    maybeExtract();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [effectiveItem?.link, effectiveItem?.content, API_BASE_URL]);
+  // REMOVED: Article extraction to comply with AdSense policies
+  // We no longer scrape full article content from external sources
+  // Instead, we show summaries and link to original sources
 
   // Normalize content to formal HTML paragraphs when needed
   const getNormalizedContentHtml = (htmlOrText?: string): string => {
@@ -528,16 +497,56 @@ const NewsDetail: React.FC = () => {
             </div>
           )}
 
-          {/* Article Content - Mobile Optimized */}
+          {/* Article Summary - AdSense Compliant */}
           <div className="article-content mb-4" ref={contentRef}>
-            {(effectiveItem.content) && (
-              <div className="article-body" style={{ fontSize: `${(1.0 * fontScale).toFixed(2)}rem` }}>
-                <div
-                  className="content-html"
-                  dangerouslySetInnerHTML={{ __html: getNormalizedContentHtml(effectiveItem.content) }}
-                />
+            {/* Summary/Description */}
+            <div className="article-body" style={{ fontSize: `${(1.0 * fontScale).toFixed(2)}rem` }}>
+              <div className="article-summary p-4 rounded-3 mb-4" style={{ backgroundColor: '#f8f9fa', border: '1px solid #e9ecef' }}>
+                <h5 className="mb-3" style={{ color: '#1f2937', fontWeight: '600' }}>Summary</h5>
+                <p style={{ color: '#4b5563', lineHeight: '1.8', fontSize: '1.1rem' }}>
+                  {effectiveItem.description || 'No summary available.'}
+                </p>
               </div>
-            )}
+              
+              {/* CoinsClarity Commentary - Adds Original Value */}
+              <div className="coinsclarity-take p-4 rounded-3 mb-4" style={{ backgroundColor: '#fef3c7', border: '1px solid #fcd34d' }}>
+                <h5 className="mb-3 d-flex align-items-center" style={{ color: '#92400e', fontWeight: '600' }}>
+                  <span className="me-2">💡</span> CoinsClarity Take
+                </h5>
+                <p style={{ color: '#78350f', lineHeight: '1.7' }}>
+                  This article covers developments in the cryptocurrency space. For the complete analysis and details, 
+                  we recommend reading the full article from the original source below. CoinsClarity aggregates news 
+                  to help you stay informed about the latest in crypto.
+                </p>
+              </div>
+
+              {/* Prominent Link to Original Source */}
+              {effectiveItem.link && (
+                <div className="read-original text-center p-4 rounded-3" style={{ backgroundColor: '#1f2937' }}>
+                  <p className="text-white mb-3" style={{ fontSize: '1.1rem' }}>
+                    📰 Read the full article from the original source
+                  </p>
+                  <a 
+                    href={effectiveItem.link} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="btn btn-lg"
+                    style={{ 
+                      backgroundColor: '#f97316', 
+                      color: 'white', 
+                      fontWeight: '600',
+                      padding: '12px 32px',
+                      borderRadius: '8px'
+                    }}
+                  >
+                    Read Original Article →
+                  </a>
+                  <p className="text-muted mt-3 mb-0" style={{ fontSize: '0.85rem' }}>
+                    Source: {effectiveItem.source_name || effectiveItem.creator?.[0] || 'External Source'}
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Article Footer - Mobile Optimized */}

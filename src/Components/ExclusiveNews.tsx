@@ -295,16 +295,29 @@ const ExclusiveNews: React.FC = () => {
                   >
                     {decodeHtml(item.description)}
                   </Card.Text>
-                  <div className="mt-auto d-flex justify-content-between align-items-center">
-                    <div>
-                      <small className="text-muted">By </small>
-                      <small className="text-warning">
-                        {item.creator?.[0] || 'Unknown Author'}
-                      </small>
+                  <div className="mt-auto">
+                    <div className="d-flex justify-content-between align-items-center mb-2">
+                      <div>
+                        <small className="text-muted">By </small>
+                        <small className="text-warning">
+                          {item.creator?.[0] || 'Unknown Author'}
+                        </small>
+                      </div>
+                      <div className="ms-auto text-end">
+                        <small className="text-muted">{formatDate(item.pubDate)}</small>
+                      </div>
                     </div>
-                    <div className="ms-auto text-end">
-                      <small className="text-muted">{formatDate(item.pubDate)}</small>
-                    </div>
+                    {item.link && (
+                      <a 
+                        href={item.link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="btn btn-sm btn-outline-warning w-100"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        Read Original Source →
+                      </a>
+                    )}
                   </div>
                 </Card.Body>
               </Card>
