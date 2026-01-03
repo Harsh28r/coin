@@ -22,25 +22,51 @@ const GasTracker: React.FC = () => {
   const fetchGasPrices = async () => {
     setLoading(true);
     try {
-      // Fetch Ethereum gas - use CORS proxy
+      // Fetch gas from multiple chains in parallel
+      const results = await Promise.allSettled([
+        // Ethereum - Etherscan
+        fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent('https://api.etherscan.io/api?module=gastracker&action=gasoracle')}`).then(r => r.json()),
+        // Polygon - Gas Station
+        fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent('https://gasstation.polygon.technology/v2')}`).then(r => r.json()),
+        // BSC - BscScan  
+        fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent('https://api.bscscan.com/api?module=gastracker&action=gasoracle')}`).then(r => r.json()),
+      ]);
+
+      // Parse Ethereum
       let ethGas = { slow: 25, standard: 30, fast: 40 };
-      try {
-        const ethRes = await fetch(
-          `https://api.allorigins.win/raw?url=${encodeURIComponent('https://api.etherscan.io/api?module=gastracker&action=gasoracle')}`
-        );
-        const ethData = await ethRes.json();
-        if (ethData.status === '1') {
-          ethGas = {
-            slow: parseInt(ethData.result.SafeGasPrice),
-            standard: parseInt(ethData.result.ProposeGasPrice),
-            fast: parseInt(ethData.result.FastGasPrice),
-          };
-        }
-      } catch {
-        // Use default values if API fails
+      if (results[0].status === 'fulfilled' && results[0].value?.status === '1') {
+        ethGas = {
+          slow: parseInt(results[0].value.result.SafeGasPrice),
+          standard: parseInt(results[0].value.result.ProposeGasPrice),
+          fast: parseInt(results[0].value.result.FastGasPrice),
+        };
       }
 
-      // Set gas prices for multiple chains
+      // Parse Polygon
+      let polygonGas = { slow: 30, standard: 50, fast: 80 };
+      if (results[1].status === 'fulfilled' && results[1].value?.safeLow) {
+        polygonGas = {
+          slow: Math.round(results[1].value.safeLow.maxFee),
+          standard: Math.round(results[1].value.standard.maxFee),
+          fast: Math.round(results[1].value.fast.maxFee),
+        };
+      }
+
+      // Parse BSC
+      let bscGas = { slow: 1, standard: 3, fast: 5 };
+      if (results[2].status === 'fulfilled' && results[2].value?.status === '1') {
+        bscGas = {
+          slow: parseInt(results[2].value.result.SafeGasPrice) || 1,
+          standard: parseInt(results[2].value.result.ProposeGasPrice) || 3,
+          fast: parseInt(results[2].value.result.FastGasPrice) || 5,
+        };
+      }
+
+      // Calculate swap costs (150k gas * price * gas price)
+      const ethPrice = 3500; // Approximate
+      const maticPrice = 0.5;
+      const bnbPrice = 600;
+
       setGasPrices([
         {
           chain: 'Ethereum',
@@ -50,33 +76,33 @@ const GasTracker: React.FC = () => {
           slow: ethGas.slow,
           standard: ethGas.standard,
           fast: ethGas.fast,
-          instant: ethGas.fast + 10,
+          instant: ethGas.fast + 15,
           unit: 'gwei',
-          swapCost: (ethGas.standard * 150000 * 3500) / 1e9, // ~$X for a swap
-        },
-        {
-          chain: 'BSC',
-          chainId: 56,
-          symbol: 'BNB',
-          color: '#f3ba2f',
-          slow: 1,
-          standard: 3,
-          fast: 5,
-          instant: 7,
-          unit: 'gwei',
-          swapCost: 0.15,
+          swapCost: (ethGas.standard * 150000 * ethPrice) / 1e9,
         },
         {
           chain: 'Polygon',
           chainId: 137,
           symbol: 'MATIC',
           color: '#8247e5',
-          slow: 30,
-          standard: 50,
-          fast: 80,
-          instant: 120,
+          slow: polygonGas.slow,
+          standard: polygonGas.standard,
+          fast: polygonGas.fast,
+          instant: polygonGas.fast + 50,
           unit: 'gwei',
-          swapCost: 0.02,
+          swapCost: (polygonGas.standard * 150000 * maticPrice) / 1e9,
+        },
+        {
+          chain: 'BSC',
+          chainId: 56,
+          symbol: 'BNB',
+          color: '#f3ba2f',
+          slow: bscGas.slow,
+          standard: bscGas.standard,
+          fast: bscGas.fast,
+          instant: bscGas.fast + 2,
+          unit: 'gwei',
+          swapCost: (bscGas.standard * 150000 * bnbPrice) / 1e9,
         },
         {
           chain: 'Arbitrum',
@@ -88,7 +114,7 @@ const GasTracker: React.FC = () => {
           fast: 0.25,
           instant: 0.5,
           unit: 'gwei',
-          swapCost: 0.20,
+          swapCost: 0.15,
         },
         {
           chain: 'Optimism',
@@ -100,31 +126,7 @@ const GasTracker: React.FC = () => {
           fast: 0.05,
           instant: 0.1,
           unit: 'gwei',
-          swapCost: 0.15,
-        },
-        {
-          chain: 'Avalanche',
-          chainId: 43114,
-          symbol: 'AVAX',
-          color: '#e84142',
-          slow: 25,
-          standard: 27,
-          fast: 30,
-          instant: 35,
-          unit: 'nAVAX',
           swapCost: 0.10,
-        },
-        {
-          chain: 'Solana',
-          chainId: 0,
-          symbol: 'SOL',
-          color: '#14f195',
-          slow: 0.000005,
-          standard: 0.000005,
-          fast: 0.00001,
-          instant: 0.00005,
-          unit: 'SOL',
-          swapCost: 0.001,
         },
         {
           chain: 'Base',
@@ -137,6 +139,30 @@ const GasTracker: React.FC = () => {
           instant: 0.05,
           unit: 'gwei',
           swapCost: 0.05,
+        },
+        {
+          chain: 'Avalanche',
+          chainId: 43114,
+          symbol: 'AVAX',
+          color: '#e84142',
+          slow: 25,
+          standard: 27,
+          fast: 30,
+          instant: 35,
+          unit: 'nAVAX',
+          swapCost: 0.08,
+        },
+        {
+          chain: 'Solana',
+          chainId: 0,
+          symbol: 'SOL',
+          color: '#14f195',
+          slow: 0.000005,
+          standard: 0.000005,
+          fast: 0.00001,
+          instant: 0.00005,
+          unit: 'SOL',
+          swapCost: 0.001,
         },
       ]);
     } catch (err) {

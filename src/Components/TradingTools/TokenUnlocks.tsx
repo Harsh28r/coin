@@ -18,96 +18,98 @@ interface TokenUnlock {
 const generateTokenUnlocks = (): TokenUnlock[] => {
   const now = new Date();
   
-  return [
+  const unlocks: TokenUnlock[] = [
     {
       id: '1',
       token: 'Arbitrum',
       symbol: 'ARB',
-      unlockDate: new Date(now.getTime() + 2 * 24 * 60 * 60 * 1000), // 2 days
+      unlockDate: new Date(now.getTime() + 2 * 24 * 60 * 60 * 1000),
       amount: 92160000,
       amountUsd: 110000000,
       percentOfSupply: 2.65,
-      type: 'team',
-      impact: 'high',
+      type: 'team' as const,
+      impact: 'high' as const,
     },
     {
       id: '2',
       token: 'Aptos',
       symbol: 'APT',
-      unlockDate: new Date(now.getTime() + 5 * 24 * 60 * 60 * 1000), // 5 days
+      unlockDate: new Date(now.getTime() + 5 * 24 * 60 * 60 * 1000),
       amount: 11310000,
       amountUsd: 95000000,
       percentOfSupply: 2.49,
-      type: 'investor',
-      impact: 'high',
+      type: 'investor' as const,
+      impact: 'high' as const,
     },
     {
       id: '3',
       token: 'Optimism',
       symbol: 'OP',
-      unlockDate: new Date(now.getTime() + 8 * 24 * 60 * 60 * 1000), // 8 days
+      unlockDate: new Date(now.getTime() + 8 * 24 * 60 * 60 * 1000),
       amount: 31340000,
       amountUsd: 75000000,
       percentOfSupply: 2.32,
-      type: 'ecosystem',
-      impact: 'medium',
+      type: 'ecosystem' as const,
+      impact: 'medium' as const,
     },
     {
       id: '4',
       token: 'Sui',
       symbol: 'SUI',
-      unlockDate: new Date(now.getTime() + 12 * 24 * 60 * 60 * 1000), // 12 days
+      unlockDate: new Date(now.getTime() + 12 * 24 * 60 * 60 * 1000),
       amount: 64190000,
       amountUsd: 230000000,
       percentOfSupply: 2.13,
-      type: 'investor',
-      impact: 'high',
+      type: 'investor' as const,
+      impact: 'high' as const,
     },
     {
       id: '5',
       token: 'Worldcoin',
       symbol: 'WLD',
-      unlockDate: new Date(now.getTime() + 15 * 24 * 60 * 60 * 1000), // 15 days
+      unlockDate: new Date(now.getTime() + 15 * 24 * 60 * 60 * 1000),
       amount: 37230000,
       amountUsd: 85000000,
       percentOfSupply: 4.54,
-      type: 'team',
-      impact: 'high',
+      type: 'team' as const,
+      impact: 'high' as const,
     },
     {
       id: '6',
       token: 'dYdX',
       symbol: 'DYDX',
-      unlockDate: new Date(now.getTime() + 18 * 24 * 60 * 60 * 1000), // 18 days
+      unlockDate: new Date(now.getTime() + 18 * 24 * 60 * 60 * 1000),
       amount: 15000000,
       amountUsd: 28000000,
       percentOfSupply: 1.5,
-      type: 'team',
-      impact: 'medium',
+      type: 'team' as const,
+      impact: 'medium' as const,
     },
     {
       id: '7',
       token: 'Immutable X',
       symbol: 'IMX',
-      unlockDate: new Date(now.getTime() + 22 * 24 * 60 * 60 * 1000), // 22 days
+      unlockDate: new Date(now.getTime() + 22 * 24 * 60 * 60 * 1000),
       amount: 32470000,
       amountUsd: 55000000,
       percentOfSupply: 1.62,
-      type: 'ecosystem',
-      impact: 'medium',
+      type: 'ecosystem' as const,
+      impact: 'medium' as const,
     },
     {
       id: '8',
       token: 'Axie Infinity',
       symbol: 'AXS',
-      unlockDate: new Date(now.getTime() + 25 * 24 * 60 * 60 * 1000), // 25 days
+      unlockDate: new Date(now.getTime() + 25 * 24 * 60 * 60 * 1000),
       amount: 9250000,
       amountUsd: 65000000,
       percentOfSupply: 3.42,
-      type: 'team',
-      impact: 'medium',
+      type: 'team' as const,
+      impact: 'medium' as const,
     },
-  ].sort((a, b) => a.unlockDate.getTime() - b.unlockDate.getTime());
+  ];
+  
+  return unlocks.sort((a, b) => a.unlockDate.getTime() - b.unlockDate.getTime());
 };
 
 const TokenUnlocks: React.FC = () => {
@@ -236,6 +238,8 @@ const TokenUnlocks: React.FC = () => {
       <Card.Footer className="bg-transparent border-0 text-center">
         <small className="text-muted">
           ⚠️ Large unlocks (&gt;2% supply) often cause temporary price drops
+          <br />
+          📅 Data estimated from public vesting schedules. Verify before trading.
         </small>
       </Card.Footer>
       <style>{`.spin { animation: spin 1s linear infinite; } @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>

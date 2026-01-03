@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Table, Badge, Spinner, Button, Form } from 'react-bootstrap';
-import { RefreshCw, Percent, Lock, Shield, AlertTriangle } from 'lucide-react';
+import { RefreshCw, Percent } from 'lucide-react';
 
 interface StakingOption {
   id: string;
@@ -9,79 +9,108 @@ interface StakingOption {
   protocol: string;
   apy: number;
   apyType: 'fixed' | 'variable';
-  minStake: number;
-  lockPeriod: string;
-  risk: 'low' | 'medium' | 'high';
-  type: 'liquid' | 'native' | 'cefi';
-  features: string[];
+  tvl: number;
+  chain: string;
+  type: 'liquid' | 'native' | 'lending';
 }
 
-const stakingData: StakingOption[] = [
-  // Ethereum
-  { id: 'eth-lido', asset: 'Ethereum', symbol: 'ETH', protocol: 'Lido', apy: 3.8, apyType: 'variable', minStake: 0, lockPeriod: 'None (liquid)', risk: 'low', type: 'liquid', features: ['stETH token', 'DeFi compatible'] },
-  { id: 'eth-rocket', asset: 'Ethereum', symbol: 'ETH', protocol: 'Rocket Pool', apy: 4.1, apyType: 'variable', minStake: 0.01, lockPeriod: 'None (liquid)', risk: 'low', type: 'liquid', features: ['rETH token', 'Decentralized'] },
-  { id: 'eth-coinbase', asset: 'Ethereum', symbol: 'ETH', protocol: 'Coinbase', apy: 3.2, apyType: 'variable', minStake: 0, lockPeriod: 'None', risk: 'low', type: 'cefi', features: ['cbETH token', 'Easy to use'] },
-  { id: 'eth-kraken', asset: 'Ethereum', symbol: 'ETH', protocol: 'Kraken', apy: 3.5, apyType: 'variable', minStake: 0, lockPeriod: 'None', risk: 'low', type: 'cefi', features: ['Instant rewards'] },
-  { id: 'eth-native', asset: 'Ethereum', symbol: 'ETH', protocol: 'Native (32 ETH)', apy: 4.3, apyType: 'variable', minStake: 32, lockPeriod: 'Until exit', risk: 'low', type: 'native', features: ['Full rewards', 'Self custody'] },
-  
-  // Solana
-  { id: 'sol-marinade', asset: 'Solana', symbol: 'SOL', protocol: 'Marinade', apy: 7.2, apyType: 'variable', minStake: 0, lockPeriod: 'None (liquid)', risk: 'low', type: 'liquid', features: ['mSOL token', 'DeFi ready'] },
-  { id: 'sol-jito', asset: 'Solana', symbol: 'SOL', protocol: 'Jito', apy: 7.8, apyType: 'variable', minStake: 0, lockPeriod: 'None (liquid)', risk: 'low', type: 'liquid', features: ['JitoSOL', 'MEV rewards'] },
-  { id: 'sol-native', asset: 'Solana', symbol: 'SOL', protocol: 'Native Staking', apy: 7.0, apyType: 'variable', minStake: 0.01, lockPeriod: '~2-3 days cooldown', risk: 'low', type: 'native', features: ['Choose validator'] },
-  
-  // Cosmos
-  { id: 'atom-native', asset: 'Cosmos', symbol: 'ATOM', protocol: 'Native Staking', apy: 14.5, apyType: 'variable', minStake: 0, lockPeriod: '21 days unbond', risk: 'low', type: 'native', features: ['Airdrops eligible', 'Governance'] },
-  { id: 'atom-stride', asset: 'Cosmos', symbol: 'ATOM', protocol: 'Stride', apy: 13.8, apyType: 'variable', minStake: 0, lockPeriod: 'None (liquid)', risk: 'medium', type: 'liquid', features: ['stATOM token', 'Keep liquidity'] },
-  
-  // Polkadot
-  { id: 'dot-native', asset: 'Polkadot', symbol: 'DOT', protocol: 'Native Staking', apy: 11.5, apyType: 'variable', minStake: 250, lockPeriod: '28 days unbond', risk: 'low', type: 'native', features: ['Nomination pools'] },
-  
-  // Avalanche
-  { id: 'avax-native', asset: 'Avalanche', symbol: 'AVAX', protocol: 'Native Staking', apy: 8.2, apyType: 'variable', minStake: 25, lockPeriod: '2 weeks - 1 year', risk: 'low', type: 'native', features: ['Choose duration'] },
-  { id: 'avax-benqi', asset: 'Avalanche', symbol: 'AVAX', protocol: 'BENQI', apy: 7.5, apyType: 'variable', minStake: 0, lockPeriod: '15 days cooldown', risk: 'medium', type: 'liquid', features: ['sAVAX token'] },
-  
-  // Cardano
-  { id: 'ada-native', asset: 'Cardano', symbol: 'ADA', protocol: 'Native Staking', apy: 3.5, apyType: 'variable', minStake: 0, lockPeriod: 'None', risk: 'low', type: 'native', features: ['No lock', 'Choose pool'] },
-  
-  // BNB
-  { id: 'bnb-binance', asset: 'BNB', symbol: 'BNB', protocol: 'Binance Locked', apy: 6.5, apyType: 'fixed', minStake: 0.01, lockPeriod: '90-120 days', risk: 'low', type: 'cefi', features: ['High APY', 'Locked'] },
+// Fallback data if API fails
+const fallbackData: StakingOption[] = [
+  { id: 'lido-eth', asset: 'Ethereum', symbol: 'ETH', protocol: 'Lido', apy: 3.8, apyType: 'variable', tvl: 25000000000, chain: 'Ethereum', type: 'liquid' },
+  { id: 'rocket-eth', asset: 'Ethereum', symbol: 'ETH', protocol: 'Rocket Pool', apy: 4.1, apyType: 'variable', tvl: 3000000000, chain: 'Ethereum', type: 'liquid' },
+  { id: 'marinade-sol', asset: 'Solana', symbol: 'SOL', protocol: 'Marinade', apy: 7.2, apyType: 'variable', tvl: 1500000000, chain: 'Solana', type: 'liquid' },
 ];
 
 const StakingComparison: React.FC = () => {
-  const [options, setOptions] = useState<StakingOption[]>(stakingData);
-  const [loading, setLoading] = useState(false);
+  const [options, setOptions] = useState<StakingOption[]>(fallbackData);
+  const [loading, setLoading] = useState(true);
   const [filterAsset, setFilterAsset] = useState<string>('all');
   const [filterType, setFilterType] = useState<string>('all');
-  const [sortBy, setSortBy] = useState<'apy' | 'risk'>('apy');
+  const [sortBy, setSortBy] = useState<'apy' | 'tvl'>('apy');
+  const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
 
-  const assets = [...new Set(stakingData.map(s => s.asset))];
-  const types = ['liquid', 'native', 'cefi'];
+  // Fetch real yields from DefiLlama API
+  const fetchYields = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch(
+        `https://api.allorigins.win/raw?url=${encodeURIComponent('https://yields.llama.fi/pools')}`
+      );
+      const data = await res.json();
+      
+      if (data?.data && Array.isArray(data.data)) {
+        // Filter for staking/liquid staking pools with good TVL
+        const stakingPools = data.data
+          .filter((pool: any) => 
+            pool.tvlUsd > 10000000 && // Min $10M TVL
+            pool.apy > 0 &&
+            pool.apy < 100 && // Filter unrealistic APYs
+            (pool.project?.toLowerCase().includes('lido') ||
+             pool.project?.toLowerCase().includes('rocket') ||
+             pool.project?.toLowerCase().includes('marinade') ||
+             pool.project?.toLowerCase().includes('jito') ||
+             pool.project?.toLowerCase().includes('benqi') ||
+             pool.project?.toLowerCase().includes('ankr') ||
+             pool.project?.toLowerCase().includes('stader') ||
+             pool.project?.toLowerCase().includes('stakewise') ||
+             pool.project?.toLowerCase().includes('frax') ||
+             pool.project?.toLowerCase().includes('coinbase') ||
+             pool.project?.toLowerCase().includes('binance') ||
+             pool.category === 'Liquid Staking' ||
+             pool.category === 'Staking')
+          )
+          .slice(0, 30)
+          .map((pool: any, idx: number) => ({
+            id: pool.pool || `pool-${idx}`,
+            asset: pool.symbol?.split('-')[0] || 'Unknown',
+            symbol: pool.symbol?.split('-')[0] || '?',
+            protocol: pool.project || 'Unknown',
+            apy: parseFloat(pool.apy?.toFixed(2)) || 0,
+            apyType: 'variable' as const,
+            tvl: pool.tvlUsd || 0,
+            chain: pool.chain || 'Unknown',
+            type: pool.category === 'Liquid Staking' ? 'liquid' as const : 
+                  pool.category === 'Lending' ? 'lending' as const : 'native' as const,
+          }));
+        
+        if (stakingPools.length > 0) {
+          setOptions(stakingPools);
+        }
+      }
+      setLastUpdate(new Date());
+    } catch (err) {
+      console.error('Failed to fetch yields:', err);
+      setOptions(fallbackData);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchYields();
+  }, []);
+
+  const assets = Array.from(new Set(options.map(s => s.asset)));
+  const types = ['liquid', 'native', 'lending'];
 
   const filteredOptions = options
     .filter(o => filterAsset === 'all' || o.asset === filterAsset)
     .filter(o => filterType === 'all' || o.type === filterType)
-    .sort((a, b) => {
-      if (sortBy === 'apy') return b.apy - a.apy;
-      const riskOrder = { low: 0, medium: 1, high: 2 };
-      return riskOrder[a.risk] - riskOrder[b.risk];
-    });
-
-  const getRiskColor = (risk: string) => {
-    switch (risk) {
-      case 'low': return 'success';
-      case 'medium': return 'warning';
-      case 'high': return 'danger';
-      default: return 'secondary';
-    }
-  };
+    .sort((a, b) => sortBy === 'apy' ? b.apy - a.apy : b.tvl - a.tvl);
 
   const getTypeIcon = (type: string) => {
     switch (type) {
       case 'liquid': return '💧';
       case 'native': return '🔐';
-      case 'cefi': return '🏦';
+      case 'lending': return '🏦';
       default: return '📦';
     }
+  };
+
+  const formatTvl = (tvl: number) => {
+    if (tvl >= 1e9) return `$${(tvl / 1e9).toFixed(2)}B`;
+    if (tvl >= 1e6) return `$${(tvl / 1e6).toFixed(0)}M`;
+    return `$${(tvl / 1e3).toFixed(0)}K`;
   };
 
   return (
@@ -93,8 +122,11 @@ const StakingComparison: React.FC = () => {
               <Percent size={20} className="me-2" />
               Staking APY Comparison
             </h5>
-            <small className="text-muted">Compare yields across protocols</small>
+            <small className="text-muted">Live yields from DefiLlama</small>
           </div>
+          <Button variant="outline-secondary" size="sm" onClick={fetchYields} disabled={loading}>
+            <RefreshCw size={14} className={loading ? 'spin' : ''} />
+          </Button>
         </div>
         
         {/* Filters */}
@@ -121,8 +153,8 @@ const StakingComparison: React.FC = () => {
           >
             <option value="all">All Types</option>
             <option value="liquid">💧 Liquid Staking</option>
-            <option value="native">🔐 Native Staking</option>
-            <option value="cefi">🏦 CeFi</option>
+            <option value="native">🔐 Native</option>
+            <option value="lending">🏦 Lending</option>
           </Form.Select>
           
           <Form.Select 
@@ -133,82 +165,78 @@ const StakingComparison: React.FC = () => {
             className="rounded-pill"
           >
             <option value="apy">Sort by APY</option>
-            <option value="risk">Sort by Risk</option>
+            <option value="tvl">Sort by TVL</option>
           </Form.Select>
         </div>
       </Card.Header>
       
       <Card.Body className="p-0">
-        <div className="table-responsive">
-          <Table hover className="mb-0">
-            <thead style={{ backgroundColor: '#f8fafc' }}>
-              <tr>
-                <th className="border-0 ps-3">Asset</th>
-                <th className="border-0">Protocol</th>
-                <th className="border-0 text-end">APY</th>
-                <th className="border-0">Lock Period</th>
-                <th className="border-0 text-center">Risk</th>
-                <th className="border-0 pe-3">Features</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredOptions.map((option) => (
-                <tr key={option.id}>
-                  <td className="ps-3">
-                    <span className="fw-semibold">{option.symbol}</span>
-                    <br />
-                    <small className="text-muted">{option.asset}</small>
-                  </td>
-                  <td>
-                    <span>{getTypeIcon(option.type)} {option.protocol}</span>
-                  </td>
-                  <td className="text-end">
-                    <span 
-                      className="fw-bold"
-                      style={{ 
-                        color: option.apy > 10 ? '#22c55e' : option.apy > 5 ? '#3b82f6' : '#6b7280',
-                        fontSize: '1.1rem'
-                      }}
-                    >
-                      {option.apy}%
-                    </span>
-                    <br />
-                    <small className="text-muted">{option.apyType}</small>
-                  </td>
-                  <td>
-                    <small>{option.lockPeriod}</small>
-                  </td>
-                  <td className="text-center">
-                    <Badge bg={getRiskColor(option.risk)} className="rounded-pill">
-                      {option.risk}
-                    </Badge>
-                  </td>
-                  <td className="pe-3">
-                    <div className="d-flex flex-wrap gap-1">
-                      {option.features.map((f, i) => (
-                        <Badge key={i} bg="light" text="dark" className="rounded-pill" style={{ fontSize: '0.7rem' }}>
-                          {f}
-                        </Badge>
-                      ))}
-                    </div>
-                  </td>
+        {loading ? (
+          <div className="text-center py-5">
+            <Spinner animation="border" variant="warning" />
+            <p className="mt-2 text-muted small">Loading yields...</p>
+          </div>
+        ) : (
+          <div className="table-responsive">
+            <Table hover className="mb-0">
+              <thead style={{ backgroundColor: '#f8fafc' }}>
+                <tr>
+                  <th className="border-0 ps-3">Asset</th>
+                  <th className="border-0">Protocol</th>
+                  <th className="border-0">Chain</th>
+                  <th className="border-0 text-end">APY</th>
+                  <th className="border-0 text-end pe-3">TVL</th>
                 </tr>
-              ))}
-            </tbody>
-          </Table>
-        </div>
+              </thead>
+              <tbody>
+                {filteredOptions.map((option) => (
+                  <tr key={option.id}>
+                    <td className="ps-3">
+                      <span className="fw-semibold">{option.symbol}</span>
+                    </td>
+                    <td>
+                      <span>{getTypeIcon(option.type)} {option.protocol}</span>
+                    </td>
+                    <td>
+                      <Badge bg="light" text="dark" className="rounded-pill">
+                        {option.chain}
+                      </Badge>
+                    </td>
+                    <td className="text-end">
+                      <span 
+                        className="fw-bold"
+                        style={{ 
+                          color: option.apy > 10 ? '#22c55e' : option.apy > 5 ? '#3b82f6' : '#6b7280',
+                          fontSize: '1.1rem'
+                        }}
+                      >
+                        {option.apy}%
+                      </span>
+                    </td>
+                    <td className="text-end pe-3">
+                      <small className="text-muted">{formatTvl(option.tvl)}</small>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </Table>
+          </div>
+        )}
       </Card.Body>
       
       <Card.Footer className="bg-transparent border-0">
         <div className="d-flex justify-content-between align-items-center flex-wrap gap-2">
           <small className="text-muted">
-            💧 Liquid = tradeable tokens | 🔐 Native = on-chain | 🏦 CeFi = exchange-based
+            💧 Liquid | 🔐 Native | 🏦 Lending — Data from DefiLlama
           </small>
-          <small className="text-muted">
-            APYs are estimates and may vary
-          </small>
+          {lastUpdate && (
+            <small className="text-muted">
+              Updated: {lastUpdate.toLocaleTimeString()}
+            </small>
+          )}
         </div>
       </Card.Footer>
+      <style>{`.spin { animation: spin 1s linear infinite; } @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
     </Card>
   );
 };

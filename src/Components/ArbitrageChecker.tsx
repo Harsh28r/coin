@@ -48,9 +48,45 @@ const ArbitrageCheckerPage: React.FC = () => {
   return (
     <>
       <Helmet>
-        <title>Triangular Arbitrage Checker | Free Crypto Tool | CoinsClarity</title>
-        <meta name="description" content="Free triangular arbitrage calculator. Find potential profit opportunities by checking price differences across BTC, ETH, USDT and more crypto pairs." />
+        <title>Triangular Arbitrage Calculator | Free Crypto Tool | CoinsClarity</title>
+        <meta name="description" content="Free triangular arbitrage calculator. Find potential profit opportunities by checking price differences across BTC, ETH, USDT, SOL and 15+ crypto pairs. Real-time prices." />
         <link rel="canonical" href={`${window.location.origin}/arbitrage`} />
+        
+        {/* Open Graph */}
+        <meta property="og:type" content="website" />
+        <meta property="og:title" content="Triangular Arbitrage Calculator | CoinsClarity" />
+        <meta property="og:description" content="Free crypto arbitrage calculator. Check triangular arbitrage opportunities across BTC, ETH, USDT and more. Live prices, instant results." />
+        <meta property="og:url" content={`${window.location.origin}/arbitrage`} />
+        <meta property="og:image" content={`${window.location.origin}/logo3.png`} />
+        
+        {/* Twitter */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Triangular Arbitrage Calculator | CoinsClarity" />
+        <meta name="twitter:description" content="Free crypto arbitrage tool. Find profit opportunities across token pairs with live prices." />
+        
+        {/* Additional SEO */}
+        <meta name="keywords" content="triangular arbitrage, crypto arbitrage calculator, bitcoin arbitrage, ethereum arbitrage, crypto trading tool, arbitrage opportunity finder, defi arbitrage" />
+        <meta name="robots" content="index, follow" />
+        
+        {/* Structured Data */}
+        <script type="application/ld+json">{JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "WebApplication",
+          "name": "Triangular Arbitrage Calculator",
+          "description": "Free triangular arbitrage calculator for cryptocurrency trading. Find profit opportunities across BTC, ETH, USDT and more token pairs.",
+          "url": `${window.location.origin}/arbitrage`,
+          "applicationCategory": "FinanceApplication",
+          "operatingSystem": "Web Browser",
+          "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD"
+          },
+          "publisher": {
+            "@type": "Organization",
+            "name": "CoinsClarity"
+          }
+        })}</script>
       </Helmet>
       <CoinsNavbar />
       <div style={{ backgroundColor: '#f8fafc', minHeight: '100vh', paddingTop: '20px', paddingBottom: '40px' }}>

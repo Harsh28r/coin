@@ -123,8 +123,119 @@ const CryptoTools: React.FC = () => {
     <>
       <Helmet>
         <title>Free Crypto Trading Tools & Calculators | CoinsClarity</title>
-        <meta name="description" content="Professional crypto trading tools: arbitrage scanner, funding rates, whale tracker, RSI scanner, liquidation heatmap, staking APY comparison, and more. 100% free." />
+        <meta name="description" content="Professional crypto trading tools: arbitrage scanner, funding rates, whale tracker, RSI scanner, liquidation heatmap, staking APY comparison, profit calculator, DCA calculator. 100% free, no signup." />
         <link rel="canonical" href={`${window.location.origin}/tools`} />
+        
+        {/* Open Graph */}
+        <meta property="og:type" content="website" />
+        <meta property="og:title" content="Free Crypto Trading Tools & Calculators | CoinsClarity" />
+        <meta property="og:description" content="10+ professional crypto trading tools: RSI scanner, funding rates, arbitrage checker, liquidation heatmap, staking APY comparison. 100% free." />
+        <meta property="og:url" content={`${window.location.origin}/tools`} />
+        <meta property="og:image" content={`${window.location.origin}/logo3.png`} />
+        <meta property="og:site_name" content="CoinsClarity" />
+        
+        {/* Twitter */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Free Crypto Trading Tools | CoinsClarity" />
+        <meta name="twitter:description" content="Professional crypto calculators & trading tools. RSI scanner, funding rates, arbitrage, staking APY. Free forever." />
+        <meta name="twitter:image" content={`${window.location.origin}/logo3.png`} />
+        
+        {/* Additional SEO */}
+        <meta name="keywords" content="crypto calculator, bitcoin profit calculator, DCA calculator, crypto arbitrage, funding rates, RSI scanner, liquidation calculator, staking APY, gas tracker, crypto tools free" />
+        <meta name="robots" content="index, follow" />
+        <meta name="author" content="CoinsClarity" />
+        
+        {/* Structured Data */}
+        <script type="application/ld+json">{JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "WebApplication",
+          "name": "CoinsClarity Crypto Tools",
+          "description": "Free professional crypto trading tools including profit calculator, DCA calculator, RSI scanner, funding rates monitor, and more.",
+          "url": `${window.location.origin}/tools`,
+          "applicationCategory": "FinanceApplication",
+          "operatingSystem": "Web Browser",
+          "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD"
+          },
+          "featureList": [
+            "Profit Calculator",
+            "DCA Calculator", 
+            "Position Size Calculator",
+            "Liquidation Price Calculator",
+            "RSI Scanner",
+            "Funding Rates Monitor",
+            "Cross-Exchange Arbitrage",
+            "Whale Tracker",
+            "Gas Tracker",
+            "Staking APY Comparison",
+            "Token Unlock Calendar"
+          ],
+          "publisher": {
+            "@type": "Organization",
+            "name": "CoinsClarity",
+            "url": "https://coinsclarity.com"
+          }
+        })}</script>
+        
+        {/* Breadcrumb Schema */}
+        <script type="application/ld+json">{JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          "itemListElement": [
+            { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://coinsclarity.com" },
+            { "@type": "ListItem", "position": 2, "name": "Crypto Tools", "item": "https://coinsclarity.com/tools" }
+          ]
+        })}</script>
+        
+        {/* FAQ Schema for Rich Snippets */}
+        <script type="application/ld+json">{JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          "mainEntity": [
+            {
+              "@type": "Question",
+              "name": "What is a crypto profit calculator?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "A crypto profit calculator helps you determine potential gains or losses from trading. Enter your buy price, sell price, and investment amount to instantly see your profit percentage and total returns."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "What is DCA (Dollar Cost Averaging) in crypto?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "DCA is an investment strategy where you invest a fixed amount at regular intervals regardless of price. This reduces the impact of volatility and lowers your average cost over time. Our DCA calculator helps plan your investment schedule."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "What are funding rates in crypto trading?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Funding rates are periodic payments between long and short traders in perpetual futures markets. Positive rates mean longs pay shorts (bullish sentiment), negative rates mean shorts pay longs. Our tool shows live funding rates from major exchanges."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "What is RSI in crypto trading?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "RSI (Relative Strength Index) measures price momentum on a scale of 0-100. Below 30 indicates oversold conditions (potential buy signal), above 70 indicates overbought (potential sell signal). Our RSI scanner monitors multiple coins in real-time."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "What is triangular arbitrage?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Triangular arbitrage exploits price differences between three trading pairs. For example: BTC→ETH→USDT→BTC. If the final amount exceeds the starting amount after fees, there's a profit opportunity. Our calculator checks these opportunities in real-time."
+              }
+            }
+          ]
+        })}</script>
       </Helmet>
       
       <CoinsNavbar />
