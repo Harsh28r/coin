@@ -61,7 +61,7 @@ const Footer: React.FC = () => {
     <footer className="text-light py-5 mt-5" style={{ backgroundColor: '#1f2937' }}>
       <Container style={{ width: '100%', maxWidth: '1200px', padding: '0 16px' }}>
         <Row className="mb-5 gy-4" style={{ maxWidth: '100%' }}>
-          <Col md={5} className="mb-4 mb-md-0 text-center text-md-start">
+          <Col lg={3} md={6} className="mb-4 mb-md-0 text-center text-md-start">
             <img
               src="/logo3.png"
               alt="CoinsClarity Logo"
@@ -74,7 +74,7 @@ const Footer: React.FC = () => {
             </p>
             <p className="mt-3" style={{ color: '#d1d5db', fontSize: '0.875rem' }}>{t('footer.copyright')}</p>
           </Col>
-          <Col md={2} className="mb-2 mb-md-0 text-center text-md-start">
+          <Col lg={2} md={6} className="mb-2 mb-md-0 text-center text-md-start">
             <h6 className="text-white mb-3 fw-bold">Our Company</h6>
             <ul className="list-unstyled" style={{ paddingLeft: '0' }}>
               <li className="mb-2"><a href="/" className="small text-decoration-none hover-underline d-inline-block" style={{ color: '#e5e7eb' }}>{t('nav.home')}</a></li>
@@ -84,19 +84,28 @@ const Footer: React.FC = () => {
               <li className="mb-2"><a href="/listings" className="small text-decoration-none hover-underline d-inline-block" style={{ color: '#e5e7eb' }}>Listings</a></li>
             </ul>
           </Col>
-          <Col md={2} className="mb-2 mb-md-0 text-center text-md-start">
-            <h6 className="text-white mb-3 fw-bold">Interesting</h6>
+          <Col lg={2} md={6} className="mb-2 mb-md-0 text-center text-md-start">
+            <h6 className="text-white mb-3 fw-bold">Trading Tools</h6>
             <ul className="list-unstyled">
-              <li className="mb-2"><a href="/explore/cryptocurrencies" className="small text-decoration-none hover-underline d-inline-block" style={{ color: '#e5e7eb' }}>{t('explore.didYouKnow')}</a></li>
-              <li className="mb-2"><a href="/explore/defi" className="small text-decoration-none hover-underline d-inline-block" style={{ color: '#e5e7eb' }}>{t('explore.learnALittle')}</a></li>
-              <li className="mb-2"><a href="/explore/nfts" className="small text-decoration-none hover-underline d-inline-block" style={{ color: '#e5e7eb' }}>{t('explore.testKnowledge')}</a></li>
+              <li className="mb-2"><a href="/tools" className="small text-decoration-none hover-underline d-inline-block" style={{ color: '#e5e7eb' }}>All Tools</a></li>
+              <li className="mb-2"><a href="/arbitrage" className="small text-decoration-none hover-underline d-inline-block" style={{ color: '#e5e7eb' }}>Arbitrage Finder</a></li>
+              <li className="mb-2"><a href="/tools" className="small text-decoration-none hover-underline d-inline-block" style={{ color: '#e5e7eb' }}>Profit Calculator</a></li>
+              <li className="mb-2"><a href="/tools" className="small text-decoration-none hover-underline d-inline-block" style={{ color: '#e5e7eb' }}>DCA Calculator</a></li>
+              <li className="mb-2"><a href="/tools" className="small text-decoration-none hover-underline d-inline-block" style={{ color: '#e5e7eb' }}>Funding Rates</a></li>
+              <li className="mb-2"><a href="/tools" className="small text-decoration-none hover-underline d-inline-block" style={{ color: '#e5e7eb' }}>Gas Tracker</a></li>
+            </ul>
+          </Col>
+          <Col lg={2} md={6} className="mb-2 mb-md-0 text-center text-md-start">
+            <h6 className="text-white mb-3 fw-bold">Resources</h6>
+            <ul className="list-unstyled">
               <li className="mb-2"><a href="/privacy-policy" className="small text-decoration-none hover-underline d-inline-block" style={{ color: '#e5e7eb' }}>Privacy Policy</a></li>
               <li className="mb-2"><a href="/terms" className="small text-decoration-none hover-underline d-inline-block" style={{ color: '#e5e7eb' }}>Terms of Service</a></li>
               <li className="mb-2"><a href="/disclaimer" className="small text-decoration-none hover-underline d-inline-block" style={{ color: '#e5e7eb' }}>Disclaimer</a></li>
               <li className="mb-2"><a href="/faq" className="small text-decoration-none hover-underline d-inline-block" style={{ color: '#e5e7eb' }}>FAQ</a></li>
+              <li className="mb-2"><a href="/learn" className="small text-decoration-none hover-underline d-inline-block" style={{ color: '#e5e7eb' }}>Learn Crypto</a></li>
             </ul>
           </Col>
-          <Col md={3} className="mb-4 mb-md-0 text-center text-md-start">
+          <Col lg={3} md={6} className="mb-4 mb-md-0 text-center text-md-start">
             <h6 className="text-white mb-3 fw-bold">{t('footer.joinCommunity')}</h6>
             <div className="d-flex flex-wrap gap-3 justify-content-center justify-content-md-start">
               <a href="https://x.com/coinsclarity?t=hSpD5E1d2xIjii-mhw9kEQ&s=09" target="_blank" rel="noreferrer" aria-label="X (Twitter)" className="text-light hover-opacity"><Twitter size={28} /></a>

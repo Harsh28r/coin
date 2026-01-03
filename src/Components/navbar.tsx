@@ -190,6 +190,7 @@ const CoinsNavbar: React.FC = () => {
             <Nav.Link as={NavLink} to="/press-news" className="hover-underline">Press Releases</Nav.Link>
             <Nav.Link as={NavLink} to="/listings" className="hover-underline">Listings</Nav.Link>
             <Nav.Link as={NavLink} to="/blog" className="hover-underline">Blog</Nav.Link>
+            <Nav.Link as={NavLink} to="/tools" className="hover-underline">🛠️ Tools</Nav.Link>
             <Nav.Link as={NavLink} to="/watchlist" className="hover-underline">⭐ Watchlist</Nav.Link>
           </Nav>
           <Form className="d-flex justify-content-center me-2" onSubmit={handleSearch}>
