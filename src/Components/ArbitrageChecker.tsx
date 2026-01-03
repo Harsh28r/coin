@@ -78,16 +78,25 @@ const ArbitrageChecker: React.FC = () => {
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
   const [autoRefresh, setAutoRefresh] = useState(false);
 
-  // Fetch prices from CoinGecko
+  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://c-back-2.onrender.com';
+
+  // Fetch prices - use backend proxy to avoid CORS
   const fetchPrices = async () => {
     setLoading(true);
     setError(null);
     
     try {
       const ids = [token1, token2, token3].join(',');
-      const response = await fetch(
-        `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=${ids}&order=market_cap_desc`
-      );
+      // Try backend proxy first, fallback to direct API
+      let response;
+      try {
+        response = await fetch(`${API_BASE_URL}/api/prices?ids=${ids}`);
+      } catch {
+        // Fallback: use allorigins proxy
+        response = await fetch(
+          `https://api.allorigins.win/raw?url=${encodeURIComponent(`https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=${ids}&order=market_cap_desc`)}`
+        );
+      }
       
       if (!response.ok) throw new Error('Failed to fetch prices');
       
