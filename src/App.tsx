@@ -41,6 +41,8 @@ import BackToTop from './Components/BackToTop';
 import ScrollProgress from './Components/ScrollProgress';
 import { Analytics } from '@vercel/analytics/react';
 import useAdSenseControl from './Components/AdSenseControl';
+import ArbitrageChecker from './Components/ArbitrageChecker';
+import CryptoTools from './Components/CryptoTools';
 
 
 const ScrollToTop: React.FC = () => {
@@ -100,6 +102,8 @@ function App() {
                   <Route path="/contact" element={<Contact />} />
                   <Route path="/terms" element={<Terms />} />
                   <Route path="/disclaimer" element={<Disclaimer />} />
+                  <Route path="/arbitrage" element={<ArbitrageChecker />} />
+                  <Route path="/tools" element={<CryptoTools />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </div>
