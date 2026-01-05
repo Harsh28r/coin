@@ -43,6 +43,7 @@ import { Analytics } from '@vercel/analytics/react';
 import useAdSenseControl from './Components/AdSenseControl';
 import ArbitrageChecker from './Components/ArbitrageChecker';
 import CryptoTools from './Components/CryptoTools';
+import ArbitrageDashboard from './pages/ArbitrageDashboard';
 
 
 const ScrollToTop: React.FC = () => {
@@ -103,6 +104,7 @@ function App() {
                   <Route path="/terms" element={<Terms />} />
                   <Route path="/disclaimer" element={<Disclaimer />} />
                   <Route path="/arbitrage" element={<ArbitrageChecker />} />
+                  <Route path="/arbitrage-scanner" element={<ArbitrageDashboard />} />
                   <Route path="/tools" element={<CryptoTools />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
