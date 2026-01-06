@@ -10,7 +10,41 @@ import {
   TriangularOpportunity,
   TriangularStats
 } from '../services/arbitrageApi';
-import { TrendingUp, TrendingDown, RefreshCw, ExternalLink, Repeat, Activity, DollarSign, Target, Zap } from 'lucide-react';
+import {
+  TrendingUp,
+  TrendingDown,
+  RefreshCw,
+  ExternalLink,
+  Repeat,
+  Activity,
+  DollarSign,
+  Target,
+  Zap,
+  Sun,
+  Moon,
+  BarChart3
+} from 'lucide-react';
+
+const themes = {
+  dark: {
+    background: 'linear-gradient(135deg, #0f172a 0%, #111827 50%, #0b132b 100%)',
+    surface: 'rgba(255, 255, 255, 0.08)',
+    surfaceBorder: 'rgba(255, 255, 255, 0.15)',
+    textPrimary: '#e5e7eb',
+    textSecondary: 'rgba(255,255,255,0.8)',
+    cardBg: 'rgba(255, 255, 255, 0.92)',
+    chipBorder: 'rgba(255, 255, 255, 0.2)'
+  },
+  light: {
+    background: 'linear-gradient(135deg, #f8fafc 0%, #eef2ff 50%, #e0f2fe 100%)',
+    surface: 'rgba(255, 255, 255, 0.75)',
+    surfaceBorder: 'rgba(148, 163, 184, 0.35)',
+    textPrimary: '#0f172a',
+    textSecondary: '#334155',
+    cardBg: 'rgba(255, 255, 255, 0.98)',
+    chipBorder: 'rgba(148, 163, 184, 0.35)'
+  }
+} as const;
 
 const ArbitrageDashboard: React.FC = () => {
   // Cross-exchange state
@@ -25,6 +59,9 @@ const ArbitrageDashboard: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState('cross-exchange');
+  const [themeMode, setThemeMode] = useState<'dark' | 'light'>('dark');
+
+  const theme = themes[themeMode];
 
   const fetchData = async () => {
     try {
@@ -59,6 +96,26 @@ const ArbitrageDashboard: React.FC = () => {
     setRefreshing(true);
     fetchData();
   };
+
+  const renderCountBadge = (count: number) => (
+    <span
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 6,
+        background: 'rgba(255,255,255,0.15)',
+        color: 'white',
+        padding: '4px 10px',
+        borderRadius: '999px',
+        border: `1px solid ${theme.chipBorder}`,
+        fontSize: 12,
+        fontWeight: 700
+      }}
+    >
+      <BarChart3 size={14} />
+      {count}
+    </span>
+  );
 
   const getLiquidityBadge = (liquidity: string) => {
     const styles = {
@@ -96,7 +153,7 @@ const ArbitrageDashboard: React.FC = () => {
     return (
       <div style={{
         minHeight: '100vh',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        background: theme.background,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center'
@@ -112,18 +169,18 @@ const ArbitrageDashboard: React.FC = () => {
   return (
     <div style={{
       minHeight: '100vh',
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+      background: theme.background,
       paddingBottom: '50px'
     }}>
       <Container style={{ paddingTop: '30px', maxWidth: '1400px' }}>
         {/* Header */}
         <div style={{
-          background: 'rgba(255, 255, 255, 0.15)',
+          background: theme.surface,
           backdropFilter: 'blur(10px)',
           borderRadius: '20px',
           padding: '30px',
           marginBottom: '30px',
-          border: '1px solid rgba(255, 255, 255, 0.2)',
+          border: `1px solid ${theme.surfaceBorder}`,
           boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.37)'
         }}>
           <Row>
@@ -131,7 +188,7 @@ const ArbitrageDashboard: React.FC = () => {
               <div className="d-flex justify-content-between align-items-center flex-wrap">
                 <div>
                   <h1 style={{
-                    color: 'white',
+                    color: theme.textPrimary,
                     fontSize: '2.5rem',
                     fontWeight: 'bold',
                     marginBottom: '10px',
@@ -143,7 +200,7 @@ const ArbitrageDashboard: React.FC = () => {
                     <Zap size={40} style={{ filter: 'drop-shadow(0 0 10px rgba(255,255,255,0.5))' }} />
                     Arbitrage Scanner
                   </h1>
-                  <p style={{ color: 'rgba(255,255,255,0.9)', fontSize: '16px', margin: 0 }}>
+                  <p style={{ color: theme.textSecondary, fontSize: '16px', margin: 0 }}>
                     Real-time cryptocurrency arbitrage opportunities across multiple exchanges
                   </p>
                 </div>
@@ -165,6 +222,21 @@ const ArbitrageDashboard: React.FC = () => {
                 >
                   <RefreshCw className={refreshing ? 'spinning' : ''} size={18} style={{ marginRight: '8px' }} />
                   {refreshing ? 'Refreshing...' : 'Refresh'}
+                </Button>
+                <Button
+                  variant="outline-light"
+                  onClick={() => setThemeMode(themeMode === 'dark' ? 'light' : 'dark')}
+                  style={{
+                    marginLeft: '10px',
+                    borderRadius: '50px',
+                    padding: '10px 14px',
+                    border: `1px solid ${theme.surfaceBorder}`,
+                    background: 'rgba(255,255,255,0.12)',
+                    color: theme.textPrimary
+                  }}
+                  title="Toggle theme"
+                >
+                  {themeMode === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
                 </Button>
               </div>
             </Col>
@@ -211,6 +283,7 @@ const ArbitrageDashboard: React.FC = () => {
               >
                 <ExternalLink size={18} style={{ marginRight: '10px' }} />
                 Cross-Exchange
+                <span style={{ marginLeft: 10 }}>{renderCountBadge(opportunities.length)}</span>
               </Nav.Link>
             </Nav.Item>
             <Nav.Item>
@@ -234,6 +307,7 @@ const ArbitrageDashboard: React.FC = () => {
               >
                 <Repeat size={18} style={{ marginRight: '10px' }} />
                 Triangular
+                <span style={{ marginLeft: 10 }}>{renderCountBadge(triangularOpp.length)}</span>
               </Nav.Link>
             </Nav.Item>
           </Nav>
@@ -278,13 +352,13 @@ const ArbitrageDashboard: React.FC = () => {
 
               {/* Opportunities */}
               <div style={{
-                background: 'rgba(255, 255, 255, 0.1)',
+                background: theme.surface,
                 borderRadius: '20px',
                 padding: '30px',
                 backdropFilter: 'blur(10px)',
-                border: '1px solid rgba(255, 255, 255, 0.2)'
+                border: `1px solid ${theme.surfaceBorder}`
               }}>
-                <h4 style={{ color: 'white', marginBottom: '25px', fontWeight: 'bold' }}>
+                <h4 style={{ color: theme.textPrimary, marginBottom: '25px', fontWeight: 'bold' }}>
                   Available Opportunities ({opportunities.length})
                 </h4>
                 {opportunities.length === 0 ? (
@@ -296,12 +370,13 @@ const ArbitrageDashboard: React.FC = () => {
                     {opportunities.map((opp) => (
                       <Col md={6} lg={4} key={opp._id} style={{ marginBottom: '20px' }}>
                         <div style={{
-                          background: 'rgba(255, 255, 255, 0.95)',
+                              background: theme.cardBg,
                           borderRadius: '20px',
                           padding: '25px',
                           boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.2)',
                           transition: 'all 0.3s ease',
-                          height: '100%'
+                              height: '100%',
+                              color: theme.textPrimary
                         }}
                         onMouseEnter={(e) => {
                           e.currentTarget.style.transform = 'translateY(-5px)';
@@ -313,7 +388,7 @@ const ArbitrageDashboard: React.FC = () => {
                         }}
                         >
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                            <h5 style={{ margin: 0, fontWeight: 'bold', color: '#333', fontSize: '1.3rem' }}>{opp.symbol}</h5>
+                                <h5 style={{ margin: 0, fontWeight: 'bold', color: theme.textPrimary, fontSize: '1.3rem' }}>{opp.symbol}</h5>
                             {getLiquidityBadge(opp.liquidity)}
                           </div>
 
@@ -330,7 +405,7 @@ const ArbitrageDashboard: React.FC = () => {
                               <span style={{ color: '#666', fontSize: '14px' }}>Buy</span>
                               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                 <Badge bg="primary" style={{ borderRadius: '10px', padding: '6px 12px' }}>{opp.buyExchange}</Badge>
-                                <strong style={{ color: '#333' }}>${opp.buyPrice.toFixed(2)}</strong>
+                                <strong style={{ color: theme.textPrimary }}>${opp.buyPrice.toFixed(2)}</strong>
                                 <a
                                   href={getExchangeLink(opp.buyExchange, opp.symbol)}
                                   target="_blank"
@@ -353,7 +428,7 @@ const ArbitrageDashboard: React.FC = () => {
                               <span style={{ color: '#666', fontSize: '14px' }}>Sell</span>
                               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                 <Badge bg="success" style={{ borderRadius: '10px', padding: '6px 12px' }}>{opp.sellExchange}</Badge>
-                                <strong style={{ color: '#333' }}>${opp.sellPrice.toFixed(2)}</strong>
+                                <strong style={{ color: theme.textPrimary }}>${opp.sellPrice.toFixed(2)}</strong>
                                 <a
                                   href={getExchangeLink(opp.sellExchange, opp.symbol)}
                                   target="_blank"
