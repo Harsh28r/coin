@@ -1,7 +1,11 @@
 import axios from 'axios';
 
-// Default to the deployed backend that serves /arbitrage and /triangular
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://camify.fun.coinsclarity.com';
+// Dedicated base for arbitrage APIs so it doesn't get overridden by the news/RSS host
+const ARB_API_BASE =
+'https://camify.fun.coinsclarity.com';
+  process.env.REACT_APP_ARBITRAGE_API_BASE_URL ||
+  process.env.REACT_APP_API_BASE_URL ||
+  'https://c-back-seven.vercel.app';
 
 export interface ArbitrageOpportunity {
   _id: string;
@@ -87,7 +91,7 @@ interface ApiResponse<T> {
 export const getOpportunities = async (limit: number = 20): Promise<ArbitrageOpportunity[]> => {
   try {
     const response = await axios.get<ApiResponse<ArbitrageOpportunity[]>>(
-      `${API_BASE_URL}/arbitrage/opportunities?limit=${limit}`
+      `${ARB_API_BASE}/arbitrage/opportunities?limit=${limit}`
     );
     return response.data.data || [];
   } catch (error) {
@@ -102,7 +106,7 @@ export const getOpportunities = async (limit: number = 20): Promise<ArbitrageOpp
 export const getStats = async (days: number = 7): Promise<ArbitrageStats> => {
   try {
     const response = await axios.get<ApiResponse<ArbitrageStats>>(
-      `${API_BASE_URL}/arbitrage/stats?days=${days}`
+      `${ARB_API_BASE}/arbitrage/stats?days=${days}`
     );
     return response.data.data;
   } catch (error) {
@@ -117,7 +121,7 @@ export const getStats = async (days: number = 7): Promise<ArbitrageStats> => {
 export const getHistory = async (days: number = 7, limit: number = 100): Promise<ArbitrageOpportunity[]> => {
   try {
     const response = await axios.get<ApiResponse<ArbitrageOpportunity[]>>(
-      `${API_BASE_URL}/arbitrage/history?days=${days}&limit=${limit}`
+      `${ARB_API_BASE}/arbitrage/history?days=${days}&limit=${limit}`
     );
     return response.data.data || [];
   } catch (error) {
@@ -132,7 +136,7 @@ export const getHistory = async (days: number = 7, limit: number = 100): Promise
 export const getOpportunityById = async (id: string): Promise<ArbitrageOpportunity> => {
   try {
     const response = await axios.get<ApiResponse<ArbitrageOpportunity>>(
-      `${API_BASE_URL}/arbitrage/opportunity/${id}`
+      `${ARB_API_BASE}/arbitrage/opportunity/${id}`
     );
     return response.data.data;
   } catch (error) {
@@ -147,7 +151,7 @@ export const getOpportunityById = async (id: string): Promise<ArbitrageOpportuni
 export const triggerScan = async (token: string): Promise<ArbitrageOpportunity[]> => {
   try {
     const response = await axios.get<ApiResponse<ArbitrageOpportunity[]>>(
-      `${API_BASE_URL}/arbitrage/scan`,
+      `${ARB_API_BASE}/arbitrage/scan`,
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -167,7 +171,7 @@ export const triggerScan = async (token: string): Promise<ArbitrageOpportunity[]
 export const getTriangularOpportunities = async (limit: number = 20): Promise<TriangularOpportunity[]> => {
   try {
     const response = await axios.get<ApiResponse<TriangularOpportunity[]>>(
-      `${API_BASE_URL}/triangular/opportunities?limit=${limit}`
+      `${ARB_API_BASE}/triangular/opportunities?limit=${limit}`
     );
     return response.data.data || [];
   } catch (error) {
@@ -182,7 +186,7 @@ export const getTriangularOpportunities = async (limit: number = 20): Promise<Tr
 export const getTriangularStats = async (days: number = 7): Promise<TriangularStats> => {
   try {
     const response = await axios.get<ApiResponse<TriangularStats>>(
-      `${API_BASE_URL}/triangular/stats?days=${days}`
+      `${ARB_API_BASE}/triangular/stats?days=${days}`
     );
     return response.data.data;
   } catch (error) {
@@ -197,7 +201,7 @@ export const getTriangularStats = async (days: number = 7): Promise<TriangularSt
 export const triggerTriangularScan = async (token: string): Promise<TriangularOpportunity[]> => {
   try {
     const response = await axios.get<ApiResponse<TriangularOpportunity[]>>(
-      `${API_BASE_URL}/triangular/scan`,
+      `${ARB_API_BASE}/triangular/scan`,
       {
         headers: {
           Authorization: `Bearer ${token}`,
