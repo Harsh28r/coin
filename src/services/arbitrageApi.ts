@@ -1,8 +1,8 @@
 import axios from 'axios';
 
 // Dedicated base for arbitrage APIs so it doesn't get overridden by the news/RSS host
+// Priority: explicit ARBITRAGE base → generic API base → deployed arbitrage backend
 const ARB_API_BASE =
-'https://camify.fun.coinsclarity.com';
   process.env.REACT_APP_ARBITRAGE_API_BASE_URL ||
   process.env.REACT_APP_API_BASE_URL ||
   'https://c-back-seven.vercel.app';
