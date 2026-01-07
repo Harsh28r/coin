@@ -46,9 +46,15 @@ const RSIScanner: React.FC = () => {
       const data = await res.json();
 
       const results: CoinRSI[] = data.map((coin: any) => {
+        const rawPrice = Number(coin?.current_price);
+        const price = Number.isFinite(rawPrice) ? rawPrice : 0;
+        const rawChange = Number(coin?.price_change_percentage_24h);
+        const change = Number.isFinite(rawChange) ? rawChange : 0;
+        const rawVolume = Number(coin?.total_volume);
+        const volume = Number.isFinite(rawVolume) ? rawVolume : 0;
+
         // Simulate RSI based on price change (in production, calculate from historical data)
         // RSI = 100 - (100 / (1 + RS)) where RS = avg gain / avg loss
-        const change = coin.price_change_percentage_24h || 0;
         let rsi: number;
         
         // Simple simulation: map 24h change to RSI-like value
@@ -65,11 +71,11 @@ const RSIScanner: React.FC = () => {
         return {
           symbol: COINS.find(c => c.id === coin.id)?.symbol || coin.symbol.toUpperCase(),
           name: coin.name,
-          price: coin.current_price,
+          price,
           change24h: change,
           rsi: Math.round(rsi),
           signal,
-          volume24h: coin.total_volume,
+          volume24h: volume,
         };
       });
 
@@ -115,9 +121,10 @@ const RSIScanner: React.FC = () => {
   };
 
   const formatVolume = (vol: number) => {
-    if (vol >= 1e9) return `$${(vol / 1e9).toFixed(2)}B`;
-    if (vol >= 1e6) return `$${(vol / 1e6).toFixed(0)}M`;
-    return `$${(vol / 1e3).toFixed(0)}K`;
+    const safeVol = Number.isFinite(vol) ? vol : 0;
+    if (safeVol >= 1e9) return `$${(safeVol / 1e9).toFixed(2)}B`;
+    if (safeVol >= 1e6) return `$${(safeVol / 1e6).toFixed(0)}M`;
+    return `$${(safeVol / 1e3).toFixed(0)}K`;
   };
 
   const oversoldCount = coins.filter(c => c.signal === 'oversold').length;
@@ -198,11 +205,14 @@ const RSIScanner: React.FC = () => {
                     <small className="text-muted">{coin.name}</small>
                   </td>
                   <td className="text-end">
-                    ${coin.price < 1 ? coin.price.toFixed(4) : coin.price.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                    {(() => {
+                      const p = Number.isFinite(coin.price) ? coin.price : 0;
+                      return `$${p < 1 ? p.toFixed(4) : p.toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
+                    })()}
                   </td>
                   <td className="text-end">
                     <span style={{ color: coin.change24h >= 0 ? '#22c55e' : '#ef4444' }}>
-                      {coin.change24h >= 0 ? '+' : ''}{coin.change24h.toFixed(2)}%
+                      {coin.change24h >= 0 ? '+' : ''}{Number.isFinite(coin.change24h) ? coin.change24h.toFixed(2) : '0.00'}%
                     </span>
                   </td>
                   <td>

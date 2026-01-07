@@ -16,6 +16,7 @@ import NewsListing from '../Components/Listings';
 import SubscriptionPopup from '../Components/SubscriptionPopup';
 import { useSubscriptionPopup } from '../hooks/useSubscriptionPopup';
 import AINews from '../Components/AINews';
+import ArbitrageDashboard from './ArbitrageDashboard';
 // import  './LandingPage.css'
 
 const LandingPage: React.FC = () => {
@@ -52,6 +53,7 @@ const LandingPage: React.FC = () => {
         <PressRelease />
         <InDepthNews />
         <NewsListing />
+        <ArbitrageDashboard />
         <BlogSection />
        
         <Footer />
