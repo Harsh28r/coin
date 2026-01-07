@@ -262,7 +262,7 @@ const ExclusiveNews: React.FC = () => {
                     className="fs-6 mb-3 text-start custom-text"
                     style={{
                       fontWeight: 'bold',
-                      color: 'black',
+                    color: 'var(--text)',
                       overflow: 'hidden',
                       display: '-webkit-box',
                       WebkitBoxOrient: 'vertical',
@@ -272,9 +272,9 @@ const ExclusiveNews: React.FC = () => {
                   >
                      <a
                        href={`/news/${item.article_id || encodeURIComponent(item.title)}`}
-                       className="text-black text-decoration-none"
+                      className="text-decoration-none"
                        aria-label={item.title}
-                       style={{ cursor: 'pointer' }}
+                      style={{ cursor: 'pointer', color: 'var(--text)' }}
                        onClick={(e) => { e.preventDefault();
                          const targetId = item.article_id || encodeURIComponent(item.title);
                          navigate(`/news/${targetId}`, { state: { item } });
@@ -286,6 +286,7 @@ const ExclusiveNews: React.FC = () => {
                   <Card.Text
                     className="text-muted small flex-grow-1 text-start custom-text fs-7"
                     style={{
+                      color: 'var(--text)',
                       overflow: 'hidden',
                       display: '-webkit-box',
                       WebkitBoxOrient: 'vertical',
@@ -298,13 +299,13 @@ const ExclusiveNews: React.FC = () => {
                   <div className="mt-auto">
                     <div className="d-flex justify-content-between align-items-center mb-2">
                       <div>
-                        <small className="text-muted">By </small>
+                        <small className="text-muted" style={{ color: 'var(--text)' }}>By </small>
                         <small className="text-warning">
                           {item.creator?.[0] || 'Unknown Author'}
                         </small>
                       </div>
                       <div className="ms-auto text-end">
-                        <small className="text-muted">{formatDate(item.pubDate)}</small>
+                        <small className="text-muted" style={{ color: 'var(--text)' }}>{formatDate(item.pubDate)}</small>
                       </div>
                     </div>
                     {item.link && (

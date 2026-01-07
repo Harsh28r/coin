@@ -112,14 +112,14 @@ const InDepthNews: React.FC = () => {
 	};
 
 	return (
-		<Container fluid className="mt-5" style={{ width: '92%' }}>
+		<Container fluid className="mt-5" style={{ width: '92%', color: 'var(--text)' }}>
 			<Helmet>
 				<title>Beyond the Headlines | CoinsClarity</title>
 				<meta name="description" content="In-depth reads with full on-platform content and clean reading experience." />
 				<link rel="canonical" href={`${window.location.origin}/beyond-the-headlines`} />
 			</Helmet>
-			<div className="d-flex justify-content-between align-items-center mb-3">
-				<h4 className="m-0" style={{ fontWeight: 800, letterSpacing: '0.02em' }}>
+			<div className="d-flex justify-content-between align-items-center mb-3" style={{ color: 'var(--text)' }}>
+				<h4 className="m-0" style={{ fontWeight: 800, letterSpacing: '0.02em', color: 'var(--text)' }}>
 					<span style={{ color: '#fb923c' }}><BookOpen size={20} className="me-2" /></span>
 					Beyond the Headlines
 				</h4>
@@ -156,7 +156,7 @@ const InDepthNews: React.FC = () => {
 								role="button"
 								tabIndex={0}
 								onKeyDown={(e: any) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleOpen(item); } }}
-								style={{ cursor: 'pointer' }}
+								style={{ cursor: 'pointer', background: 'var(--card)', color: 'var(--text)', border: '1px solid var(--border)' }}
 							>
 								{(() => {
 									const isHttp = (u?: string) => typeof u === 'string' && /^https?:\/\//i.test(u) && u.trim().length > 0;
@@ -179,17 +179,18 @@ const InDepthNews: React.FC = () => {
 										/>
 									);
 								})()}
-								<Card.Body className="d-flex flex-column">
-									<Card.Title className="fs-6 mb-2" style={{ fontWeight: 700, lineHeight: 1.3 }}>
+								<Card.Body className="d-flex flex-column" style={{ color: 'var(--text)' }}>
+									<Card.Title className="fs-6 mb-2" style={{ fontWeight: 700, lineHeight: 1.3, color: 'var(--text)' }}>
 										<a
 											href={`/news/${item.article_id || encodeURIComponent(item.link || item.title)}`}
-											className="text-decoration-none text-dark stretched-link"
+											className="text-decoration-none stretched-link"
 											onClick={(e) => { e.preventDefault(); handleOpen(item); }}
+											style={{ color: 'var(--text)' }}
 										>
 											{item.title}
 										</a>
 									</Card.Title>
-									<Card.Text className="text-muted" style={{ display: '-webkit-box', WebkitBoxOrient: 'vertical', WebkitLineClamp: 3, overflow: 'hidden' }}>
+									<Card.Text className="text-muted" style={{ display: '-webkit-box', WebkitBoxOrient: 'vertical', WebkitLineClamp: 3, overflow: 'hidden', color: 'var(--text)' }}>
 										{item.description}
 									</Card.Text>
 									<div className="mt-auto d-flex justify-content-between align-items-center gap-2">

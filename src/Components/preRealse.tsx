@@ -146,12 +146,12 @@ const PressRelease: React.FC = () => {
               fontWeight: 900,
               letterSpacing: '0.03em',
               fontSize: '1.4rem',
-             
+              color: 'var(--text)'
             }}
           >
             Press Releases
           </h4>
-          <small style={{ color: '#6b7280' }}>Latest announcements and updates across crypto</small>
+          <small style={{ color: 'var(--text)' }}>Latest announcements and updates across crypto</small>
           {isTranslating && (
             <small className="text-muted d-block mt-1">
               🔄 Translating press releases to {currentLanguage === 'hi' ? 'Hindi' : 
@@ -222,7 +222,7 @@ const PressRelease: React.FC = () => {
             {effectiveMainArticle && (
               <Card
                 className="border-0 rounded-4"
-                style={{ height: 'auto', minHeight: '430px', cursor: 'pointer', overflow: 'hidden' }}
+                style={{ height: 'auto', minHeight: '430px', cursor: 'pointer', overflow: 'hidden', color: 'var(--text)' }}
                 onClick={() => {
                   const targetId = effectiveMainArticle.article_id || encodeURIComponent(effectiveMainArticle.title || '');
                   navigate(`/news/${targetId}`, { state: { item: {
@@ -260,7 +260,7 @@ const PressRelease: React.FC = () => {
                     <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
 
                     </div>
-                    <div style={{ fontWeight: 800, fontSize: '1.35rem', lineHeight: 1.25, marginBottom: 6 }}>{effectiveMainArticle.title}</div>
+                    <div style={{ fontWeight: 800, fontSize: '1.35rem', lineHeight: 1.25, marginBottom: 6, color: '#fff' }}>{effectiveMainArticle.title}</div>
                     <div
                       style={{
                         color: '#e5e7eb',
@@ -297,6 +297,7 @@ const PressRelease: React.FC = () => {
                   cursor: 'pointer',
                   boxShadow: '0 6px 16px rgba(0,0,0,0.06)',
                   transition: 'all 0.25s ease',
+                  color: 'var(--text)'
                 }}
                 onClick={() => {
                   const targetId = release.article_id || encodeURIComponent(release.title || '');
@@ -321,20 +322,20 @@ const PressRelease: React.FC = () => {
                   (e.currentTarget as HTMLDivElement).style.boxShadow = '0 6px 16px rgba(0,0,0,0.06)';
                 }}
               >
-                <Row className="g-2 align-items-center">
+                <Row className="g-2 align-items-center" style={{ color: 'var(--text)' }}>
                   <Col xs={8}>
-                    <Card.Body className="d-flex flex-column justify-content-between">
+                    <Card.Body className="d-flex flex-column justify-content-between" style={{ color: 'var(--text)' }}>
                       <div className="d-flex align-items-center mb-1" style={{ gap: 6 }}>
 
                       </div>
-                      <Card.Title className="h2 text-start" style={{ fontSize: '0.98rem', fontWeight: 800 }}>
+                      <Card.Title className="h2 text-start" style={{ fontSize: '0.98rem', fontWeight: 800, color: 'var(--text)' }}>
                         {release.title}
                       </Card.Title>
                       <Card.Text
                         className="small text-start description"
                         style={{
                           fontSize: '0.92rem',
-                          color: '#6b7280',
+                          color: 'var(--text)',
                           overflow: 'hidden',
                           display: '-webkit-box',
                           WebkitBoxOrient: 'vertical',
@@ -345,14 +346,14 @@ const PressRelease: React.FC = () => {
                       </Card.Text>
                       <div className="d-flex justify-content-between align-items-center">
                         <div>
-                          <small className="text-muted" style={{ fontSize: '0.85rem' }}>
+                          <small className="text-muted" style={{ fontSize: '0.85rem', color: 'var(--text)' }}>
                             By{' '}
                           </small>
                           <small className="text-warning" style={{ fontSize: '0.9rem', fontWeight: 600 }}>
                             {release.author}
                           </small>
                         </div>
-                        <small className="text-muted" style={{ fontSize: '0.75rem' }}>
+                        <small className="text-muted" style={{ fontSize: '0.75rem', color: 'var(--text)' }}>
                           {release.date}
                         </small>
                       </div>

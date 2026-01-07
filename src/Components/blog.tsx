@@ -96,7 +96,7 @@ const BlogSection: React.FC = () => {
   }, [API_BASE_URL]);
 
   return (
-    <Container fluid className="mt-5 mb-5" style={{ width: '92%', fontFamily: 'Inter, sans-serif' }}>
+    <Container fluid className="mt-5 mb-5" style={{ width: '92%', fontFamily: 'Inter, sans-serif', color: 'var(--text)' }}>
       {/* Enhanced Header Section */}
       <div className="d-flex justify-content-between align-items-center mb-5">
         <div>
@@ -114,7 +114,7 @@ const BlogSection: React.FC = () => {
           >
             Latest Blog Posts
           </h2>
-          <p className="text-muted mb-0" style={{ fontSize: '1.1rem', fontWeight: '400' }}>
+          <p className="text-muted mb-0" style={{ fontSize: '1.1rem', fontWeight: '400', color: 'var(--text)' }}>
             Discover insights, tutorials, and updates from our crypto experts
           </p>
           {isTranslating && (
@@ -200,7 +200,9 @@ const BlogSection: React.FC = () => {
                 style={{
                   transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                   boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
-                  border: '1px solid rgba(0, 0, 0, 0.05)'
+                  border: '1px solid var(--border)',
+                  background: 'var(--card)',
+                  color: 'var(--text)'
                 }}
               >
                 {/* Enhanced Image Section */}
@@ -243,14 +245,14 @@ const BlogSection: React.FC = () => {
                 </div>
 
                 {/* Enhanced Card Body */}
-                <Card.Body className="d-flex flex-column p-4">
+                <Card.Body className="d-flex flex-column p-4" style={{ color: 'var(--text)' }}>
                   <Card.Title 
                     className="h5 mb-3 text-start" 
                     style={{ 
                       fontWeight: '700',
                       fontSize: '1.1rem',
                       lineHeight: '1.4',
-                      color: '#1f2937',
+                      color: 'var(--text)',
                       minHeight: '3rem'
                     }}
                   >
@@ -262,7 +264,7 @@ const BlogSection: React.FC = () => {
                     style={{
                       fontSize: '0.9rem',
                       lineHeight: '1.6',
-                      color: '#6b7280',
+                      color: 'var(--text)',
                       overflow: 'hidden',
                       display: '-webkit-box',
                       WebkitBoxOrient: 'vertical',
@@ -276,7 +278,7 @@ const BlogSection: React.FC = () => {
                   {/* Enhanced Footer */}
                   <div className="mt-auto">
                     <div className="d-flex justify-content-between align-items-center mb-3">
-                      <div className="d-flex align-items-center">
+                      <div className="d-flex align-items-center" style={{ color: 'var(--text)' }}>
                         <div 
                           className="rounded-circle me-2"
                           style={{
@@ -293,7 +295,7 @@ const BlogSection: React.FC = () => {
                           </span>
                         </div>
                         <div>
-                          <small className="text-muted d-block" style={{ fontSize: '0.75rem' }}>
+                          <small className="text-muted d-block" style={{ fontSize: '0.75rem', color: 'var(--text)' }}>
                             By
                           </small>
                           <small 
@@ -307,15 +309,15 @@ const BlogSection: React.FC = () => {
                           </small>
                         </div>
                       </div>
-                      <div className="text-end">
-                        <small className="text-muted d-block" style={{ fontSize: '0.75rem' }}>
+                      <div className="text-end" style={{ color: 'var(--text)' }}>
+                        <small className="text-muted d-block" style={{ fontSize: '0.75rem', color: 'var(--text)' }}>
                           Published
                         </small>
                         <small 
                           className="fw-semibold" 
                           style={{ 
                             fontSize: '0.85rem',
-                            color: '#6b7280'
+                            color: 'var(--text)'
                           }}
                         >
                           {post.date}
@@ -328,7 +330,7 @@ const BlogSection: React.FC = () => {
                       className="w-100 py-2 px-3 rounded-3 text-center"
                       style={{
                         background: 'linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%)',
-                        color: '#374151',
+                        color: 'var(--text)',
                         fontSize: '0.85rem',
                         fontWeight: '600',
                         transition: 'all 0.2s ease'

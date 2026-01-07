@@ -1,7 +1,7 @@
 // src/components/organisms/CoinsNavbar.tsx
 import React, { useState, useEffect } from 'react';
 import { Navbar, Nav, NavDropdown, Form, FormControl, Container, Spinner, Alert, Button } from 'react-bootstrap';
-import { Search, CircleDollarSign, Landmark } from 'lucide-react';
+import { Search, CircleDollarSign, Landmark, Sun, Moon } from 'lucide-react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import _ from 'lodash';
@@ -20,6 +20,7 @@ const CoinsNavbar: React.FC = () => {
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [theme, setTheme] = useState<'light' | 'dark'>('light');
   const navigate = useNavigate();
 
   // Add scroll listener for glassmorphism effect
@@ -30,6 +31,24 @@ const CoinsNavbar: React.FC = () => {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  useEffect(() => {
+    const saved = (localStorage.getItem('cc-theme') as 'light' | 'dark' | null) || 'light';
+    setTheme(saved);
+    document.documentElement.setAttribute('data-theme', saved);
+    document.documentElement.setAttribute('data-bs-theme', saved);
+    document.body.setAttribute('data-theme', saved);
+    document.body.setAttribute('data-bs-theme', saved);
+  }, []);
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    document.documentElement.setAttribute('data-bs-theme', theme);
+    document.body.setAttribute('data-theme', theme);
+    document.body.setAttribute('data-bs-theme', theme);
+    localStorage.setItem('cc-theme', theme);
+    window.dispatchEvent(new CustomEvent('cc-theme-change', { detail: theme }));
+  }, [theme]);
 
   const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
   const COINGECKO_API_BASE_URL = 'https://api.coingecko.com/api/v3';
@@ -129,6 +148,7 @@ const CoinsNavbar: React.FC = () => {
 
   const handleToggle = () => setExpanded((prev) => !prev);
   const handleNavItemClick = () => setExpanded(false);
+  const handleThemeToggle = () => setTheme((prev) => (prev === 'light' ? 'dark' : 'light'));
 
   const barCommon: React.CSSProperties = {
     display: 'block',
@@ -141,12 +161,14 @@ const CoinsNavbar: React.FC = () => {
 
   return (
     <Navbar
-      bg="white"
+      data-bs-theme={theme}
       expand="lg"
       expanded={expanded}
       onToggle={(next) => setExpanded(Boolean(next))}
       className={`border-bottom py-3 ${isScrolled ? 'navbar-glass' : ''}`}
       style={{
+        background: 'var(--card)',
+        color: 'var(--text)',
         boxShadow: isScrolled ? '0 4px 30px rgba(0, 0, 0, 0.1)' : '0 2px 4px rgba(0, 0, 0, 0.1)',
         position: 'sticky',
         top: 0,
@@ -190,9 +212,9 @@ const CoinsNavbar: React.FC = () => {
             <Nav.Link as={NavLink} to="/press-news" className="hover-underline">Press Releases</Nav.Link>
             <Nav.Link as={NavLink} to="/listings" className="hover-underline">Listings</Nav.Link>
             <Nav.Link as={NavLink} to="/blog" className="hover-underline">Blog</Nav.Link>
-            <Nav.Link as={NavLink} to="/tools" className="hover-underline">🛠️ Tools</Nav.Link>
-            <Nav.Link as={NavLink} to="/arbitrage-scanner" className="hover-underline">🚀 Arbitrage</Nav.Link>
-            <Nav.Link as={NavLink} to="/watchlist" className="hover-underline">⭐ Watchlist</Nav.Link>
+            <Nav.Link as={NavLink} to="/tools" className="hover-underline">Tools</Nav.Link>
+            <Nav.Link as={NavLink} to="/arbitrage-scanner" className="hover-underline">Arbitrage</Nav.Link>
+            <Nav.Link as={NavLink} to="/watchlist" className="hover-underline">Watchlist</Nav.Link>
           </Nav>
           <Form className="d-flex justify-content-center me-2" onSubmit={handleSearch}>
             <div className="position-relative search-container">
@@ -248,15 +270,26 @@ const CoinsNavbar: React.FC = () => {
               )}
             </div>
           </Form>
-          <Nav.Link as={NavLink} to="/advertise" className="me-2 mt-1">
+          <Nav className="align-items-center gap-2">
+            <Nav.Link as={NavLink} to="/advertise" className="me-2 mt-1">
+              <Button
+                variant="warning"
+                className="btn-interactive btn-ripple"
+                style={{ fontSize: '16px', padding: '8px 20px', color: 'white', backgroundColor: '#f90', borderRadius: '0.7rem' }}
+              >
+                Advertise
+              </Button>
+            </Nav.Link>
             <Button
-              variant="warning"
-              className="btn-interactive btn-ripple"
-              style={{ fontSize: '16px', padding: '8px 20px', color: 'white', backgroundColor: '#f90', borderRadius: '0.7rem' }}
+              variant="outline-secondary"
+              className="rounded-circle d-flex align-items-center justify-content-center"
+              style={{ width: 40, height: 40 }}
+              onClick={handleThemeToggle}
+              aria-label="Toggle theme"
             >
-              Advertise
+              {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
             </Button>
-          </Nav.Link>
+          </Nav>
         </Navbar.Collapse>
       </Container>
     </Navbar>

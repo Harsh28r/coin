@@ -1,3 +1,21 @@
+:root {
+  --bg: #ffffff;
+  --text: #0f172a;
+  --card: #ffffff;
+  --surface: #f8fafc;
+  --border: #e2e8f0;
+  --accent: #f97316;
+}
+
+[data-theme='dark'] {
+  --bg: #0b1324;
+  --text: #e5e7eb;
+  --card: #111827;
+  --surface: #0f172a;
+  --border: #1f2937;
+  --accent: #f97316;
+}
+
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
@@ -5,6 +23,66 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background: var(--bg);
+  color: var(--text);
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
+a {
+  color: inherit;
+}
+
+.page, h1, h2, h3, h4, h5, h6, p, span, small, label, li, .text-muted {
+  color: var(--text) !important;
+}
+
+.card, .navbar, .modal-content, .dropdown-menu {
+  background: var(--card) !important;
+  color: var(--text) !important;
+  border-color: var(--border) !important;
+}
+
+.form-control,
+.form-select,
+input,
+textarea {
+  background: var(--surface) !important;
+  color: var(--text) !important;
+  border-color: var(--border) !important;
+}
+
+[data-theme='dark'] .navbar a,
+[data-theme='dark'] .nav-link {
+  color: var(--text) !important;
+}
+
+[data-theme='dark'] body,
+[data-theme='dark'] .LandingPage,
+[data-theme='dark'] .content-wrapper {
+  background: var(--bg) !important;
+  color: var(--text) !important;
+}
+
+.dropdown-item {
+  color: var(--text) !important;
+}
+
+.table {
+  color: var(--text) !important;
+}
+
+.suggestions-dropdown {
+  background: var(--card) !important;
+  color: var(--text) !important;
+  border: 1px solid var(--border) !important;
+}
+
+.card-header, .card-body, .card-footer {
+  color: var(--text) !important;
+}
+
+.btn-light, .btn-outline-light {
+  color: var(--text) !important;
 }
 
 code {

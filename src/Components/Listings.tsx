@@ -165,7 +165,7 @@ const Listings: React.FC = () => {
       <h1 className="mb-4 text-center" style={{ 
         fontSize: '2.5rem', 
         fontWeight: 'bold', 
-        color: '#1f2937',
+        color: 'var(--text)',
         borderBottom: '3px solid #f59e0b',
         paddingBottom: '1rem'
       }}>
@@ -174,13 +174,14 @@ const Listings: React.FC = () => {
 
       {/* Filter Controls */}
       <div className="mb-4 p-3" style={{
-        backgroundColor: '#f8fafc',
+        backgroundColor: 'var(--surface)',
         borderRadius: '12px',
-        border: '1px solid #e2e8f0'
+        border: '1px solid var(--border)',
+        color: 'var(--text)'
       }}>
         <Row className="g-3 align-items-end">
           <Col md={4}>
-            <label className="form-label small fw-bold text-muted">Search</label>
+            <label className="form-label small fw-bold" style={{ color: 'var(--text)' }}>Search</label>
             <input
               type="text"
               className="form-control"
@@ -192,7 +193,7 @@ const Listings: React.FC = () => {
             />
           </Col>
           <Col md={3}>
-            <label className="form-label small fw-bold text-muted">Exchange</label>
+            <label className="form-label small fw-bold" style={{ color: 'var(--text)' }}>Exchange</label>
             <select
               className="form-select"
               value={exchangeFilter}
@@ -207,7 +208,7 @@ const Listings: React.FC = () => {
             </select>
           </Col>
           <Col md={3}>
-            <label className="form-label small fw-bold text-muted">Time Period</label>
+            <label className="form-label small fw-bold" style={{ color: 'var(--text)' }}>Time Period</label>
             <select
               className="form-select"
               value={timeFilter}
@@ -237,7 +238,7 @@ const Listings: React.FC = () => {
           </Col>
         </Row>
         {filteredItems.length !== items.length && (
-          <div className="mt-2 text-muted small">
+          <div className="mt-2 small" style={{ color: 'var(--text)' }}>
             Showing {filteredItems.length} of {items.length} listings
           </div>
         )}
@@ -253,25 +254,25 @@ const Listings: React.FC = () => {
           <div className="col-md-3">
             <div className="p-2">
               <strong className="d-block text-white">Major Exchanges</strong>
-              <small className="text-muted">Binance, Coinbase, Kraken</small>
+              <small style={{ color: 'rgba(255,255,255,0.85)' }}>Binance, Coinbase, Kraken</small>
             </div>
           </div>
           <div className="col-md-3">
             <div className="p-2">
               <strong className="d-block text-white">New Listings</strong>
-              <small className="text-muted">Fresh token additions</small>
+              <small style={{ color: 'rgba(255,255,255,0.85)' }}>Fresh token additions</small>
             </div>
           </div>
           <div className="col-md-3">
             <div className="p-2">
               <strong className="d-block text-white">Trading Pairs</strong>
-              <small className="text-muted">USDT, BTC, ETH pairs</small>
+              <small style={{ color: 'rgba(255,255,255,0.85)' }}>USDT, BTC, ETH pairs</small>
             </div>
           </div>
           <div className="col-md-3">
             <div className="p-2">
               <strong className="d-block text-white">Market Data</strong>
-              <small className="text-muted">Volume & price info</small>
+              <small style={{ color: 'rgba(255,255,255,0.85)' }}>Volume & price info</small>
             </div>
           </div>
         </div>

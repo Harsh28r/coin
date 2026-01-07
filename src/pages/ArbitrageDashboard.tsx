@@ -20,10 +20,7 @@ import {
   DollarSign,
   Target,
   Zap,
-  Sun,
-  Moon,
-  BarChart3,
-  Coins
+  BarChart3
 } from 'lucide-react';
 
 const themes = {
@@ -96,6 +93,42 @@ const ArbitrageDashboard: React.FC = () => {
     const interval = setInterval(fetchData, 30000);
     return () => clearInterval(interval);
   }, []);
+
+  // Sync theme with global document setting (navbar toggle)
+  useEffect(() => {
+    const syncTheme = () => {
+      const current = document.documentElement.getAttribute('data-theme') as 'light' | 'dark' | null;
+      if (current && current !== themeMode) setThemeMode(current);
+    };
+    syncTheme();
+
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === 'cc-theme' && e.newValue && (e.newValue === 'light' || e.newValue === 'dark')) {
+        setThemeMode(e.newValue);
+      }
+    };
+
+    const onThemeEvent = (e: Event) => {
+      const detail = (e as CustomEvent)?.detail;
+      if (detail === 'light' || detail === 'dark') {
+        setThemeMode(detail);
+      } else {
+        syncTheme();
+      }
+    };
+
+    const observer = new MutationObserver(syncTheme);
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
+    window.addEventListener('storage', onStorage);
+    window.addEventListener('cc-theme-change', onThemeEvent as EventListener);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('storage', onStorage);
+      window.removeEventListener('cc-theme-change', onThemeEvent as EventListener);
+    };
+  }, [themeMode]);
 
   const handleRefresh = () => {
     setRefreshing(true);
@@ -201,7 +234,6 @@ const ArbitrageDashboard: React.FC = () => {
                     alignItems: 'center',
                     gap: '12px'
                   }}>
-                    <Coins size={38} color={theme.accent} />
                     Arbitrage Scanner
                   </h1>
                   <p style={{ color: theme.textSecondary, fontSize: '16px', margin: 0 }}>
@@ -227,21 +259,6 @@ const ArbitrageDashboard: React.FC = () => {
                 >
                   <RefreshCw className={refreshing ? 'spinning' : ''} size={18} style={{ marginRight: '8px' }} />
                   {refreshing ? 'Refreshing...' : 'Refresh'}
-                </Button>
-                <Button
-                  variant="outline-light"
-                  onClick={() => setThemeMode(themeMode === 'dark' ? 'light' : 'dark')}
-                  style={{
-                    marginLeft: '10px',
-                    borderRadius: '10px',
-                    padding: '10px 14px',
-                    border: `1px solid ${theme.surfaceBorder}`,
-                    background: theme.surface,
-                    color: theme.textPrimary
-                  }}
-                  title="Toggle theme"
-                >
-                  {themeMode === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
                 </Button>
               </div>
             </Col>
