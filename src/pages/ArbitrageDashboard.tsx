@@ -22,27 +22,32 @@ import {
   Zap,
   Sun,
   Moon,
-  BarChart3
+  BarChart3,
+  Coins
 } from 'lucide-react';
 
 const themes = {
   dark: {
     background: 'linear-gradient(135deg, #0f172a 0%, #111827 50%, #0b132b 100%)',
     surface: 'rgba(255, 255, 255, 0.08)',
-    surfaceBorder: 'rgba(255, 255, 255, 0.15)',
-    textPrimary: '#e5e7eb',
+    surfaceBorder: 'rgba(255, 255, 255, 0.12)',
+    textPrimary: '#f8fafc',
     textSecondary: 'rgba(255,255,255,0.8)',
-    cardBg: 'rgba(255, 255, 255, 0.92)',
-    chipBorder: 'rgba(255, 255, 255, 0.2)'
+    cardBg: 'rgba(255, 255, 255, 0.96)',
+    chipBorder: 'rgba(255, 255, 255, 0.2)',
+    accent: '#f97316',
+    accentSoft: '#fed7aa'
   },
   light: {
-    background: 'linear-gradient(135deg, #f8fafc 0%, #eef2ff 50%, #e0f2fe 100%)',
-    surface: 'rgba(255, 255, 255, 0.75)',
-    surfaceBorder: 'rgba(148, 163, 184, 0.35)',
-    textPrimary: '#0f172a',
-    textSecondary: '#334155',
-    cardBg: 'rgba(255, 255, 255, 0.98)',
-    chipBorder: 'rgba(148, 163, 184, 0.35)'
+    background: 'linear-gradient(135deg, #fff7ed 0%, #fff1e6 50%, #ffe4c7 100%)',
+    surface: 'rgba(255, 255, 255, 0.9)',
+    surfaceBorder: 'rgba(249, 115, 22, 0.25)',
+    textPrimary: '#1f2937',
+    textSecondary: '#4b5563',
+    cardBg: '#ffffff',
+    chipBorder: 'rgba(249, 115, 22, 0.25)',
+    accent: '#f97316',
+    accentSoft: '#fff7ed'
   }
 } as const;
 
@@ -189,15 +194,14 @@ const ArbitrageDashboard: React.FC = () => {
                 <div>
                   <h1 style={{
                     color: theme.textPrimary,
-                    fontSize: '2.5rem',
-                    fontWeight: 'bold',
-                    marginBottom: '10px',
-                    textShadow: '2px 2px 4px rgba(0,0,0,0.3)',
+                    fontSize: '2.4rem',
+                    fontWeight: 800,
+                    marginBottom: '6px',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '15px'
+                    gap: '12px'
                   }}>
-                    <Zap size={40} style={{ filter: 'drop-shadow(0 0 10px rgba(255,255,255,0.5))' }} />
+                    <Coins size={38} color={theme.accent} />
                     Arbitrage Scanner
                   </h1>
                   <p style={{ color: theme.textSecondary, fontSize: '16px', margin: 0 }}>
@@ -208,12 +212,13 @@ const ArbitrageDashboard: React.FC = () => {
                   onClick={handleRefresh}
                   disabled={refreshing}
                   style={{
-                    background: refreshing ? 'rgba(255,255,255,0.2)' : 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+                    background: refreshing ? theme.accentSoft : theme.accent,
                     border: 'none',
-                    borderRadius: '15px',
-                    padding: '12px 25px',
-                    fontWeight: 'bold',
-                    boxShadow: '0 4px 15px 0 rgba(245, 87, 108, 0.3)',
+                    borderRadius: '12px',
+                    padding: '12px 20px',
+                    fontWeight: 700,
+                    color: '#fff',
+                    boxShadow: '0 10px 25px 0 rgba(249, 115, 22, 0.35)',
                     transition: 'all 0.3s ease',
                     marginTop: '10px'
                   }}
@@ -228,10 +233,10 @@ const ArbitrageDashboard: React.FC = () => {
                   onClick={() => setThemeMode(themeMode === 'dark' ? 'light' : 'dark')}
                   style={{
                     marginLeft: '10px',
-                    borderRadius: '50px',
+                    borderRadius: '10px',
                     padding: '10px 14px',
                     border: `1px solid ${theme.surfaceBorder}`,
-                    background: 'rgba(255,255,255,0.12)',
+                    background: theme.surface,
                     color: theme.textPrimary
                   }}
                   title="Toggle theme"
@@ -267,17 +272,17 @@ const ArbitrageDashboard: React.FC = () => {
                 eventKey="cross-exchange"
                 style={{
                   background: activeTab === 'cross-exchange'
-                    ? 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)'
-                    : 'rgba(255, 255, 255, 0.15)',
+                    ? theme.accent
+                    : theme.surface,
                   border: 'none',
-                  borderRadius: '15px',
-                  padding: '15px 30px',
-                  color: 'white',
-                  fontWeight: 'bold',
+                  borderRadius: '12px',
+                  padding: '14px 22px',
+                  color: activeTab === 'cross-exchange' ? '#fff' : theme.textPrimary,
+                  fontWeight: 700,
                   backdropFilter: 'blur(10px)',
                   transition: 'all 0.3s ease',
                   boxShadow: activeTab === 'cross-exchange'
-                    ? '0 4px 15px rgba(245, 87, 108, 0.4)'
+                    ? '0 10px 25px rgba(249, 115, 22, 0.35)'
                     : 'none'
                 }}
               >
@@ -291,17 +296,17 @@ const ArbitrageDashboard: React.FC = () => {
                 eventKey="triangular"
                 style={{
                   background: activeTab === 'triangular'
-                    ? 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)'
-                    : 'rgba(255, 255, 255, 0.15)',
+                    ? theme.accentSoft
+                    : theme.surface,
                   border: 'none',
-                  borderRadius: '15px',
-                  padding: '15px 30px',
-                  color: 'white',
-                  fontWeight: 'bold',
+                  borderRadius: '12px',
+                  padding: '14px 22px',
+                  color: activeTab === 'triangular' ? theme.textPrimary : theme.textPrimary,
+                  fontWeight: 700,
                   backdropFilter: 'blur(10px)',
                   transition: 'all 0.3s ease',
                   boxShadow: activeTab === 'triangular'
-                    ? '0 4px 15px rgba(168, 237, 234, 0.4)'
+                    ? '0 10px 25px rgba(249, 115, 22, 0.25)'
                     : 'none'
                 }}
               >
@@ -326,12 +331,13 @@ const ArbitrageDashboard: React.FC = () => {
                   ].map((stat, idx) => (
                     <Col md={6} lg={3} key={idx}>
                       <div style={{
-                        background: stat.gradient,
-                        borderRadius: '20px',
-                        padding: '25px',
-                        color: 'white',
-                        boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.37)',
-                        transition: 'transform 0.3s ease',
+                        background: theme.cardBg,
+                        borderRadius: '16px',
+                        padding: '22px',
+                        color: theme.textPrimary,
+                        border: `1px solid ${theme.surfaceBorder}`,
+                        boxShadow: '0 15px 35px rgba(31, 41, 55, 0.08)',
+                        transition: 'transform 0.3s ease, box-shadow 0.3s ease',
                         cursor: 'pointer'
                       }}
                       onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-5px)'}
@@ -342,7 +348,16 @@ const ArbitrageDashboard: React.FC = () => {
                             <p style={{ fontSize: '14px', opacity: 0.9, margin: 0, marginBottom: '8px' }}>{stat.label}</p>
                             <h2 style={{ fontSize: '2rem', fontWeight: 'bold', margin: 0 }}>{stat.value}</h2>
                           </div>
-                          <stat.icon size={40} style={{ opacity: 0.3 }} />
+                          <div style={{
+                            width: 46,
+                            height: 46,
+                            borderRadius: '12px',
+                            background: theme.accentSoft,
+                            display: 'grid',
+                            placeItems: 'center'
+                          }}>
+                            <stat.icon size={22} color={theme.accent} />
+                          </div>
                         </div>
                       </div>
                     </Col>
@@ -370,13 +385,14 @@ const ArbitrageDashboard: React.FC = () => {
                     {opportunities.map((opp) => (
                       <Col md={6} lg={4} key={opp._id} style={{ marginBottom: '20px' }}>
                         <div style={{
-                              background: theme.cardBg,
-                          borderRadius: '20px',
-                          padding: '25px',
-                          boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.2)',
+                          background: theme.cardBg,
+                          borderRadius: '16px',
+                          padding: '22px',
+                          boxShadow: '0 12px 30px rgba(31, 41, 55, 0.08)',
+                          border: `1px solid ${theme.surfaceBorder}`,
                           transition: 'all 0.3s ease',
-                              height: '100%',
-                              color: theme.textPrimary
+                          height: '100%',
+                          color: theme.textPrimary
                         }}
                         onMouseEnter={(e) => {
                           e.currentTarget.style.transform = 'translateY(-5px)';
@@ -402,7 +418,7 @@ const ArbitrageDashboard: React.FC = () => {
                               background: 'linear-gradient(135deg, #667eea15 0%, #764ba215 100%)',
                               borderRadius: '12px'
                             }}>
-                              <span style={{ color: '#666', fontSize: '14px' }}>Buy</span>
+                              <span style={{ color: theme.textSecondary, fontSize: '14px' }}>Buy</span>
                               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                 <Badge bg="primary" style={{ borderRadius: '10px', padding: '6px 12px' }}>{opp.buyExchange}</Badge>
                                 <strong style={{ color: theme.textPrimary }}>${opp.buyPrice.toFixed(2)}</strong>
@@ -425,7 +441,7 @@ const ArbitrageDashboard: React.FC = () => {
                               background: 'linear-gradient(135deg, #f093fb15 0%, #f5576c15 100%)',
                               borderRadius: '12px'
                             }}>
-                              <span style={{ color: '#666', fontSize: '14px' }}>Sell</span>
+                              <span style={{ color: theme.textSecondary, fontSize: '14px' }}>Sell</span>
                               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                 <Badge bg="success" style={{ borderRadius: '10px', padding: '6px 12px' }}>{opp.sellExchange}</Badge>
                                 <strong style={{ color: theme.textPrimary }}>${opp.sellPrice.toFixed(2)}</strong>
@@ -449,7 +465,7 @@ const ArbitrageDashboard: React.FC = () => {
                             borderTop: '2px solid #f0f0f0'
                           }}>
                             <div>
-                              <small style={{ color: '#999', display: 'block', marginBottom: '5px' }}>Net Profit</small>
+                              <small style={{ color: theme.textSecondary, display: 'block', marginBottom: '5px' }}>Net Profit</small>
                               <div style={{
                                 color: opp.netProfitPercent > 0 ? '#10b981' : '#ef4444',
                                 fontWeight: 'bold',
@@ -463,7 +479,7 @@ const ArbitrageDashboard: React.FC = () => {
                               </div>
                             </div>
                             <div style={{ textAlign: 'right' }}>
-                              <small style={{ color: '#999', display: 'block', marginBottom: '5px' }}>On $1000</small>
+                              <small style={{ color: theme.textSecondary, display: 'block', marginBottom: '5px' }}>On $1000</small>
                               <div style={{ color: '#10b981', fontWeight: 'bold', fontSize: '1.3rem' }}>
                                 ${opp.profitAmount.toFixed(2)}
                               </div>
@@ -516,13 +532,13 @@ const ArbitrageDashboard: React.FC = () => {
 
               {/* Triangular Opportunities */}
               <div style={{
-                background: 'rgba(255, 255, 255, 0.1)',
+                background: theme.surface,
                 borderRadius: '20px',
                 padding: '30px',
                 backdropFilter: 'blur(10px)',
-                border: '1px solid rgba(255, 255, 255, 0.2)'
+                border: `1px solid ${theme.surfaceBorder}`
               }}>
-                <h4 style={{ color: 'white', marginBottom: '25px', fontWeight: 'bold' }}>
+                <h4 style={{ color: theme.textPrimary, marginBottom: '25px', fontWeight: 'bold' }}>
                   Triangular Opportunities ({triangularOpp.length})
                 </h4>
                 {triangularOpp.length === 0 ? (
@@ -534,12 +550,14 @@ const ArbitrageDashboard: React.FC = () => {
                     {triangularOpp.map((opp) => (
                       <Col md={6} lg={4} key={opp._id} style={{ marginBottom: '20px' }}>
                         <div style={{
-                          background: 'rgba(255, 255, 255, 0.95)',
-                          borderRadius: '20px',
-                          padding: '25px',
-                          boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.2)',
+                          background: theme.cardBg,
+                          borderRadius: '16px',
+                          padding: '22px',
+                          boxShadow: '0 12px 30px rgba(31, 41, 55, 0.08)',
+                          border: `1px solid ${theme.surfaceBorder}`,
                           transition: 'all 0.3s ease',
-                          height: '100%'
+                          height: '100%',
+                          color: theme.textPrimary
                         }}
                         onMouseEnter={(e) => {
                           e.currentTarget.style.transform = 'translateY(-5px)';
@@ -550,24 +568,24 @@ const ArbitrageDashboard: React.FC = () => {
                           e.currentTarget.style.boxShadow = '0 8px 32px 0 rgba(31, 38, 135, 0.2)';
                         }}
                         >
-                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
-                            <Badge bg="primary" style={{ borderRadius: '12px', padding: '8px 16px', fontSize: '12px' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
+                            <Badge bg="light" text="dark" style={{ borderRadius: '12px', padding: '8px 14px', fontSize: '12px', border: `1px solid ${theme.surfaceBorder}` }}>
                               {opp.exchange.toUpperCase()}
                             </Badge>
-                            <Badge bg="info" style={{ borderRadius: '12px', padding: '8px 16px', fontSize: '12px' }}>
+                            <Badge bg="warning" text="dark" style={{ borderRadius: '12px', padding: '8px 14px', fontSize: '12px' }}>
                               {opp.baseCurrency}
                             </Badge>
                           </div>
 
                           <div style={{
-                            background: 'linear-gradient(135deg, #a8edea15 0%, #fed6e315 100%)',
-                            padding: '15px',
-                            borderRadius: '15px',
-                            marginBottom: '20px',
+                            background: theme.accentSoft,
+                            padding: '14px',
+                            borderRadius: '12px',
+                            marginBottom: '18px',
                             textAlign: 'center'
                           }}>
-                            <small style={{ color: '#999', display: 'block', marginBottom: '8px' }}>Trading Path</small>
-                            <strong style={{ color: '#333', fontSize: '14px' }}>{opp.path}</strong>
+                            <small style={{ color: theme.textSecondary, display: 'block', marginBottom: '6px' }}>Trading Path</small>
+                            <strong style={{ color: theme.textPrimary, fontSize: '14px' }}>{opp.path}</strong>
                           </div>
 
                           <div style={{ marginBottom: '20px' }}>
@@ -582,10 +600,10 @@ const ArbitrageDashboard: React.FC = () => {
                                 borderRadius: '10px',
                                 marginBottom: '8px'
                               }}>
-                                <small style={{ color: '#999' }}>{step.label}:</small>
+                                <small style={{ color: theme.textSecondary }}>{step.label}:</small>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                  <strong style={{ color: '#333' }}>{step.pair}</strong>
-                                  <span style={{ color: '#666' }}>@{step.price.toFixed(6)}</span>
+                                  <strong style={{ color: theme.textPrimary }}>{step.pair}</strong>
+                                  <span style={{ color: theme.textSecondary }}>@{step.price.toFixed(6)}</span>
                                 </div>
                               </div>
                             ))}
@@ -599,7 +617,7 @@ const ArbitrageDashboard: React.FC = () => {
                             borderTop: '2px solid #f0f0f0'
                           }}>
                             <div>
-                              <small style={{ color: '#999', display: 'block', marginBottom: '5px' }}>Net Profit</small>
+                              <small style={{ color: theme.textSecondary, display: 'block', marginBottom: '5px' }}>Net Profit</small>
                               <div style={{
                                 color: opp.netProfitPercent > 0 ? '#10b981' : '#ef4444',
                                 fontWeight: 'bold',
@@ -613,7 +631,7 @@ const ArbitrageDashboard: React.FC = () => {
                               </div>
                             </div>
                             <div style={{ textAlign: 'right' }}>
-                              <small style={{ color: '#999', display: 'block', marginBottom: '5px' }}>On $1000</small>
+                              <small style={{ color: theme.textSecondary, display: 'block', marginBottom: '5px' }}>On $1000</small>
                               <div style={{ color: '#10b981', fontWeight: 'bold', fontSize: '1.2rem' }}>
                                 ${opp.profitAmount.toFixed(2)}
                               </div>
@@ -621,13 +639,14 @@ const ArbitrageDashboard: React.FC = () => {
                           </div>
 
                           <div style={{
-                            marginTop: '15px',
+                            marginTop: '12px',
                             padding: '10px',
-                            background: '#f9f9f9',
+                            background: theme.surface,
                             borderRadius: '10px',
-                            textAlign: 'center'
+                            textAlign: 'center',
+                            border: `1px dashed ${theme.surfaceBorder}`
                           }}>
-                            <small style={{ color: '#666', fontSize: '12px' }}>
+                            <small style={{ color: theme.textSecondary, fontSize: '12px' }}>
                               {opp.startAmount} {opp.baseCurrency} → {opp.endAmount.toFixed(6)} {opp.baseCurrency}
                             </small>
                           </div>
