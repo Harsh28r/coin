@@ -69,10 +69,10 @@ const Footer: React.FC = () => {
               style={{ width: '250px', height: 'auto' }}
               onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/image.png'; }}
             />
-            <p className="mx-auto mx-md-0" style={{ lineHeight: '1.6', maxWidth: 520, color: '#e5e7eb', fontSize: '0.875rem' }}>
-              {t('footer.companyDescription')}
+            <p className="mx-auto mx-md-0" style={{ lineHeight: '1.6', maxWidth: 520, color: '#ffffff', fontSize: '0.875rem' }}>
+              CoinsClarity is a versatile platform sharing the best, real-time, highest quality cryptocurrency market data. With an easy-to-use API, charts, and cryptocurrency glossary — plus tools like arbitrage scanner, listings tracker, RSI scanner, profit/DCA calculators, funding rates, and gas tracker.
             </p>
-            <p className="mt-3" style={{ color: '#d1d5db', fontSize: '0.875rem' }}>{t('footer.copyright')}</p>
+            <p className="mt-3" style={{ color: '#ffffff', fontSize: '0.875rem' }}>{t('footer.copyright')}</p>
           </Col>
           <Col lg={2} md={6} className="mb-2 mb-md-0 text-center text-md-start">
             <h6 className="text-white mb-3 fw-bold">Our Company</h6>

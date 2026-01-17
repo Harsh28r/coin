@@ -85,6 +85,14 @@ textarea {
   color: var(--text) !important;
 }
 
+.text-dark {
+  color: var(--text) !important;
+}
+
+.btn-link {
+  color: var(--text) !important;
+}
+
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
