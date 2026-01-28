@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Container, Form, Button, Alert } from 'react-bootstrap';
-import { Mail, MapPin, MessageSquare } from 'lucide-react';
+import { Mail, MapPin, MessageSquare, Contact as ContactIcon } from 'lucide-react';
+import { Helmet } from 'react-helmet-async';
 import Navbar from '../Components/navbar';
 import Footer from '../Components/footer';
 
@@ -23,11 +24,38 @@ const Contact: React.FC = () => {
 
   return (
     <>
+      <Helmet>
+        <title>Contact Us | CoinsClarity - Get in Touch</title>
+        <meta name="description" content="Contact CoinsClarity for questions, feedback, business inquiries, advertising opportunities, or press release submissions. We typically respond within 24-48 hours." />
+        <link rel="canonical" href={`${window.location.origin}/contact`} />
+        <meta property="og:type" content="website" />
+        <meta property="og:title" content="Contact CoinsClarity" />
+        <meta property="og:description" content="Get in touch with CoinsClarity for questions, partnerships, or business inquiries." />
+        <meta property="og:url" content={`${window.location.origin}/contact`} />
+        <meta name="keywords" content="contact CoinsClarity, crypto news contact, advertising crypto, press release submission" />
+        <meta name="robots" content="index, follow" />
+        <script type="application/ld+json">{JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "ContactPage",
+          "name": "Contact CoinsClarity",
+          "url": `${window.location.origin}/contact`,
+          "description": "Contact information for CoinsClarity cryptocurrency news platform",
+          "mainEntity": {
+            "@type": "Organization",
+            "name": "CoinsClarity",
+            "email": "harshgupta0028@gmail.com",
+            "url": "https://coinsclarity.com"
+          }
+        })}</script>
+      </Helmet>
       <Navbar />
-      <div style={{ backgroundColor: '#111827', minHeight: '100vh', paddingTop: '100px' }}>
+      <div style={{ backgroundColor: '#111827', minHeight: '100vh', paddingTop: '100px', color: '#ffffff' }}>
         <Container style={{ maxWidth: '1000px', padding: '40px 20px' }}>
-          <h1 style={{ color: '#f97316', marginBottom: '15px', fontSize: '2.5rem' }}>Contact Us</h1>
-          <p style={{ color: '#9ca3af', marginBottom: '40px', fontSize: '1.1rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '30px' }}>
+            <ContactIcon size={40} color="#f97316" />
+            <h1 style={{ color: '#f97316', fontSize: '2.5rem', margin: 0 }}>Contact Us</h1>
+          </div>
+          <p style={{ color: '#d1d5db', marginBottom: '40px', fontSize: '1.1rem' }}>
             Have questions, feedback, or business inquiries? We'd love to hear from you.
           </p>
 

@@ -214,6 +214,8 @@ export default function NewsCarousel() {
         indicators={false}
         interval={5000}
         className="news-carousel"
+        prevIcon={<span aria-hidden="true" className="carousel-control-prev-icon" style={{ filter: 'invert(1)' }} />}
+        nextIcon={<span aria-hidden="true" className="carousel-control-next-icon" style={{ filter: 'invert(1)' }} />}
       >
         {typedDisplayItems.map((item, index) => (
           <Carousel.Item key={item.article_id || index}>

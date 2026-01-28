@@ -1,15 +1,43 @@
 import React from 'react';
 import { Container } from 'react-bootstrap';
+import { Info } from 'lucide-react';
+import { Helmet } from 'react-helmet-async';
 import Navbar from '../Components/navbar';
 import Footer from '../Components/footer';
 
 const About: React.FC = () => {
   return (
     <>
+      <Helmet>
+        <title>About Us | CoinsClarity - Our Mission & Values</title>
+        <meta name="description" content="Learn about CoinsClarity: Our mission to bring clarity to cryptocurrency news, our values of accuracy and transparency, and our commitment to quality crypto journalism." />
+        <link rel="canonical" href={`${window.location.origin}/about`} />
+        <meta property="og:type" content="website" />
+        <meta property="og:title" content="About CoinsClarity" />
+        <meta property="og:description" content="CoinsClarity brings clarity to the cryptocurrency world through accurate, timely, and accessible information." />
+        <meta property="og:url" content={`${window.location.origin}/about`} />
+        <meta name="keywords" content="about CoinsClarity, crypto news platform, cryptocurrency journalism, blockchain news" />
+        <meta name="robots" content="index, follow" />
+        <script type="application/ld+json">{JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "AboutPage",
+          "name": "About CoinsClarity",
+          "description": "CoinsClarity is a comprehensive cryptocurrency news and information platform committed to bringing clarity to the crypto world.",
+          "url": `${window.location.origin}/about`,
+          "publisher": {
+            "@type": "Organization",
+            "name": "CoinsClarity",
+            "url": "https://coinsclarity.com"
+          }
+        })}</script>
+      </Helmet>
       <Navbar />
-      <div style={{ backgroundColor: '#111827', minHeight: '100vh', paddingTop: '100px' }}>
+      <div style={{ backgroundColor: '#111827', minHeight: '100vh', paddingTop: '100px', color: '#ffffff' }}>
         <Container style={{ maxWidth: '900px', padding: '40px 20px' }}>
-          <h1 style={{ color: '#f97316', marginBottom: '30px', fontSize: '2.5rem' }}>About CoinsClarity</h1>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '30px' }}>
+            <Info size={40} color="#f97316" />
+            <h1 style={{ color: '#f97316', fontSize: '2.5rem', margin: 0 }}>About CoinsClarity</h1>
+          </div>
           
           <div style={{ color: '#e5e7eb', lineHeight: '1.8' }}>
             <section style={{ marginBottom: '35px' }}>

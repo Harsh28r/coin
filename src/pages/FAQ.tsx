@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Container } from 'react-bootstrap';
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import { ChevronDown, ChevronUp, HelpCircle } from 'lucide-react';
+import { Helmet } from 'react-helmet-async';
 import Navbar from '../Components/navbar';
 import Footer from '../Components/footer';
 
@@ -124,13 +125,39 @@ const FAQ: React.FC = () => {
 
   return (
     <>
+      <Helmet>
+        <title>FAQ | Frequently Asked Questions | CoinsClarity</title>
+        <meta name="description" content="Frequently asked questions about CoinsClarity: How to use our crypto news platform, watchlist features, newsletter subscription, market data, and more." />
+        <link rel="canonical" href={`${window.location.origin}/faq`} />
+        <meta property="og:type" content="website" />
+        <meta property="og:title" content="FAQ | CoinsClarity" />
+        <meta property="og:description" content="Common questions and answers about using CoinsClarity cryptocurrency news platform." />
+        <meta property="og:url" content={`${window.location.origin}/faq`} />
+        <meta name="keywords" content="FAQ, frequently asked questions, crypto news help, CoinsClarity help" />
+        <meta name="robots" content="index, follow" />
+        <script type="application/ld+json">{JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          "mainEntity": faqData.slice(0, 5).map(item => ({
+            "@type": "Question",
+            "name": item.question,
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": item.answer
+            }
+          }))
+        })}</script>
+      </Helmet>
       <Navbar />
-      <div style={{ backgroundColor: '#111827', minHeight: '100vh', paddingTop: '100px' }}>
-        <Container style={{ maxWidth: '900px', padding: '40px 20px' }}>
-          <h1 style={{ color: '#f97316', marginBottom: '15px', fontSize: '2.5rem' }}>
-            Frequently Asked Questions
-          </h1>
-          <p style={{ color: '#9ca3af', marginBottom: '30px', fontSize: '1.1rem' }}>
+      <div className="faq-page" style={{ backgroundColor: '#111827', minHeight: '100vh', paddingTop: '100px', color: '#ffffff' }}>
+        <Container style={{ maxWidth: '900px', padding: '40px 20px', color: '#ffffff' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '30px' }}>
+            <HelpCircle size={40} color="#f97316" />
+            <h1 style={{ color: '#f97316', fontSize: '2.5rem', margin: 0 }}>
+              Frequently Asked Questions
+            </h1>
+          </div>
+          <p style={{ color: '#ffffff', marginBottom: '30px', fontSize: '1.1rem' }}>
             Find answers to common questions about CoinsClarity
           </p>
 
@@ -251,6 +278,14 @@ const FAQ: React.FC = () => {
         </Container>
       </div>
       <Footer />
+      <style>{`
+        .faq-page, .faq-page * {
+          color: #ffffff !important;
+        }
+        .faq-page a {
+          color: #f97316 !important;
+        }
+      `}</style>
     </>
   );
 };

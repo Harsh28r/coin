@@ -1,18 +1,34 @@
 import React from 'react';
 import { Container } from 'react-bootstrap';
+import { Shield } from 'lucide-react';
+import { Helmet } from 'react-helmet-async';
 import Navbar from '../Components/navbar';
 import Footer from '../Components/footer';
 
 const PrivacyPolicy: React.FC = () => {
   return (
     <>
+      <Helmet>
+        <title>Privacy Policy | CoinsClarity - How We Protect Your Data</title>
+        <meta name="description" content="CoinsClarity Privacy Policy: Learn how we collect, use, and protect your personal information. GDPR compliant. We use cookies, Google Analytics, and AdSense." />
+        <link rel="canonical" href={`${window.location.origin}/privacy-policy`} />
+        <meta property="og:type" content="website" />
+        <meta property="og:title" content="Privacy Policy | CoinsClarity" />
+        <meta property="og:description" content="How CoinsClarity protects your privacy and handles your personal data. GDPR compliant privacy policy." />
+        <meta property="og:url" content={`${window.location.origin}/privacy-policy`} />
+        <meta name="keywords" content="privacy policy, data protection, GDPR, cookies, cryptocurrency privacy" />
+        <meta name="robots" content="index, follow" />
+      </Helmet>
       <Navbar />
-      <div style={{ backgroundColor: '#111827', minHeight: '100vh', paddingTop: '100px' }}>
-        <Container style={{ maxWidth: '900px', padding: '40px 20px' }}>
-          <h1 style={{ color: '#f97316', marginBottom: '30px', fontSize: '2.5rem' }}>Privacy Policy</h1>
-          <p style={{ color: '#9ca3af', marginBottom: '20px' }}>Last updated: December 17, 2024</p>
+      <div className="privacy-page" style={{ backgroundColor: '#111827', minHeight: '100vh', paddingTop: '100px', color: '#ffffff' }}>
+        <Container style={{ maxWidth: '900px', padding: '40px 20px', color: '#ffffff' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '30px' }}>
+            <Shield size={40} color="#f97316" />
+            <h1 style={{ color: '#f97316', fontSize: '2.5rem', margin: 0 }}>Privacy Policy</h1>
+          </div>
+          <p style={{ color: '#ffffff', marginBottom: '30px' }}>Last updated: December 17, 2024</p>
           
-          <div style={{ color: '#e5e7eb', lineHeight: '1.8' }}>
+          <div style={{ color: '#ffffff', lineHeight: '1.8' }}>
             <section style={{ marginBottom: '30px' }}>
               <h2 style={{ color: '#fff', fontSize: '1.5rem', marginBottom: '15px' }}>1. Introduction</h2>
               <p>
@@ -24,14 +40,14 @@ const PrivacyPolicy: React.FC = () => {
 
             <section style={{ marginBottom: '30px' }}>
               <h2 style={{ color: '#fff', fontSize: '1.5rem', marginBottom: '15px' }}>2. Information We Collect</h2>
-              <h3 style={{ color: '#d1d5db', fontSize: '1.2rem', marginBottom: '10px' }}>Personal Information</h3>
+              <h3 style={{ color: '#fff', fontSize: '1.2rem', marginBottom: '10px' }}>Personal Information</h3>
               <ul style={{ paddingLeft: '20px' }}>
                 <li>Email address (when you subscribe to our newsletter)</li>
                 <li>Name (optional, for newsletter personalization)</li>
                 <li>Account credentials (if you create an account)</li>
               </ul>
               
-              <h3 style={{ color: '#d1d5db', fontSize: '1.2rem', marginBottom: '10px', marginTop: '15px' }}>Automatically Collected Information</h3>
+              <h3 style={{ color: '#fff', fontSize: '1.2rem', marginBottom: '10px', marginTop: '15px' }}>Automatically Collected Information</h3>
               <ul style={{ paddingLeft: '20px' }}>
                 <li>IP address and location data</li>
                 <li>Browser type and version</li>
@@ -144,10 +160,37 @@ const PrivacyPolicy: React.FC = () => {
                 <li>Website: <a href="https://coinsclarity.com" style={{ color: '#f97316' }}>coinsclarity.com</a></li>
               </ul>
             </section>
+
+            {/* Acknowledgment Box */}
+            <div style={{ 
+              backgroundColor: '#1f2937', 
+              borderRadius: '12px', 
+              padding: '25px',
+              borderLeft: '4px solid #f97316',
+              marginTop: '40px'
+            }}>
+              <h3 style={{ color: '#fff', fontSize: '1.1rem', marginBottom: '10px' }}>
+                By using CoinsClarity, you acknowledge that:
+              </h3>
+              <ul style={{ paddingLeft: '20px', marginBottom: 0, color: '#d1d5db' }}>
+                <li>You have read and understood this Privacy Policy</li>
+                <li>You consent to our data collection and processing practices</li>
+                <li>You understand your rights regarding your personal data</li>
+                <li>You can withdraw consent or request data deletion at any time</li>
+              </ul>
+            </div>
           </div>
         </Container>
       </div>
       <Footer />
+      <style>{`
+        .privacy-page, .privacy-page * {
+          color: #ffffff !important;
+        }
+        .privacy-page a {
+          color: #f97316 !important;
+        }
+      `}</style>
     </>
   );
 };

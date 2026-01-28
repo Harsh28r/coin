@@ -77,41 +77,41 @@ const Footer: React.FC = () => {
           <Col lg={2} md={6} className="mb-2 mb-md-0 text-center text-md-start">
             <h6 className="text-white mb-3 fw-bold">Our Company</h6>
             <ul className="list-unstyled" style={{ paddingLeft: '0' }}>
-              <li className="mb-2"><a href="/" className="small text-decoration-none hover-underline d-inline-block" style={{ color: '#e5e7eb' }}>{t('nav.home')}</a></li>
-              <li className="mb-2"><a href="/about" className="small text-decoration-none hover-underline d-inline-block" style={{ color: '#e5e7eb' }}>About Us</a></li>
-              <li className="mb-2"><a href="/contact" className="small text-decoration-none hover-underline d-inline-block" style={{ color: '#e5e7eb' }}>Contact</a></li>
-              <li className="mb-2"><a href="/advertise" className="small text-decoration-none hover-underline d-inline-block" style={{ color: '#e5e7eb' }}>Advertise</a></li>
-              <li className="mb-2"><a href="/listings" className="small text-decoration-none hover-underline d-inline-block" style={{ color: '#e5e7eb' }}>Listings</a></li>
+              <li className="mb-2"><a href="/" className="small text-decoration-none hover-underline d-inline-block" style={{ color: '#ffffff' }}>{t('nav.home')}</a></li>
+              <li className="mb-2"><a href="/about" className="small text-decoration-none hover-underline d-inline-block" style={{ color: '#ffffff' }}>About Us</a></li>
+              <li className="mb-2"><a href="/contact" className="small text-decoration-none hover-underline d-inline-block" style={{ color: '#ffffff' }}>Contact</a></li>
+              <li className="mb-2"><a href="/advertise" className="small text-decoration-none hover-underline d-inline-block" style={{ color: '#ffffff' }}>Advertise</a></li>
+              <li className="mb-2"><a href="/listings" className="small text-decoration-none hover-underline d-inline-block" style={{ color: '#ffffff' }}>Listings</a></li>
             </ul>
           </Col>
           <Col lg={2} md={6} className="mb-2 mb-md-0 text-center text-md-start">
             <h6 className="text-white mb-3 fw-bold">Trading Tools</h6>
             <ul className="list-unstyled">
-              <li className="mb-2"><a href="/tools" className="small text-decoration-none hover-underline d-inline-block" style={{ color: '#e5e7eb' }}>All Tools</a></li>
-              <li className="mb-2"><a href="/arbitrage" className="small text-decoration-none hover-underline d-inline-block" style={{ color: '#e5e7eb' }}>Arbitrage Finder</a></li>
-              <li className="mb-2"><a href="/tools" className="small text-decoration-none hover-underline d-inline-block" style={{ color: '#e5e7eb' }}>Profit Calculator</a></li>
-              <li className="mb-2"><a href="/tools" className="small text-decoration-none hover-underline d-inline-block" style={{ color: '#e5e7eb' }}>DCA Calculator</a></li>
-              <li className="mb-2"><a href="/tools" className="small text-decoration-none hover-underline d-inline-block" style={{ color: '#e5e7eb' }}>Funding Rates</a></li>
-              <li className="mb-2"><a href="/tools" className="small text-decoration-none hover-underline d-inline-block" style={{ color: '#e5e7eb' }}>Gas Tracker</a></li>
+              <li className="mb-2"><a href="/tools" className="small text-decoration-none hover-underline d-inline-block" style={{ color: '#ffffff' }}>All Tools</a></li>
+              <li className="mb-2"><a href="/arbitrage" className="small text-decoration-none hover-underline d-inline-block" style={{ color: '#ffffff' }}>Arbitrage Finder</a></li>
+              <li className="mb-2"><a href="/tools" className="small text-decoration-none hover-underline d-inline-block" style={{ color: '#ffffff' }}>Profit Calculator</a></li>
+              <li className="mb-2"><a href="/tools" className="small text-decoration-none hover-underline d-inline-block" style={{ color: '#ffffff' }}>DCA Calculator</a></li>
+              <li className="mb-2"><a href="/tools" className="small text-decoration-none hover-underline d-inline-block" style={{ color: '#ffffff' }}>Funding Rates</a></li>
+              <li className="mb-2"><a href="/tools" className="small text-decoration-none hover-underline d-inline-block" style={{ color: '#ffffff' }}>Gas Tracker</a></li>
             </ul>
           </Col>
           <Col lg={2} md={6} className="mb-2 mb-md-0 text-center text-md-start">
             <h6 className="text-white mb-3 fw-bold">Resources</h6>
             <ul className="list-unstyled">
-              <li className="mb-2"><a href="/privacy-policy" className="small text-decoration-none hover-underline d-inline-block" style={{ color: '#e5e7eb' }}>Privacy Policy</a></li>
-              <li className="mb-2"><a href="/terms" className="small text-decoration-none hover-underline d-inline-block" style={{ color: '#e5e7eb' }}>Terms of Service</a></li>
-              <li className="mb-2"><a href="/disclaimer" className="small text-decoration-none hover-underline d-inline-block" style={{ color: '#e5e7eb' }}>Disclaimer</a></li>
-              <li className="mb-2"><a href="/faq" className="small text-decoration-none hover-underline d-inline-block" style={{ color: '#e5e7eb' }}>FAQ</a></li>
-              <li className="mb-2"><a href="/learn" className="small text-decoration-none hover-underline d-inline-block" style={{ color: '#e5e7eb' }}>Learn Crypto</a></li>
+              <li className="mb-2"><a href="/privacy-policy" className="small text-decoration-none hover-underline d-inline-block" style={{ color: '#ffffff' }}>Privacy Policy</a></li>
+              <li className="mb-2"><a href="/terms" className="small text-decoration-none hover-underline d-inline-block" style={{ color: '#ffffff' }}>Terms of Service</a></li>
+              <li className="mb-2"><a href="/disclaimer" className="small text-decoration-none hover-underline d-inline-block" style={{ color: '#ffffff' }}>Disclaimer</a></li>
+              <li className="mb-2"><a href="/faq" className="small text-decoration-none hover-underline d-inline-block" style={{ color: '#ffffff' }}>FAQ</a></li>
+              <li className="mb-2"><a href="/learn" className="small text-decoration-none hover-underline d-inline-block" style={{ color: '#ffffff' }}>Learn Crypto</a></li>
             </ul>
           </Col>
           <Col lg={3} md={6} className="mb-4 mb-md-0 text-center text-md-start">
             <h6 className="text-white mb-3 fw-bold">{t('footer.joinCommunity')}</h6>
             <div className="d-flex flex-wrap gap-3 justify-content-center justify-content-md-start">
-              <a href="https://x.com/coinsclarity?t=hSpD5E1d2xIjii-mhw9kEQ&s=09" target="_blank" rel="noreferrer" aria-label="X (Twitter)" className="text-light hover-opacity"><Twitter size={28} /></a>
-              <a href="https://www.instagram.com/coinsclarity?igsh=MWc2YnRjMXIzeTE3aw==" target="_blank" rel="noreferrer" aria-label="Instagram" className="text-light hover-opacity"><Instagram size={28} /></a>
-              <a href="https://youtube.com" target="_blank" rel="noreferrer" aria-label="YouTube" className="text-light hover-opacity"><Youtube size={28} /></a>
-              <a href="https://discord.com" target="_blank" rel="noreferrer" aria-label="Discord" className="text-light hover-opacity"><Discord size={28} /></a>
+              <a href="https://x.com/coinsclarity?t=hSpD5E1d2xIjii-mhw9kEQ&s=09" target="_blank" rel="noreferrer" aria-label="X (Twitter)" className="hover-opacity" style={{ color: '#ffffff' }}><Twitter size={28} /></a>
+              <a href="https://www.instagram.com/coinsclarity?igsh=MWc2YnRjMXIzeTE3aw==" target="_blank" rel="noreferrer" aria-label="Instagram" className="hover-opacity" style={{ color: '#ffffff' }}><Instagram size={28} /></a>
+              <a href="https://youtube.com" target="_blank" rel="noreferrer" aria-label="YouTube" className="hover-opacity" style={{ color: '#ffffff' }}><Youtube size={28} /></a>
+              <a href="https://discord.com" target="_blank" rel="noreferrer" aria-label="Discord" className="hover-opacity" style={{ color: '#ffffff' }}><Discord size={28} /></a>
             </div>
             <div className="d-flex justify-content-center justify-content-md-start mt-5 me-md-0">
               <Form onSubmit={handleSubscribe} className="d-flex flex-column" style={{ width: '100%' }}>
