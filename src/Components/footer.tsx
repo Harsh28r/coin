@@ -168,7 +168,7 @@ const Footer: React.FC = () => {
                     )}
                   </Button>
                 </InputGroup>
-                <small className="mt-2" style={{ fontSize: '0.8rem', color: '#d1d5db' }}>
+                <small className="mt-2" style={{ fontSize: '0.8rem', color: '#ffffff' }}>
                   {t('footer.subscriptionText')}
                 </small>
               </Form>

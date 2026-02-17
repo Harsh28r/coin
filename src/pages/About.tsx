@@ -39,10 +39,10 @@ const About: React.FC = () => {
             <h1 style={{ color: '#f97316', fontSize: '2.5rem', margin: 0 }}>About CoinsClarity</h1>
           </div>
           
-          <div style={{ color: '#e5e7eb', lineHeight: '1.8' }}>
+          <div style={{ color: '#ffffff', lineHeight: '1.8' }}>
             <section style={{ marginBottom: '35px' }}>
               <h2 style={{ color: '#fff', fontSize: '1.5rem', marginBottom: '15px' }}>Our Mission</h2>
-              <p>
+              <p style={{ color: '#ffffff' }}>
                 CoinsClarity was founded with a simple mission: to bring clarity to the cryptocurrency world. 
                 In an industry often clouded by hype, misinformation, and complexity, we strive to deliver 
                 accurate, timely, and accessible information to crypto enthusiasts, investors, and newcomers alike.
@@ -51,16 +51,16 @@ const About: React.FC = () => {
 
             <section style={{ marginBottom: '35px' }}>
               <h2 style={{ color: '#fff', fontSize: '1.5rem', marginBottom: '15px' }}>What We Do</h2>
-              <p style={{ marginBottom: '15px' }}>
+              <p style={{ marginBottom: '15px', color: '#ffffff' }}>
                 We provide comprehensive cryptocurrency coverage including:
               </p>
-              <ul style={{ paddingLeft: '20px' }}>
-                <li><strong>Breaking News:</strong> Stay updated with the latest developments in the crypto space</li>
-                <li><strong>In-Depth Analysis:</strong> Go beyond headlines with our detailed market analysis</li>
-                <li><strong>Market Data:</strong> Real-time prices, charts, and statistics for thousands of cryptocurrencies</li>
-                <li><strong>New Listings:</strong> Be the first to know about new token listings and launches</li>
-                <li><strong>Educational Content:</strong> Learn about blockchain technology, DeFi, NFTs, and more</li>
-                <li><strong>Event Coverage:</strong> Track important crypto events and conferences worldwide</li>
+              <ul style={{ paddingLeft: '20px', color: '#ffffff' }}>
+                <li style={{ color: '#ffffff' }}><strong style={{ color: '#ffffff' }}>Breaking News:</strong> Stay updated with the latest developments in the crypto space</li>
+                <li style={{ color: '#ffffff' }}><strong style={{ color: '#ffffff' }}>In-Depth Analysis:</strong> Go beyond headlines with our detailed market analysis</li>
+                <li style={{ color: '#ffffff' }}><strong style={{ color: '#ffffff' }}>Market Data:</strong> Real-time prices, charts, and statistics for thousands of cryptocurrencies</li>
+                <li style={{ color: '#ffffff' }}><strong style={{ color: '#ffffff' }}>New Listings:</strong> Be the first to know about new token listings and launches</li>
+                <li style={{ color: '#ffffff' }}><strong style={{ color: '#ffffff' }}>Educational Content:</strong> Learn about blockchain technology, DeFi, NFTs, and more</li>
+                <li style={{ color: '#ffffff' }}><strong style={{ color: '#ffffff' }}>Event Coverage:</strong> Track important crypto events and conferences worldwide</li>
               </ul>
             </section>
 
@@ -69,26 +69,26 @@ const About: React.FC = () => {
               <div style={{ display: 'grid', gap: '20px', marginTop: '20px' }}>
                 <div style={{ backgroundColor: '#1f2937', padding: '20px', borderRadius: '12px', borderLeft: '4px solid #f97316' }}>
                   <h3 style={{ color: '#f97316', fontSize: '1.1rem', marginBottom: '8px' }}>Accuracy</h3>
-                  <p style={{ margin: 0, color: '#d1d5db' }}>We verify information before publishing. Trust is earned through accuracy.</p>
+                  <p style={{ margin: 0, color: '#ffffff' }}>We verify information before publishing. Trust is earned through accuracy.</p>
                 </div>
                 <div style={{ backgroundColor: '#1f2937', padding: '20px', borderRadius: '12px', borderLeft: '4px solid #f97316' }}>
                   <h3 style={{ color: '#f97316', fontSize: '1.1rem', marginBottom: '8px' }}>Transparency</h3>
-                  <p style={{ margin: 0, color: '#d1d5db' }}>We clearly distinguish news from opinion and disclose any potential conflicts.</p>
+                  <p style={{ margin: 0, color: '#ffffff' }}>We clearly distinguish news from opinion and disclose any potential conflicts.</p>
                 </div>
                 <div style={{ backgroundColor: '#1f2937', padding: '20px', borderRadius: '12px', borderLeft: '4px solid #f97316' }}>
                   <h3 style={{ color: '#f97316', fontSize: '1.1rem', marginBottom: '8px' }}>Accessibility</h3>
-                  <p style={{ margin: 0, color: '#d1d5db' }}>Crypto shouldn't be confusing. We explain complex topics in simple terms.</p>
+                  <p style={{ margin: 0, color: '#ffffff' }}>Crypto shouldn't be confusing. We explain complex topics in simple terms.</p>
                 </div>
                 <div style={{ backgroundColor: '#1f2937', padding: '20px', borderRadius: '12px', borderLeft: '4px solid #f97316' }}>
                   <h3 style={{ color: '#f97316', fontSize: '1.1rem', marginBottom: '8px' }}>Independence</h3>
-                  <p style={{ margin: 0, color: '#d1d5db' }}>Our editorial decisions are not influenced by advertisers or sponsors.</p>
+                  <p style={{ margin: 0, color: '#ffffff' }}>Our editorial decisions are not influenced by advertisers or sponsors.</p>
                 </div>
               </div>
             </section>
 
             <section style={{ marginBottom: '35px' }}>
               <h2 style={{ color: '#fff', fontSize: '1.5rem', marginBottom: '15px' }}>Our Team</h2>
-              <p>
+              <p style={{ color: '#ffffff' }}>
                 CoinsClarity is powered by a team of crypto enthusiasts, journalists, and developers who are 
                 passionate about blockchain technology and its potential to transform industries. Our diverse 
                 backgrounds in finance, technology, and media enable us to cover the crypto space from multiple angles.
@@ -97,7 +97,7 @@ const About: React.FC = () => {
 
             <section style={{ marginBottom: '35px' }}>
               <h2 style={{ color: '#fff', fontSize: '1.5rem', marginBottom: '15px' }}>Connect With Us</h2>
-              <p style={{ marginBottom: '15px' }}>
+              <p style={{ marginBottom: '15px', color: '#ffffff' }}>
                 Join our growing community across social platforms:
               </p>
               <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
@@ -122,7 +122,7 @@ const About: React.FC = () => {
 
             <section>
               <h2 style={{ color: '#fff', fontSize: '1.5rem', marginBottom: '15px' }}>Disclaimer</h2>
-              <p style={{ color: '#9ca3af', fontSize: '0.9rem' }}>
+              <p style={{ color: '#ffffff', fontSize: '0.9rem' }}>
                 The information provided on CoinsClarity is for informational purposes only and should not be 
                 considered financial advice. Cryptocurrency investments are volatile and risky. Always do your 
                 own research (DYOR) and consult with a qualified financial advisor before making any investment decisions.

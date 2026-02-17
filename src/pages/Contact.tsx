@@ -51,11 +51,34 @@ const Contact: React.FC = () => {
       <Navbar />
       <div style={{ backgroundColor: '#111827', minHeight: '100vh', paddingTop: '100px', color: '#ffffff' }}>
         <Container style={{ maxWidth: '1000px', padding: '40px 20px' }}>
+          <style>{`
+            select.form-select option {
+              background-color: #1f2937 !important;
+              color: #ffffff !important;
+            }
+            select.form-select:focus {
+              background-color: #1f2937 !important;
+              color: #ffffff !important;
+              border-color: #f97316 !important;
+            }
+            input.form-control::placeholder,
+            textarea.form-control::placeholder {
+              color: rgba(255, 255, 255, 0.6) !important;
+            }
+            input.form-control:focus,
+            textarea.form-control:focus,
+            select.form-select:focus {
+              background-color: #1f2937 !important;
+              color: #ffffff !important;
+              border-color: #f97316 !important;
+              box-shadow: 0 0 0 0.2rem rgba(249, 115, 22, 0.25) !important;
+            }
+          `}</style>
           <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '30px' }}>
             <ContactIcon size={40} color="#f97316" />
             <h1 style={{ color: '#f97316', fontSize: '2.5rem', margin: 0 }}>Contact Us</h1>
           </div>
-          <p style={{ color: '#d1d5db', marginBottom: '40px', fontSize: '1.1rem' }}>
+          <p style={{ color: '#ffffff', marginBottom: '40px', fontSize: '1.1rem' }}>
             Have questions, feedback, or business inquiries? We'd love to hear from you.
           </p>
 
@@ -72,7 +95,7 @@ const Contact: React.FC = () => {
 
               <Form onSubmit={handleSubmit}>
                 <Form.Group className="mb-3">
-                  <Form.Label style={{ color: '#d1d5db' }}>Name</Form.Label>
+                  <Form.Label style={{ color: '#ffffff' }}>Name</Form.Label>
                   <Form.Control
                     type="text"
                     value={formData.name}
@@ -83,7 +106,7 @@ const Contact: React.FC = () => {
                 </Form.Group>
 
                 <Form.Group className="mb-3">
-                  <Form.Label style={{ color: '#d1d5db' }}>Email</Form.Label>
+                  <Form.Label style={{ color: '#ffffff' }}>Email</Form.Label>
                   <Form.Control
                     type="email"
                     value={formData.email}
@@ -94,25 +117,26 @@ const Contact: React.FC = () => {
                 </Form.Group>
 
                 <Form.Group className="mb-3">
-                  <Form.Label style={{ color: '#d1d5db' }}>Subject</Form.Label>
+                  <Form.Label style={{ color: '#ffffff' }}>Subject</Form.Label>
                   <Form.Select
                     value={formData.subject}
                     onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
                     required
                     style={{ backgroundColor: '#1f2937', border: '1px solid #374151', color: '#fff' }}
+                    className="text-white"
                   >
-                    <option value="">Select a topic</option>
-                    <option value="general">General Inquiry</option>
-                    <option value="advertising">Advertising & Partnerships</option>
-                    <option value="press">Press Release Submission</option>
-                    <option value="feedback">Feedback & Suggestions</option>
-                    <option value="bug">Bug Report</option>
-                    <option value="other">Other</option>
+                    <option value="" style={{ backgroundColor: '#1f2937', color: '#fff' }}>Select a topic</option>
+                    <option value="general" style={{ backgroundColor: '#1f2937', color: '#fff' }}>General Inquiry</option>
+                    <option value="advertising" style={{ backgroundColor: '#1f2937', color: '#fff' }}>Advertising & Partnerships</option>
+                    <option value="press" style={{ backgroundColor: '#1f2937', color: '#fff' }}>Press Release Submission</option>
+                    <option value="feedback" style={{ backgroundColor: '#1f2937', color: '#fff' }}>Feedback & Suggestions</option>
+                    <option value="bug" style={{ backgroundColor: '#1f2937', color: '#fff' }}>Bug Report</option>
+                    <option value="other" style={{ backgroundColor: '#1f2937', color: '#fff' }}>Other</option>
                   </Form.Select>
                 </Form.Group>
 
                 <Form.Group className="mb-4">
-                  <Form.Label style={{ color: '#d1d5db' }}>Message</Form.Label>
+                  <Form.Label style={{ color: '#ffffff' }}>Message</Form.Label>
                   <Form.Control
                     as="textarea"
                     rows={5}
@@ -131,7 +155,8 @@ const Contact: React.FC = () => {
                     border: 'none',
                     padding: '12px 30px',
                     fontWeight: 600,
-                    width: '100%'
+                    width: '100%',
+                    color: '#ffffff'
                   }}
                 >
                   {isSubmitting ? 'Sending...' : 'Send Message'}
@@ -155,10 +180,10 @@ const Contact: React.FC = () => {
                   <Mail size={24} color="#f97316" style={{ flexShrink: 0, marginTop: '2px' }} />
                   <div>
                     <h3 style={{ color: '#fff', fontSize: '1rem', marginBottom: '5px' }}>Email Us</h3>
-                    <a href="mailto:harshgupta0028@gmail.com" style={{ color: '#d1d5db', textDecoration: 'none' }}>
+                    <a href="mailto:harshgupta0028@gmail.com" style={{ color: '#ffffff', textDecoration: 'none' }}>
                       harshgupta0028@gmail.com
                     </a>
-                    <p style={{ color: '#9ca3af', fontSize: '0.85rem', marginTop: '5px', marginBottom: 0 }}>
+                    <p style={{ color: '#ffffff', fontSize: '0.85rem', marginTop: '5px', marginBottom: 0 }}>
                       We typically respond within 24-48 hours
                     </p>
                   </div>
@@ -175,14 +200,14 @@ const Contact: React.FC = () => {
                   <MessageSquare size={24} color="#f97316" style={{ flexShrink: 0, marginTop: '2px' }} />
                   <div>
                     <h3 style={{ color: '#fff', fontSize: '1rem', marginBottom: '5px' }}>Social Media</h3>
-                    <p style={{ color: '#d1d5db', marginBottom: '10px' }}>Follow us for instant updates</p>
+                    <p style={{ color: '#ffffff', marginBottom: '10px' }}>Follow us for instant updates</p>
                     <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
                       <a href="https://x.com/coinsclarity" target="_blank" rel="noopener noreferrer"
                          style={{ color: '#f97316', fontSize: '0.9rem' }}>Twitter</a>
-                      <span style={{ color: '#4b5563' }}>•</span>
+                      <span style={{ color: '#ffffff' }}>•</span>
                       <a href="https://t.me/coinsclarity" target="_blank" rel="noopener noreferrer"
                          style={{ color: '#f97316', fontSize: '0.9rem' }}>Telegram</a>
-                      <span style={{ color: '#4b5563' }}>•</span>
+                      <span style={{ color: '#ffffff' }}>•</span>
                       <a href="https://www.instagram.com/coinsclarity" target="_blank" rel="noopener noreferrer"
                          style={{ color: '#f97316', fontSize: '0.9rem' }}>Instagram</a>
                     </div>
@@ -200,7 +225,7 @@ const Contact: React.FC = () => {
                   <MapPin size={24} color="#f97316" style={{ flexShrink: 0, marginTop: '2px' }} />
                   <div>
                     <h3 style={{ color: '#fff', fontSize: '1rem', marginBottom: '5px' }}>Location</h3>
-                    <p style={{ color: '#d1d5db', marginBottom: 0 }}>
+                    <p style={{ color: '#ffffff', marginBottom: 0 }}>
                       We're a remote-first team serving a global audience
                     </p>
                   </div>
@@ -216,7 +241,7 @@ const Contact: React.FC = () => {
                 border: '1px solid #f9731633'
               }}>
                 <h3 style={{ color: '#f97316', fontSize: '1rem', marginBottom: '10px' }}>Business Inquiries</h3>
-                <p style={{ color: '#d1d5db', fontSize: '0.95rem', marginBottom: '10px' }}>
+                <p style={{ color: '#ffffff', fontSize: '0.95rem', marginBottom: '10px' }}>
                   Interested in advertising, partnerships, or press release submissions?
                 </p>
                 <a href="/advertise" style={{ color: '#f97316', fontWeight: 600 }}>
