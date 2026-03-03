@@ -642,9 +642,9 @@ const ArbitrageDashboard: React.FC = () => {
 
                           <div style={{ marginBottom: '20px' }}>
                             {[
-                              { label: 'Step 1', pair: opp.step1.pair, price: opp.step1.price },
-                              { label: 'Step 2', pair: opp.step2.pair, price: opp.step2.price },
-                              { label: 'Step 3', pair: opp.step3.pair, price: opp.step3.price },
+                              { label: 'Step 1', pair: opp.step1?.pair || 'N/A', price: opp.step1?.price },
+                              { label: 'Step 2', pair: opp.step2?.pair || 'N/A', price: opp.step2?.price },
+                              { label: 'Step 3', pair: opp.step3?.pair || 'N/A', price: opp.step3?.price },
                             ].map((step, idx) => (
                               <div key={idx} style={{
                                 padding: '10px',
