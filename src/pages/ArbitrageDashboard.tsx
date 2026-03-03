@@ -161,7 +161,8 @@ const ArbitrageDashboard: React.FC = () => {
       medium: { bg: `linear-gradient(135deg, ${theme.accentSoft} 0%, #ffd7b2 100%)`, text: 'MEDIUM', color: '#7c2d12' },
       high: { bg: `linear-gradient(135deg, ${theme.accent} 0%, #ff9f48 100%)`, text: 'HIGH', color: '#0f172a' }
     };
-    const style = styles[liquidity as keyof typeof styles];
+    const key = (liquidity || '').toLowerCase();
+    const style = styles[key as keyof typeof styles] || styles.medium;
     return (
       <span style={{
         background: style.bg,

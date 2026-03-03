@@ -137,11 +137,16 @@ const AllAINews: React.FC = () => {
           deduped.sort((a, b) => new Date(b.pubDate).getTime() - new Date(a.pubDate).getTime());
 
           setNewsItems(deduped);
+          setError(null);
         } else {
-          throw new Error('No items fetched from AI sources');
+          // Upstream AI feeds can intermittently return empty/blocked.
+          // Keep UI stable with an empty state instead of throwing runtime errors.
+          setNewsItems([]);
+          setError(null);
         }
       } catch (error: any) {
         console.error('Error fetching AI news:', error);
+        setNewsItems([]);
         setError('Failed to load AI news');
       } finally {
         setIsLoading(false);
