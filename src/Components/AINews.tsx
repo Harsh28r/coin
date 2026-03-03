@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Container, Row, Col, Card, Button } from 'react-bootstrap';
+import { Container, Row, Col, Card, Button, Alert } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -232,7 +232,9 @@ const AINews: React.FC = () => {
           ))}
         </Row>
       ) : displayItems.length === 0 && !error ? (
-        <p>No AI news available.</p>
+        <Alert variant="warning" className="mb-0">
+          AI feeds are temporarily unavailable right now. Please check back in a few minutes.
+        </Alert>
       ) : (
         <Row xs={1} md={2} lg={4} className="g-4">
           {displayItems.slice(0, 8).map((item, index) => (

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Container, Row, Col, Card, Button } from 'react-bootstrap';
+import { Container, Row, Col, Card, Button, Alert } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -234,8 +234,10 @@ const AllAINews: React.FC = () => {
           ))}
         </Row>
       ) : displayItems.length === 0 && !error ? (
-        <div className="text-center py-5">
-          <p className="text-muted">No AI news available at the moment.</p>
+        <div className="text-center py-4">
+          <Alert variant="warning" className="mb-3">
+            AI feeds are temporarily unavailable right now. Please check back in a few minutes.
+          </Alert>
           <Button variant="warning" onClick={() => navigate('/')}>
             Back to Home
           </Button>
