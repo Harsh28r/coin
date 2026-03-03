@@ -44,6 +44,7 @@ import useAdSenseControl from './Components/AdSenseControl';
 import ArbitrageChecker from './Components/ArbitrageChecker';
 import CryptoTools from './Components/CryptoTools';
 import ArbitrageDashboard from './pages/ArbitrageDashboard';
+import FloatingAIChat from './Components/FloatingAIChat';
 
 
 const ScrollToTop: React.FC = () => {
@@ -75,6 +76,7 @@ function App() {
                 <DefaultSEO />
                 <Analytics />
                 <BackToTop />
+                <FloatingAIChat />
                 <Routes>
                   <Route path="/" element={<LandingPage />} />
                   <Route path="/blog/:id" element={<BlogPostDetail />} />
