@@ -18,6 +18,7 @@ import { useSubscriptionPopup } from '../hooks/useSubscriptionPopup';
 import AINews from '../Components/AINews';
 import ArbitrageDashboard from './ArbitrageDashboard';
 import CryptoBreakingBanner from '../Components/CryptoBreakingBanner';
+import AIQuickAsk from '../Components/AIQuickAsk';
 // import  './LandingPage.css'
 
 const LandingPage: React.FC = () => {
@@ -56,6 +57,7 @@ const LandingPage: React.FC = () => {
         <ExclusiveNews />
         <MarketPriceAndNews />
         <AINews />
+        <AIQuickAsk />
         <ExploreSection />
         <PressRelease />
         <InDepthNews />
