@@ -43,8 +43,18 @@ const PressRelease: React.FC = () => {
     return byTitle || effectiveReleases[effectiveReleases.length - 1] || null;
   }, [effectiveReleases, mainArticle]);
   
-  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://c-back-2.onrender.com';
+  const API_BASE_URL =
+    (process.env.REACT_APP_API_BASE_URL as string) ||
+    ((import.meta as any)?.env?.VITE_API_URL as string) ||
+    'https://camify.fun.coinsclarity.com';
   const MOCK_API_BASE_URL = process.env.REACT_APP_USE_LOCAL_DB === 'true' ? 'http://localhost:5000' : '';
+  const getApiBases = (): string[] => {
+    const origin = typeof window !== 'undefined' ? window.location.origin : '';
+    const rel = origin ? `${origin}/api` : '';
+    const apiBase = API_BASE_URL.replace(/\/$/, '');
+    const withApi = apiBase.endsWith('/api') ? apiBase : `${apiBase}/api`;
+    return Array.from(new Set([rel, withApi, apiBase, 'https://camify.fun.coinsclarity.com/api']));
+  };
 
   const formatMDY = (input: string | Date) => {
     try {
@@ -89,31 +99,81 @@ const PressRelease: React.FC = () => {
           console.warn('Failed to fetch from db.json, falling back to API:', error);
         }
 
-        // Fetch from /fetch-another-rss
-        const response = await fetch(`${API_BASE_URL}/fetch-another-rss`);
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+        // Fetch from multiple API bases to avoid false empty-state
+        let fetched: PressReleaseItem[] = [];
+        for (const base of getApiBases()) {
+          try {
+            const rssUrl = `${base.replace(/\/$/, '')}/fetch-another-rss?limit=18`;
+            const response = await fetch(rssUrl);
+            if (!response.ok) continue;
+
+            const data = await response.json();
+            const feedItems = Array.isArray(data?.data)
+              ? data.data
+              : Array.isArray(data?.items)
+                ? data.items
+                : Array.isArray(data)
+                  ? data
+                  : [];
+
+            if (feedItems.length > 0) {
+              fetched = feedItems.map((item: any) => ({
+                article_id: item.article_id || item._id,
+                title: item.title || 'Untitled',
+                description: item.description || item.contentSnippet || 'No description available',
+                author: Array.isArray(item.creator) ? item.creator.join(', ') : item.creator || item.author || 'Unknown',
+                date: formatMDY(item.pubDate || item.publishedAt || item.date || new Date()),
+                image: item.image_url || item.image || getCryptoFallbackImage(item.title, 'news'),
+                link: item.link || item.url || '#',
+              }));
+              break;
+            }
+          } catch {
+            // try next base
+          }
         }
-        const data = await response.json();
-        const feedItems = Array.isArray(data?.data)
-          ? data.data
-          : Array.isArray(data?.items)
-            ? data.items
-            : [];
-        if (feedItems.length > 0) {
-          const formattedReleases = feedItems.map((item: any) => ({
-            article_id: item.article_id,
-            title: item.title || 'Untitled',
-            description: item.description || 'No description available',
-            author: item.creator?.join(', ') || 'Unknown',
-            date: formatMDY(item.pubDate || new Date()),
-            image: item.image_url || getCryptoFallbackImage(item.title, 'news'),
-            link: item.link || item.url || '#',
-          }));
-          setOtherReleases(formattedReleases);
-          setMainArticle(formattedReleases[formattedReleases.length - 1] || null);
-          console.log('Fetched press releases from API:', formattedReleases);
+
+        // Final fallback to /news if RSS endpoint has no items
+        if (fetched.length === 0) {
+          for (const base of getApiBases()) {
+            try {
+              const newsUrl = `${base.replace(/\/$/, '')}/news?page=1&limit=18`;
+              const response = await fetch(newsUrl);
+              if (!response.ok) continue;
+
+              const data = await response.json();
+              const items = Array.isArray(data?.data)
+                ? data.data
+                : Array.isArray(data?.items)
+                  ? data.items
+                  : Array.isArray(data)
+                    ? data
+                    : [];
+
+              if (items.length > 0) {
+                fetched = items.map((item: any) => ({
+                  article_id: item.article_id || item._id,
+                  title: item.title || 'Untitled',
+                  description: item.description || item.contentSnippet || 'No description available',
+                  author: Array.isArray(item.creator) ? item.creator.join(', ') : item.creator || item.author || 'Unknown',
+                  date: formatMDY(item.pubDate || item.publishedAt || item.date || new Date()),
+                  image: item.image_url || item.image || getCryptoFallbackImage(item.title, 'news'),
+                  link: item.link || item.url || '#',
+                }));
+                break;
+              }
+            } catch {
+              // try next base
+            }
+          }
+        }
+
+        if (fetched.length > 0) {
+          setOtherReleases(fetched);
+          setMainArticle(fetched[fetched.length - 1] || null);
+          console.log('Fetched press releases from API:', fetched);
         } else {
+          setError('Press releases are temporarily unavailable. Please refresh in a moment.');
           setOtherReleases([]);
           setMainArticle(null);
         }
