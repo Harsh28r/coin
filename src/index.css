@@ -7,6 +7,10 @@
   --accent: #f97316;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 [data-theme='dark'] {
   --bg: #0b1324;
   --text: #e5e7eb;
@@ -26,10 +30,12 @@ body {
   background: var(--bg);
   color: var(--text);
   transition: background 0.3s ease, color 0.3s ease;
+  text-rendering: optimizeLegibility;
 }
 
 a {
   color: inherit;
+  transition: color 0.2s ease;
 }
 
 .page, h1, h2, h3, h4, h5, h6, p, span, small, label, li, .text-muted {

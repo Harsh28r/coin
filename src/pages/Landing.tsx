@@ -33,15 +33,20 @@ const LandingPage: React.FC = () => {
     <div className="LandingPage">
       <div className="content-wrapper" style={{ background: 'linear-gradient(180deg, #fff7ed 0%, #ffffff 15%, #ffffff 100%)' }}>
         <Helmet>
-          <title> Coinsclarity— Crypto News, Listings, Markets</title>
+          <title>CoinsClarity - Crypto News, Listings, Markets</title>
           <meta name="description" content="Real-time crypto news with full articles, new listings, and market insights. Read everything on-platform in your language." />
+          <meta name="keywords" content="crypto news, bitcoin news, ethereum news, coin listings, market analysis, arbitrage, ai crypto news" />
           <link rel="canonical" href={`${window.location.origin}/`} />
           <meta property="og:type" content="website" />
           <meta property="og:title" content="CoinsClarity — Crypto News, Listings, Markets" />
           <meta property="og:description" content="Real-time crypto news with full articles, new listings, and market insights." />
           <meta property="og:url" content={`${window.location.origin}/`} />
           <meta property="og:image" content={`${window.location.origin}/logo3.png`} />
+          <meta property="og:site_name" content="CoinsClarity" />
           <meta name="twitter:card" content="summary_large_image" />
+          <meta name="twitter:title" content="CoinsClarity — Crypto News, Listings, Markets" />
+          <meta name="twitter:description" content="Real-time crypto news with full articles, new listings, and market insights." />
+          <meta name="twitter:image" content={`${window.location.origin}/logo3.png`} />
         </Helmet>
         <CoinsNavbar />
         <ScrollingStats />
