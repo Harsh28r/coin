@@ -14,6 +14,7 @@ const getApiBases = (): string[] => {
 const FloatingAIChat: React.FC = () => {
   const [open, setOpen] = useState(false);
   const [question, setQuestion] = useState('');
+  const [lastQuestion, setLastQuestion] = useState('');
   const [answer, setAnswer] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -21,9 +22,11 @@ const FloatingAIChat: React.FC = () => {
 
   const ask = async () => {
     if (!canAsk) return;
+    const q = question.trim();
     setLoading(true);
     setError('');
     setAnswer('');
+    setLastQuestion(q);
     let lastError = 'AI request failed';
 
     for (const base of getApiBases()) {
@@ -34,7 +37,7 @@ const FloatingAIChat: React.FC = () => {
           const res = await fetch(url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ message: question.trim(), max_tokens: 360, temperature: 0.4 }),
+            body: JSON.stringify({ message: q, max_tokens: 320, temperature: 0.4 }),
           });
           const data = await res.json().catch(() => ({}));
           if (!res.ok) {
@@ -44,6 +47,7 @@ const FloatingAIChat: React.FC = () => {
           const text = data?.data?.text || data?.text || '';
           if (text) {
             setAnswer(String(text).trim());
+            setQuestion('');
             setLoading(false);
             return;
           }
@@ -66,7 +70,7 @@ const FloatingAIChat: React.FC = () => {
             position: 'fixed',
             right: 16,
             bottom: 88,
-            width: 'min(92vw, 380px)',
+            width: 'min(88vw, 330px)',
             zIndex: 9998,
             background: '#ffffff',
             borderRadius: 16,
@@ -104,14 +108,14 @@ const FloatingAIChat: React.FC = () => {
               value={question}
               onChange={(e) => setQuestion(e.target.value)}
               placeholder="Ask about BTC, ETH, market trends..."
-              rows={3}
+              rows={2}
               style={{
                 width: '100%',
                 resize: 'none',
                 borderRadius: 10,
                 border: '1px solid #e5e7eb',
-                padding: 10,
-                fontSize: 14,
+                padding: 9,
+                fontSize: 13,
               }}
             />
             <button
@@ -142,10 +146,17 @@ const FloatingAIChat: React.FC = () => {
                   borderRadius: 10,
                   padding: 10,
                   whiteSpace: 'pre-wrap',
-                  fontSize: 14,
-                  lineHeight: 1.55,
+                  fontSize: 13,
+                  lineHeight: 1.5,
+                  maxHeight: 180,
+                  overflowY: 'auto',
                 }}
               >
+                {lastQuestion && (
+                  <div style={{ fontSize: 11, color: '#9a3412', marginBottom: 6 }}>
+                    Q: {lastQuestion}
+                  </div>
+                )}
                 {answer}
               </div>
             )}
@@ -161,8 +172,8 @@ const FloatingAIChat: React.FC = () => {
           position: 'fixed',
           right: 16,
           bottom: 24,
-          width: 56,
-          height: 56,
+          width: 52,
+          height: 52,
           borderRadius: '50%',
           border: 0,
           zIndex: 9999,
@@ -172,7 +183,7 @@ const FloatingAIChat: React.FC = () => {
           boxShadow: '0 12px 24px rgba(234,88,12,0.35)',
         }}
       >
-        <Bot size={24} style={{ marginTop: 2 }} />
+        <Bot size={22} style={{ marginTop: 2 }} />
       </button>
     </>
   );
