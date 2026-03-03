@@ -178,8 +178,10 @@ const ArbitrageDashboard: React.FC = () => {
     );
   };
 
-  const getExchangeLink = (exchange: string, symbol: string) => {
-    const baseSymbol = symbol.replace('/USDT', '').toLowerCase();
+  const getExchangeLink = (exchange: string, symbol?: string) => {
+    const safeSymbol = typeof symbol === 'string' ? symbol : '';
+    const baseSymbol = safeSymbol.replace('/USDT', '').toLowerCase();
+    if (!baseSymbol) return '#';
     const links: { [key: string]: string } = {
       binance: `https://www.binance.com/en/trade/${baseSymbol}_USDT`,
       kraken: `https://www.kraken.com/prices/${baseSymbol}`,
