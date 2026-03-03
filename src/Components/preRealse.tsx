@@ -95,8 +95,13 @@ const PressRelease: React.FC = () => {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         const data = await response.json();
-        if (data.success && Array.isArray(data.data)) {
-          const formattedReleases = data.data.map((item: any) => ({
+        const feedItems = Array.isArray(data?.data)
+          ? data.data
+          : Array.isArray(data?.items)
+            ? data.items
+            : [];
+        if (feedItems.length > 0) {
+          const formattedReleases = feedItems.map((item: any) => ({
             article_id: item.article_id,
             title: item.title || 'Untitled',
             description: item.description || 'No description available',
@@ -109,7 +114,8 @@ const PressRelease: React.FC = () => {
           setMainArticle(formattedReleases[formattedReleases.length - 1] || null);
           console.log('Fetched press releases from API:', formattedReleases);
         } else {
-          throw new Error('Fetched data is not an array');
+          setOtherReleases([]);
+          setMainArticle(null);
         }
       } catch (error: any) {
         console.error('Error fetching releases:', error);

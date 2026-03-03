@@ -70,11 +70,18 @@ export const ScrollingStats = () => {
   const didInitRef = useRef(false);
   const { currentLanguage, setLanguage } = useLanguage();
   const [isMobile, setIsMobile] = useState(false);
-  const API_BASE = (process.env.REACT_APP_API_URL as string) || (typeof window !== 'undefined' ? `${window.location.origin}/api` : 'http://localhost:5000') || 'http://localhost:5000';
   const getApiBases = (): string[] => {
     const env = (process.env.REACT_APP_API_URL as string) || '';
     const rel = typeof window !== 'undefined' ? `${window.location.origin}/api` : '';
-    const bases = [env, rel, 'http://localhost:5000'].filter(Boolean) as string[];
+    const camify = 'https://camify.fun.coinsclarity.com/api';
+    const hostname = typeof window !== 'undefined' ? window.location.hostname : '';
+    const isProd = typeof window !== 'undefined' && !/localhost|127\.0\.0\.1/i.test(hostname);
+    const local = isProd ? '' : 'http://localhost:5000';
+    // On production coinsclarity domains, hit backend directly first to avoid 405s from mismatched /api proxies.
+    const coinsclarityHost = /(^|\.)coinsclarity\.com$/i.test(hostname);
+    const bases = coinsclarityHost
+      ? [camify, env, rel]
+      : [env, rel, camify, local];
     return Array.from(new Set(bases));
   };
 
