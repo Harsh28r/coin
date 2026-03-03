@@ -64,6 +64,11 @@ const ArbitrageDashboard: React.FC = () => {
   const [themeMode, setThemeMode] = useState<'dark' | 'light'>('light');
 
   const theme = themes[themeMode];
+  const toNum = (value: unknown, fallback = 0): number => {
+    const n = Number(value);
+    return Number.isFinite(n) ? n : fallback;
+  };
+  const fixed = (value: unknown, digits: number): string => toNum(value).toFixed(digits);
 
   const fetchData = async () => {
     try {
@@ -457,7 +462,7 @@ const ArbitrageDashboard: React.FC = () => {
                               <span style={{ color: theme.textSecondary, fontSize: '14px' }}>Buy</span>
                               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                 <Badge bg="primary" style={{ borderRadius: '10px', padding: '6px 12px', textTransform: 'uppercase' }}>{opp.buyExchange}</Badge>
-                                <strong style={{ color: theme.textPrimary }}>${opp.buyPrice.toFixed(2)}</strong>
+                                <strong style={{ color: theme.textPrimary }}>${fixed(opp.buyPrice, 2)}</strong>
                                 <a
                                   href={getExchangeLink(opp.buyExchange, opp.symbol)}
                                   target="_blank"
@@ -480,7 +485,7 @@ const ArbitrageDashboard: React.FC = () => {
                               <span style={{ color: theme.textSecondary, fontSize: '14px' }}>Sell</span>
                               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                 <Badge bg="success" style={{ borderRadius: '10px', padding: '6px 12px', textTransform: 'uppercase' }}>{opp.sellExchange}</Badge>
-                                <strong style={{ color: theme.textPrimary }}>${opp.sellPrice.toFixed(2)}</strong>
+                                <strong style={{ color: theme.textPrimary }}>${fixed(opp.sellPrice, 2)}</strong>
                                 <a
                                   href={getExchangeLink(opp.sellExchange, opp.symbol)}
                                   target="_blank"
@@ -503,21 +508,21 @@ const ArbitrageDashboard: React.FC = () => {
                             <div>
                               <small style={{ color: theme.textSecondary, display: 'block', marginBottom: '5px' }}>Net Profit</small>
                               <div style={{
-                                color: opp.netProfitPercent > 0 ? '#10b981' : '#ef4444',
+                                color: toNum(opp.netProfitPercent) > 0 ? '#10b981' : '#ef4444',
                                 fontWeight: 'bold',
                                 fontSize: '1.3rem',
                                 display: 'flex',
                                 alignItems: 'center',
                                 gap: '5px'
                               }}>
-                                {opp.netProfitPercent > 0 ? <TrendingUp size={20} /> : <TrendingDown size={20} />}
-                                {opp.netProfitPercent.toFixed(2)}%
+                                {toNum(opp.netProfitPercent) > 0 ? <TrendingUp size={20} /> : <TrendingDown size={20} />}
+                                {fixed(opp.netProfitPercent, 2)}%
                               </div>
                             </div>
                             <div style={{ textAlign: 'right' }}>
                               <small style={{ color: theme.textSecondary, display: 'block', marginBottom: '5px' }}>On $1000</small>
                               <div style={{ color: '#10b981', fontWeight: 'bold', fontSize: '1.3rem' }}>
-                                ${opp.profitAmount.toFixed(2)}
+                                ${fixed(opp.profitAmount, 2)}
                               </div>
                             </div>
                           </div>
@@ -651,7 +656,7 @@ const ArbitrageDashboard: React.FC = () => {
                                 <small style={{ color: theme.textSecondary }}>{step.label}:</small>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                   <strong style={{ color: theme.textPrimary }}>{step.pair}</strong>
-                                  <span style={{ color: theme.textSecondary }}>@{step.price.toFixed(6)}</span>
+                                  <span style={{ color: theme.textSecondary }}>@{fixed(step.price, 6)}</span>
                                 </div>
                               </div>
                             ))}
@@ -667,21 +672,21 @@ const ArbitrageDashboard: React.FC = () => {
                             <div>
                               <small style={{ color: theme.textSecondary, display: 'block', marginBottom: '5px' }}>Net Profit</small>
                               <div style={{
-                                color: opp.netProfitPercent > 0 ? '#10b981' : '#ef4444',
+                                color: toNum(opp.netProfitPercent) > 0 ? '#10b981' : '#ef4444',
                                 fontWeight: 'bold',
                                 fontSize: '1.2rem',
                                 display: 'flex',
                                 alignItems: 'center',
                                 gap: '5px'
                               }}>
-                                {opp.netProfitPercent > 0 ? <TrendingUp size={18} /> : <TrendingDown size={18} />}
-                                {opp.netProfitPercent.toFixed(4)}%
+                                {toNum(opp.netProfitPercent) > 0 ? <TrendingUp size={18} /> : <TrendingDown size={18} />}
+                                {fixed(opp.netProfitPercent, 4)}%
                               </div>
                             </div>
                             <div style={{ textAlign: 'right' }}>
                               <small style={{ color: theme.textSecondary, display: 'block', marginBottom: '5px' }}>On $1000</small>
                               <div style={{ color: '#10b981', fontWeight: 'bold', fontSize: '1.2rem' }}>
-                                ${opp.profitAmount.toFixed(2)}
+                                ${fixed(opp.profitAmount, 2)}
                               </div>
                             </div>
                           </div>
@@ -695,7 +700,7 @@ const ArbitrageDashboard: React.FC = () => {
                             border: `1px dashed ${theme.surfaceBorder}`
                           }}>
                             <small style={{ color: theme.textSecondary, fontSize: '12px' }}>
-                              {opp.startAmount} {opp.baseCurrency} → {opp.endAmount.toFixed(6)} {opp.baseCurrency}
+                              {toNum(opp.startAmount)} {opp.baseCurrency} → {fixed(opp.endAmount, 6)} {opp.baseCurrency}
                             </small>
                           </div>
                           </div>
