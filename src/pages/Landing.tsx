@@ -17,6 +17,7 @@ import SubscriptionPopup from '../Components/SubscriptionPopup';
 import { useSubscriptionPopup } from '../hooks/useSubscriptionPopup';
 import AINews from '../Components/AINews';
 import ArbitrageDashboard from './ArbitrageDashboard';
+import CryptoBreakingBanner from '../Components/CryptoBreakingBanner';
 // import  './LandingPage.css'
 
 const LandingPage: React.FC = () => {
@@ -49,6 +50,7 @@ const LandingPage: React.FC = () => {
           <meta name="twitter:image" content={`${window.location.origin}/logo3.png`} />
         </Helmet>
         <CoinsNavbar />
+        <CryptoBreakingBanner />
         <ScrollingStats />
         <FeaturedCarousel />
         <ExclusiveNews />
