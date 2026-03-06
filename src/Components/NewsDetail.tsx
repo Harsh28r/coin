@@ -16,6 +16,8 @@ interface NewsItem {
   image_url: string;
   link: string;
   content: string;
+  fullContent?: string;
+  contentHtml?: string;
   source_name: string;
   keywords?: string[];
   category?: string[];
@@ -26,6 +28,7 @@ const NewsDetail: React.FC = () => {
   const navigate = useNavigate();
   const [newsItem, setNewsItem] = useState<NewsItem | null>(null);
   const [loading, setLoading] = useState(true);
+  const [fullContentLoading, setFullContentLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   // Prefer env, fallback to the backend used elsewhere in the app
   const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://c-back-2.onrender.com';
@@ -118,6 +121,36 @@ const NewsDetail: React.FC = () => {
         setNewsItem(incoming);
         setLoading(false);
         setError(null);
+        // Always try to fetch full content if we have a link
+        if (incoming.link) {
+          setFullContentLoading(true);
+          try {
+            const fullContentRes = await fetch(`${API_BASE_URL}/fetch-full-article?url=${encodeURIComponent(incoming.link)}`);
+            if (fullContentRes.ok) {
+              const fullData = await fullContentRes.json();
+              console.log('📰 Full article response:', fullData.success, 'content:', fullData.data?.content?.length || 0, 'html:', fullData.data?.contentHtml?.length || 0);
+              if (fullData.success && fullData.data) {
+                const scraped = fullData.data;
+                const scrapedText = scraped.content || '';
+                const scrapedHtml = scraped.contentHtml || scraped.content || '';
+                
+                if (scrapedText.length > (incoming.content?.length || 0)) {
+                  incoming.content = scrapedText;
+                }
+                if (scrapedHtml.length > 100) {
+                  incoming.fullContent = scrapedHtml;
+                  incoming.contentHtml = scrapedHtml;
+                }
+                setNewsItem({...incoming});
+                console.log('✓ Updated article with full content:', incoming.content?.length || 0, 'text chars,', incoming.contentHtml?.length || 0, 'html chars');
+              }
+            }
+          } catch (err) {
+            console.log('Failed to fetch full content:', err);
+          } finally {
+            setFullContentLoading(false);
+          }
+        }
         // If we already have full content, skip background enrichment entirely
         if (incoming.content && incoming.content.trim().length > 80) {
           return;
@@ -157,8 +190,10 @@ const NewsDetail: React.FC = () => {
                 resolved = {
                   article_id: match._id || match.article_id,
                   title: match.title,
-                  description: match.content?.substring(0, 200) || '',
-                  content: match.content,
+                  description: match.content ? (match.content.length > 200 ? match.content.substring(0, 200) + '...' : match.content) : '',
+                  content: match.content || '',
+                  fullContent: match.content || '',
+                  contentHtml: match.content || null,
                   creator: match.author ? [match.author] : [],
                   pubDate: match.date,
                   image_url: match.imageUrl,
@@ -209,6 +244,32 @@ const NewsDetail: React.FC = () => {
         }
 
         if (resolved) {
+          // Always try to fetch full content if we have a link
+          if (resolved.link) {
+            try {
+              const fullContentRes = await fetch(`${API_BASE_URL}/fetch-full-article?url=${encodeURIComponent(resolved.link)}`);
+              if (fullContentRes.ok) {
+                const fullData = await fullContentRes.json();
+                console.log('📰 Full article response (resolved):', fullData.success, 'content:', fullData.data?.content?.length || 0, 'html:', fullData.data?.contentHtml?.length || 0);
+                if (fullData.success && fullData.data) {
+                  const scraped = fullData.data;
+                  const scrapedText = scraped.content || '';
+                  const scrapedHtml = scraped.contentHtml || scraped.content || '';
+                  
+                  if (scrapedText.length > (resolved.content?.length || 0)) {
+                    resolved.content = scrapedText;
+                  }
+                  if (scrapedHtml.length > 100) {
+                    resolved.fullContent = scrapedHtml;
+                    resolved.contentHtml = scrapedHtml;
+                  }
+                  console.log('✓ Fetched full content:', resolved.content?.length || 0, 'text,', resolved.contentHtml?.length || 0, 'html');
+                }
+              }
+            } catch (err) {
+              console.log('Failed to fetch full content:', err);
+            }
+          }
           setNewsItem(resolved);
           setError(null);
         } else if (!fromState) {
@@ -674,31 +735,39 @@ const NewsDetail: React.FC = () => {
                 </ul>
               </div>
 
-              {/* Prominent Link to Original Source */}
-              {effectiveItem.link && (
-                <div className="read-original text-center p-4 rounded-3" style={{ backgroundColor: '#1f2937' }}>
-                  <p className="text-white mb-3" style={{ fontSize: '1.1rem' }}>
-                    📰 Read the full article from the original source
-                  </p>
-                  <a 
-                    href={effectiveItem.link} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="btn btn-lg"
-                    style={{ 
-                      backgroundColor: '#f97316', 
-                      color: 'white', 
-                      fontWeight: '600',
-                      padding: '12px 32px',
-                      borderRadius: '8px'
-                    }}
-                  >
-                    Read Original Article →
-                  </a>
-                  <p className="text-muted mt-3 mb-0" style={{ fontSize: '0.85rem' }}>
-                    Source: {effectiveItem.source_name || effectiveItem.creator?.[0] || 'External Source'}
-                  </p>
+              {/* Full Article Content */}
+              {fullContentLoading && (
+                <div className="full-article-content mb-4 text-center p-5" style={{ backgroundColor: '#f0f9ff', borderRadius: '12px', border: '1px solid #bfdbfe' }}>
+                  <div className="spinner-border spinner-border-sm me-2" role="status" style={{ color: '#3b82f6' }}>
+                    <span className="visually-hidden">Loading...</span>
+                  </div>
+                  <span style={{ color: '#1e40af', fontSize: '1rem' }}>Loading full article content...</span>
                 </div>
+              )}
+              {!fullContentLoading && (effectiveItem.contentHtml || effectiveItem.fullContent || effectiveItem.content) && (
+                <div className="full-article-content mb-4">
+                  <h5 className="mb-3" style={{ color: '#1f2937', fontWeight: '600' }}>📖 Full Article</h5>
+                  <div 
+                    className="content-html"
+                    dangerouslySetInnerHTML={{ 
+                      __html: getNormalizedContentHtml(
+                        effectiveItem.contentHtml || effectiveItem.fullContent || effectiveItem.content || ''
+                      )
+                    }}
+                    style={{
+                      lineHeight: '1.85',
+                      color: '#374151',
+                      fontSize: `${(1.0 * fontScale).toFixed(2)}rem`
+                    }}
+                  />
+                </div>
+              )}
+
+              {/* Source Attribution */}
+              {effectiveItem.source_name && (
+                <p className="text-muted mt-3 mb-0" style={{ fontSize: '0.85rem', textAlign: 'right' }}>
+                  Source: {effectiveItem.source_name || effectiveItem.creator?.[0] || 'CoinsClarity'}
+                </p>
               )}
             </div>
           </div>
