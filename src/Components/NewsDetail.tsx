@@ -115,12 +115,12 @@ const NewsDetail: React.FC = () => {
   const extractArticleClientSide = async (articleUrl: string): Promise<{ content: string; contentHtml: string } | null> => {
     const PROXIES = [
       (u: string) => `https://api.allorigins.win/get?url=${encodeURIComponent(u)}`,
-      (u: string) => `https://corsproxy.io/?${encodeURIComponent(u)}`,
+      (u: string) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`,
     ];
 
     for (const makeProxy of PROXIES) {
       try {
-        const res = await fetch(makeProxy(articleUrl), { signal: AbortSignal.timeout(12000) });
+        const res = await fetch(makeProxy(articleUrl), { signal: AbortSignal.timeout(10000) });
         if (!res.ok) continue;
 
         let html = '';
@@ -218,20 +218,23 @@ const NewsDetail: React.FC = () => {
       return null;
     };
 
-    // Fire ALL methods at once — first valid result wins
-    const valid = (p: Promise<{ content: string; contentHtml: string } | null>) =>
-      p.then(r => (r && (r.content.length > 300 || r.contentHtml.length > 300)) ? r : null);
+    // Race all methods — first valid result wins instantly (don't wait for slow ones)
+    const rejectIfEmpty = (p: Promise<{ content: string; contentHtml: string } | null>) =>
+      p.then(r => {
+        if (r && (r.content.length > 300 || r.contentHtml.length > 300)) return r;
+        return Promise.reject('empty');
+      });
 
-    const results = await Promise.allSettled([
-      valid(tryBackend(API_BASE_URL)),
-      valid(tryBackend(CAMIFY)),
-      valid(extractArticleClientSide(articleUrl)),
-    ]);
-
-    for (const r of results) {
-      if (r.status === 'fulfilled' && r.value) return r.value;
+    try {
+      return await Promise.any([
+        rejectIfEmpty(tryBackend(API_BASE_URL)),
+        rejectIfEmpty(tryBackend(CAMIFY)),
+        rejectIfEmpty(extractArticleClientSide(articleUrl).then(r => r ? r : Promise.reject('empty'))),
+      ]);
+    } catch {
+      // All strategies failed
+      return null;
     }
-    return null;
   };
 
   useEffect(() => {
@@ -277,13 +280,12 @@ const NewsDetail: React.FC = () => {
       
       // All RSS endpoints on camify
       const RSS_ENDPOINTS = [
+        '/fetch-all-rss?limit=100',
         '/fetch-cryptoslate-rss?limit=50',
         '/fetch-cointelegraph-rss?limit=50',
         '/fetch-coindesk-rss?limit=50',
         '/fetch-decrypt-rss?limit=50',
-        '/fetch-bitcoinist-rss?limit=50',
         '/fetch-rss?limit=50',
-        '/fetch-all-rss?limit=100',
       ];
 
       try {
@@ -775,8 +777,8 @@ const NewsDetail: React.FC = () => {
           )}
 
            {/* Article Content */}
-            <div className="article-content mb-4" ref={contentRef}>
-              <div className="article-body" style={{ fontSize: `${(1.0 * fontScale).toFixed(2)}rem` }}>
+          <div className="article-content mb-4" ref={contentRef}>
+            <div className="article-body" style={{ fontSize: `${(1.0 * fontScale).toFixed(2)}rem` }}>
 
                 {/* Full Article Content */}
                 {(effectiveItem.contentHtml || effectiveItem.fullContent || effectiveItem.content || effectiveItem.description || '').length > 0 && (
@@ -798,17 +800,17 @@ const NewsDetail: React.FC = () => {
                   <div className="d-flex align-items-center gap-2 mt-3 p-3 rounded" style={{ backgroundColor: '#f0f9ff', border: '1px solid #bfdbfe' }}>
                     <div className="spinner-border spinner-border-sm" role="status" style={{ color: '#3b82f6', width: '16px', height: '16px' }}>
                       <span className="visually-hidden">Loading...</span>
-                    </div>
+              </div>
                     <span style={{ color: '#1e40af', fontSize: '0.85rem' }}>Loading full article...</span>
-                  </div>
-                )}
+                </div>
+              )}
 
                 {/* Source */}
                 {effectiveItem.source_name && (
                   <p className="text-muted mt-3 mb-0" style={{ fontSize: '0.85rem', textAlign: 'right' }}>
                     Source: {effectiveItem.source_name}
                   </p>
-                )}
+              )}
             </div>
           </div>
 
