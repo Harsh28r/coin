@@ -111,6 +111,129 @@ const NewsDetail: React.FC = () => {
     setShowPredictionResult(true);
   };
 
+  // ── Client-side article extraction via CORS proxy ──
+  const extractArticleClientSide = async (articleUrl: string): Promise<{ content: string; contentHtml: string } | null> => {
+    const PROXIES = [
+      (u: string) => `https://api.allorigins.win/get?url=${encodeURIComponent(u)}`,
+      (u: string) => `https://corsproxy.io/?${encodeURIComponent(u)}`,
+    ];
+
+    for (const makeProxy of PROXIES) {
+      try {
+        const res = await fetch(makeProxy(articleUrl), { signal: AbortSignal.timeout(12000) });
+        if (!res.ok) continue;
+
+        let html = '';
+        const ct = res.headers.get('content-type') || '';
+        if (ct.includes('json')) {
+          const json = await res.json();
+          html = json.contents || json.body || '';
+        } else {
+          html = await res.text();
+        }
+        if (!html || html.length < 500) continue;
+
+        const doc = new DOMParser().parseFromString(html, 'text/html');
+
+        // Remove junk
+        doc.querySelectorAll('script, style, nav, header, footer, aside, .ad, .advertisement, .social-share, .related-articles, .comments, .newsletter, .subscribe, .sidebar, .popup, .modal, [role="navigation"], [role="banner"], [role="complementary"], iframe, button, form, input, select, textarea, svg').forEach(el => el.remove());
+
+        // Try JSON-LD
+        const ldScripts = Array.from(doc.querySelectorAll('script[type="application/ld+json"]'));
+        for (const s of ldScripts) {
+          try {
+            const parsed = JSON.parse(s.textContent || '');
+            const items = Array.isArray(parsed) ? parsed : [parsed];
+            for (const item of items) {
+              const body = item.articleBody || item.text || '';
+              if (body.length > 500) {
+                console.log('✓ Client JSON-LD:', body.length, 'chars');
+                const asHtml = body.includes('<') ? body : body.split(/\n{2,}/).map((p: string) => `<p>${p}</p>`).join('');
+                return { content: body, contentHtml: asHtml };
+              }
+            }
+          } catch {}
+        }
+
+        // Try content selectors
+        const selectors = [
+          '[itemprop="articleBody"]', '.article-content', '.article-body', '.post-content',
+          '.entry-content', '.story-body', '.content-body', '#article-body', '.td-post-content',
+          '.article-detail', '.storyPage_storyContent', '#storyContent', 'article', 'main'
+        ];
+        for (const sel of selectors) {
+          const el = doc.querySelector(sel);
+          if (el) {
+            const elHtml = el.innerHTML || '';
+            const elText = el.textContent?.trim() || '';
+            if (elText.length > 300) {
+              const clean = elHtml.replace(/<script[\s\S]*?<\/script>/gi, '').replace(/<style[\s\S]*?<\/style>/gi, '').replace(/<!--[\s\S]*?-->/g, '').trim();
+              console.log(`✓ Client CSS(${sel}):`, elText.length, 'chars');
+              return { content: elText, contentHtml: clean };
+            }
+          }
+        }
+
+        // Fallback: gather paragraphs
+        const paras = doc.querySelectorAll('article p, main p, .content p, body p');
+        if (paras.length >= 3) {
+          const texts: string[] = [];
+          const htmlParts: string[] = [];
+          paras.forEach(p => {
+            const t = p.textContent?.trim() || '';
+            if (t.length > 20) { texts.push(t); htmlParts.push(`<p>${p.innerHTML}</p>`); }
+          });
+          if (texts.join(' ').length > 300) {
+            console.log('✓ Client paragraphs:', texts.length, 'p,', texts.join(' ').length, 'chars');
+            return { content: texts.join('\n\n'), contentHtml: htmlParts.join('') };
+          }
+        }
+      } catch (err: any) {
+        console.log('Client proxy failed:', err.message);
+      }
+    }
+    return null;
+  };
+
+  // ── Multi-strategy full content fetcher ──
+  // Races: backend(Render) + backend(Camify) + client-side extraction
+  const fetchFullContent = async (articleUrl: string): Promise<{ content: string; contentHtml: string } | null> => {
+    if (!articleUrl || articleUrl === '#') return null;
+    const CAMIFY = 'https://camify.fun.coinsclarity.com';
+
+    const tryBackend = async (base: string): Promise<{ content: string; contentHtml: string } | null> => {
+      try {
+        const r = await fetch(`${base}/fetch-full-article?url=${encodeURIComponent(articleUrl)}`, { signal: AbortSignal.timeout(12000) });
+        if (!r.ok) return null;
+        const d = await r.json();
+        if (d.success && d.data) {
+          const txt = d.data.content || '';
+          const htm = d.data.contentHtml || txt;
+          if (txt.length > 300 || htm.length > 300) {
+            console.log(`✓ Backend(${base}):`, txt.length, 'text,', htm.length, 'html');
+            return { content: txt, contentHtml: htm };
+          }
+        }
+      } catch {}
+      return null;
+    };
+
+    // Fire ALL methods at once — first valid result wins
+    const valid = (p: Promise<{ content: string; contentHtml: string } | null>) =>
+      p.then(r => (r && (r.content.length > 300 || r.contentHtml.length > 300)) ? r : null);
+
+    const results = await Promise.allSettled([
+      valid(tryBackend(API_BASE_URL)),
+      valid(tryBackend(CAMIFY)),
+      valid(extractArticleClientSide(articleUrl)),
+    ]);
+
+    for (const r of results) {
+      if (r.status === 'fulfilled' && r.value) return r.value;
+    }
+    return null;
+  };
+
   useEffect(() => {
     const fetchNewsDetail = async () => {
       if (!id) return;
@@ -125,25 +248,15 @@ const NewsDetail: React.FC = () => {
         if (incoming.link) {
           setFullContentLoading(true);
           try {
-            const fullContentRes = await fetch(`${API_BASE_URL}/fetch-full-article?url=${encodeURIComponent(incoming.link)}`);
-            if (fullContentRes.ok) {
-              const fullData = await fullContentRes.json();
-              console.log('📰 Full article response:', fullData.success, 'content:', fullData.data?.content?.length || 0, 'html:', fullData.data?.contentHtml?.length || 0);
-              if (fullData.success && fullData.data) {
-                const scraped = fullData.data;
-                const scrapedText = scraped.content || '';
-                const scrapedHtml = scraped.contentHtml || scraped.content || '';
-                
-                if (scrapedText.length > (incoming.content?.length || 0)) {
-                  incoming.content = scrapedText;
-                }
-                if (scrapedHtml.length > 100) {
-                  incoming.fullContent = scrapedHtml;
-                  incoming.contentHtml = scrapedHtml;
-                }
-                setNewsItem({...incoming});
-                console.log('✓ Updated article with full content:', incoming.content?.length || 0, 'text chars,', incoming.contentHtml?.length || 0, 'html chars');
+            const fullResult = await fetchFullContent(incoming.link);
+            if (fullResult) {
+              if (fullResult.content.length > (incoming.content?.length || 0)) {
+                incoming.content = fullResult.content;
               }
+              incoming.fullContent = fullResult.contentHtml;
+              incoming.contentHtml = fullResult.contentHtml;
+              setNewsItem({...incoming});
+              console.log('✓ Full content:', incoming.content?.length || 0, 'text,', incoming.contentHtml?.length || 0, 'html');
             }
           } catch (err) {
             console.log('Failed to fetch full content:', err);
@@ -151,8 +264,8 @@ const NewsDetail: React.FC = () => {
             setFullContentLoading(false);
           }
         }
-        // If we already have full content, skip background enrichment entirely
-        if (incoming.content && incoming.content.trim().length > 80) {
+        // If we already have full content, skip background enrichment
+        if (incoming.contentHtml && incoming.contentHtml.trim().length > 300) {
           return;
         }
       } else {
@@ -247,24 +360,14 @@ const NewsDetail: React.FC = () => {
           // Always try to fetch full content if we have a link
           if (resolved.link) {
             try {
-              const fullContentRes = await fetch(`${API_BASE_URL}/fetch-full-article?url=${encodeURIComponent(resolved.link)}`);
-              if (fullContentRes.ok) {
-                const fullData = await fullContentRes.json();
-                console.log('📰 Full article response (resolved):', fullData.success, 'content:', fullData.data?.content?.length || 0, 'html:', fullData.data?.contentHtml?.length || 0);
-                if (fullData.success && fullData.data) {
-                  const scraped = fullData.data;
-                  const scrapedText = scraped.content || '';
-                  const scrapedHtml = scraped.contentHtml || scraped.content || '';
-                  
-                  if (scrapedText.length > (resolved.content?.length || 0)) {
-                    resolved.content = scrapedText;
-                  }
-                  if (scrapedHtml.length > 100) {
-                    resolved.fullContent = scrapedHtml;
-                    resolved.contentHtml = scrapedHtml;
-                  }
-                  console.log('✓ Fetched full content:', resolved.content?.length || 0, 'text,', resolved.contentHtml?.length || 0, 'html');
+              const fullResult = await fetchFullContent(resolved.link);
+              if (fullResult) {
+                if (fullResult.content.length > (resolved.content?.length || 0)) {
+                  resolved.content = fullResult.content;
                 }
+                resolved.fullContent = fullResult.contentHtml;
+                resolved.contentHtml = fullResult.contentHtml;
+                console.log('✓ Full content (resolved):', resolved.content?.length || 0, 'text,', resolved.contentHtml?.length || 0, 'html');
               }
             } catch (err) {
               console.log('Failed to fetch full content:', err);
@@ -404,19 +507,85 @@ const NewsDetail: React.FC = () => {
     } catch {}
   };
 
-  // REMOVED: Article extraction to comply with AdSense policies
-  // We no longer scrape full article content from external sources
-  // Instead, we show summaries and link to original sources
+  // Sanitize scraped HTML: remove duplicate titles, author bios, social links, ads, etc.
+  const sanitizeScrapedHtml = (html: string, articleTitle?: string): string => {
+    if (!html) return '';
+    const container = document.createElement('div');
+    container.innerHTML = html;
+
+    // Remove junk elements
+    const junkSel = [
+      'nav', 'header', 'footer', 'aside', 'iframe', 'script', 'style', 'noscript',
+      'button', 'input', 'select', 'textarea', 'form', 'svg', '.wp-caption-text',
+      '[class*="social"]', '[class*="share"]', '[class*="follow"]',
+      '[class*="subscribe"]', '[class*="newsletter"]', '[class*="sidebar"]',
+      '[class*="related"]', '[class*="recommended"]', '[class*="popular"]',
+      '[class*="breadcrumb"]', '[class*="navigation"]', '[class*="author-bio"]',
+      '[class*="byline"]', '[class*="author-card"]', '[class*="writer"]',
+      '[class*="audio"]', '[class*="listen"]', '[class*="podcast"]',
+      '[class*="ad-"]', '[class*="advert"]', '[class*="banner"]',
+      '[class*="promo"]', '[class*="cta"]', '[class*="popup"]',
+      '[class*="modal"]', '[class*="cookie"]', '[class*="consent"]',
+      '[class*="comment"]', '[class*="disqus"]', '[class*="tags"]',
+      '[role="navigation"]', '[role="banner"]', '[role="complementary"]',
+    ];
+    junkSel.forEach(sel => {
+      try { container.querySelectorAll(sel).forEach(el => el.remove()); } catch {}
+    });
+
+    // Remove elements matching article title (avoid showing title twice)
+    if (articleTitle) {
+      const titleLower = articleTitle.toLowerCase().trim();
+      const titleWords = titleLower.split(/\s+/).slice(0, 6).join(' ');
+      container.querySelectorAll('h1, h2, h3').forEach(el => {
+        const t = (el.textContent || '').toLowerCase().trim();
+        if (t === titleLower || t.includes(titleWords) || titleLower.includes(t)) el.remove();
+      });
+    }
+
+    // Remove short junk-text elements (subscribe CTAs, timestamps, etc.)
+    const junkPat = [
+      /subscribe\s+(on|to|now)/i, /follow\s+(our|us|on)/i, /in your social feed/i,
+      /sign\s+up/i, /join\s+(our|the)/i, /download\s+(the|our)\s+app/i,
+      /written\s+by\b/i, /reviewed\s+by\b/i, /staff\s+(writer|editor)/i,
+      /\d+\s*(hours?|minutes?|days?)\s+ago$/i, /^\s*listen\s*$/i, /^0:00$/,
+    ];
+    container.querySelectorAll('p, div, span, li, a, figcaption, time').forEach(el => {
+      const txt = (el.textContent || '').trim();
+      if (txt.length < 150) {
+        for (const p of junkPat) { if (p.test(txt)) { el.remove(); break; } }
+      }
+    });
+
+    // Remove tiny tracking images / logos
+    container.querySelectorAll('img').forEach(img => {
+      const src = (img.getAttribute('src') || '').toLowerCase();
+      const alt = (img.getAttribute('alt') || '').toLowerCase();
+      const w = img.getAttribute('width');
+      if (src.includes('logo') || src.includes('icon') || src.includes('avatar') ||
+          src.includes('1x1') || src.includes('pixel') || src.includes('tracking') ||
+          alt.includes('logo') || (w && parseInt(w) < 50)) {
+        img.remove();
+      }
+    });
+
+    // Remove empty elements
+    container.querySelectorAll('p, div, span, h1, h2, h3, h4, h5, h6').forEach(el => {
+      if (!(el.textContent || '').trim() && !el.querySelector('img, video')) el.remove();
+    });
+
+    return container.innerHTML.trim();
+  };
 
   // Normalize content to formal HTML paragraphs when needed
   const getNormalizedContentHtml = (htmlOrText?: string): string => {
     const raw = (htmlOrText || '').trim();
     if (!raw) return '';
     const looksLikeHtml = /<[^>]+>/.test(raw);
-    if (looksLikeHtml) return raw;
+    if (looksLikeHtml) return sanitizeScrapedHtml(raw, effectiveItem?.title);
     const paragraphs = raw
       .split(/\n{2,}/)
-      .map((p) => `<p>${p.replace(/\n/g, '<br/>')}</p>`) // preserve single newlines within a paragraph
+      .map((p) => `<p>${p.replace(/\n/g, '<br/>')}</p>`)
       .join('');
     return paragraphs || `<p>${raw}</p>`;
   };
@@ -605,170 +774,41 @@ const NewsDetail: React.FC = () => {
             </div>
           )}
 
-          {/* Article Summary - AdSense Compliant */}
-          <div className="article-content mb-4" ref={contentRef}>
-            {/* Summary/Description */}
-            <div className="article-body" style={{ fontSize: `${(1.0 * fontScale).toFixed(2)}rem` }}>
-              <div className="article-summary p-4 rounded-3 mb-4" style={{ backgroundColor: '#f8f9fa', border: '1px solid #e9ecef' }}>
-                <h5 className="mb-3" style={{ color: '#1f2937', fontWeight: '600' }}>Summary</h5>
-                <p style={{ color: '#4b5563', lineHeight: '1.8', fontSize: '1.1rem' }}>
-                  {effectiveItem.description || 'No summary available.'}
-                </p>
-              </div>
-              
-              {/* ORIGINAL CONTENT SECTION - Adds unique value */}
-              
-              {/* 1. AI-Powered Sentiment Analysis */}
-              <div className="sentiment-analysis p-4 rounded-3 mb-4" style={{ backgroundColor: '#ecfdf5', border: '1px solid #6ee7b7' }}>
-                <h5 className="mb-3 d-flex align-items-center" style={{ color: '#065f46', fontWeight: '600' }}>
-                  <span className="me-2">📊</span> CoinsClarity Sentiment Analysis
-                </h5>
-                <div className="d-flex align-items-center gap-3 mb-3">
-                  <div className="sentiment-meter" style={{ 
-                    width: '100%', 
-                    height: '8px', 
-                    backgroundColor: '#d1fae5',
-                    borderRadius: '4px',
-                    overflow: 'hidden'
-                  }}>
-                    <div style={{ 
-                      width: `${(() => {
-                        const text = (effectiveItem.title + ' ' + effectiveItem.description).toLowerCase();
-                        const bullish = ['surge', 'rally', 'gain', 'bull', 'rise', 'pump', 'moon', 'ath', 'record', 'grow', 'adopt'].filter(w => text.includes(w)).length;
-                        const bearish = ['crash', 'drop', 'bear', 'dump', 'fall', 'decline', 'loss', 'fear', 'sell', 'ban', 'hack'].filter(w => text.includes(w)).length;
-                        return Math.min(90, Math.max(10, 50 + (bullish - bearish) * 15));
-                      })()}%`,
-                      height: '100%',
-                      backgroundColor: '#10b981',
-                      transition: 'width 0.5s ease'
-                    }} />
+           {/* Article Content */}
+            <div className="article-content mb-4" ref={contentRef}>
+              <div className="article-body" style={{ fontSize: `${(1.0 * fontScale).toFixed(2)}rem` }}>
+
+                {/* Full Article Content */}
+                {(effectiveItem.contentHtml || effectiveItem.fullContent || effectiveItem.content || effectiveItem.description || '').length > 0 && (
+                  <div className="full-article-content mb-4">
+                    <div 
+                      className="content-html"
+                      dangerouslySetInnerHTML={{ 
+                        __html: getNormalizedContentHtml(
+                          effectiveItem.contentHtml || effectiveItem.fullContent || effectiveItem.content || effectiveItem.description || ''
+                        )
+                      }}
+                      style={{ lineHeight: '1.9', color: '#374151', fontSize: `${(1.05 * fontScale).toFixed(2)}rem` }}
+                    />
                   </div>
-                  <span style={{ color: '#065f46', fontWeight: '600', minWidth: '80px' }}>
-                    {(() => {
-                      const text = (effectiveItem.title + ' ' + effectiveItem.description).toLowerCase();
-                      const bullish = ['surge', 'rally', 'gain', 'bull', 'rise', 'pump', 'moon', 'ath', 'record', 'grow', 'adopt'].filter(w => text.includes(w)).length;
-                      const bearish = ['crash', 'drop', 'bear', 'dump', 'fall', 'decline', 'loss', 'fear', 'sell', 'ban', 'hack'].filter(w => text.includes(w)).length;
-                      const score = bullish - bearish;
-                      return score > 1 ? '🟢 Bullish' : score < -1 ? '🔴 Bearish' : '🟡 Neutral';
-                    })()}
-                  </span>
-                </div>
-                <p style={{ color: '#047857', fontSize: '0.9rem', marginBottom: 0 }}>
-                  <em>Sentiment determined by CoinsClarity's proprietary keyword analysis of headline and summary.</em>
-                </p>
-              </div>
+                )}
 
-              {/* 2. CoinsClarity Editorial Take */}
-              <div className="coinsclarity-take p-4 rounded-3 mb-4" style={{ backgroundColor: '#fef3c7', border: '1px solid #fcd34d' }}>
-                <h5 className="mb-3 d-flex align-items-center" style={{ color: '#92400e', fontWeight: '600' }}>
-                  <span className="me-2">💡</span> CoinsClarity Editor's Take
-                </h5>
-                <p style={{ color: '#78350f', lineHeight: '1.7' }}>
-                  {(() => {
-                    const text = (effectiveItem.title + ' ' + effectiveItem.description).toLowerCase();
-                    const isBTC = text.includes('bitcoin') || text.includes('btc');
-                    const isETH = text.includes('ethereum') || text.includes('eth');
-                    const isRegulation = text.includes('sec') || text.includes('regulation') || text.includes('law') || text.includes('government');
-                    const isDefi = text.includes('defi') || text.includes('dex') || text.includes('yield');
-                    const isNFT = text.includes('nft') || text.includes('opensea');
-                    const isHack = text.includes('hack') || text.includes('exploit') || text.includes('breach');
-                    
-                    if (isHack) return "⚠️ Security incidents remind us of the importance of self-custody and due diligence. Always verify smart contracts and use hardware wallets for significant holdings. This story highlights ongoing security challenges in the crypto ecosystem.";
-                    if (isRegulation) return "📜 Regulatory developments continue to shape the crypto landscape. While clarity can benefit institutional adoption, it's crucial to monitor how new rules may impact DeFi protocols and individual holders. Stay informed on compliance requirements in your jurisdiction.";
-                    if (isBTC) return "₿ Bitcoin remains the bellwether of the crypto market. As the most decentralized and battle-tested cryptocurrency, BTC price movements often signal broader market sentiment. Consider this news in the context of macro economic conditions and institutional flows.";
-                    if (isETH) return "Ξ Ethereum's ecosystem continues to evolve post-merge. With the shift to proof-of-stake and ongoing Layer 2 development, ETH news carries implications for the entire smart contract ecosystem. Watch gas fees and staking yields for market health indicators.";
-                    if (isDefi) return "🏦 DeFi protocols offer yield opportunities but come with smart contract risks. Always assess TVL trends, audit status, and team reputation before participating. This development may impact broader DeFi composability.";
-                    if (isNFT) return "🎨 The NFT market continues to mature beyond profile pictures. Watch for utility-focused projects and their integration with gaming and metaverse platforms. Trading volume and floor prices remain key indicators.";
-                    return "📰 This development reflects the rapidly evolving crypto landscape. At CoinsClarity, we track market-moving news to help you make informed decisions. Consider multiple sources and your own research before acting on any news.";
-                  })()}
-                </p>
-              </div>
+                {/* Loading indicator while fetching full article */}
+                {fullContentLoading && (
+                  <div className="d-flex align-items-center gap-2 mt-3 p-3 rounded" style={{ backgroundColor: '#f0f9ff', border: '1px solid #bfdbfe' }}>
+                    <div className="spinner-border spinner-border-sm" role="status" style={{ color: '#3b82f6', width: '16px', height: '16px' }}>
+                      <span className="visually-hidden">Loading...</span>
+                    </div>
+                    <span style={{ color: '#1e40af', fontSize: '0.85rem' }}>Loading full article...</span>
+                  </div>
+                )}
 
-              {/* 3. Market Context - Live Data */}
-              {(() => { 
-                const r = computeImpactLevel(effectiveItem || undefined); 
-                return r.affectedCoins && r.affectedCoins.length > 0;
-              })() && (
-                <div className="market-context p-4 rounded-3 mb-4" style={{ backgroundColor: '#eff6ff', border: '1px solid #93c5fd' }}>
-                  <h5 className="mb-3 d-flex align-items-center" style={{ color: '#1e40af', fontWeight: '600' }}>
-                    <span className="me-2">📈</span> Related Market Data
-                  </h5>
-                  <p style={{ color: '#1e3a8a', fontSize: '0.9rem', marginBottom: '12px' }}>
-                    Coins mentioned in this article:
+                {/* Source */}
+                {effectiveItem.source_name && (
+                  <p className="text-muted mt-3 mb-0" style={{ fontSize: '0.85rem', textAlign: 'right' }}>
+                    Source: {effectiveItem.source_name}
                   </p>
-                  <div className="d-flex flex-wrap gap-2">
-                    {(() => { const r = computeImpactLevel(effectiveItem || undefined); return r.affectedCoins; })().map((coin: string) => (
-                      <a 
-                        key={coin} 
-                        href={`/coin/${coin.toLowerCase()}`}
-                        className="btn btn-sm"
-                        style={{ backgroundColor: '#dbeafe', color: '#1e40af', border: '1px solid #93c5fd' }}
-                      >
-                        {coin} <span style={{ fontSize: '0.8rem' }}>→ View Chart</span>
-                      </a>
-                    ))}
-                  </div>
-                  <p style={{ color: '#3b82f6', fontSize: '0.85rem', marginTop: '12px', marginBottom: 0 }}>
-                    <em>Track real-time prices and charts on CoinsClarity</em>
-                  </p>
-                </div>
-              )}
-
-              {/* 4. Key Takeaways - Original Summary */}
-              <div className="key-takeaways p-4 rounded-3 mb-4" style={{ backgroundColor: '#faf5ff', border: '1px solid #c4b5fd' }}>
-                <h5 className="mb-3 d-flex align-items-center" style={{ color: '#5b21b6', fontWeight: '600' }}>
-                  <span className="me-2">🎯</span> Key Takeaways
-                </h5>
-                <ul style={{ color: '#6b21a8', marginBottom: 0, paddingLeft: '20px' }}>
-                  <li style={{ marginBottom: '8px' }}>
-                    <strong>Impact Level:</strong> {(() => { const r = computeImpactLevel(effectiveItem || undefined); return r.level; })()}
-                  </li>
-                  <li style={{ marginBottom: '8px' }}>
-                    <strong>Category:</strong> {effectiveItem.category?.[0] || 'Crypto News'}
-                  </li>
-                  <li style={{ marginBottom: '8px' }}>
-                    <strong>Reading Time:</strong> {getReadingTime(effectiveItem?.description)} min summary
-                  </li>
-                  <li>
-                    <strong>Source Credibility:</strong> {effectiveItem.source_name || effectiveItem.creator?.[0] || 'Verified Publisher'}
-                  </li>
-                </ul>
-              </div>
-
-              {/* Full Article Content */}
-              {fullContentLoading && (
-                <div className="full-article-content mb-4 text-center p-5" style={{ backgroundColor: '#f0f9ff', borderRadius: '12px', border: '1px solid #bfdbfe' }}>
-                  <div className="spinner-border spinner-border-sm me-2" role="status" style={{ color: '#3b82f6' }}>
-                    <span className="visually-hidden">Loading...</span>
-                  </div>
-                  <span style={{ color: '#1e40af', fontSize: '1rem' }}>Loading full article content...</span>
-                </div>
-              )}
-              {!fullContentLoading && (effectiveItem.contentHtml || effectiveItem.fullContent || effectiveItem.content) && (
-                <div className="full-article-content mb-4">
-                  <h5 className="mb-3" style={{ color: '#1f2937', fontWeight: '600' }}>📖 Full Article</h5>
-                  <div 
-                    className="content-html"
-                    dangerouslySetInnerHTML={{ 
-                      __html: getNormalizedContentHtml(
-                        effectiveItem.contentHtml || effectiveItem.fullContent || effectiveItem.content || ''
-                      )
-                    }}
-                    style={{
-                      lineHeight: '1.85',
-                      color: '#374151',
-                      fontSize: `${(1.0 * fontScale).toFixed(2)}rem`
-                    }}
-                  />
-                </div>
-              )}
-
-              {/* Source Attribution */}
-              {effectiveItem.source_name && (
-                <p className="text-muted mt-3 mb-0" style={{ fontSize: '0.85rem', textAlign: 'right' }}>
-                  Source: {effectiveItem.source_name || effectiveItem.creator?.[0] || 'CoinsClarity'}
-                </p>
-              )}
+                )}
             </div>
           </div>
 
