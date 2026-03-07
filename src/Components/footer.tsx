@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Container, Row, Col, Form, Button, Alert, InputGroup } from 'react-bootstrap';
-import { FacebookIcon as Facebook, Twitter, PinIcon as Pinterest, Instagram, Youtube, DiscIcon as Discord } from 'lucide-react';
+import { Twitter, Instagram, Youtube, DiscIcon as Discord } from 'lucide-react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import '@fontsource/inter';
 import { useLanguage } from '../context/LanguageContext';
@@ -16,207 +16,129 @@ const Footer: React.FC = () => {
 
   const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!email.trim()) {
-      setMessage({ type: 'error', text: 'Please enter your email address' });
-      return;
-    }
-
-    // Basic email validation
+    if (!email.trim()) { setMessage({ type: 'error', text: 'Please enter your email address' }); return; }
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      setMessage({ type: 'error', text: 'Please enter a valid email address' });
-      return;
-    }
-
+    if (!emailRegex.test(email)) { setMessage({ type: 'error', text: 'Please enter a valid email address' }); return; }
     setIsSubmitting(true);
     setMessage(null);
-
     try {
-      const response = await fetch(`${ API_BASE_URL || 'http://localhost:5000'}/subscribe`, {
+      const response = await fetch(`${API_BASE_URL || 'http://localhost:5000'}/subscribe`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: email.trim(), name: name.trim() }),
       });
-
       const data = await response.json();
-
-      if (data.success) {
-        setMessage({ type: 'success', text: data.message });
-        setEmail('');
-        setName('');
-      } else {
-        setMessage({ type: 'error', text: data.message || 'Subscription failed. Please try again.' });
-      }
-    } catch (error) {
-      setMessage({ type: 'error', text: 'Network error. Please check your connection and try again.' });
-    } finally {
-      setIsSubmitting(false);
-    }
+      if (data.success) { setMessage({ type: 'success', text: data.message }); setEmail(''); setName(''); }
+      else { setMessage({ type: 'error', text: data.message || 'Subscription failed.' }); }
+    } catch { setMessage({ type: 'error', text: 'Network error. Please try again.' }); }
+    finally { setIsSubmitting(false); }
   };
 
+  const linkStyle: React.CSSProperties = { color: '#94a3b8', fontSize: 13, textDecoration: 'none', display: 'block', padding: '3px 0', transition: 'color 0.2s ease' };
+  const headingStyle: React.CSSProperties = { color: '#fff', fontSize: 13, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 16 };
+
   return (
-    <footer className="text-light py-5 mt-5" style={{ backgroundColor: '#1f2937' }}>
-      <Container style={{ width: '100%', maxWidth: '1200px', padding: '0 16px' }}>
-        <Row className="mb-5 gy-4" style={{ maxWidth: '100%' }}>
-          <Col lg={3} md={6} className="mb-4 mb-md-0 text-center text-md-start">
+    <footer style={{ background: '#0f172a', color: '#94a3b8', paddingTop: 48, paddingBottom: 24, marginTop: 40 }}>
+      <Container style={{ maxWidth: 1280, padding: '0 20px' }}>
+        <Row className="gy-4 mb-4">
+          {/* Brand */}
+          <Col lg={3} md={6}>
             <img
               src="/logo3.png"
               alt="CoinsClarity Logo"
-              className="mb-4 d-block mx-auto mx-md-0"
-              style={{ width: '250px', height: 'auto' }}
+              style={{ width: 170, height: 'auto', marginBottom: 16, filter: 'brightness(1.1)' }}
               onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/image.png'; }}
             />
-            <p className="mx-auto mx-md-0" style={{ lineHeight: '1.6', maxWidth: 520, color: '#ffffff', fontSize: '0.875rem' }}>
-              CoinsClarity is a versatile platform sharing the best, real-time, highest quality cryptocurrency market data. With an easy-to-use API, charts, and cryptocurrency glossary — plus tools like arbitrage scanner, listings tracker, RSI scanner, profit/DCA calculators, funding rates, and gas tracker.
+            <p style={{ color: '#94a3b8', fontSize: 13, lineHeight: 1.7, marginBottom: 16 }}>
+              Real-time crypto news, market data, trading tools, and insights. Your all-in-one platform for navigating the digital asset space.
             </p>
-            <p className="mt-3" style={{ color: '#ffffff', fontSize: '0.875rem' }}>{t('footer.copyright')}</p>
-          </Col>
-          <Col lg={2} md={6} className="mb-2 mb-md-0 text-center text-md-start">
-            <h6 className="text-white mb-3 fw-bold">Our Company</h6>
-            <ul className="list-unstyled" style={{ paddingLeft: '0' }}>
-              <li className="mb-2"><a href="/" className="small text-decoration-none hover-underline d-inline-block" style={{ color: '#ffffff' }}>{t('nav.home')}</a></li>
-              <li className="mb-2"><a href="/about" className="small text-decoration-none hover-underline d-inline-block" style={{ color: '#ffffff' }}>About Us</a></li>
-              <li className="mb-2"><a href="/contact" className="small text-decoration-none hover-underline d-inline-block" style={{ color: '#ffffff' }}>Contact</a></li>
-              <li className="mb-2"><a href="/advertise" className="small text-decoration-none hover-underline d-inline-block" style={{ color: '#ffffff' }}>Advertise</a></li>
-              <li className="mb-2"><a href="/listings" className="small text-decoration-none hover-underline d-inline-block" style={{ color: '#ffffff' }}>Listings</a></li>
-            </ul>
-          </Col>
-          <Col lg={2} md={6} className="mb-2 mb-md-0 text-center text-md-start">
-            <h6 className="text-white mb-3 fw-bold">Trading Tools</h6>
-            <ul className="list-unstyled">
-              <li className="mb-2"><a href="/tools" className="small text-decoration-none hover-underline d-inline-block" style={{ color: '#ffffff' }}>All Tools</a></li>
-              <li className="mb-2"><a href="/arbitrage" className="small text-decoration-none hover-underline d-inline-block" style={{ color: '#ffffff' }}>Arbitrage Finder</a></li>
-              <li className="mb-2"><a href="/tools" className="small text-decoration-none hover-underline d-inline-block" style={{ color: '#ffffff' }}>Profit Calculator</a></li>
-              <li className="mb-2"><a href="/tools" className="small text-decoration-none hover-underline d-inline-block" style={{ color: '#ffffff' }}>DCA Calculator</a></li>
-              <li className="mb-2"><a href="/tools" className="small text-decoration-none hover-underline d-inline-block" style={{ color: '#ffffff' }}>Funding Rates</a></li>
-              <li className="mb-2"><a href="/tools" className="small text-decoration-none hover-underline d-inline-block" style={{ color: '#ffffff' }}>Gas Tracker</a></li>
-            </ul>
-          </Col>
-          <Col lg={2} md={6} className="mb-2 mb-md-0 text-center text-md-start">
-            <h6 className="text-white mb-3 fw-bold">Resources</h6>
-            <ul className="list-unstyled">
-              <li className="mb-2"><a href="/privacy-policy" className="small text-decoration-none hover-underline d-inline-block" style={{ color: '#ffffff' }}>Privacy Policy</a></li>
-              <li className="mb-2"><a href="/terms" className="small text-decoration-none hover-underline d-inline-block" style={{ color: '#ffffff' }}>Terms of Service</a></li>
-              <li className="mb-2"><a href="/disclaimer" className="small text-decoration-none hover-underline d-inline-block" style={{ color: '#ffffff' }}>Disclaimer</a></li>
-              <li className="mb-2"><a href="/faq" className="small text-decoration-none hover-underline d-inline-block" style={{ color: '#ffffff' }}>FAQ</a></li>
-              <li className="mb-2"><a href="/learn" className="small text-decoration-none hover-underline d-inline-block" style={{ color: '#ffffff' }}>Learn Crypto</a></li>
-            </ul>
-          </Col>
-          <Col lg={3} md={6} className="mb-4 mb-md-0 text-center text-md-start">
-            <h6 className="text-white mb-3 fw-bold">{t('footer.joinCommunity')}</h6>
-            <div className="d-flex flex-wrap gap-3 justify-content-center justify-content-md-start">
-              <a href="https://x.com/coinsclarity?t=hSpD5E1d2xIjii-mhw9kEQ&s=09" target="_blank" rel="noreferrer" aria-label="X (Twitter)" className="hover-opacity" style={{ color: '#ffffff' }}><Twitter size={28} /></a>
-              <a href="https://www.instagram.com/coinsclarity?igsh=MWc2YnRjMXIzeTE3aw==" target="_blank" rel="noreferrer" aria-label="Instagram" className="hover-opacity" style={{ color: '#ffffff' }}><Instagram size={28} /></a>
-              <a href="https://youtube.com" target="_blank" rel="noreferrer" aria-label="YouTube" className="hover-opacity" style={{ color: '#ffffff' }}><Youtube size={28} /></a>
-              <a href="https://discord.com" target="_blank" rel="noreferrer" aria-label="Discord" className="hover-opacity" style={{ color: '#ffffff' }}><Discord size={28} /></a>
+            <div style={{ display: 'flex', gap: 12 }}>
+              <a href="https://x.com/coinsclarity" target="_blank" rel="noreferrer" aria-label="X (Twitter)" style={{ color: '#64748b', transition: 'color 0.2s' }} onMouseEnter={e => e.currentTarget.style.color = '#f97316'} onMouseLeave={e => e.currentTarget.style.color = '#64748b'}><Twitter size={18} /></a>
+              <a href="https://www.instagram.com/coinsclarity" target="_blank" rel="noreferrer" aria-label="Instagram" style={{ color: '#64748b', transition: 'color 0.2s' }} onMouseEnter={e => e.currentTarget.style.color = '#f97316'} onMouseLeave={e => e.currentTarget.style.color = '#64748b'}><Instagram size={18} /></a>
+              <a href="https://youtube.com" target="_blank" rel="noreferrer" aria-label="YouTube" style={{ color: '#64748b', transition: 'color 0.2s' }} onMouseEnter={e => e.currentTarget.style.color = '#f97316'} onMouseLeave={e => e.currentTarget.style.color = '#64748b'}><Youtube size={18} /></a>
+              <a href="https://discord.com" target="_blank" rel="noreferrer" aria-label="Discord" style={{ color: '#64748b', transition: 'color 0.2s' }} onMouseEnter={e => e.currentTarget.style.color = '#f97316'} onMouseLeave={e => e.currentTarget.style.color = '#64748b'}><Discord size={18} /></a>
             </div>
-            <div className="d-flex justify-content-center justify-content-md-start mt-5 me-md-0">
-              <Form onSubmit={handleSubscribe} className="d-flex flex-column" style={{ width: '100%' }}>
-                {message && (
-                  <Alert 
-                    variant={message.type === 'success' ? 'success' : 'danger'} 
-                    className="mb-3"
-                    style={{ fontSize: '0.9rem' }}
-                  >
-                    {message.text}
-                  </Alert>
-                )}
-                
-                <InputGroup className="mb-1">
-                  <Form.Control 
-                    type="email" 
-                    placeholder={t('footer.enterEmail')} 
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                    className="bg-dark text-light" 
-                    style={{ 
-                      color: 'white',
-                      fontSize: '0.95rem',
-                      height: '40px'
-                    }}
-                  />
-                  <Button
-                    variant="warning"
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="footer-button d-flex align-items-center justify-content-center"
-                    style={{
-                      backgroundColor: '#f97316',
-                      fontSize: '1rem',
-                      color: 'white',
-                      height: '40px',
-                      border: '2px solid transparent',
-                      transition: 'all 0.3s ease'
-                    }}
-                  >
-                    {isSubmitting ? (
-                      <>
-                        <div className="spinner-border spinner-border-sm me-2" role="status">
-                          <span className="visually-hidden">Loading...</span>
-                        </div>
-                        {t('footer.subscribing')}
-                      </>
-                    ) : (
-                      <>
-                        <span>{t('footer.subscribe')}</span>
-                        <i className="bi bi-envelope-fill ms-2"></i>
-                      </>
-                    )}
-                  </Button>
-                </InputGroup>
-                <small className="mt-2" style={{ fontSize: '0.8rem', color: '#ffffff' }}>
-                  {t('footer.subscriptionText')}
-                </small>
-              </Form>
-            </div>
+          </Col>
+
+          {/* Company */}
+          <Col lg={2} md={3} sm={6}>
+            <div style={headingStyle}>Company</div>
+            <a href="/" style={linkStyle} onMouseEnter={e => e.currentTarget.style.color = '#fff'} onMouseLeave={e => e.currentTarget.style.color = '#94a3b8'}>Home</a>
+            <a href="/about" style={linkStyle} onMouseEnter={e => e.currentTarget.style.color = '#fff'} onMouseLeave={e => e.currentTarget.style.color = '#94a3b8'}>About Us</a>
+            <a href="/contact" style={linkStyle} onMouseEnter={e => e.currentTarget.style.color = '#fff'} onMouseLeave={e => e.currentTarget.style.color = '#94a3b8'}>Contact</a>
+            <a href="/advertise" style={linkStyle} onMouseEnter={e => e.currentTarget.style.color = '#fff'} onMouseLeave={e => e.currentTarget.style.color = '#94a3b8'}>Advertise</a>
+            <a href="/blog" style={linkStyle} onMouseEnter={e => e.currentTarget.style.color = '#fff'} onMouseLeave={e => e.currentTarget.style.color = '#94a3b8'}>Blog</a>
+          </Col>
+
+          {/* News & Content */}
+          <Col lg={2} md={3} sm={6}>
+            <div style={headingStyle}>News</div>
+            <a href="/exclusive-news" style={linkStyle} onMouseEnter={e => e.currentTarget.style.color = '#fff'} onMouseLeave={e => e.currentTarget.style.color = '#94a3b8'}>Exclusive News</a>
+            <a href="/All-Trending-news" style={linkStyle} onMouseEnter={e => e.currentTarget.style.color = '#fff'} onMouseLeave={e => e.currentTarget.style.color = '#94a3b8'}>Trending</a>
+            <a href="/press-news" style={linkStyle} onMouseEnter={e => e.currentTarget.style.color = '#fff'} onMouseLeave={e => e.currentTarget.style.color = '#94a3b8'}>Press Releases</a>
+            <a href="/ai-news" style={linkStyle} onMouseEnter={e => e.currentTarget.style.color = '#fff'} onMouseLeave={e => e.currentTarget.style.color = '#94a3b8'}>AI News</a>
+            <a href="/listings" style={linkStyle} onMouseEnter={e => e.currentTarget.style.color = '#fff'} onMouseLeave={e => e.currentTarget.style.color = '#94a3b8'}>Listings</a>
+          </Col>
+
+          {/* Tools */}
+          <Col lg={2} md={3} sm={6}>
+            <div style={headingStyle}>Tools</div>
+            <a href="/tools" style={linkStyle} onMouseEnter={e => e.currentTarget.style.color = '#fff'} onMouseLeave={e => e.currentTarget.style.color = '#94a3b8'}>All Tools</a>
+            <a href="/arbitrage-scanner" style={linkStyle} onMouseEnter={e => e.currentTarget.style.color = '#fff'} onMouseLeave={e => e.currentTarget.style.color = '#94a3b8'}>Arbitrage Scanner</a>
+            <a href="/watchlist" style={linkStyle} onMouseEnter={e => e.currentTarget.style.color = '#fff'} onMouseLeave={e => e.currentTarget.style.color = '#94a3b8'}>Watchlist</a>
+            <a href="/learn" style={linkStyle} onMouseEnter={e => e.currentTarget.style.color = '#fff'} onMouseLeave={e => e.currentTarget.style.color = '#94a3b8'}>Learn Crypto</a>
+          </Col>
+
+          {/* Newsletter */}
+          <Col lg={3} md={6}>
+            <div style={headingStyle}>Newsletter</div>
+            <p style={{ color: '#94a3b8', fontSize: 13, marginBottom: 12, lineHeight: 1.6 }}>
+              Get the top crypto stories, market movers, and exclusive insights delivered to your inbox every morning — free.
+            </p>
+            {message && (
+              <Alert variant={message.type === 'success' ? 'success' : 'danger'} style={{ fontSize: 12, padding: '8px 12px', marginBottom: 8 }}>
+                {message.text}
+              </Alert>
+            )}
+            <Form onSubmit={handleSubscribe}>
+              <InputGroup size="sm">
+                <Form.Control
+                  type="email"
+                  placeholder="Your email address"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  style={{ background: '#1e293b', border: '1px solid #334155', color: '#e2e8f0', fontSize: 13, borderRadius: '6px 0 0 6px' }}
+                />
+                <Button
+                  type="submit"
+                  disabled={isSubmitting}
+                  style={{ background: '#f97316', border: 'none', fontSize: 13, fontWeight: 600, padding: '0 16px', borderRadius: '0 6px 6px 0' }}
+                >
+                  {isSubmitting ? '...' : 'Subscribe'}
+                </Button>
+              </InputGroup>
+            </Form>
+            <small style={{ color: '#64748b', fontSize: 11, marginTop: 8, display: 'block' }}>
+              No spam, unsubscribe anytime. Join 5,000+ crypto enthusiasts.
+            </small>
           </Col>
         </Row>
-        <Row>
-          <Col className="text-center">
-            <div className="d-flex justify-content-center align-items-center gap-3 mb-3">
-              <span className="text-light small">Language:</span>
-              <LanguageSelector />
-            </div>
-          </Col>
-        </Row>
+
+        {/* Bottom bar */}
+        <div style={{ borderTop: '1px solid #1e293b', paddingTop: 20, marginTop: 16, display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
+          <div style={{ fontSize: 12, color: '#64748b' }}>
+            © {new Date().getFullYear()} CoinsClarity. All rights reserved.
+          </div>
+          <div style={{ display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap' }}>
+            <a href="/privacy-policy" style={{ color: '#64748b', fontSize: 12, textDecoration: 'none' }} onMouseEnter={e => e.currentTarget.style.color = '#94a3b8'} onMouseLeave={e => e.currentTarget.style.color = '#64748b'}>Privacy</a>
+            <a href="/terms" style={{ color: '#64748b', fontSize: 12, textDecoration: 'none' }} onMouseEnter={e => e.currentTarget.style.color = '#94a3b8'} onMouseLeave={e => e.currentTarget.style.color = '#64748b'}>Terms</a>
+            <a href="/disclaimer" style={{ color: '#64748b', fontSize: 12, textDecoration: 'none' }} onMouseEnter={e => e.currentTarget.style.color = '#94a3b8'} onMouseLeave={e => e.currentTarget.style.color = '#64748b'}>Disclaimer</a>
+            <a href="/faq" style={{ color: '#64748b', fontSize: 12, textDecoration: 'none' }} onMouseEnter={e => e.currentTarget.style.color = '#94a3b8'} onMouseLeave={e => e.currentTarget.style.color = '#64748b'}>FAQ</a>
+            <LanguageSelector />
+          </div>
+        </div>
       </Container>
-      <style>
-        {`
-          .hover-underline:hover {
-            text-decoration: underline !important;
-          }
-          .hover-opacity:hover {
-            opacity: 0.8;
-          }
-          .bg-dark.text-light::placeholder {
-            color: rgba(255, 255, 255, 0.7);
-          }
-          .footer-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-          }
-          .footer-button:disabled {
-            opacity: 0.7;
-            transform: none;
-            box-shadow: none;
-          }
-          @media (max-width: 576px) {
-            .footer-button {
-              font-size: 0.9rem;
-              height: 40px;
-              border-radius: 0.5rem;
-            }
-            .bg-dark.text-light {
-              height: 40px;
-              font-size: 0.9rem;
-            }
-          }
-        `}
-      </style>
     </footer>
   );
 };

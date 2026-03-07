@@ -165,18 +165,19 @@ const CoinsNavbar: React.FC = () => {
       expand="lg"
       expanded={expanded}
       onToggle={(next) => setExpanded(Boolean(next))}
-      className={`border-bottom py-3 ${isScrolled ? 'navbar-glass' : ''}`}
+      className={`py-2 ${isScrolled ? 'navbar-glass' : ''}`}
       style={{
         background: 'var(--card)',
         color: 'var(--text)',
-        boxShadow: isScrolled ? '0 4px 30px rgba(0, 0, 0, 0.1)' : '0 2px 4px rgba(0, 0, 0, 0.1)',
+        boxShadow: isScrolled ? '0 1px 8px rgba(0,0,0,0.06)' : 'none',
+        borderBottom: '1px solid var(--border)',
         position: 'sticky',
         top: 0,
         zIndex: 1000,
         transition: 'all 0.3s ease'
       }}
     >
-      <Container fluid style={{ maxWidth: '90%', margin: '0 auto' }}>
+      <Container fluid style={{ maxWidth: 1280, margin: '0 auto', padding: '0 20px' }}>
         <Navbar.Brand as={Link} to="/" className="d-flex align-items-center">
           <img
             src="/logo3.png"
@@ -200,21 +201,23 @@ const CoinsNavbar: React.FC = () => {
           </div>
         </Navbar.Toggle>
         <Navbar.Collapse id="basic-navbar-nav">
-          <Nav className="me-auto gap-2" style={linkStyles}>
+          <Nav className="me-auto gap-1" style={linkStyles}>
             <NavDropdown title="News" id="news-dropdown">
-              <NavDropdown.Item as={NavLink} to="/exclusive-news">Exclusive News</NavDropdown.Item>
-              <NavDropdown.Item as={NavLink} to="/All-Trending-news">Trending</NavDropdown.Item>
-              <NavDropdown.Item as={NavLink} to="/press-news">Press News</NavDropdown.Item>
+              <NavDropdown.Item as={NavLink} to="/exclusive-news" onClick={handleNavItemClick}>Exclusive News</NavDropdown.Item>
+              <NavDropdown.Item as={NavLink} to="/All-Trending-news" onClick={handleNavItemClick}>Trending</NavDropdown.Item>
+              <NavDropdown.Item as={NavLink} to="/press-news" onClick={handleNavItemClick}>Press Releases</NavDropdown.Item>
+              <NavDropdown.Item as={NavLink} to="/ai-news" onClick={handleNavItemClick}>AI News</NavDropdown.Item>
               <NavDropdown.Divider />
-              <NavDropdown.Item as={NavLink} to="/listings">Listings</NavDropdown.Item>
+              <NavDropdown.Item as={NavLink} to="/beyond-the-headlines" onClick={handleNavItemClick}>Beyond the Headlines</NavDropdown.Item>
             </NavDropdown>
-            <Nav.Link as={NavLink} to="/learn" className="hover-underline">Learn</Nav.Link>
-            <Nav.Link as={NavLink} to="/press-news" className="hover-underline">Press Releases</Nav.Link>
-            <Nav.Link as={NavLink} to="/listings" className="hover-underline">Listings</Nav.Link>
-            <Nav.Link as={NavLink} to="/blog" className="hover-underline">Blog</Nav.Link>
-            <Nav.Link as={NavLink} to="/tools" className="hover-underline">Tools</Nav.Link>
-            <Nav.Link as={NavLink} to="/arbitrage-scanner" className="hover-underline">Arbitrage</Nav.Link>
-            <Nav.Link as={NavLink} to="/watchlist" className="hover-underline">Watchlist</Nav.Link>
+            <Nav.Link as={NavLink} to="/listings" onClick={handleNavItemClick}>Listings</Nav.Link>
+            <Nav.Link as={NavLink} to="/learn" onClick={handleNavItemClick}>Learn</Nav.Link>
+            <NavDropdown title="Tools" id="tools-dropdown">
+              <NavDropdown.Item as={NavLink} to="/tools" onClick={handleNavItemClick}>All Tools</NavDropdown.Item>
+              <NavDropdown.Item as={NavLink} to="/arbitrage-scanner" onClick={handleNavItemClick}>Arbitrage Scanner</NavDropdown.Item>
+              <NavDropdown.Item as={NavLink} to="/watchlist" onClick={handleNavItemClick}>Watchlist</NavDropdown.Item>
+            </NavDropdown>
+            <Nav.Link as={NavLink} to="/blog" onClick={handleNavItemClick}>Blog</Nav.Link>
           </Nav>
           <Form className="d-flex justify-content-center me-2" onSubmit={handleSearch}>
             <div className="position-relative search-container">
@@ -271,23 +274,23 @@ const CoinsNavbar: React.FC = () => {
             </div>
           </Form>
           <Nav className="align-items-center gap-2">
-            <Nav.Link as={NavLink} to="/advertise" className="me-2 mt-1">
+            <Nav.Link as={NavLink} to="/advertise" onClick={handleNavItemClick} className="p-0 me-1">
               <Button
                 variant="warning"
-                className="btn-interactive btn-ripple"
-                style={{ fontSize: '16px', padding: '8px 20px', color: 'white', backgroundColor: '#f90', borderRadius: '0.7rem' }}
+                size="sm"
+                style={{ fontSize: '13px', padding: '6px 16px', color: '#fff', background: '#f97316', border: 'none', borderRadius: '8px', fontWeight: 600 }}
               >
                 Advertise
               </Button>
             </Nav.Link>
             <Button
-              variant="outline-secondary"
-              className="rounded-circle d-flex align-items-center justify-content-center"
-              style={{ width: 40, height: 40 }}
+              variant="link"
+              className="d-flex align-items-center justify-content-center p-0"
+              style={{ width: 36, height: 36, color: 'var(--text)', opacity: 0.6 }}
               onClick={handleThemeToggle}
               aria-label="Toggle theme"
             >
-              {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
+              {theme === 'light' ? <Moon size={16} /> : <Sun size={16} />}
             </Button>
           </Nav>
         </Navbar.Collapse>

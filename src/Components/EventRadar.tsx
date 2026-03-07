@@ -11,20 +11,25 @@ const EventRadar: React.FC = () => {
     const run = async () => {
       setLoading(true);
       try {
+        const CAMIFY = 'https://camify.fun.coinsclarity.com';
         const sources = [
-          'fetch-dailycoin-rss?limit=40',
-          'fetch-cryptobriefing-rss?limit=40',
-          'fetch-dailyhodl-rss?limit=40',
-          'fetch-ambcrypto-rss?limit=40',
-          'fetch-beincrypto-rss?limit=40',
-          'fetch-cryptopotato-rss?limit=40',
-          'fetch-utoday-rss?limit=40',
+          `${CAMIFY}/fetch-dailycoin-rss?limit=40`,
+          `${CAMIFY}/fetch-cryptobriefing-rss?limit=40`,
+          `${CAMIFY}/fetch-beincrypto-rss?limit=40`,
+          `${CAMIFY}/fetch-cryptopotato-rss?limit=40`,
+          `${CAMIFY}/fetch-utoday-rss?limit=40`,
+          `${CAMIFY}/fetch-blockworks-rss?limit=40`,
+          `${CAMIFY}/fetch-coingape-rss?limit=40`,
+          `${CAMIFY}/fetch-protos-rss?limit=40`,
+          `${CAMIFY}/fetch-thecryptobasic-rss?limit=40`,
+          `${CAMIFY}/fetch-coincu-rss?limit=40`,
         ];
-        const results = await Promise.allSettled(sources.map(s => fetch(`${API_BASE_URL}/${s}`).then(r => r.json()).catch(() => null)));
+        const results = await Promise.allSettled(sources.map(s => fetch(s, { signal: AbortSignal.timeout(12000) }).then(r => r.json()).catch(() => null)));
         let items: any[] = [];
         for (const r of results) {
-          if ((r as any)?.status === 'fulfilled' && (r as any).value?.success && Array.isArray((r as any).value.data)) {
-            items.push(...(r as any).value.data);
+          if ((r as any)?.status === 'fulfilled' && (r as any).value?.success) {
+            const arr = Array.isArray((r as any).value.data) ? (r as any).value.data : Array.isArray((r as any).value.items) ? (r as any).value.items : [];
+            items.push(...arr);
           }
         }
         const evts = extractEvents(items);

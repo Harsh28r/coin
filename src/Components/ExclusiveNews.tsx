@@ -77,32 +77,33 @@ const ExclusiveNews: React.FC = () => {
       setIsLoading(true);
       setError(null);
       try {
-        // Try multiple sources in order until we have enough items
+        // Fetch from Camify (fast) + Render fallback in parallel
+        const CAMIFY = 'https://camify.fun.coinsclarity.com';
         const endpoints = [
-          `${API_BASE_URL}/fetch-all-rss?limit=24`,
-          `${API_BASE_URL}/fetch-defiant-rss?limit=24`,
-          `${API_BASE_URL}/fetch-coindesk-rss?limit=24`,
-          `${API_BASE_URL}/fetch-cryptoslate-rss?limit=24`,
-          `${API_BASE_URL}/fetch-decrypt-rss?limit=24`,
-          `${API_BASE_URL}/fetch-bitcoinmagazine-rss?limit=24`,
-          `${API_BASE_URL}/fetch-ambcrypto-rss?limit=24`,
-          `${API_BASE_URL}/fetch-dailycoin-rss?limit=24`,
-          `${API_BASE_URL}/fetch-beincrypto-rss?limit=24`,
-          `${API_BASE_URL}/fetch-cryptopotato-rss?limit=24`,
-          `${API_BASE_URL}/fetch-utoday-rss?limit=24`
+          `${CAMIFY}/fetch-cointelegraph-rss?limit=24`,
+          `${CAMIFY}/fetch-coindesk-rss?limit=24`,
+          `${CAMIFY}/fetch-decrypt-rss?limit=24`,
+          `${CAMIFY}/fetch-cryptoslate-rss?limit=24`,
+          `${CAMIFY}/fetch-cryptobriefing-rss?limit=24`,
+          `${CAMIFY}/fetch-beincrypto-rss?limit=24`,
+          `${CAMIFY}/fetch-blockworks-rss?limit=24`,
+          `${CAMIFY}/fetch-finbold-rss?limit=24`,
+          `${CAMIFY}/fetch-protos-rss?limit=24`,
+          `${CAMIFY}/fetch-unchained-rss?limit=24`,
+          `${CAMIFY}/fetch-thecryptobasic-rss?limit=24`,
+          `${CAMIFY}/fetch-blockonomi-rss?limit=24`,
+          `${API_BASE_URL}/fetch-all-rss?limit=50`,
         ];
 
+        const results = await Promise.allSettled(
+          endpoints.map(url => fetch(url, { signal: AbortSignal.timeout(10000) }).then(r => r.json()).catch(() => null))
+        );
         let items: any[] = [];
-        for (const url of endpoints) {
-          try {
-            const res = await fetch(url);
-            if (!res.ok) continue;
-            const data = await res.json();
-            if (data && Array.isArray(data.data) && data.data.length) {
-              items = items.concat(data.data);
-            }
-          } catch (e) {}
-          if (items.length >= 12) break;
+        for (const r of results) {
+          if ((r as any)?.status === 'fulfilled' && (r as any).value?.success) {
+            const arr = Array.isArray((r as any).value.data) ? (r as any).value.data : Array.isArray((r as any).value.items) ? (r as any).value.items : [];
+            items = items.concat(arr);
+          }
         }
 
         if (items.length) {
@@ -175,158 +176,79 @@ const ExclusiveNews: React.FC = () => {
   };
 
   return (
-    <Container fluid className="mt-5 skeleton-container" style={{ width: '92%' }}>
+    <section style={{ maxWidth: 1280, margin: '0 auto', padding: '2rem 20px' }}>
       <Helmet>
         <title>Exclusive News | CoinsClarity</title>
         <meta name="description" content="Exclusive crypto stories curated with full content on-platform." />
         <link rel="canonical" href={`${window.location.origin}/exclusive-news`} />
       </Helmet>
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <div>
-          <h4 className="m-0" style={{ fontWeight: 'bold', letterSpacing: '0.05em' }}>
-            {/* {t('news.exclusiveTitle')} */}ExclusiveNews
-          </h4>
-          {isTranslating && (
-            <small className="text-muted">
-              🔄 Translating news content to {currentLanguage === 'hi' ? 'Hindi' : 
-                currentLanguage === 'es' ? 'Spanish' :
-                currentLanguage === 'fr' ? 'French' :
-                currentLanguage === 'de' ? 'German' :
-                currentLanguage === 'zh' ? 'Chinese' :
-                currentLanguage === 'ja' ? 'Japanese' :
-                currentLanguage === 'ko' ? 'Korean' :
-                currentLanguage === 'ar' ? 'Arabic' : currentLanguage}...
-            </small>
-          )}
-        </div>
-        <Button
-          variant="link"
-          className="text-warning text-decoration-none"
-          onClick={() => navigate('/exclusive-news')}
-          aria-label="View all news"
-        >
-          {/* {t('news.viewAll')} */}viewAll
-          <ChevronRight className="ms-2" size={16} />
-        </Button>
+
+      {/* Section header */}
+      <div className="cc-section-header">
+        <h2>Exclusive News</h2>
+        <a href="/exclusive-news" className="cc-view-all" onClick={(e) => { e.preventDefault(); navigate('/exclusive-news'); }}>
+          View All <ChevronRight size={14} />
+        </a>
       </div>
 
-      {error && <p className="text-danger">{error}</p>}
-             {isLoading ? (
-                  <Row xs={1} md={2} lg={3} className="g-4">
-           {Array.from({ length: 6 }).map((_, index) => (
-                         <Col key={index}>
-               <Card className="h-100 border-0 shadow-sm rounded-4">
-                 <img 
-                   src={getFallbackImage(index, `Loading ${index + 1}`)} 
-                   alt={`Loading card ${index + 1}`}
-                   className="img-fluid rounded-4"
-                   style={{ height: '200px', width: '100%', objectFit: 'cover' }}
-                 />
-                <Card.Body className="d-flex flex-column">
-                  <Skeleton width="80%" height={20} baseColor="#e0e0e0" highlightColor="#f5f5f5" />
-                  <Skeleton count={2} width="90%" height={16} baseColor="#e0e0e0" highlightColor="#f5f5f5" className="mt-2" />
-                  <div className="mt-auto d-flex justify-content-between">
-                    <Skeleton width={100} height={14} baseColor="#e0e0e0" highlightColor="#f5f5f5" />
-                    <Skeleton width={80} height={14} baseColor="#e0e0e0" highlightColor="#f5f5f5" />
-                  </div>
-                </Card.Body>
-              </Card>
+      {isTranslating && (
+        <small style={{ color: '#9ca3af', display: 'block', marginBottom: 12, fontSize: 12 }}>
+          🔄 Translating...
+        </small>
+      )}
+
+      {error && <p style={{ color: '#ef4444', fontSize: 14 }}>{error}</p>}
+
+      {isLoading ? (
+        <Row xs={1} md={2} lg={4} className="g-3">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Col key={i}>
+              <div style={{ borderRadius: 12, overflow: 'hidden', border: '1px solid #f0f0f0', background: '#fff' }}>
+                <Skeleton height={180} width="100%" baseColor="#f3f4f6" highlightColor="#fafafa" />
+                <div style={{ padding: 16 }}>
+                  <Skeleton width="90%" height={16} baseColor="#f3f4f6" highlightColor="#fafafa" />
+                  <Skeleton width="70%" height={16} baseColor="#f3f4f6" highlightColor="#fafafa" style={{ marginTop: 8 }} />
+                  <Skeleton width="50%" height={12} baseColor="#f3f4f6" highlightColor="#fafafa" style={{ marginTop: 16 }} />
+                </div>
+              </div>
             </Col>
           ))}
         </Row>
       ) : displayItems.length === 0 && !error ? (
-        <p>No news available.</p>
+        <p style={{ color: '#9ca3af' }}>No news available.</p>
       ) : (
-                 <Row xs={1} md={2} lg={4} className="g-4">
-           {displayItems.slice(0, 4).map((item, index) => (
+        <Row xs={1} md={2} lg={4} className="g-3">
+          {displayItems.slice(0, 4).map((item, index) => (
             <Col key={item.article_id || item.link || `${item.title}-${index}`}>
-              <Card
-                className="h-100 border-0 shadow-sm rounded-4"
-                style={{ cursor: 'pointer' }}
+              <div
+                className="cc-news-card h-100"
                 onClick={() => {
                   const targetId = item.article_id || encodeURIComponent(item.title);
                   navigate(`/news/${targetId}`, { state: { item } });
                 }}
               >
-                                 <Card.Img
-                   variant="top"
-                   className="rounded-4"
-                   src={item.image_url || getFallbackImage(index, item.title)}
-                   alt={item.title}
-                   onError={(e) => {
-                     handleImageError(e, item.title, 'news');
-                   }}
-                 />
-                <Card.Body className="d-flex flex-column">
-                  <Card.Title
-                    className="fs-6 mb-3 text-start custom-text"
-                    style={{
-                      fontWeight: 'bold',
-                    color: 'var(--text)',
-                      overflow: 'hidden',
-                      display: '-webkit-box',
-                      WebkitBoxOrient: 'vertical',
-                      WebkitLineClamp: 2,
-                      maxHeight: '3em',
-                    }}
-                  >
-                     <a
-                       href={`/news/${item.article_id || encodeURIComponent(item.title)}`}
-                      className="text-decoration-none"
-                       aria-label={item.title}
-                      style={{ cursor: 'pointer', color: 'var(--text)' }}
-                       onClick={(e) => { e.preventDefault();
-                         const targetId = item.article_id || encodeURIComponent(item.title);
-                         navigate(`/news/${targetId}`, { state: { item } });
-                       }}
-                     >
-                       {decodeHtml(item.title)}
-                     </a>
-                  </Card.Title>
-                  <Card.Text
-                    className="text-muted small flex-grow-1 text-start custom-text fs-7"
-                    style={{
-                      color: 'var(--text)',
-                      overflow: 'hidden',
-                      display: '-webkit-box',
-                      WebkitBoxOrient: 'vertical',
-                      WebkitLineClamp: 2,
-                      maxHeight: '3em',
-                    }}
-                  >
-                    {decodeHtml(item.description)}
-                  </Card.Text>
-                  <div className="mt-auto">
-                    <div className="d-flex justify-content-between align-items-center mb-2">
-                      <div>
-                        <small className="text-muted" style={{ color: 'var(--text)' }}>By </small>
-                        <small className="text-warning">
-                          {item.creator?.[0] || 'Unknown Author'}
-                        </small>
-                      </div>
-                      <div className="ms-auto text-end">
-                        <small className="text-muted" style={{ color: 'var(--text)' }}>{formatDate(item.pubDate)}</small>
-                      </div>
-                    </div>
-                    {item.link && (
-                      <a 
-                        href={item.link}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="btn btn-sm btn-outline-warning w-100"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        Read Original Source →
-                      </a>
-                    )}
+                <div style={{ overflow: 'hidden' }}>
+                  <img
+                    src={item.image_url || getFallbackImage(index, item.title)}
+                    alt={item.title}
+                    loading="lazy"
+                    onError={(e) => handleImageError(e, item.title, 'news')}
+                  />
+                </div>
+                <div className="card-body">
+                  <div className="card-title">{decodeHtml(item.title)}</div>
+                  <div className="card-text">{decodeHtml(item.description)}</div>
+                  <div className="card-meta">
+                    <span className="author">{item.creator?.[0] || 'Unknown'}</span>
+                    <span>{formatDate(item.pubDate)}</span>
                   </div>
-                </Card.Body>
-              </Card>
+                </div>
+              </div>
             </Col>
           ))}
         </Row>
       )}
-    </Container>
+    </section>
   );
 };
 

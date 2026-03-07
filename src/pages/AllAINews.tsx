@@ -74,10 +74,14 @@ const AllAINews: React.FC = () => {
       setIsLoading(true);
       setError(null);
       try {
-        // Fetch from both AI news endpoints with higher limits
+        // Fetch from AI news endpoints on BOTH backends for reliability
+        const CAMIFY = 'https://camify.fun.coinsclarity.com';
         const endpoints = [
+          { url: `${CAMIFY}/fetch-mit-ai-rss?limit=50`, source: 'MIT AI News' },
+          { url: `${CAMIFY}/fetch-venturebeat-ai-rss?limit=50`, source: 'VentureBeat AI' },
+          { url: `${CAMIFY}/fetch-techcrunch-ai-rss?limit=50`, source: 'TechCrunch AI' },
           { url: `${API_BASE_URL}/fetch-mit-ai-rss?limit=50`, source: 'MIT AI News' },
-          { url: `${API_BASE_URL}/fetch-arxiv-ai-rss?limit=50`, source: 'arXiv AI' }
+          { url: `${API_BASE_URL}/fetch-arxiv-ai-rss?limit=50`, source: 'arXiv AI' },
         ];
 
         let items: any[] = [];
@@ -85,7 +89,7 @@ const AllAINews: React.FC = () => {
         // Fetch from all endpoints in parallel
         const results = await Promise.allSettled(
           endpoints.map(async (endpoint) => {
-            const res = await fetch(endpoint.url);
+            const res = await fetch(endpoint.url, { signal: AbortSignal.timeout(12000) });
             if (!res.ok) throw new Error(`Failed to fetch ${endpoint.source}`);
             const data = await res.json();
             return { data, source: endpoint.source };
@@ -93,8 +97,13 @@ const AllAINews: React.FC = () => {
         );
 
         results.forEach((result) => {
-          if (result.status === 'fulfilled' && result.value.data?.success && Array.isArray(result.value.data.data)) {
-            const sourceItems = result.value.data.data.map((item: any) => ({
+          if (result.status === 'fulfilled' && result.value.data?.success) {
+            const arr = Array.isArray(result.value.data.data)
+              ? result.value.data.data
+              : Array.isArray(result.value.data.items)
+                ? result.value.data.items
+                : [];
+            const sourceItems = arr.map((item: any) => ({
               ...item,
               source: result.value.source
             }));

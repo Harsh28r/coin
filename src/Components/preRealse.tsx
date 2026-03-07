@@ -49,11 +49,12 @@ const PressRelease: React.FC = () => {
     'https://camify.fun.coinsclarity.com';
   const MOCK_API_BASE_URL = process.env.REACT_APP_USE_LOCAL_DB === 'true' ? 'http://localhost:5000' : '';
   const getApiBases = (): string[] => {
-    const origin = typeof window !== 'undefined' ? window.location.origin : '';
-    const rel = origin ? `${origin}/api` : '';
     const apiBase = API_BASE_URL.replace(/\/$/, '');
-    const withApi = apiBase.endsWith('/api') ? apiBase : `${apiBase}/api`;
-    return Array.from(new Set([rel, withApi, apiBase, 'https://camify.fun.coinsclarity.com/api']));
+    return [
+      'https://camify.fun.coinsclarity.com',
+      apiBase,
+      'https://c-back-2.onrender.com',
+    ];
   };
 
   const formatMDY = (input: string | Date) => {
@@ -99,46 +100,56 @@ const PressRelease: React.FC = () => {
           console.warn('Failed to fetch from db.json, falling back to API:', error);
         }
 
-        // Fetch from multiple API bases to avoid false empty-state
+        // Fetch from multiple RSS sources across backends
+        const rssEndpoints = [
+          '/fetch-cryptobriefing-rss?limit=18',
+          '/fetch-dailyhodl-rss?limit=18',
+          '/fetch-beincrypto-rss?limit=18',
+          '/fetch-another-rss?limit=18',
+        ];
+
         let fetched: PressReleaseItem[] = [];
+
+        // Try each base + endpoint combo until we get results
+        outer:
         for (const base of getApiBases()) {
-          try {
-            const rssUrl = `${base.replace(/\/$/, '')}/fetch-another-rss?limit=18`;
-            const response = await fetch(rssUrl);
-            if (!response.ok) continue;
+          for (const ep of rssEndpoints) {
+            try {
+              const response = await fetch(`${base.replace(/\/$/, '')}${ep}`, { signal: AbortSignal.timeout(10000) });
+              if (!response.ok) continue;
 
-            const data = await response.json();
-            const feedItems = Array.isArray(data?.data)
-              ? data.data
-              : Array.isArray(data?.items)
-                ? data.items
-                : Array.isArray(data)
-                  ? data
-                  : [];
+              const data = await response.json();
+              const feedItems = Array.isArray(data?.data)
+                ? data.data
+                : Array.isArray(data?.items)
+                  ? data.items
+                  : Array.isArray(data)
+                    ? data
+                    : [];
 
-            if (feedItems.length > 0) {
-              fetched = feedItems.map((item: any) => ({
-                article_id: item.article_id || item._id,
-                title: item.title || 'Untitled',
-                description: item.description || item.contentSnippet || 'No description available',
-                author: Array.isArray(item.creator) ? item.creator.join(', ') : item.creator || item.author || 'Unknown',
-                date: formatMDY(item.pubDate || item.publishedAt || item.date || new Date()),
-                image: item.image_url || item.image || getCryptoFallbackImage(item.title, 'news'),
-                link: item.link || item.url || '#',
-              }));
-              break;
+              if (feedItems.length > 0) {
+                fetched = feedItems.map((item: any) => ({
+                  article_id: item.article_id || item._id || item.id,
+                  title: item.title || 'Untitled',
+                  description: item.description || item.contentSnippet || 'No description available',
+                  author: Array.isArray(item.creator) ? item.creator.join(', ') : item.creator || item.author || 'Unknown',
+                  date: formatMDY(item.pubDate || item.publishedAt || item.date || new Date()),
+                  image: item.image_url || item.image || getCryptoFallbackImage(item.title, 'news'),
+                  link: item.link || item.url || '#',
+                }));
+                break outer;
+              }
+            } catch {
+              // try next
             }
-          } catch {
-            // try next base
           }
         }
 
-        // Final fallback to /news if RSS endpoint has no items
+        // Final fallback to /news endpoint
         if (fetched.length === 0) {
           for (const base of getApiBases()) {
             try {
-              const newsUrl = `${base.replace(/\/$/, '')}/news?page=1&limit=18`;
-              const response = await fetch(newsUrl);
+              const response = await fetch(`${base.replace(/\/$/, '')}/news?page=1&limit=18`, { signal: AbortSignal.timeout(10000) });
               if (!response.ok) continue;
 
               const data = await response.json();
@@ -152,7 +163,7 @@ const PressRelease: React.FC = () => {
 
               if (items.length > 0) {
                 fetched = items.map((item: any) => ({
-                  article_id: item.article_id || item._id,
+                  article_id: item.article_id || item._id || item.id,
                   title: item.title || 'Untitled',
                   description: item.description || item.contentSnippet || 'No description available',
                   author: Array.isArray(item.creator) ? item.creator.join(', ') : item.creator || item.author || 'Unknown',

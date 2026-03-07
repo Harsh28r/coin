@@ -244,33 +244,31 @@ const NewsDetail: React.FC = () => {
       const fromState = navState && (navState.item || navState.newsItem);
       if (fromState) {
         const incoming = fromState as NewsItem;
+        // Show article INSTANTLY with RSS content
         setNewsItem(incoming);
         setLoading(false);
         setError(null);
-        // Always try to fetch full content if we have a link
-        if (incoming.link) {
+
+        // Fetch full article in background (non-blocking, fire-and-forget)
+        if (incoming.link && !(incoming.contentHtml && incoming.contentHtml.trim().length > 300)) {
           setFullContentLoading(true);
-          try {
-            const fullResult = await fetchFullContent(incoming.link);
+          fetchFullContent(incoming.link).then(fullResult => {
             if (fullResult) {
-              if (fullResult.content.length > (incoming.content?.length || 0)) {
-                incoming.content = fullResult.content;
-              }
-              incoming.fullContent = fullResult.contentHtml;
-              incoming.contentHtml = fullResult.contentHtml;
-              setNewsItem({...incoming});
-              console.log('✓ Full content:', incoming.content?.length || 0, 'text,', incoming.contentHtml?.length || 0, 'html');
+              setNewsItem(prev => {
+                if (!prev) return prev;
+                const updated = { ...prev };
+                if (fullResult.content.length > (updated.content?.length || 0)) {
+                  updated.content = fullResult.content;
+                }
+                updated.fullContent = fullResult.contentHtml;
+                updated.contentHtml = fullResult.contentHtml;
+                return updated;
+              });
+              console.log('✓ Full content (bg):', fullResult.content?.length || 0, 'text,', fullResult.contentHtml?.length || 0, 'html');
             }
-          } catch (err) {
-            console.log('Failed to fetch full content:', err);
-          } finally {
-            setFullContentLoading(false);
-          }
+          }).catch(() => {}).finally(() => setFullContentLoading(false));
         }
-        // If we already have full content, skip background enrichment
-        if (incoming.contentHtml && incoming.contentHtml.trim().length > 300) {
-          return;
-        }
+        return; // We have the article, no need for RSS scan
       } else {
         setLoading(true);
       }
@@ -285,7 +283,23 @@ const NewsDetail: React.FC = () => {
         '/fetch-cointelegraph-rss?limit=50',
         '/fetch-coindesk-rss?limit=50',
         '/fetch-decrypt-rss?limit=50',
-        '/fetch-rss?limit=50',
+        '/fetch-blockworks-rss?limit=50',
+        '/fetch-beincrypto-rss?limit=50',
+        '/fetch-finbold-rss?limit=50',
+        '/fetch-coingape-rss?limit=50',
+        '/fetch-bitcoinist-rss?limit=50',
+        '/fetch-cryptobriefing-rss?limit=50',
+        '/fetch-protos-rss?limit=50',
+        '/fetch-unchained-rss?limit=50',
+        '/fetch-thecryptobasic-rss?limit=50',
+        '/fetch-blockonomi-rss?limit=50',
+        '/fetch-coincu-rss?limit=50',
+        '/fetch-cryptonewsz-rss?limit=50',
+        '/fetch-ethereumworldnews-rss?limit=50',
+        '/fetch-chaingpt-rss?limit=50',
+        '/fetch-watcherguru-rss?limit=50',
+        '/fetch-coinpedia-rss?limit=50',
+        '/fetch-smartliquidity-rss?limit=50',
       ];
 
       try {
@@ -359,24 +373,30 @@ const NewsDetail: React.FC = () => {
         }
 
         if (resolved) {
-          // Always try to fetch full content if we have a link
-          if (resolved.link) {
-            try {
-              const fullResult = await fetchFullContent(resolved.link);
-              if (fullResult) {
-                if (fullResult.content.length > (resolved.content?.length || 0)) {
-                  resolved.content = fullResult.content;
-                }
-                resolved.fullContent = fullResult.contentHtml;
-                resolved.contentHtml = fullResult.contentHtml;
-                console.log('✓ Full content (resolved):', resolved.content?.length || 0, 'text,', resolved.contentHtml?.length || 0, 'html');
-              }
-            } catch (err) {
-              console.log('Failed to fetch full content:', err);
-            }
-          }
+          // Show article INSTANTLY with whatever content we have
           setNewsItem(resolved);
           setError(null);
+          if (!fromState) setLoading(false);
+
+          // Then fetch full content in the background (non-blocking)
+          if (resolved.link && !(resolved.contentHtml && resolved.contentHtml.trim().length > 300)) {
+            setFullContentLoading(true);
+            fetchFullContent(resolved.link).then(fullResult => {
+              if (fullResult) {
+                setNewsItem(prev => {
+                  if (!prev) return prev;
+                  const updated = { ...prev };
+                  if (fullResult.content.length > (updated.content?.length || 0)) {
+                    updated.content = fullResult.content;
+                  }
+                  updated.fullContent = fullResult.contentHtml;
+                  updated.contentHtml = fullResult.contentHtml;
+                  return updated;
+                });
+                console.log('✓ Full content (bg):', fullResult.content?.length || 0, 'text,', fullResult.contentHtml?.length || 0, 'html');
+              }
+            }).catch(() => {}).finally(() => setFullContentLoading(false));
+          }
         } else if (!fromState) {
           setError('News article not found');
         }
@@ -651,13 +671,36 @@ const NewsDetail: React.FC = () => {
           '@context': 'https://schema.org',
           '@type': 'NewsArticle',
           headline: effectiveItem.title,
-          description: effectiveItem.description,
-          image: [effectiveItem.image_url].filter(Boolean),
-          author: effectiveItem.creator?.[0] ? [{ '@type': 'Person', name: effectiveItem.creator[0] }] : undefined,
-          datePublished: effectiveItem.pubDate,
-          dateModified: effectiveItem.pubDate,
-          mainEntityOfPage: window.location.href,
-          publisher: { '@type': 'Organization', name: 'CoinsClarity', logo: { '@type': 'ImageObject', url: '/logo3.png' } }
+          description: effectiveItem.description || effectiveItem.title,
+          image: [effectiveItem.image_url || `${window.location.origin}/logo3.png`].filter(Boolean),
+          author: effectiveItem.creator?.[0] ? {
+            '@type': 'Person',
+            name: effectiveItem.creator[0]
+          } : {
+            '@type': 'Organization',
+            name: 'CoinsClarity'
+          },
+          datePublished: effectiveItem.pubDate || new Date().toISOString(),
+          dateModified: effectiveItem.pubDate || new Date().toISOString(),
+          mainEntityOfPage: {
+            '@type': 'WebPage',
+            '@id': window.location.href
+          },
+          publisher: {
+            '@type': 'Organization',
+            name: 'CoinsClarity',
+            logo: {
+              '@type': 'ImageObject',
+              url: `${window.location.origin}/logo3.png`,
+              width: 512,
+              height: 512
+            },
+            url: 'https://coinsclarity.com'
+          },
+          articleSection: effectiveItem.category?.[0] || 'Cryptocurrency',
+          keywords: effectiveItem.keywords?.join(', ') || 'cryptocurrency, bitcoin, ethereum, crypto news',
+          articleBody: effectiveItem.content || effectiveItem.description || '',
+          wordCount: effectiveItem.content ? effectiveItem.content.split(/\s+/).length : 0
         })}</script>
       </Helmet>
       <div className="reading-progress"><div className="reading-progress__bar" style={{ width: `${progress}%` }} /></div>
@@ -1007,12 +1050,13 @@ const NewsDetail: React.FC = () => {
 
             {/* 3. Newsletter CTA */}
             <div className="newsletter-cta mt-4 p-4 rounded-3 text-center" style={{ 
-              background: 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)',
-              border: 'none'
+              background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
+              border: '2px solid #f97316',
+              boxShadow: '0 4px 12px rgba(249, 115, 22, 0.15)'
             }}>
-              <h6 className="text-white mb-2">🔔 Never Miss Breaking Crypto News</h6>
-              <p className="text-white mb-3" style={{ opacity: 0.9, fontSize: '0.9rem' }}>
-                Get daily market summaries and breaking news alerts delivered to your inbox
+              <h6 className="mb-2" style={{ color: '#1e293b', fontWeight: 700, fontSize: '1.1rem' }}>Stay Ahead of the Market</h6>
+              <p className="mb-3" style={{ color: '#475569', fontSize: '0.95rem', lineHeight: 1.6 }}>
+                Get the top crypto stories, market movers, and exclusive insights delivered to your inbox every morning — free.
               </p>
               <div className="d-flex gap-2 justify-content-center flex-wrap">
                 <input 
@@ -1022,23 +1066,28 @@ const NewsDetail: React.FC = () => {
                   style={{ 
                     maxWidth: '250px', 
                     borderRadius: '8px',
-                    border: 'none'
+                    border: '2px solid #e2e8f0',
+                    background: '#ffffff',
+                    color: '#1e293b',
+                    padding: '10px 14px'
                   }}
                 />
                 <button 
                   className="btn"
                   style={{ 
-                    backgroundColor: '#1e293b', 
+                    backgroundColor: '#f97316', 
                     color: 'white',
                     borderRadius: '8px',
-                    padding: '8px 20px'
+                    padding: '10px 20px',
+                    border: 'none',
+                    fontWeight: 600
                   }}
                 >
                   Subscribe Free
                 </button>
               </div>
-              <p className="text-white mt-2 mb-0" style={{ fontSize: '0.75rem', opacity: 0.8 }}>
-                Join 10,000+ crypto enthusiasts. Unsubscribe anytime.
+              <p className="mt-2 mb-0" style={{ color: '#64748b', fontSize: '0.75rem' }}>
+                No spam, unsubscribe anytime. Join 5,000+ crypto enthusiasts.
               </p>
             </div>
 

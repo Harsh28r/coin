@@ -144,36 +144,33 @@ const CryptoBreakingBanner: React.FC = () => {
 
   if (hidden || !current) return null;
 
-  const bg = hasBreaking
-    ? 'linear-gradient(90deg, #b91c1c 0%, #ef4444 50%, #b91c1c 100%)'
-    : 'linear-gradient(90deg, #d97706 0%, #f59e0b 50%, #d97706 100%)';
-
   return (
-    <div style={{ background: bg, color: '#fff', borderBottom: '1px solid rgba(255,255,255,0.15)' }}>
+    <div style={{ background: hasBreaking ? '#dc2626' : '#111827', color: '#fff', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
       <div
         style={{
-          maxWidth: 1320,
+          maxWidth: 1280,
           margin: '0 auto',
-          padding: '8px 14px',
+          padding: '6px 20px',
           display: 'flex',
           alignItems: 'center',
-          gap: 12
+          gap: 10
         }}
       >
-        <div
+        <span
           style={{
-            fontSize: 11,
-            letterSpacing: '0.08em',
+            fontSize: 10,
+            letterSpacing: '0.1em',
             textTransform: 'uppercase',
-            fontWeight: 800,
-            background: 'rgba(255,255,255,0.18)',
-            borderRadius: 6,
-            padding: '4px 8px',
-            whiteSpace: 'nowrap'
+            fontWeight: 700,
+            background: hasBreaking ? 'rgba(255,255,255,0.2)' : '#f97316',
+            borderRadius: 4,
+            padding: '2px 8px',
+            whiteSpace: 'nowrap',
+            lineHeight: '18px'
           }}
         >
-          {hasBreaking ? 'Breaking' : 'Latest'}
-        </div>
+          {hasBreaking ? '🔴 Breaking' : 'Latest'}
+        </span>
 
         <button
           type="button"
@@ -199,40 +196,45 @@ const CryptoBreakingBanner: React.FC = () => {
             background: 'transparent',
             color: '#fff',
             textAlign: 'left',
-            fontSize: 14,
-            fontWeight: 600,
+            fontSize: 13,
+            fontWeight: 500,
             flex: 1,
             overflow: 'hidden',
             textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap'
+            whiteSpace: 'nowrap',
+            cursor: 'pointer',
+            padding: 0,
+            lineHeight: '18px'
           }}
         >
           {current.title}
         </button>
 
         {items.length > 1 && (
-          <div style={{ fontSize: 12, opacity: 0.85, whiteSpace: 'nowrap' }}>
+          <span style={{ fontSize: 11, opacity: 0.5, whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>
             {index + 1}/{items.length}
-          </div>
+          </span>
         )}
 
         <button
           type="button"
           onClick={() => setHidden(true)}
-          aria-label="Close breaking news"
+          aria-label="Close"
           style={{
             border: 0,
-            background: 'rgba(255,255,255,0.18)',
+            background: 'rgba(255,255,255,0.1)',
             color: '#fff',
-            borderRadius: 6,
-            width: 28,
-            height: 28,
-            lineHeight: '28px',
+            borderRadius: 4,
+            width: 22,
+            height: 22,
+            lineHeight: '22px',
             padding: 0,
-            fontWeight: 700
+            fontSize: 12,
+            cursor: 'pointer',
+            opacity: 0.6
           }}
         >
-          x
+          ✕
         </button>
       </div>
     </div>

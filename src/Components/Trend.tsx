@@ -40,8 +40,10 @@ const Exn: React.FC = () => {
   useEffect(() => {
     const fetchNews = async () => {
       try {
-        const response = await fetch(`${API_BASE_URL}/fetch-another-rss?limit=8`);
-        const data = await response.json();
+        const CAMIFY = 'https://camify.fun.coinsclarity.com';
+        let response = await fetch(`${CAMIFY}/fetch-all-rss?limit=8`, { signal: AbortSignal.timeout(8000) }).catch(() => null);
+        if (!response || !response.ok) response = await fetch(`${API_BASE_URL}/fetch-all-rss?limit=8`, { signal: AbortSignal.timeout(8000) });
+        const data = await response!.json();
         console.log(data);
         if (data.success && Array.isArray(data.data)) {
           setNewsItems(data.data.map((item: any) => ({

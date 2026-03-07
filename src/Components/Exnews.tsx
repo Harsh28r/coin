@@ -42,10 +42,13 @@ const AllNews: React.FC = () => {
   useEffect(() => {
     const fetchNews = async () => {
       try {
-        const response = await fetch(`${API_BASE_URL}/fetch-rss`);
-        const data = await response.json();
-        if (Array.isArray(data.data)) {
-          setNewsItems(data.data);
+        const CAMIFY = 'https://camify.fun.coinsclarity.com';
+        let response = await fetch(`${CAMIFY}/fetch-all-rss?limit=50`, { signal: AbortSignal.timeout(10000) }).catch(() => null);
+        if (!response || !response.ok) response = await fetch(`${API_BASE_URL}/fetch-all-rss?limit=50`, { signal: AbortSignal.timeout(10000) });
+        const data = await response!.json();
+        const arr = Array.isArray(data?.data) ? data.data : Array.isArray(data?.items) ? data.items : [];
+        if (arr.length) {
+          setNewsItems(arr);
         } else {
           console.error('Fetched data is not an array:', data);
         }

@@ -53,25 +53,26 @@ const InDepthNews: React.FC = () => {
 			setLoading(true);
 			setError(null);
 			try {
+				const CAMIFY = 'https://camify.fun.coinsclarity.com';
 				const endpoints = [
-					`${API_BASE_URL}/fetch-beincrypto-rss?limit=8`,
-					`${API_BASE_URL}/fetch-coindesk-rss?limit=8`,
-					`${API_BASE_URL}/fetch-cryptoslate-rss?limit=8`,
-					`${API_BASE_URL}/fetch-ambcrypto-rss?limit=8`,
-					`${API_BASE_URL}/fetch-dailycoin-rss?limit=8`,
-					`${API_BASE_URL}/fetch-cryptopotato-rss?limit=8`,
-					`${API_BASE_URL}/fetch-utoday-rss?limit=8`,
-					`${API_BASE_URL}/fetch-all-rss?limit=8&source=BeInCrypto`,
+					`${CAMIFY}/fetch-beincrypto-rss?limit=8`,
+					`${CAMIFY}/fetch-coindesk-rss?limit=8`,
+					`${CAMIFY}/fetch-cryptoslate-rss?limit=8`,
+					`${CAMIFY}/fetch-blockworks-rss?limit=8`,
+					`${CAMIFY}/fetch-finbold-rss?limit=8`,
+					`${CAMIFY}/fetch-protos-rss?limit=8`,
+					`${CAMIFY}/fetch-unchained-rss?limit=8`,
 					`${API_BASE_URL}/fetch-all-rss?limit=16`
 				];
 				let loaded: any[] | null = null;
 				for (const url of endpoints) {
 					try {
-						const res = await fetch(url);
+						const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
 						if (!res.ok) continue;
 						const data = await res.json();
-						if (data && Array.isArray(data.data) && data.data.length) {
-							loaded = data.data;
+						const arr = Array.isArray(data?.data) ? data.data : Array.isArray(data?.items) ? data.items : [];
+						if (data?.success && arr.length) {
+							loaded = arr;
 							break;
 						}
 					} catch {}
@@ -112,104 +113,72 @@ const InDepthNews: React.FC = () => {
 	};
 
 	return (
-		<Container fluid className="mt-5" style={{ width: '92%', color: 'var(--text)' }}>
+		<section style={{ maxWidth: 1280, margin: '0 auto', padding: '2rem 20px' }}>
 			<Helmet>
 				<title>Beyond the Headlines | CoinsClarity</title>
 				<meta name="description" content="In-depth reads with full on-platform content and clean reading experience." />
 				<link rel="canonical" href={`${window.location.origin}/beyond-the-headlines`} />
 			</Helmet>
-			<div className="d-flex justify-content-between align-items-center mb-3" style={{ color: 'var(--text)' }}>
-				<h4 className="m-0" style={{ fontWeight: 800, letterSpacing: '0.02em', color: 'var(--text)' }}>
-					<span style={{ color: '#fb923c' }}><BookOpen size={20} className="me-2" /></span>
-					Beyond the Headlines
-				</h4>
-				<Button variant="link" className="text-decoration-none" style={{ color: '#fb923c' }} onClick={() => navigate('/beyond-the-headlines')}>
-					More <ChevronRight size={16} />
-				</Button>
+
+			<div className="cc-section-header">
+				<h2>Beyond the Headlines</h2>
+				<a href="/beyond-the-headlines" className="cc-view-all" onClick={(e) => { e.preventDefault(); navigate('/beyond-the-headlines'); }}>
+					More <ChevronRight size={14} />
+				</a>
 			</div>
 
-			{error && (
-				<Alert variant="warning" className="mb-3">
-					{error}
-				</Alert>
-			)}
+			{error && <Alert variant="warning" className="mb-3" style={{ borderRadius: 10, fontSize: 14 }}>{error}</Alert>}
 
-			<Row xs={1} sm={2} md={3} lg={4} className="g-4">
+			<Row xs={1} sm={2} md={3} lg={4} className="g-3">
 				{loading ? (
-					Array.from({ length: 8 }).map((_, idx) => (
+					Array.from({ length: 4 }).map((_, idx) => (
 						<Col key={idx}>
-							<Card className="h-100 border-0 rounded-4 shadow-sm">
-								<Skeleton height={160} />
-								<Card.Body>
-									<Skeleton height={18} width="80%" className="mb-2" />
-									<Skeleton count={2} />
-								</Card.Body>
-							</Card>
+							<div style={{ borderRadius: 12, overflow: 'hidden', border: '1px solid #f0f0f0', background: '#fff' }}>
+								<Skeleton height={180} width="100%" baseColor="#f3f4f6" highlightColor="#fafafa" />
+								<div style={{ padding: 16 }}>
+									<Skeleton width="90%" height={16} baseColor="#f3f4f6" highlightColor="#fafafa" />
+									<Skeleton width="70%" height={16} baseColor="#f3f4f6" highlightColor="#fafafa" style={{ marginTop: 8 }} />
+								</div>
+							</div>
 						</Col>
 					))
 				) : (
-					(Array.isArray(displayList) ? displayList : []).map((item: InDepthItem, idx: number) => (
-						<Col key={idx}>
-							<Card
-								className="h-100 border-0 rounded-4 shadow-sm position-relative"
-								onClick={() => handleOpen(item)}
-								role="button"
-								tabIndex={0}
-								onKeyDown={(e: any) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleOpen(item); } }}
-								style={{ cursor: 'pointer', background: 'var(--card)', color: 'var(--text)', border: '1px solid var(--border)' }}
-							>
-								{(() => {
-									const isHttp = (u?: string) => typeof u === 'string' && /^https?:\/\//i.test(u) && u.trim().length > 0;
-									const hasValidImage = isHttp(item.image_url) && item.image_url.trim().length > 0;
-									const src = hasValidImage ? item.image_url : getFallbackImage(idx);
-									return (
-										<Card.Img
-											variant="top"
+					(Array.isArray(displayList) ? displayList : []).map((item: InDepthItem, idx: number) => {
+						const isHttp = (u?: string) => typeof u === 'string' && /^https?:\/\//i.test(u) && u.trim().length > 0;
+						const hasValidImage = isHttp(item.image_url);
+						const src = hasValidImage ? item.image_url : getFallbackImage(idx);
+						return (
+							<Col key={idx}>
+								<div
+									className="cc-news-card h-100"
+									onClick={() => handleOpen(item)}
+									role="button"
+									tabIndex={0}
+									onKeyDown={(e: any) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleOpen(item); } }}
+								>
+									<div style={{ overflow: 'hidden' }}>
+										<img
 											src={src}
 											alt={item.title}
-											className="rounded-4"
 											loading="lazy"
-											onError={(e: any) => { 
-												// Only use fallback if the original image failed and we don't already have a fallback
-												if (hasValidImage && !e.target.src.includes('unsplash')) {
-													e.target.src = getFallbackImage(idx);
-												}
-											}}
-											style={{ height: '200px', objectFit: 'cover' }}
+											onError={(e: any) => { if (hasValidImage && !e.target.src.includes('unsplash')) { e.target.src = getFallbackImage(idx); } }}
 										/>
-									);
-								})()}
-								<Card.Body className="d-flex flex-column" style={{ color: 'var(--text)' }}>
-									<Card.Title className="fs-6 mb-2" style={{ fontWeight: 700, lineHeight: 1.3, color: 'var(--text)' }}>
-										<a
-											href={`/news/${item.article_id || encodeURIComponent(item.link || item.title)}`}
-											className="text-decoration-none stretched-link"
-											onClick={(e) => { e.preventDefault(); handleOpen(item); }}
-											style={{ color: 'var(--text)' }}
-										>
-											{item.title}
-										</a>
-									</Card.Title>
-									<Card.Text className="text-muted" style={{ display: '-webkit-box', WebkitBoxOrient: 'vertical', WebkitLineClamp: 3, overflow: 'hidden', color: 'var(--text)' }}>
-										{item.description}
-									</Card.Text>
-									<div className="mt-auto d-flex justify-content-between align-items-center gap-2">
-										<Badge
-											bg="light"
-											text="dark"
-											style={{ color: 'rgb(253, 118, 7)', backgroundColor: 'rgb(253, 118, 7)', border: '1px solid rgba(251,146,60,0.25)' }}
-										>
-											{item.creator?.[0] || 'Unknown'}
-										</Badge>
-										
 									</div>
-								</Card.Body>
-							</Card>
-						</Col>
-					))
+									<div className="card-body">
+										<div className="card-title">{item.title}</div>
+										<div className="card-text">{item.description}</div>
+										<div className="card-meta">
+											<span className="author">{item.creator?.[0] || 'Unknown'}</span>
+											<span>{item.source_name || 'Crypto News'}</span>
+										</div>
+									</div>
+								</div>
+							</Col>
+						);
+					})
 				)}
 			</Row>
-		</Container>
+		</section>
 	);
 };
 

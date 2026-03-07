@@ -100,23 +100,20 @@ const BlogSection: React.FC = () => {
       {/* Enhanced Header Section */}
       <div className="d-flex justify-content-between align-items-center mb-5">
         <div>
-          <h2 
-            className="m-0 mb-2" 
+          <h4 
+            className="m-0 mb-1" 
             style={{ 
-              fontWeight: '800', 
+              fontWeight: 800, 
               letterSpacing: '0.02em',
-              fontSize: '2.2rem',
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text'
+              fontSize: '1.4rem',
+              color: 'var(--text)'
             }}
           >
             Latest Blog Posts
-          </h2>
-          <p className="text-muted mb-0" style={{ fontSize: '1.1rem', fontWeight: '400', color: 'var(--text)' }}>
-            Discover insights, tutorials, and updates from our crypto experts
-          </p>
+          </h4>
+          <small style={{ color: 'var(--text)', opacity: 0.7 }}>
+            Insights, tutorials &amp; updates from our crypto experts
+          </small>
           {isTranslating && (
             <small className="text-muted d-block mt-1">
               🔄 Translating blog posts to {currentLanguage === 'hi' ? 'Hindi' : 
@@ -130,33 +127,17 @@ const BlogSection: React.FC = () => {
             </small>
           )}
         </div>
-        <button 
-          type="button"
-          className="text-decoration-none d-flex align-items-center px-4 py-3 rounded-4"
-          style={{
-            background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
-            color: 'white',
-            fontWeight: '600',
-            fontSize: '1rem',
-            transition: 'all 0.3s ease',
-            boxShadow: '0 4px 15px rgba(245, 158, 11, 0.3)',
-            border: 'none'
-          }}
-          onMouseEnter={(e) => {
-            (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(-2px)';
-            (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 8px 25px rgba(245, 158, 11, 0.4)';
-          }}
-          onMouseLeave={(e) => {
-            (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(0)';
-            (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 4px 15px rgba(245, 158, 11, 0.3)';
-          }}
+        <Button
+          variant="link"
+          className="text-warning text-decoration-none"
+          style={{ fontWeight: 600 }}
           onClick={() => {
             setShowAll((prev) => !prev);
             setCurrentIndex(0);
           }}
         >
-          {showAll ? 'View Less' : 'View All Posts'} <ChevronRight size={20} className="ms-2" />
-        </button>
+          {showAll ? 'View Less' : 'View All'} <ChevronRight size={16} className="ms-1" />
+        </Button>
       </div>
 
       {/* Enhanced Blog Cards Grid */}

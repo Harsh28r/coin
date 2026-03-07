@@ -73,10 +73,14 @@ const AINews: React.FC = () => {
       setIsLoading(true);
       setError(null);
       try {
-        // Fetch from both AI news endpoints
+        // Fetch from AI news endpoints on BOTH backends (Render + Camify) for reliability
+        const CAMIFY = 'https://camify.fun.coinsclarity.com';
         const endpoints = [
+          { url: `${CAMIFY}/fetch-mit-ai-rss?limit=12`, source: 'MIT AI News' },
+          { url: `${CAMIFY}/fetch-venturebeat-ai-rss?limit=12`, source: 'VentureBeat AI' },
+          { url: `${CAMIFY}/fetch-techcrunch-ai-rss?limit=12`, source: 'TechCrunch AI' },
           { url: `${API_BASE_URL}/fetch-mit-ai-rss?limit=12`, source: 'MIT AI News' },
-          { url: `${API_BASE_URL}/fetch-arxiv-ai-rss?limit=12`, source: 'arXiv AI' }
+          { url: `${API_BASE_URL}/fetch-arxiv-ai-rss?limit=12`, source: 'arXiv AI' },
         ];
 
         let items: any[] = [];
@@ -84,7 +88,7 @@ const AINews: React.FC = () => {
         // Fetch from all endpoints in parallel
         const results = await Promise.allSettled(
           endpoints.map(async (endpoint) => {
-            const res = await fetch(endpoint.url);
+            const res = await fetch(endpoint.url, { signal: AbortSignal.timeout(12000) });
             if (!res.ok) throw new Error(`Failed to fetch ${endpoint.source}`);
             const data = await res.json();
             return { data, source: endpoint.source };
@@ -92,8 +96,14 @@ const AINews: React.FC = () => {
         );
 
         results.forEach((result) => {
-          if (result.status === 'fulfilled' && result.value.data?.success && Array.isArray(result.value.data.data)) {
-            const sourceItems = result.value.data.data.map((item: any) => ({
+          if (result.status === 'fulfilled' && result.value.data?.success) {
+            // Handle both { data: [...] } and { items: [...] } response shapes
+            const arr = Array.isArray(result.value.data.data)
+              ? result.value.data.data
+              : Array.isArray(result.value.data.items)
+                ? result.value.data.items
+                : [];
+            const sourceItems = arr.map((item: any) => ({
               ...item,
               source: result.value.source
             }));
@@ -181,152 +191,69 @@ const AINews: React.FC = () => {
   };
 
   return (
-    <Container fluid className="mt-5 skeleton-container" style={{ width: '92%' }}>
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <div>
-          <h4 className="m-0" style={{ fontWeight: 'bold', letterSpacing: '0.05em' }}>
-            AI & Machine Learning
-          </h4>
-          {isTranslating && (
-            <small className="text-muted">
-              Translating to {currentLanguage === 'hi' ? 'Hindi' :
-                currentLanguage === 'es' ? 'Spanish' :
-                currentLanguage === 'fr' ? 'French' :
-                currentLanguage === 'de' ? 'German' :
-                currentLanguage === 'zh' ? 'Chinese' :
-                currentLanguage === 'ja' ? 'Japanese' :
-                currentLanguage === 'ko' ? 'Korean' :
-                currentLanguage === 'ar' ? 'Arabic' : currentLanguage}...
-            </small>
-          )}
-        </div>
-        <Button
-          variant="link"
-          className="text-warning text-decoration-none"
-          onClick={() => navigate('/ai-news')}
-          aria-label="View all AI news"
-        >
-          View All
-          <ChevronRight className="ms-2" size={16} />
-        </Button>
+    <section style={{ maxWidth: 1280, margin: '0 auto', padding: '2rem 20px' }}>
+      {/* Section header */}
+      <div className="cc-section-header">
+        <h2>AI & Machine Learning</h2>
+        <a href="/ai-news" className="cc-view-all" onClick={(e) => { e.preventDefault(); navigate('/ai-news'); }}>
+          View All <ChevronRight size={14} />
+        </a>
       </div>
 
-      {error && <p className="text-danger">{error}</p>}
+      {error && <p style={{ color: '#ef4444', fontSize: 14 }}>{error}</p>}
 
       {isLoading ? (
-        <Row xs={1} md={2} lg={4} className="g-4">
-          {Array.from({ length: 8 }).map((_, index) => (
-            <Col key={index}>
-              <Card className="h-100 border-0 shadow-sm rounded-4">
-                <Skeleton height={200} className="rounded-top-4" />
-                <Card.Body className="d-flex flex-column">
-                  <Skeleton width="80%" height={20} baseColor="#e0e0e0" highlightColor="#f5f5f5" />
-                  <Skeleton count={2} width="90%" height={16} baseColor="#e0e0e0" highlightColor="#f5f5f5" className="mt-2" />
-                  <div className="mt-auto d-flex justify-content-between">
-                    <Skeleton width={100} height={14} baseColor="#e0e0e0" highlightColor="#f5f5f5" />
-                    <Skeleton width={80} height={14} baseColor="#e0e0e0" highlightColor="#f5f5f5" />
-                  </div>
-                </Card.Body>
-              </Card>
+        <Row xs={1} md={2} lg={4} className="g-3">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Col key={i}>
+              <div style={{ borderRadius: 12, overflow: 'hidden', border: '1px solid #f0f0f0', background: '#fff' }}>
+                <Skeleton height={180} width="100%" baseColor="#f3f4f6" highlightColor="#fafafa" />
+                <div style={{ padding: 16 }}>
+                  <Skeleton width="90%" height={16} baseColor="#f3f4f6" highlightColor="#fafafa" />
+                  <Skeleton width="70%" height={16} baseColor="#f3f4f6" highlightColor="#fafafa" style={{ marginTop: 8 }} />
+                  <Skeleton width="50%" height={12} baseColor="#f3f4f6" highlightColor="#fafafa" style={{ marginTop: 16 }} />
+                </div>
+              </div>
             </Col>
           ))}
         </Row>
       ) : displayItems.length === 0 && !error ? (
-        <Alert variant="warning" className="mb-0">
-          AI feeds are temporarily unavailable right now. Please check back in a few minutes.
+        <Alert variant="warning" className="mb-0" style={{ borderRadius: 10, fontSize: 14 }}>
+          AI feeds are temporarily unavailable. Please check back soon.
         </Alert>
       ) : (
-        <Row xs={1} md={2} lg={4} className="g-4">
+        <Row xs={1} md={2} lg={4} className="g-3">
           {displayItems.slice(0, 8).map((item, index) => (
             <Col key={item.article_id || item.link || `${item.title}-${index}`}>
-              <Card
-                className="h-100 border-0 shadow-sm rounded-4"
-                style={{ cursor: 'pointer' }}
+              <div
+                className="cc-news-card h-100"
                 onClick={() => {
                   const targetId = item.article_id || encodeURIComponent(item.title);
                   navigate(`/news/${targetId}`, { state: { item } });
                 }}
               >
-                <Card.Img
-                  variant="top"
-                  className="rounded-top-4"
-                  src={item.image_url || getFallbackImage(index, item.title)}
-                  alt={item.title}
-                  style={{ height: '200px', objectFit: 'cover' }}
-                  onError={(e) => {
-                    handleImageError(e, item.title, 'news');
-                  }}
-                />
-                <Card.Body className="d-flex flex-column">
-                  <Card.Title
-                    className="fs-6 mb-3 text-start"
-                    style={{
-                      fontWeight: 'bold',
-                      color: 'black',
-                      overflow: 'hidden',
-                      display: '-webkit-box',
-                      WebkitBoxOrient: 'vertical',
-                      WebkitLineClamp: 2,
-                      maxHeight: '3em',
-                    }}
-                  >
-                    <a
-                      href={`/news/${item.article_id || encodeURIComponent(item.title)}`}
-                      className="text-black text-decoration-none"
-                      aria-label={item.title}
-                      style={{ cursor: 'pointer' }}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        const targetId = item.article_id || encodeURIComponent(item.title);
-                        navigate(`/news/${targetId}`, { state: { item } });
-                      }}
-                    >
-                      {decodeHtml(item.title)}
-                    </a>
-                  </Card.Title>
-                  <Card.Text
-                    className="text-muted small flex-grow-1 text-start fs-7"
-                    style={{
-                      overflow: 'hidden',
-                      display: '-webkit-box',
-                      WebkitBoxOrient: 'vertical',
-                      WebkitLineClamp: 2,
-                      maxHeight: '3em',
-                    }}
-                  >
-                    {decodeHtml(item.description)}
-                  </Card.Text>
-                  <div className="mt-auto">
-                    <div className="d-flex justify-content-between align-items-center mb-2">
-                      <div>
-                        <small className="text-muted">By </small>
-                        <small className="text-warning">
-                          {(item as any).source || item.creator?.[0] || 'Unknown'}
-                        </small>
-                      </div>
-                      <div className="ms-auto text-end">
-                        <small className="text-muted">{formatDate(item.pubDate)}</small>
-                      </div>
-                    </div>
-                    {item.link && (
-                      <a 
-                        href={item.link}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="btn btn-sm btn-outline-warning w-100"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        Read Original Source →
-                      </a>
-                    )}
+                <div style={{ overflow: 'hidden' }}>
+                  <img
+                    src={item.image_url || getFallbackImage(index, item.title)}
+                    alt={item.title}
+                    loading="lazy"
+                    onError={(e) => handleImageError(e, item.title, 'news')}
+                  />
+                </div>
+                <div className="card-body">
+                  <div className="card-title">{decodeHtml(item.title)}</div>
+                  <div className="card-text">{decodeHtml(item.description)}</div>
+                  <div className="card-meta">
+                    <span className="author">{(item as any).source || item.creator?.[0] || 'Unknown'}</span>
+                    <span>{formatDate(item.pubDate)}</span>
                   </div>
-                </Card.Body>
-              </Card>
+                </div>
+              </div>
             </Col>
           ))}
         </Row>
       )}
-    </Container>
+    </section>
   );
 };
 

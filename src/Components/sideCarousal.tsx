@@ -133,6 +133,7 @@ const FeaturedCarousel: React.FC = () => {
   };
 
   useEffect(() => {
+    const CAMIFY = 'https://camify.fun.coinsclarity.com';
     // Helper with timeout to prevent long stalls
     const fetchJson = async (url: string, timeoutMs = 6000) => {
       const controller = new AbortController();
@@ -157,10 +158,10 @@ const FeaturedCarousel: React.FC = () => {
       setLoadingFeatures(false);
       try {
         const endpoints = [
-          { url: `${API_BASE_URL}/fetch-cointelegraph-rss?limit=3`, label: 'Exclusive' },
-          { url: `${API_BASE_URL}/fetch-another-rss?limit=3`, label: 'Trending' },
-          { url: `${API_BASE_URL}/fetch-beincrypto-rss?limit=3`, label: 'Beyond the Headlines' },
-          { url: `${API_BASE_URL}/fetch-cryptopotato-rss?limit=3`, label: 'Did You Know' },
+          { url: `${CAMIFY}/fetch-cointelegraph-rss?limit=7`, label: 'Exclusive' },
+          { url: `${CAMIFY}/fetch-blockworks-rss?limit=7`, label: 'Trending' },
+          { url: `${CAMIFY}/fetch-beincrypto-rss?limit=7`, label: 'Beyond the Headlines' },
+          { url: `${CAMIFY}/fetch-cryptopotato-rss?limit=7`, label: 'Did You Know' },
         ];
         const results = await Promise.allSettled(
           endpoints.map(async (e) => {
@@ -171,8 +172,9 @@ const FeaturedCarousel: React.FC = () => {
         );
         const slides: any[] = [];
         results.forEach((res: any) => {
-          if (res.status === 'fulfilled' && res.value?.j?.success && Array.isArray(res.value.j.data) && res.value.j.data.length > 0) {
-            res.value.j.data.slice(0, 3).forEach((it: any) => {
+          if (res.status === 'fulfilled' && res.value?.j?.success) {
+            const arr = Array.isArray(res.value.j.data) ? res.value.j.data : Array.isArray(res.value.j.items) ? res.value.j.items : [];
+            arr.slice(0, 7).forEach((it: any) => {
               slides.push({
                 article_id: it.article_id,
                 title: it.title,
@@ -188,12 +190,12 @@ const FeaturedCarousel: React.FC = () => {
           }
         });
 
-        // Press Releases: merge multiple sources and take top 2
+        // Press Releases: merge multiple sources and take top 4
         try {
           const pressSources = [
-            `${API_BASE_URL}/fetch-cryptobriefing-rss?limit=6`,
-            `${API_BASE_URL}/fetch-dailyhodl-rss?limit=6`,
-            `${API_BASE_URL}/fetch-another-rss?limit=6`
+            `${CAMIFY}/fetch-cryptobriefing-rss?limit=10`,
+            `${CAMIFY}/fetch-dailyhodl-rss?limit=10`,
+            `${CAMIFY}/fetch-finbold-rss?limit=10`
           ];
           const pressResults = await Promise.allSettled(
             pressSources.map(async (u) => await fetchJson(u, 3500))
@@ -204,7 +206,7 @@ const FeaturedCarousel: React.FC = () => {
               pressItems.push(...r.value.data);
             }
           });
-          pressItems.slice(0, 2).forEach((it: any) => {
+          pressItems.slice(0, 4).forEach((it: any) => {
             slides.push({
               article_id: it.article_id,
               title: it.title,
@@ -219,21 +221,20 @@ const FeaturedCarousel: React.FC = () => {
           });
         } catch {}
 
-        // Listings: extract from aggregated sources and take top 2
+        // Listings: extract from aggregated sources and take top 4
         try {
           const listingSources = [
-            'fetch-dailycoin-rss?limit=30',
-            'fetch-cryptobriefing-rss?limit=30',
-            'fetch-dailyhodl-rss?limit=30',
-            'fetch-ambcrypto-rss?limit=30',
-            'fetch-beincrypto-rss?limit=30',
-            'fetch-cryptopotato-rss?limit=30',
-            'fetch-utoday-rss?limit=30',
-            'fetch-bitcoinmagazine-rss?limit=30',
-            'fetch-coindesk-rss?limit=30'
+            `${CAMIFY}/fetch-dailycoin-rss?limit=30`,
+            `${CAMIFY}/fetch-cryptobriefing-rss?limit=30`,
+            `${CAMIFY}/fetch-beincrypto-rss?limit=30`,
+            `${CAMIFY}/fetch-cryptopotato-rss?limit=30`,
+            `${CAMIFY}/fetch-utoday-rss?limit=30`,
+            `${CAMIFY}/fetch-coindesk-rss?limit=30`,
+            `${CAMIFY}/fetch-coingape-rss?limit=30`,
+            `${CAMIFY}/fetch-blockworks-rss?limit=30`,
           ];
           const listingResponses = await Promise.allSettled(
-            listingSources.map(async (s) => await fetchJson(`${API_BASE_URL}/${s}`, 3500))
+            listingSources.map(async (s) => await fetchJson(s, 3500))
           );
           let merged: any[] = [];
           listingResponses.forEach((r: any) => {
@@ -242,7 +243,7 @@ const FeaturedCarousel: React.FC = () => {
             }
           });
           const listings = extractListingNews(merged);
-          listings.slice(0, 2).forEach((li: any) => {
+          listings.slice(0, 4).forEach((li: any) => {
             slides.push({
               article_id: li.article_id,
               title: li.title,
@@ -264,8 +265,8 @@ const FeaturedCarousel: React.FC = () => {
           seen.add(key);
           return true;
         });
-        // Limit to a reasonable number to keep carousel smooth
-        let limited = deduped.slice(0, 12);
+        // Limit to a reasonable number to keep carousel smooth (increased for more items)
+        let limited = deduped.slice(0, 20);
         if (!limited.length) {
           limited = fallbackFeatureSlides;
         }
@@ -302,8 +303,8 @@ const FeaturedCarousel: React.FC = () => {
       // Phase 1: quick sources with short timeout
       try {
         const quickSources = [
-          `${API_BASE_URL}/fetch-coindesk-rss?limit=12`,
-          `${API_BASE_URL}/fetch-dailycoin-rss?limit=12`,
+          `${CAMIFY}/fetch-coindesk-rss?limit=12`,
+          `${CAMIFY}/fetch-cointelegraph-rss?limit=12`,
         ];
         const quickResults = await Promise.allSettled(
           quickSources.map(u => fetchJson(u, 4500).catch(() => null))
@@ -342,12 +343,15 @@ const FeaturedCarousel: React.FC = () => {
       // Phase 2: background enrichment
       try {
         const moreSources = [
-          `${API_BASE_URL}/fetch-cryptobriefing-rss?limit=12`,
-          `${API_BASE_URL}/fetch-dailyhodl-rss?limit=12`,
-          `${API_BASE_URL}/fetch-ambcrypto-rss?limit=12`,
-          `${API_BASE_URL}/fetch-beincrypto-rss?limit=12`,
-          `${API_BASE_URL}/fetch-bitcoinmagazine-rss?limit=12`,
-          `${API_BASE_URL}/fetch-decrypt-rss?limit=12`,
+          `${CAMIFY}/fetch-cryptobriefing-rss?limit=12`,
+          `${CAMIFY}/fetch-beincrypto-rss?limit=12`,
+          `${CAMIFY}/fetch-decrypt-rss?limit=12`,
+          `${CAMIFY}/fetch-blockworks-rss?limit=12`,
+          `${CAMIFY}/fetch-finbold-rss?limit=12`,
+          `${CAMIFY}/fetch-coingape-rss?limit=12`,
+          `${CAMIFY}/fetch-protos-rss?limit=12`,
+          `${CAMIFY}/fetch-thecryptobasic-rss?limit=12`,
+          `${CAMIFY}/fetch-coincu-rss?limit=12`,
         ];
         const results = await Promise.allSettled(
           moreSources.map(u => fetchJson(u, 6000).catch(() => null))
@@ -405,7 +409,7 @@ const FeaturedCarousel: React.FC = () => {
     if (featureSlides.length > 1) {
       rotationTimerRef.current = window.setInterval(() => {
         setActiveIndex((prev) => (prev + 1) % featureSlides.length);
-      }, 3000);
+      }, 5000);
     }
     return () => {
       if (rotationTimerRef.current) {
@@ -472,23 +476,6 @@ const FeaturedCarousel: React.FC = () => {
           >
             <h5 className="text-danger">Error: {error}</h5>
           </div>
-        ) : loading ? (
-          <div className="my-custom-loading rounded-5" style={{ height: '450px', width: '95%', margin: '0 auto', position: 'relative', overflow: 'hidden' }}>
-            <Skeleton height={450} width="100%" baseColor="#e0e0e0" highlightColor="#f5f5f5" />
-            <div
-              className="d-flex flex-column justify-content-between"
-              style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, padding: '1rem' }}
-            >
-              <div className="d-flex justify-content-between align-items-center mt-4">
-                <Skeleton width={100} height={20} baseColor="#e0e0e0" highlightColor="#f5f5f5" />
-                <Skeleton width={80} height={20} baseColor="#e0e0e0" highlightColor="#f5f5f5" />
-              </div>
-              <div>
-                <Skeleton width="80%" height={30} baseColor="#e0e0e0" highlightColor="#f5f5f5" />
-                <Skeleton count={3} width="90%" height={20} baseColor="#e0e0e0" highlightColor="#f5f5f5" />
-              </div>
-            </div>
-          </div>
         ) : (!loadingFeatures && featureSlides.length > 0) ? (
           <>
             <Carousel
@@ -552,7 +539,7 @@ const FeaturedCarousel: React.FC = () => {
                   />
                   <Card.ImgOverlay
                     className="d-flex flex-column justify-content-end rounded-5"
-                    style={{ padding: '1rem', cursor: 'pointer', background: 'linear-gradient(180deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.35) 40%, rgba(0,0,0,0.15) 70%, rgba(0,0,0,0.0) 100%)' }}
+                    style={{ padding: '1rem', cursor: 'pointer', background: 'linear-gradient(0deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.6) 35%, rgba(0,0,0,0.25) 65%, transparent 100%)' }}
                     onClick={() => {
                       const id = news.article_id || encodeURIComponent(((news.link as string | undefined) || news.title));
                       const translated = Array.isArray(displayFeatureSlides) ? displayFeatureSlides[index] : null;
@@ -593,13 +580,17 @@ const FeaturedCarousel: React.FC = () => {
                           textAlign: 'left',
                           fontFamily: 'Inter, sans-serif',
                           fontWeight: 700,
-                          fontSize: 'clamp(1.25rem, 3vw, 2.5rem)',
-                          lineHeight: 1.2,
-                          letterSpacing: '0.02em',
+                          fontSize: 'clamp(1.1rem, 2.5vw, 1.8rem)',
+                          lineHeight: 1.25,
+                          letterSpacing: '0.01em',
                           maxWidth: '100%',
                           overflowWrap: 'break-word',
-                          textShadow: '0 2px 10px rgba(0,0,0,0.45)',
-                          color: '#ffffff'
+                          textShadow: '0 2px 12px rgba(0,0,0,0.8), 0 1px 4px rgba(0,0,0,0.6)',
+                          color: '#ffffff',
+                          display: '-webkit-box',
+                          WebkitLineClamp: 3,
+                          WebkitBoxOrient: 'vertical' as any,
+                          overflow: 'hidden',
                         }}
                       >
                         {(Array.isArray(displayFeatureSlides) && displayFeatureSlides[index]?.title) ? displayFeatureSlides[index].title : news.title}
@@ -607,59 +598,110 @@ const FeaturedCarousel: React.FC = () => {
                       <small
                         className="text"
                         style={{
-                          fontSize: 'clamp(0.95rem, 1.5vw, 1.25rem)',
-                          fontWeight: 500,
+                          fontSize: 'clamp(0.85rem, 1.3vw, 1.05rem)',
+                          fontWeight: 400,
                           display: '-webkit-box',
                           overflow: 'hidden',
                           WebkitBoxOrient: 'vertical',
-                          WebkitLineClamp: 4,
-                          lineHeight: 1.6,
-                          maxHeight: '8.8em',
-                          marginBottom: '1rem',
-                          textShadow: '0 1px 6px rgba(0,0,0,0.35)',
-                          color: '#ffffff'
+                          WebkitLineClamp: 2,
+                          lineHeight: 1.5,
+                          maxHeight: '3.2em',
+                          marginBottom: '0.5rem',
+                          textShadow: '0 1px 8px rgba(0,0,0,0.7), 0 1px 3px rgba(0,0,0,0.5)',
+                          color: 'rgba(255,255,255,0.9)'
                         }}
                       >
                         {(Array.isArray(displayFeatureSlides) && displayFeatureSlides[index]?.description) ? displayFeatureSlides[index].description : news.description}
                       </small>
+                      <span style={{
+                        color: '#f7931a',
+                        fontSize: '13px',
+                        fontWeight: 700,
+                        textTransform: 'uppercase' as any,
+                        letterSpacing: '0.5px',
+                        textShadow: '0 1px 4px rgba(0,0,0,0.5)',
+                      }}>
+                        Read Full Article →
+                      </span>
                     </div>
                   </Card.ImgOverlay>
-                  <div
-                    className="carousel-controls"
+                  {/* Prev button - left side */}
+                  <Button
+                    variant="dark"
+                    className="rounded-circle"
+                    onClick={(e) => { e.stopPropagation(); handlePrev(); }}
                     style={{
                       position: 'absolute',
-                      bottom: '10px',
-                      right: '10px',
+                      left: '12px',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      width: '42px',
+                      height: '42px',
+                      borderRadius: '50%',
+                      padding: '0',
+                      background: 'rgba(0,0,0,0.55)',
+                      border: '1px solid rgba(255,255,255,0.3)',
+                      backdropFilter: 'blur(4px)',
                       display: 'flex',
                       alignItems: 'center',
+                      justifyContent: 'center',
+                      zIndex: 5,
                     }}
                   >
-                    <Button
-                      variant="outline-light"
-                      className="rounded-circle me-4"
-                      onClick={(e) => { e.stopPropagation(); handlePrev(); }}
-                      style={{
-                        width: '40px',
-                        height: '40px',
-                        borderRadius: '50%',
-                        padding: '0',
-                      }}
-                    >
-                      <ChevronLeft style={{ marginLeft: '5px' }} />
-                    </Button>
-                    <Button
-                      variant="outline-light"
-                      className="rounded-circle"
-                      onClick={(e) => { e.stopPropagation(); handleNext(); }}
-                      style={{
-                        width: '40px',
-                        height: '40px',
-                        borderRadius: '50%',
-                        padding: '0',
-                      }}
-                    >
-                      <ChevronRight style={{ marginLeft: '5px' }} />
-                    </Button>
+                    <ChevronLeft size={20} color="#fff" />
+                  </Button>
+                  {/* Next button - right side */}
+                  <Button
+                    variant="dark"
+                    className="rounded-circle"
+                    onClick={(e) => { e.stopPropagation(); handleNext(); }}
+                    style={{
+                      position: 'absolute',
+                      right: '12px',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      width: '42px',
+                      height: '42px',
+                      borderRadius: '50%',
+                      padding: '0',
+                      background: 'rgba(0,0,0,0.55)',
+                      border: '1px solid rgba(255,255,255,0.3)',
+                      backdropFilter: 'blur(4px)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      zIndex: 5,
+                    }}
+                  >
+                    <ChevronRight size={20} color="#fff" />
+                  </Button>
+                  {/* Dot indicators */}
+                  <div style={{
+                    position: 'absolute',
+                    bottom: '14px',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    display: 'flex',
+                    gap: '6px',
+                    zIndex: 5,
+                  }}>
+                    {featureSlides.map((_: any, idx: number) => (
+                      <button
+                        key={idx}
+                        onClick={(e) => { e.stopPropagation(); setActiveIndex(idx); }}
+                        style={{
+                          width: idx === activeIndex ? '24px' : '8px',
+                          height: '8px',
+                          borderRadius: '4px',
+                          border: 'none',
+                          background: idx === activeIndex ? '#f7931a' : 'rgba(255,255,255,0.5)',
+                          cursor: 'pointer',
+                          transition: 'all 0.3s ease',
+                          padding: 0,
+                        }}
+                        aria-label={`Slide ${idx + 1}`}
+                      />
+                    ))}
                   </div>
                 </Carousel.Item>
               ))}
