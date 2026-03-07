@@ -69,7 +69,7 @@ const FloatingAIChat: React.FC = () => {
           style={{
             position: 'fixed',
             right: 16,
-            bottom: 88,
+            bottom: 144,
             width: 'min(88vw, 330px)',
             zIndex: 9998,
             background: '#ffffff',
@@ -171,7 +171,7 @@ const FloatingAIChat: React.FC = () => {
         style={{
           position: 'fixed',
           right: 16,
-          bottom: 24,
+          bottom: 80,
           width: 52,
           height: 52,
           borderRadius: '50%',
