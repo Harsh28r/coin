@@ -36,6 +36,14 @@ body {
   color: #ffffff !important;
 }
 
+/* Trade CTA strip (below market table) — force dark bg + white label */
+.trade-cta-strip {
+  background: #0f172a !important;
+}
+.trade-cta-strip .trade-cta-label {
+  color: #ffffff !important;
+}
+
 /* ===== TYPOGRAPHY ===== */
 h1, h2, h3, h4, h5, h6 {
   font-weight: 700;

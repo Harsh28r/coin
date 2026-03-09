@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Container, Row, Col, Form, Button, Alert, InputGroup } from 'react-bootstrap';
-import { Twitter, Instagram, Youtube, DiscIcon as Discord } from 'lucide-react';
+import { Twitter, Instagram, Youtube, DiscIcon as Discord, ExternalLink } from 'lucide-react';
+import { tradeLinks } from '../utils/tradeLinks';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import '@fontsource/inter';
 import { useLanguage } from '../context/LanguageContext';
@@ -79,6 +80,21 @@ const Footer: React.FC = () => {
             <a href="/press-news" style={linkStyle} onMouseEnter={e => e.currentTarget.style.color = '#fff'} onMouseLeave={e => e.currentTarget.style.color = '#94a3b8'}>Press Releases</a>
             <a href="/ai-news" style={linkStyle} onMouseEnter={e => e.currentTarget.style.color = '#fff'} onMouseLeave={e => e.currentTarget.style.color = '#94a3b8'}>AI News</a>
             <a href="/listings" style={linkStyle} onMouseEnter={e => e.currentTarget.style.color = '#fff'} onMouseLeave={e => e.currentTarget.style.color = '#94a3b8'}>Listings</a>
+          </Col>
+
+          {/* Trade (affiliate links — see TRADE_AFFILIATE_GUIDE.md) */}
+          <Col lg={2} md={3} sm={6}>
+            <div style={headingStyle}>Trade</div>
+            <a href={tradeLinks.binance.signup} target="_blank" rel="noopener noreferrer" style={linkStyle} onMouseEnter={e => e.currentTarget.style.color = '#fff'} onMouseLeave={e => e.currentTarget.style.color = '#94a3b8'}>
+              {tradeLinks.binance.label} <ExternalLink size={12} style={{ verticalAlign: 'middle', marginLeft: 2 }} />
+            </a>
+            <a href={tradeLinks.coinbase.signup} target="_blank" rel="noopener noreferrer" style={linkStyle} onMouseEnter={e => e.currentTarget.style.color = '#fff'} onMouseLeave={e => e.currentTarget.style.color = '#94a3b8'}>
+              {tradeLinks.coinbase.label} <ExternalLink size={12} style={{ verticalAlign: 'middle', marginLeft: 2 }} />
+            </a>
+            <a href={tradeLinks.coindcx.signup} target="_blank" rel="noopener noreferrer" style={linkStyle} onMouseEnter={e => e.currentTarget.style.color = '#fff'} onMouseLeave={e => e.currentTarget.style.color = '#94a3b8'}>
+              {tradeLinks.coindcx.label} <ExternalLink size={12} style={{ verticalAlign: 'middle', marginLeft: 2 }} />
+            </a>
+            <p style={{ color: '#64748b', fontSize: 11, marginTop: 8, marginBottom: 0 }}>We may earn a commission when you use these links.</p>
           </Col>
 
           {/* Tools */}
