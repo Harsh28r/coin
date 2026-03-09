@@ -232,16 +232,12 @@ export default function NewsCarousel() {
               textTransform: 'uppercase',
               letterSpacing: '0.5px',
             }}>
-              {(current.category?.[0] || current.source || 'Crypto News').slice(0, 30)}
+              CoinsClarity
             </span>
             <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: '13px' }}>
               {formatDate(current.pubDate)}
             </span>
-            {current.source_name && (
-              <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: '13px' }}>
-                • {current.source_name}
-              </span>
-            )}
+            <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: '13px' }}>• CoinsClarity</span>
           </div>
 
           {/* Title */}

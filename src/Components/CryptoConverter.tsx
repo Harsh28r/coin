@@ -17,6 +17,29 @@ const CryptoConverter: React.FC = () => {
   const [result, setResult] = useState<number>(0);
   const [loading, setLoading] = useState(true);
 
+  const MOCK_COINS: Coin[] = [
+    { id: 'bitcoin', symbol: 'btc', name: 'Bitcoin', current_price: 67500 },
+    { id: 'ethereum', symbol: 'eth', name: 'Ethereum', current_price: 3450 },
+    { id: 'tether', symbol: 'usdt', name: 'Tether', current_price: 1 },
+    { id: 'binancecoin', symbol: 'bnb', name: 'BNB', current_price: 585 },
+    { id: 'solana', symbol: 'sol', name: 'Solana', current_price: 178 },
+    { id: 'usd-coin', symbol: 'usdc', name: 'USDC', current_price: 1 },
+    { id: 'ripple', symbol: 'xrp', name: 'XRP', current_price: 0.52 },
+    { id: 'cardano', symbol: 'ada', name: 'Cardano', current_price: 0.48 },
+    { id: 'dogecoin', symbol: 'doge', name: 'Dogecoin', current_price: 0.14 },
+    { id: 'avalanche-2', symbol: 'avax', name: 'Avalanche', current_price: 38 },
+    { id: 'chainlink', symbol: 'link', name: 'Chainlink', current_price: 18 },
+    { id: 'polkadot', symbol: 'dot', name: 'Polkadot', current_price: 8 },
+    { id: 'litecoin', symbol: 'ltc', name: 'Litecoin', current_price: 70 },
+    { id: 'polygon', symbol: 'matic', name: 'Polygon', current_price: 0.42 },
+    { id: 'uniswap', symbol: 'uni', name: 'Uniswap', current_price: 12 },
+    { id: 'stellar', symbol: 'xlm', name: 'Stellar', current_price: 0.11 },
+    { id: 'cosmos', symbol: 'atom', name: 'Cosmos', current_price: 9 },
+    { id: 'monero', symbol: 'xmr', name: 'Monero', current_price: 165 },
+    { id: 'ethereum-classic', symbol: 'etc', name: 'Ethereum Classic', current_price: 28 },
+    { id: 'internet-computer', symbol: 'icp', name: 'Internet Computer', current_price: 12 },
+  ];
+
   useEffect(() => {
     const fetchCoins = async () => {
       try {
@@ -25,10 +48,13 @@ const CryptoConverter: React.FC = () => {
         );
         if (response.ok) {
           const data = await response.json();
-          setCoins(data);
+          if (Array.isArray(data) && data.length) setCoins(data);
+          else setCoins(MOCK_COINS);
+        } else {
+          setCoins(MOCK_COINS);
         }
-      } catch (error) {
-        console.error('Error fetching coins:', error);
+      } catch {
+        setCoins(MOCK_COINS);
       } finally {
         setLoading(false);
       }

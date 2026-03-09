@@ -21,6 +21,21 @@ body {
   overflow-x: hidden;
 }
 
+/* Daily CTA strip — force dark bg + white text (theme-independent) */
+.daily-cta-strip {
+  background: #0f172a !important;
+  color: #ffffff !important;
+}
+.daily-cta-strip *,
+.daily-cta-strip span,
+.daily-cta-strip p,
+.daily-cta-strip a {
+  color: #ffffff !important;
+}
+.daily-cta-strip a:hover {
+  color: #ffffff !important;
+}
+
 /* ===== TYPOGRAPHY ===== */
 h1, h2, h3, h4, h5, h6 {
   font-weight: 700;

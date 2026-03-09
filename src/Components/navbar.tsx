@@ -173,7 +173,7 @@ const CoinsNavbar: React.FC = () => {
         borderBottom: '1px solid var(--border)',
         position: 'sticky',
         top: 0,
-        zIndex: 1000,
+        zIndex: 1030,
         transition: 'all 0.3s ease'
       }}
     >
@@ -209,6 +209,8 @@ const CoinsNavbar: React.FC = () => {
               <NavDropdown.Item as={NavLink} to="/ai-news" onClick={handleNavItemClick}>AI News</NavDropdown.Item>
               <NavDropdown.Divider />
               <NavDropdown.Item as={NavLink} to="/beyond-the-headlines" onClick={handleNavItemClick}>Beyond the Headlines</NavDropdown.Item>
+              <NavDropdown.Divider />
+              <NavDropdown.Item as="a" href="https://daily.coinsclarity.com" target="_blank" rel="noreferrer" onClick={handleNavItemClick} style={{ fontWeight: 600, color: '#f97316' }}>Daily — India news & current affairs</NavDropdown.Item>
             </NavDropdown>
             <Nav.Link as={NavLink} to="/listings" onClick={handleNavItemClick}>Listings</Nav.Link>
             <Nav.Link as={NavLink} to="/learn" onClick={handleNavItemClick}>Learn</Nav.Link>

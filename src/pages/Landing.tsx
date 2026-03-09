@@ -1,4 +1,5 @@
 import React from 'react';
+import { Newspaper } from 'lucide-react';
 import CoinsNavbar from '../Components/navbar'
 import FeaturedCarousel from '../Components/sideCarousal'
 import ExclusiveNews from '../Components/ExclusiveNews'
@@ -19,6 +20,7 @@ import AINews from '../Components/AINews';
 import ArbitrageDashboard from './ArbitrageDashboard';
 import CryptoBreakingBanner from '../Components/CryptoBreakingBanner';
 import NewsletterCTA from '../Components/NewsletterCTA';
+import DailyNewsSection from '../Components/DailyNewsSection';
 
 /* AdSense-compliant placeholder - clearly marked as ad space, not fake content */
 const AdSpot: React.FC<{ variant?: 'leaderboard' | 'rectangle' | 'native'; label?: string; className?: string }> = ({ variant = 'leaderboard', label, className = '' }) => {
@@ -179,6 +181,80 @@ const LandingPage: React.FC = () => {
 
         {/* Newsletter CTA */}
         <NewsletterCTA />
+
+        {/* Daily — 4 news teasers */}
+        {/* <DailyNewsSection /> */}
+
+        {/* Our platforms — Daily (India news) */}
+        <div
+          className="daily-cta-strip"
+          style={{
+            margin: '0 auto',
+            maxWidth: 1280,
+            padding: '32px 20px',
+            background: '#0f172a',
+            borderTop: '1px solid rgba(249, 115, 22, 0.4)',
+            borderBottom: '1px solid rgba(249, 115, 22, 0.4)',
+            textAlign: 'center',
+          }}
+        >
+          <span
+            style={{
+              display: 'inline-block',
+              padding: '6px 12px',
+              marginBottom: 12,
+              fontSize: '0.75rem',
+              fontWeight: 700,
+              letterSpacing: '0.1em',
+              textTransform: 'uppercase',
+              color: '#ffffff',
+              background: 'rgba(249, 115, 22, 0.3)',
+              borderRadius: 6,
+              border: '1px solid rgba(255,255,255,0.4)',
+            }}
+          >
+            ✦ Same team, different beat
+          </span>
+          <div style={{ marginBottom: 14 }}>
+            <span style={{ fontSize: '1.35rem', fontWeight: 800, letterSpacing: '-0.02em', color: '#ffffff' }}>
+              India + World. One feed. Every day.
+            </span>
+          </div>
+          <p style={{ color: '#ffffff', fontSize: '0.95rem', marginBottom: 18, marginTop: 0 }}>
+            Headlines, current affairs & analysis — no fluff.
+          </p>
+          <a
+            href="https://daily.coinsclarity.com"
+            target="_blank"
+            rel="noreferrer"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 8,
+              padding: '12px 24px',
+              background: '#f97316',
+              border: 'none',
+              borderRadius: 10,
+              textDecoration: 'none',
+              color: '#ffffff',
+              fontWeight: 700,
+              fontSize: '1rem',
+              transition: 'all 0.2s ease',
+              boxShadow: '0 4px 14px rgba(249, 115, 22, 0.4)',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'translateY(-2px) scale(1.02)';
+              e.currentTarget.style.boxShadow = '0 6px 20px rgba(249, 115, 22, 0.5)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'none';
+              e.currentTarget.style.boxShadow = '0 4px 14px rgba(249, 115, 22, 0.4)';
+            }}
+          >
+            <Newspaper size={20} style={{ color: '#ffffff' }} />
+            <span style={{ color: '#ffffff' }}>Open Daily</span>
+          </a>
+        </div>
 
         {/* Footer */}
         <Footer />

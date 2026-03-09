@@ -219,7 +219,7 @@ const EventRadar: React.FC = () => {
                     <small className="text-muted">{e.date}</small>
                   </div>
                   <Card.Title style={{ fontSize: '1rem' }}>{e.title}</Card.Title>
-                  {e.source && <small className="text-muted">{e.source}</small>}
+                  <small className="text-muted">CoinsClarity</small>
                   {e.link && (
                     <div className="mt-2">
                       <a className="btn btn-sm btn-outline-primary" href={e.link} target="_blank" rel="noreferrer">Source</a>

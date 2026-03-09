@@ -15,3 +15,4 @@ export function generateArticleId(input: string): string {
   return hash.toString(16).padStart(8, '0')
 }
 
+

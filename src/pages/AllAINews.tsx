@@ -287,11 +287,11 @@ const AllAINews: React.FC = () => {
                     <span
                       className="badge"
                       style={{
-                        backgroundColor: (item as any).source?.includes('MIT') ? '#a31f34' : '#b31b1b',
+                        backgroundColor: '#f97316',
                         fontSize: '0.7rem'
                       }}
                     >
-                      {(item as any).source?.includes('MIT') ? 'MIT' : 'arXiv'}
+                      CoinsClarity
                     </span>
                   </div>
 
@@ -327,7 +327,7 @@ const AllAINews: React.FC = () => {
                     <div>
                       <small className="text-muted">By </small>
                       <small className="text-warning">
-                        {(item as any).source || item.creator?.[0] || 'Unknown'}
+                        CoinsClarity
                       </small>
                     </div>
                     <div className="ms-auto text-end">

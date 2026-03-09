@@ -168,8 +168,8 @@ const InDepthNews: React.FC = () => {
 										<div className="card-title">{item.title}</div>
 										<div className="card-text">{item.description}</div>
 										<div className="card-meta">
-											<span className="author">{item.creator?.[0] || 'Unknown'}</span>
-											<span>{item.source_name || 'Crypto News'}</span>
+											<span className="author">CoinsClarity</span>
+											<span>CoinsClarity</span>
 										</div>
 									</div>
 								</div>

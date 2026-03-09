@@ -70,14 +70,26 @@ const CoinTicker: React.FC<CoinTickerProps> = ({ fixed = true, top = 60, height 
       };
     });
 
-  // Fetch from CoinGecko
+  const MOCK_COINS: CryptoPrice[] = [
+    { id: 'bitcoin', name: 'Bitcoin', symbol: 'btc', current_price: 67500, price_change_percentage_24h: 1.2, image: 'https://assets.coingecko.com/coins/images/1/small/bitcoin.png', sparkline_in_7d: { price: [] } },
+    { id: 'ethereum', name: 'Ethereum', symbol: 'eth', current_price: 3450, price_change_percentage_24h: -0.5, image: 'https://assets.coingecko.com/coins/images/279/small/ethereum.png', sparkline_in_7d: { price: [] } },
+    { id: 'tether', name: 'Tether', symbol: 'usdt', current_price: 1, price_change_percentage_24h: 0, image: 'https://assets.coingecko.com/coins/images/325/small/Tether.png', sparkline_in_7d: { price: [] } },
+    { id: 'binancecoin', name: 'BNB', symbol: 'bnb', current_price: 585, price_change_percentage_24h: 2.1, image: 'https://assets.coingecko.com/coins/images/825/small/bnb-icon2_2x.png', sparkline_in_7d: { price: [] } },
+    { id: 'solana', name: 'Solana', symbol: 'sol', current_price: 178, price_change_percentage_24h: 4.5, image: 'https://assets.coingecko.com/coins/images/4128/small/solana.png', sparkline_in_7d: { price: [] } },
+    { id: 'ripple', name: 'XRP', symbol: 'xrp', current_price: 0.52, price_change_percentage_24h: -1.2, image: 'https://assets.coingecko.com/coins/images/44/small/xrp-symbol-white-128.png', sparkline_in_7d: { price: [] } },
+    { id: 'usd-coin', name: 'USDC', symbol: 'usdc', current_price: 1, price_change_percentage_24h: 0, image: 'https://assets.coingecko.com/coins/images/6319/small/usdc.png', sparkline_in_7d: { price: [] } },
+    { id: 'cardano', name: 'Cardano', symbol: 'ada', current_price: 0.48, price_change_percentage_24h: 0.8, image: 'https://assets.coingecko.com/coins/images/975/small/cardano.png', sparkline_in_7d: { price: [] } },
+    { id: 'dogecoin', name: 'Dogecoin', symbol: 'doge', current_price: 0.14, price_change_percentage_24h: 3.2, image: 'https://assets.coingecko.com/coins/images/5/small/dogecoin.png', sparkline_in_7d: { price: [] } },
+    { id: 'avalanche-2', name: 'Avalanche', symbol: 'avax', current_price: 38, price_change_percentage_24h: -0.3, image: 'https://assets.coingecko.com/coins/images/12559/small/Avalanche_Circle_RedWhite_Trans.png', sparkline_in_7d: { price: [] } },
+  ];
+
   useEffect(() => {
     const fetchCoins = async () => {
       try {
         const vs = currency.toLowerCase();
         const url = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=${encodeURIComponent(vs)}&order=market_cap_desc&per_page=${perPage}&page=1&sparkline=true&price_change_percentage=24h`;
         const res = await fetch(url);
-        if (!res.ok) throw new Error('Failed to fetch coin prices');
+        if (!res.ok) throw new Error('Failed to fetch');
         const data = await res.json();
         if (!Array.isArray(data)) throw new Error('Invalid response');
 
@@ -99,30 +111,12 @@ const CoinTicker: React.FC<CoinTickerProps> = ({ fixed = true, top = 60, height 
           });
         });
         setIsFallback(false);
-      } catch (e) {
-        // Fallback: nudge existing or initialize static 5
+      } catch {
         setCoins((prev) => {
           if (prev && prev.length) return nudgePrices(prev);
-          const base = [
-            { id: 'bitcoin', name: 'Bitcoin', symbol: 'btc', price: 45000, img: '' },
-            { id: 'ethereum', name: 'Ethereum', symbol: 'eth', price: 3200, img: '' },
-            { id: 'binancecoin', name: 'BNB', symbol: 'bnb', price: 320, img: '' },
-            { id: 'cardano', name: 'Cardano', symbol: 'ada', price: 0.48, img: '' },
-            { id: 'solana', name: 'Solana', symbol: 'sol', price: 150, img: '' },
-            { id: 'ripple', name: 'XRP', symbol: 'xrp', price: 0.6, img: '' },
-            { id: 'dogecoin', name: 'Dogecoin', symbol: 'doge', price: 0.12, img: '' },
-            { id: 'polkadot', name: 'Polkadot', symbol: 'dot', price: 8, img: '' },
-            { id: 'chainlink', name: 'Chainlink', symbol: 'link', price: 18, img: '' },
-            { id: 'litecoin', name: 'Litecoin', symbol: 'ltc', price: 70, img: '' },
-          ];
-          return base.slice(0, perPage).map((b) => ({
-            id: b.id,
-            name: b.name,
-            symbol: b.symbol,
-            current_price: b.price,
-            price_change_percentage_24h: 0,
-            image: b.img,
-            sparkline_in_7d: { price: generateSparkline(b.price) },
+          return MOCK_COINS.slice(0, perPage).map((c) => ({
+            ...c,
+            sparkline_in_7d: { price: generateSparkline(c.current_price) },
           }));
         });
         setIsFallback(true);
@@ -165,7 +159,7 @@ const CoinTicker: React.FC<CoinTickerProps> = ({ fixed = true, top = 60, height 
           top: fixed ? (typeof top === 'number' ? `${top}px` : top) : undefined,
           left: 0,
           right: 0,
-          zIndex: 1100,
+          zIndex: fixed ? 900 : 1,
           height: typeof finalHeight === 'number' ? `${finalHeight}px` : finalHeight,
           width: '100%',
           overflow: 'hidden',

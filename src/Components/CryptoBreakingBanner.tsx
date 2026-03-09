@@ -185,7 +185,7 @@ const CryptoBreakingBanner: React.FC = () => {
                   pubDate: current.pubDate,
                   image_url: current.image_url,
                   link: current.link,
-                  source_name: 'Crypto News',
+                  source_name: 'CoinsClarity',
                   content: current.description
                 }
               }

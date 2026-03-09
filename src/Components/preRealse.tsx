@@ -97,7 +97,9 @@ const PressRelease: React.FC = () => {
           setIsLoading(false);
           return;
         } catch (error) {
-          console.warn('Failed to fetch from db.json, falling back to API:', error);
+          if ((error as Error)?.message !== 'Local db disabled') {
+            console.warn('Failed to fetch from db.json, falling back to API:', error);
+          }
         }
 
         // Fetch from multiple RSS sources across backends
@@ -310,7 +312,7 @@ const PressRelease: React.FC = () => {
                     pubDate: effectiveMainArticle.date,
                     image_url: effectiveMainArticle.image,
                     link: effectiveMainArticle.link,
-                    source_name: 'Crypto News',
+                    source_name: 'CoinsClarity',
                     content: effectiveMainArticle.description || ''
                   } } });
                 }}
@@ -386,7 +388,7 @@ const PressRelease: React.FC = () => {
                     pubDate: release.date,
                     image_url: release.image,
                     link: release.link,
-                    source_name: 'Crypto News',
+                    source_name: 'CoinsClarity',
                     content: release.description || ''
                   } } });
                 }}

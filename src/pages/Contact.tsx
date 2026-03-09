@@ -210,6 +210,9 @@ const Contact: React.FC = () => {
                       <span style={{ color: '#ffffff' }}>•</span>
                       <a href="https://www.instagram.com/coinsclarity" target="_blank" rel="noopener noreferrer"
                          style={{ color: '#f97316', fontSize: '0.9rem' }}>Instagram</a>
+                      <span style={{ color: '#ffffff' }}>•</span>
+                      <a href="https://discord.gg/V2YY8nXjr5" target="_blank" rel="noopener noreferrer"
+                         style={{ color: '#f97316', fontSize: '0.9rem' }}>Discord</a>
                     </div>
                   </div>
                 </div>

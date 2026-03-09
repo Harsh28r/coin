@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { Container, Row, Col, Card, Badge, Button } from 'react-bootstrap';
 import { computeImpactLevel } from '../utils/impact';
+import { BRAND_DISPLAY_NAME, stripAppearedFirstOn } from '../utils/branding';
 import { ArrowLeft, Share2, Bookmark, Eye, Calendar, User, Volume2, Square } from 'lucide-react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { Helmet } from 'react-helmet-async';
@@ -601,7 +602,7 @@ const NewsDetail: React.FC = () => {
 
   // Normalize content to formal HTML paragraphs when needed
   const getNormalizedContentHtml = (htmlOrText?: string): string => {
-    const raw = (htmlOrText || '').trim();
+    const raw = stripAppearedFirstOn((htmlOrText || '').trim());
     if (!raw) return '';
     const looksLikeHtml = /<[^>]+>/.test(raw);
     if (looksLikeHtml) return sanitizeScrapedHtml(raw, effectiveItem?.title);
@@ -614,17 +615,37 @@ const NewsDetail: React.FC = () => {
 
   if (loading) {
     return (
-      <Container className="mt-5">
-        <div className="text-center" style={{ backgroundColor: '#111827', minHeight: '60vh', paddingTop: '80px' }}>
-          <div className="spinner-border" role="status" style={{ color: '#f97316' }}>
-            <span className="visually-hidden">Loading...</span>
-          </div>
-          <p className="mt-3" style={{ color: '#fff' }}>Loading news article...</p>
-          <p style={{ color: '#6b7280', fontSize: '0.85rem' }}>
-            This may take a moment if the server is waking up
-          </p>
+      <div
+        className="d-flex flex-column align-items-center justify-content-center"
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          width: '100vw',
+          height: '100vh',
+          backgroundColor: '#fff',
+          zIndex: 99999,
+        }}
+      >
+        <Button
+          variant="outline-secondary"
+          size="sm"
+          onClick={() => navigate(-1)}
+          className="d-flex align-items-center position-absolute"
+          style={{ top: 16, left: 16 }}
+        >
+          <ArrowLeft className="me-2" size={16} /> Back
+        </Button>
+        <div className="spinner-border" role="status" style={{ color: '#f97316', width: '64px', height: '64px', borderWidth: 4 }} aria-hidden="false">
+          <span className="visually-hidden">Loading...</span>
         </div>
-      </Container>
+        <h4 className="mt-4 mb-2 fw-bold" style={{ color: '#ea580c', fontSize: '1.35rem' }}>News is loading</h4>
+        <p className="mb-0 text-secondary" style={{ fontSize: '1rem', maxWidth: 340, textAlign: 'center' }}>
+          Fetching your article. This can take 10–30 seconds — please wait.
+        </p>
+      </div>
     );
   }
 
@@ -656,16 +677,16 @@ const NewsDetail: React.FC = () => {
     <Container className="mt-4 news-detail-container" fluid>
       <Helmet>
         <title>{effectiveItem.title} | CoinsClarity</title>
-        <meta name="description" content={effectiveItem.description?.slice(0, 160) || effectiveItem.title} />
+        <meta name="description" content={stripAppearedFirstOn(effectiveItem.description || '').slice(0, 160) || effectiveItem.title} />
         <link rel="canonical" href={window.location.href} />
         <meta property="og:type" content="article" />
         <meta property="og:title" content={effectiveItem.title} />
-        <meta property="og:description" content={effectiveItem.description || effectiveItem.title} />
+        <meta property="og:description" content={stripAppearedFirstOn(effectiveItem.description || '') || effectiveItem.title} />
         <meta property="og:image" content={effectiveItem.image_url} />
         <meta property="og:url" content={window.location.href} />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={effectiveItem.title} />
-        <meta name="twitter:description" content={effectiveItem.description || effectiveItem.title} />
+        <meta name="twitter:description" content={stripAppearedFirstOn(effectiveItem.description || '') || effectiveItem.title} />
         <meta name="twitter:image" content={effectiveItem.image_url} />
         <script type="application/ld+json">{JSON.stringify({
           '@context': 'https://schema.org',
@@ -673,12 +694,9 @@ const NewsDetail: React.FC = () => {
           headline: effectiveItem.title,
           description: effectiveItem.description || effectiveItem.title,
           image: [effectiveItem.image_url || `${window.location.origin}/logo3.png`].filter(Boolean),
-          author: effectiveItem.creator?.[0] ? {
-            '@type': 'Person',
-            name: effectiveItem.creator[0]
-          } : {
+          author: {
             '@type': 'Organization',
-            name: 'CoinsClarity'
+            name: BRAND_DISPLAY_NAME
           },
           datePublished: effectiveItem.pubDate || new Date().toISOString(),
           dateModified: effectiveItem.pubDate || new Date().toISOString(),
@@ -726,7 +744,7 @@ const NewsDetail: React.FC = () => {
               <div className="d-flex align-items-center flex-wrap gap-3 text-muted">
                 <div className="d-flex align-items-center small">
                   <User className="me-2" size={16} />
-                  <span style={{ color: '#fb923c' }}>{effectiveItem.creator?.[0] || 'Unknown Author'}</span>
+                  <span style={{ color: '#fb923c' }}>{BRAND_DISPLAY_NAME}</span>
                 </div>
                 <div className="vr d-none d-md-block" />
                 <div className="d-flex align-items-center small">
@@ -801,6 +819,7 @@ const NewsDetail: React.FC = () => {
               )}
             </div>
           </div>
+          
 
           {/* Featured Image - Mobile Optimized */}
           {effectiveItem.image_url && (
@@ -823,6 +842,16 @@ const NewsDetail: React.FC = () => {
           <div className="article-content mb-4" ref={contentRef}>
             <div className="article-body" style={{ fontSize: `${(1.0 * fontScale).toFixed(2)}rem` }}>
 
+                {/* Loader when fetching full article in background (brief already shown) */}
+                {fullContentLoading && (
+                  <div className="d-flex align-items-center justify-content-center gap-3 py-4 mb-4 rounded-3" style={{ backgroundColor: 'rgba(249,115,22,0.1)', border: '1px solid rgba(249,115,22,0.3)' }}>
+                    <div className="spinner-border spinner-border-sm" role="status" style={{ color: '#f97316', width: '28px', height: '28px' }}>
+                      <span className="visually-hidden">Loading...</span>
+                    </div>
+                    <span className="fw-semibold" style={{ color: '#ea580c' }}>Loading full article…</span>
+                  </div>
+                )}
+
                 {/* Full Article Content */}
                 {(effectiveItem.contentHtml || effectiveItem.fullContent || effectiveItem.content || effectiveItem.description || '').length > 0 && (
                   <div className="full-article-content mb-4">
@@ -838,22 +867,10 @@ const NewsDetail: React.FC = () => {
                   </div>
                 )}
 
-                {/* Loading indicator while fetching full article */}
-                {fullContentLoading && (
-                  <div className="d-flex align-items-center gap-2 mt-3 p-3 rounded" style={{ backgroundColor: '#f0f9ff', border: '1px solid #bfdbfe' }}>
-                    <div className="spinner-border spinner-border-sm" role="status" style={{ color: '#3b82f6', width: '16px', height: '16px' }}>
-                      <span className="visually-hidden">Loading...</span>
-              </div>
-                    <span style={{ color: '#1e40af', fontSize: '0.85rem' }}>Loading full article...</span>
-                </div>
-              )}
-
-                {/* Source */}
-                {effectiveItem.source_name && (
-                  <p className="text-muted mt-3 mb-0" style={{ fontSize: '0.85rem', textAlign: 'right' }}>
-                    Source: {effectiveItem.source_name}
-                  </p>
-              )}
+                {/* Source - always show our brand */}
+                <p className="text-muted mt-3 mb-0" style={{ fontSize: '0.85rem', textAlign: 'right' }}>
+                  {BRAND_DISPLAY_NAME}
+                </p>
             </div>
           </div>
 

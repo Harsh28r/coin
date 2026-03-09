@@ -72,16 +72,15 @@ export const ScrollingStats = () => {
   const [isMobile, setIsMobile] = useState(false);
   const getApiBases = (): string[] => {
     const env = (process.env.REACT_APP_API_URL as string) || '';
-    const rel = typeof window !== 'undefined' ? `${window.location.origin}/api` : '';
-    const camify = 'https://camify.fun.coinsclarity.com/api';
     const hostname = typeof window !== 'undefined' ? window.location.hostname : '';
     const isProd = typeof window !== 'undefined' && !/localhost|127\.0\.0\.1/i.test(hostname);
+    const rel = (typeof window !== 'undefined' && isProd) ? `${window.location.origin}/api` : '';
+    const camify = 'https://camify.fun.coinsclarity.com/api';
     const local = isProd ? '' : 'http://localhost:5000';
-    // On production coinsclarity domains, hit backend directly first to avoid 405s from mismatched /api proxies.
     const coinsclarityHost = /(^|\.)coinsclarity\.com$/i.test(hostname);
     const bases = coinsclarityHost
-      ? [camify, env, rel]
-      : [env, rel, camify, local];
+      ? [camify, env, rel].filter(Boolean)
+      : [env, rel, camify, local].filter(Boolean);
     return Array.from(new Set(bases));
   };
 
@@ -284,7 +283,7 @@ export const ScrollingStats = () => {
   const userIconSize = isMobile ? '1.4em' : '1.7em';
 
   return (
-    <div style={{ width: '95%', margin: '0 auto' }} className="relative h-12 bg-white rounded-lg overflow-hidden d-flex align-items-center">
+    <div style={{ width: '95%', margin: '0 auto', overflow: 'visible' }} className="relative h-12 bg-white rounded-lg d-flex align-items-center">
       {/* Edge fades */}
       <div style={{
         position: 'absolute', left: 0, top: 0, bottom: 0, width: `${edgeWidth}px`,
@@ -300,7 +299,7 @@ export const ScrollingStats = () => {
         <CoinTicker fixed={false} height={48} perPage={20} />
       </div>
 
-      <div className="position-absolute d-flex align-items-center" style={{ zIndex: 3, right: 16 }}>
+      <div className="position-absolute d-flex align-items-center" style={{ zIndex: 50, right: 16 }}>
         <Nav className="flex-nowrap align-items-center justify-content-end">
           <NavDropdown
             title={isMobile
@@ -353,7 +352,7 @@ export const ScrollingStats = () => {
               {showProfileCard && (
                 <div
                   className="profile-card shadow"
-                  style={{ width: isMobile ? '160px' : '180px', position: 'absolute', top: '100%', right: 0, left: 'auto', background: '#fff', borderRadius: 8 }}
+                  style={{ width: isMobile ? '160px' : '180px', position: 'absolute', top: '100%', right: 0, left: 'auto', background: '#fff', borderRadius: 8, zIndex: 1050 }}
                   onMouseEnter={() => setShowProfileCard(true)}
                   onMouseLeave={() => setShowProfileCard(false)}
                 >

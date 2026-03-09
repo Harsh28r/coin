@@ -529,7 +529,7 @@ const ExploreSection: React.FC = () => {
                 {(displayExploreCards.length > 0 ? displayExploreCards : exploreCards).map((card: any, index) => {
                   const imgSrc = card.image || card.image_url || `/web3_${(index % 4) + 1}.png`;
                   const titleText = card.title || card.text || card.description || `Explore card ${index + 1}`;
-                  const usedSource = card.source || card.source_name || 'Crypto';
+                  const usedSource = 'CoinsClarity';
                   return (
                   <Col key={card.article_id || card.id || index}>
                     <Card 
@@ -550,7 +550,7 @@ const ExploreSection: React.FC = () => {
                           pubDate: new Date().toISOString(),
                           image_url: imgSrc,
                           link: card.link || '#',
-                          source_name: card.source || card.source_name || 'Crypto',
+                          source_name: 'CoinsClarity',
                           content: card.content || ''
                         } } });
                       }}
@@ -615,7 +615,7 @@ const ExploreSection: React.FC = () => {
                                 pubDate: new Date().toISOString(),
                                 image_url: imgSrc,
                                 link: card.link || '#',
-                                source_name: card.source || card.source_name || 'Crypto',
+                                source_name: 'CoinsClarity',
                                 content: card.content || ''
                               } } }); }}
                             >

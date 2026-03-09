@@ -158,7 +158,7 @@ const InDepthNewsPage: React.FC = () => {
 								</Card.Title>
 								<Card.Text className="text-muted" style={{ display: '-webkit-box', WebkitBoxOrient: 'vertical', WebkitLineClamp: 3, overflow: 'hidden' }}>{item.description}</Card.Text>
 								<div className="mt-auto d-flex justify-content-between align-items-center">
-									<Badge bg="light" text="dark">{item.creator?.[0] || 'Unknown'}</Badge>
+									<Badge bg="light" text="dark">CoinsClarity</Badge>
 								</div>
 							</Card.Body>
 						</Card>

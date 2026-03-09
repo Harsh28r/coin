@@ -283,3 +283,4 @@ const TrendingNFTs: React.FC = () => {
 
 export default TrendingNFTs;
 
+

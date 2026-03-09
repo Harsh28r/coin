@@ -385,7 +385,7 @@ const Exn: React.FC = () => {
                         A
                       </div>
                       <small className="text-muted">
-                        {Array.isArray(item.creator) && item.creator.length > 0 ? item.creator[0] : 'Unknown'}
+                        CoinsClarity
                       </small>
                     </div>
                     <div className="text-end">

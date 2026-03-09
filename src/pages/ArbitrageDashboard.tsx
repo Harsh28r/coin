@@ -4,6 +4,7 @@ import {
   getOpportunities,
   getStats,
   getTriangularOpportunities,
+  getTriangularOpportunitiesLive,
   getTriangularStats,
   ArbitrageOpportunity,
   ArbitrageStats,
@@ -73,16 +74,31 @@ const ArbitrageDashboard: React.FC = () => {
   const fetchData = async () => {
     try {
       setError(null);
-      const [opps, statistics, triangularOpps, triangularStat] = await Promise.all([
+      // Cross-exchange: from API/DB. Triangular: live from Binance (real-time).
+      const [opps, statistics, triangularOppsLive, triangularStat] = await Promise.all([
         getOpportunities(20),
         getStats(7),
-        getTriangularOpportunities(20),
+        getTriangularOpportunitiesLive(20),
         getTriangularStats(7)
       ]);
-      setOpportunities(opps);
-      setStats(statistics);
-      setTriangularOpp(triangularOpps);
-      setTriangularStats(triangularStat);
+      setOpportunities(Array.isArray(opps) ? opps : []);
+      setStats(statistics ?? null);
+      const triangularList = Array.isArray(triangularOppsLive) ? triangularOppsLive : [];
+      setTriangularOpp(triangularList);
+      // Derive stats from live triangular list so UI shows current data
+      if (triangularList.length > 0) {
+        const avg = triangularList.reduce((s, o) => s + (o.netProfitPercent ?? 0), 0) / triangularList.length;
+        const max = Math.max(...triangularList.map((o) => o.netProfitPercent ?? 0));
+        setTriangularStats({
+          totalOpportunities: triangularList.length,
+          activeOpportunities: triangularList.length,
+          averageProfitPercent: avg.toFixed(2),
+          maxProfitPercent: max.toFixed(2),
+          period: 'Live (now)',
+        });
+      } else {
+        setTriangularStats(triangularStat ?? null);
+      }
     } catch (err) {
       setError('Failed to fetch arbitrage data. Please try again.');
       console.error(err);
@@ -346,13 +362,13 @@ const ArbitrageDashboard: React.FC = () => {
             {/* Cross-Exchange Tab */}
             <Tab.Pane eventKey="cross-exchange">
               {/* Statistics */}
-              {stats && (
+              {(stats || activeTab === 'cross-exchange') && (
                 <Row style={{ marginBottom: '30px', gap: '20px 0' }}>
                   {[
-                    { label: 'Active', value: stats.activeOpportunities, icon: Activity, gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' },
-                    { label: 'Total (7d)', value: stats.totalOpportunities, icon: Target, gradient: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)' },
-                    { label: 'Avg Profit', value: `${stats.averageProfitPercent}%`, icon: TrendingUp, gradient: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)' },
-                    { label: 'Max Profit', value: `${stats.maxProfitPercent}%`, icon: DollarSign, gradient: 'linear-gradient(135deg, #fad0c4 0%, #ffd1ff 100%)' },
+                    { label: 'Active', value: stats?.activeOpportunities ?? 0, icon: Activity, gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' },
+                    { label: 'Total (7d)', value: stats?.totalOpportunities ?? 0, icon: Target, gradient: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)' },
+                    { label: 'Avg Profit', value: `${stats?.averageProfitPercent ?? '0.00'}%`, icon: TrendingUp, gradient: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)' },
+                    { label: 'Max Profit', value: `${stats?.maxProfitPercent ?? '0.00'}%`, icon: DollarSign, gradient: 'linear-gradient(135deg, #fad0c4 0%, #ffd1ff 100%)' },
                   ].map((stat, idx) => (
                     <Col md={6} lg={3} key={idx}>
                       <div style={{
@@ -377,7 +393,7 @@ const ArbitrageDashboard: React.FC = () => {
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                           <div>
                             <p style={{ fontSize: '14px', opacity: 0.9, margin: 0, marginBottom: '8px' }}>{stat.label}</p>
-                            <h2 style={{ fontSize: '2rem', fontWeight: 'bold', margin: 0 }}>{stat.value}</h2>
+                            <h2 style={{ fontSize: '2rem', fontWeight: 'bold', margin: 0 }}>{stat.value != null ? String(stat.value) : '—'}</h2>
                           </div>
                           <div style={{
                             width: 46,
@@ -413,8 +429,8 @@ const ArbitrageDashboard: React.FC = () => {
                   </Alert>
                 ) : (
                   <Row>
-                    {opportunities.map((opp) => (
-                      <Col md={6} lg={4} key={opp._id} style={{ marginBottom: '20px' }}>
+                    {opportunities.map((opp, idx) => (
+                      <Col md={6} lg={4} key={opp._id ?? `cross-${idx}`} style={{ marginBottom: '20px' }}>
                         <div style={{
                           background: theme.cardBg,
                           borderRadius: '18px',
@@ -445,8 +461,8 @@ const ArbitrageDashboard: React.FC = () => {
                           }} />
                           <div style={{ position: 'relative' }}>
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                                <h5 style={{ margin: 0, fontWeight: 'bold', color: theme.textPrimary, fontSize: '1.3rem' }}>{opp.symbol}</h5>
-                            {getLiquidityBadge(opp.liquidity)}
+                                <h5 style={{ margin: 0, fontWeight: 'bold', color: theme.textPrimary, fontSize: '1.3rem' }}>{opp.symbol ?? '—'}</h5>
+                            {getLiquidityBadge(opp.liquidity ?? 'medium')}
                           </div>
 
                           <div style={{ marginBottom: '20px' }}>
@@ -461,7 +477,7 @@ const ArbitrageDashboard: React.FC = () => {
                             }}>
                               <span style={{ color: theme.textSecondary, fontSize: '14px' }}>Buy</span>
                               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <Badge bg="primary" style={{ borderRadius: '10px', padding: '6px 12px', textTransform: 'uppercase' }}>{opp.buyExchange}</Badge>
+                                <Badge bg="primary" style={{ borderRadius: '10px', padding: '6px 12px', textTransform: 'uppercase' }}>{opp.buyExchange ?? '—'}</Badge>
                                 <strong style={{ color: theme.textPrimary }}>${fixed(opp.buyPrice, 2)}</strong>
                                 <a
                                   href={getExchangeLink(opp.buyExchange, opp.symbol)}
@@ -484,7 +500,7 @@ const ArbitrageDashboard: React.FC = () => {
                             }}>
                               <span style={{ color: theme.textSecondary, fontSize: '14px' }}>Sell</span>
                               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <Badge bg="success" style={{ borderRadius: '10px', padding: '6px 12px', textTransform: 'uppercase' }}>{opp.sellExchange}</Badge>
+                                <Badge bg="success" style={{ borderRadius: '10px', padding: '6px 12px', textTransform: 'uppercase' }}>{opp.sellExchange ?? '—'}</Badge>
                                 <strong style={{ color: theme.textPrimary }}>${fixed(opp.sellPrice, 2)}</strong>
                                 <a
                                   href={getExchangeLink(opp.sellExchange, opp.symbol)}
@@ -538,33 +554,42 @@ const ArbitrageDashboard: React.FC = () => {
             {/* Triangular Tab */}
             <Tab.Pane eventKey="triangular">
               {/* Statistics */}
-              {triangularStats && (
+              {(triangularStats || activeTab === 'triangular') && (
                 <Row style={{ marginBottom: '30px', gap: '20px 0' }}>
                   {[
-                    { label: 'Active', value: triangularStats.activeOpportunities, icon: Activity, gradient: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)' },
-                    { label: 'Total (7d)', value: triangularStats.totalOpportunities, icon: Target, gradient: 'linear-gradient(135deg, #fad0c4 0%, #ffd1ff 100%)' },
-                    { label: 'Avg Profit', value: `${triangularStats.averageProfitPercent}%`, icon: TrendingUp, gradient: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)' },
-                    { label: 'Max Profit', value: `${triangularStats.maxProfitPercent}%`, icon: DollarSign, gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' },
+                    { label: 'Active', value: triangularStats?.activeOpportunities ?? 0, icon: Activity, gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' },
+                    { label: 'Total (7d)', value: triangularStats?.totalOpportunities ?? 0, icon: Target, gradient: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)' },
+                    { label: 'Avg Profit', value: `${triangularStats?.averageProfitPercent ?? '0.00'}%`, icon: TrendingUp, gradient: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)' },
+                    { label: 'Max Profit', value: `${triangularStats?.maxProfitPercent ?? '0.00'}%`, icon: DollarSign, gradient: 'linear-gradient(135deg, #fad0c4 0%, #ffd1ff 100%)' },
                   ].map((stat, idx) => (
                     <Col md={6} lg={3} key={idx}>
                       <div style={{
-                        background: stat.gradient,
-                        borderRadius: '20px',
-                        padding: '25px',
-                        color: 'white',
-                        boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.37)',
-                        transition: 'transform 0.3s ease',
+                        background: theme.cardBg,
+                        borderRadius: '16px',
+                        padding: '22px',
+                        color: theme.textPrimary,
+                        border: `1px solid ${theme.surfaceBorder}`,
+                        boxShadow: '0 15px 35px rgba(31, 41, 55, 0.08)',
+                        transition: 'transform 0.3s ease, box-shadow 0.3s ease',
                         cursor: 'pointer'
                       }}
-                      onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-5px)'}
-                      onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.transform = 'translateY(-4px)';
+                        e.currentTarget.style.boxShadow = '0 14px 36px rgba(17, 24, 39, 0.16)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = 'translateY(0)';
+                        e.currentTarget.style.boxShadow = '0 15px 35px rgba(31, 41, 55, 0.08)';
+                      }}
                       >
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                           <div>
-                            <p style={{ fontSize: '14px', opacity: 0.9, margin: 0, marginBottom: '8px' }}>{stat.label}</p>
-                            <h2 style={{ fontSize: '2rem', fontWeight: 'bold', margin: 0 }}>{stat.value}</h2>
+                            <p style={{ fontSize: '14px', opacity: 0.9, margin: 0, marginBottom: '8px', color: theme.textSecondary }}>{stat.label}</p>
+                            <h2 style={{ fontSize: '2rem', fontWeight: 'bold', margin: 0, color: theme.textPrimary }}>{stat.value != null ? String(stat.value) : '—'}</h2>
                           </div>
-                          <stat.icon size={40} style={{ opacity: 0.3 }} />
+                          <div style={{ width: 46, height: 46, borderRadius: '12px', background: theme.accentSoft, display: 'grid', placeItems: 'center' }}>
+                            <stat.icon size={22} color={theme.accent} />
+                          </div>
                         </div>
                       </div>
                     </Col>
@@ -580,17 +605,20 @@ const ArbitrageDashboard: React.FC = () => {
                 backdropFilter: 'blur(10px)',
                 border: `1px solid ${theme.surfaceBorder}`
               }}>
-                <h4 style={{ color: theme.textPrimary, marginBottom: '25px', fontWeight: 'bold' }}>
+                <h4 style={{ color: theme.textPrimary, marginBottom: '6px', fontWeight: 'bold' }}>
                   Triangular Opportunities ({triangularOpp.length})
                 </h4>
+                <p style={{ color: theme.textSecondary, fontSize: '13px', marginBottom: '25px' }}>
+                  Live from Binance. Net % is after 0.3% fees (3 × 0.1%).
+                </p>
                 {triangularOpp.length === 0 ? (
                   <Alert variant="info" style={{ borderRadius: '15px', border: 'none' }}>
-                    No triangular arbitrage opportunities found. The scanner runs every 30 seconds on Binance.
+                    No triangular paths with positive net profit right now. We fetch live Binance prices and show the best paths (net = after 0.3% fees). Markets are efficient — click Refresh to try again.
                   </Alert>
                 ) : (
                   <Row>
-                    {triangularOpp.map((opp) => (
-                      <Col md={6} lg={4} key={opp._id} style={{ marginBottom: '20px' }}>
+                    {triangularOpp.map((opp, idx) => (
+                      <Col md={6} lg={4} key={opp._id ?? `tri-${idx}`} style={{ marginBottom: '20px' }}>
                         <div style={{
                           background: theme.cardBg,
                           borderRadius: '18px',
@@ -622,10 +650,10 @@ const ArbitrageDashboard: React.FC = () => {
                           <div style={{ position: 'relative' }}>
                           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
                             <Badge bg="light" text="dark" style={{ borderRadius: '12px', padding: '8px 14px', fontSize: '12px', border: `1px solid ${theme.surfaceBorder}` }}>
-                              {opp.exchange.toUpperCase()}
+                              {(opp.exchange ?? '—').toString().toUpperCase()}
                             </Badge>
                             <Badge bg="warning" text="dark" style={{ borderRadius: '12px', padding: '8px 14px', fontSize: '12px' }}>
-                              {opp.baseCurrency}
+                              {opp.baseCurrency ?? '—'}
                             </Badge>
                           </div>
 
@@ -637,14 +665,14 @@ const ArbitrageDashboard: React.FC = () => {
                             textAlign: 'center'
                           }}>
                             <small style={{ color: theme.textSecondary, display: 'block', marginBottom: '6px' }}>Trading Path</small>
-                            <strong style={{ color: theme.textPrimary, fontSize: '14px' }}>{opp.path}</strong>
+                            <strong style={{ color: theme.textPrimary, fontSize: '14px' }}>{opp.path ?? '—'}</strong>
                           </div>
 
                           <div style={{ marginBottom: '20px' }}>
                             {[
-                              { label: 'Step 1', pair: opp.step1?.pair || 'N/A', price: opp.step1?.price },
-                              { label: 'Step 2', pair: opp.step2?.pair || 'N/A', price: opp.step2?.price },
-                              { label: 'Step 3', pair: opp.step3?.pair || 'N/A', price: opp.step3?.price },
+                              { label: 'Step 1', pair: opp.step1?.pair ?? 'N/A', price: opp.step1?.price },
+                              { label: 'Step 2', pair: opp.step2?.pair ?? 'N/A', price: opp.step2?.price },
+                              { label: 'Step 3', pair: opp.step3?.pair ?? 'N/A', price: opp.step3?.price },
                             ].map((step, idx) => (
                               <div key={idx} style={{
                                 padding: '10px',
@@ -700,7 +728,7 @@ const ArbitrageDashboard: React.FC = () => {
                             border: `1px dashed ${theme.surfaceBorder}`
                           }}>
                             <small style={{ color: theme.textSecondary, fontSize: '12px' }}>
-                              {toNum(opp.startAmount)} {opp.baseCurrency} → {fixed(opp.endAmount, 6)} {opp.baseCurrency}
+                              {toNum(opp.startAmount)} {opp.baseCurrency ?? '—'} → {fixed(opp.endAmount, 6)} {opp.baseCurrency ?? '—'}
                             </small>
                           </div>
                           </div>

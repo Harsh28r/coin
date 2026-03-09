@@ -227,7 +227,7 @@ const ListingsAll: React.FC = () => {
                       </div>
                       <Card.Title style={{ fontSize: '1rem' }}>{li.title}</Card.Title>
                       <div className="d-flex justify-content-between align-items-center mt-3">
-                        <small className="text-muted">{li.source_name}</small>
+                        <small className="text-muted">CoinsClarity</small>
                         <Button size="sm" variant="primary" style={orangeBtnStyle} onClick={() => openDetail(li)}>Read</Button>
                       </div>
                     </Card.Body>

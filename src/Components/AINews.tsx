@@ -8,6 +8,7 @@ import 'react-loading-skeleton/dist/skeleton.css';
 import { useLanguage } from '../context/LanguageContext';
 import { useNewsTranslation } from '../hooks/useNewsTranslation';
 import { getCryptoFallbackImage, handleImageError } from '../utils/cryptoImages';
+import { BRAND_DISPLAY_NAME } from '../utils/branding';
 
 interface NewsItem {
   article_id?: string;
@@ -69,47 +70,92 @@ const AINews: React.FC = () => {
   };
 
   useEffect(() => {
+    const CAMIFY = 'https://camify.fun.coinsclarity.com';
+    const USE_API_FALLBACK = API_BASE_URL && !API_BASE_URL.includes('localhost');
+    const bases = [CAMIFY, ...(USE_API_FALLBACK ? [API_BASE_URL.replace(/\/$/, '')] : [])];
+
+    const fetchJson = async (url: string, timeoutMs = 10000) => {
+      const ctrl = new AbortController();
+      const id = setTimeout(() => ctrl.abort(), timeoutMs);
+      try {
+        const res = await fetch(url, { signal: ctrl.signal });
+        if (!res.ok) return null;
+        return await res.json();
+      } catch {
+        return null;
+      } finally {
+        clearTimeout(id);
+      }
+    };
+
+    const extractArr = (data: any): any[] => {
+      if (!data) return [];
+      return Array.isArray(data.data) ? data.data : Array.isArray(data.items) ? data.items : [];
+    };
+
     const fetchNews = async () => {
       setIsLoading(true);
       setError(null);
       try {
-        // Fetch from AI news endpoints on BOTH backends (Render + Camify) for reliability
-        const CAMIFY = 'https://camify.fun.coinsclarity.com';
-        const endpoints = [
-          { url: `${CAMIFY}/fetch-mit-ai-rss?limit=12`, source: 'MIT AI News' },
-          { url: `${CAMIFY}/fetch-venturebeat-ai-rss?limit=12`, source: 'VentureBeat AI' },
-          { url: `${CAMIFY}/fetch-techcrunch-ai-rss?limit=12`, source: 'TechCrunch AI' },
-          { url: `${API_BASE_URL}/fetch-mit-ai-rss?limit=12`, source: 'MIT AI News' },
-          { url: `${API_BASE_URL}/fetch-arxiv-ai-rss?limit=12`, source: 'arXiv AI' },
+        const aiPaths = [
+          { path: 'fetch-mit-ai-rss', source: 'MIT AI News' },
+          { path: 'fetch-venturebeat-ai-rss', source: 'VentureBeat AI' },
+          { path: 'fetch-techcrunch-ai-rss', source: 'TechCrunch AI' },
+          { path: 'fetch-arxiv-ai-rss', source: 'arXiv AI' },
+          { path: 'fetch-chaingpt-rss', source: 'ChainGPT' },
+          { path: 'fetch-watcherguru-rss', source: 'Watcher Guru' },
         ];
 
         let items: any[] = [];
 
-        // Fetch from all endpoints in parallel
-        const results = await Promise.allSettled(
-          endpoints.map(async (endpoint) => {
-            const res = await fetch(endpoint.url, { signal: AbortSignal.timeout(12000) });
-            if (!res.ok) throw new Error(`Failed to fetch ${endpoint.source}`);
-            const data = await res.json();
-            return { data, source: endpoint.source };
-          })
-        );
-
-        results.forEach((result) => {
-          if (result.status === 'fulfilled' && result.value.data?.success) {
-            // Handle both { data: [...] } and { items: [...] } response shapes
-            const arr = Array.isArray(result.value.data.data)
-              ? result.value.data.data
-              : Array.isArray(result.value.data.items)
-                ? result.value.data.items
-                : [];
-            const sourceItems = arr.map((item: any) => ({
-              ...item,
-              source: result.value.source
-            }));
-            items = items.concat(sourceItems);
+        for (const { path, source } of aiPaths) {
+          const suffix = `${path}?limit=12`;
+          for (const base of bases) {
+            const data = await fetchJson(`${base}/${suffix}`);
+            const arr = extractArr(data);
+            if (arr.length) {
+              items = items.concat(arr.map((item: any) => ({ ...item, source })));
+              break;
+            }
           }
-        });
+        }
+
+        if (items.length === 0) {
+          const fallbackPaths = [
+            { path: 'fetch-coindesk-rss', source: 'CoinDesk' },
+            { path: 'fetch-cointelegraph-rss', source: 'Cointelegraph' },
+            { path: 'fetch-decrypt-rss', source: 'Decrypt' },
+            { path: 'fetch-cryptoslate-rss', source: 'CryptoSlate' },
+            { path: 'fetch-blockworks-rss', source: 'Blockworks' },
+            { path: 'fetch-beincrypto-rss', source: 'BeInCrypto' },
+            { path: 'fetch-cryptobriefing-rss', source: 'Crypto Briefing' },
+            { path: 'fetch-coingape-rss', source: 'CoinGape' },
+            { path: 'fetch-finbold-rss', source: 'Finbold' },
+            { path: 'fetch-protos-rss', source: 'Protos' },
+            { path: 'fetch-dailycoin-rss', source: 'DailyCoin' },
+            { path: 'fetch-cryptopotato-rss', source: 'CryptoPotato' },
+            { path: 'fetch-utoday-rss', source: 'U.Today' },
+            { path: 'fetch-coinpedia-rss', source: 'Coinpedia (India)' },
+            { path: 'fetch-coincu-rss', source: 'CoinCu' },
+            { path: 'fetch-cryptonewsz-rss', source: 'CryptoNewsZ (India)' },
+            { path: 'fetch-bitcoinist-rss', source: 'Bitcoinist' },
+            { path: 'fetch-thecryptobasic-rss', source: 'The Crypto Basic' },
+            { path: 'fetch-unchained-rss', source: 'Unchained' },
+            { path: 'fetch-all-rss', source: 'Crypto News' },
+          ];
+          for (const { path, source } of fallbackPaths) {
+            const suffix = `${path}?limit=12`;
+            for (const base of bases) {
+              const data = await fetchJson(`${base}/${suffix}`);
+              const arr = extractArr(data);
+              if (arr.length) {
+                items = items.concat(arr.map((item: any) => ({ ...item, source })));
+                if (items.length >= 8) break;
+              }
+            }
+            if (items.length >= 8) break;
+          }
+        }
 
         if (items.length) {
           // Normalize
@@ -127,7 +173,7 @@ const AINews: React.FC = () => {
               image_url: imageUrl,
               link: item.link || '#',
               content: item.content || '',
-              source: item.source || 'AI News',
+              source: BRAND_DISPLAY_NAME,
             } as NewsItem;
           });
 
@@ -219,7 +265,7 @@ const AINews: React.FC = () => {
         </Row>
       ) : displayItems.length === 0 && !error ? (
         <Alert variant="warning" className="mb-0" style={{ borderRadius: 10, fontSize: 14 }}>
-          AI feeds are temporarily unavailable. Please check back soon.
+          AI feeds are temporarily unavailable right now. Please check back in a few minutes.
         </Alert>
       ) : (
         <Row xs={1} md={2} lg={4} className="g-3">
@@ -244,7 +290,7 @@ const AINews: React.FC = () => {
                   <div className="card-title">{decodeHtml(item.title)}</div>
                   <div className="card-text">{decodeHtml(item.description)}</div>
                   <div className="card-meta">
-                    <span className="author">{(item as any).source || item.creator?.[0] || 'Unknown'}</span>
+                    <span className="author">{BRAND_DISPLAY_NAME}</span>
                     <span>{formatDate(item.pubDate)}</span>
                   </div>
                 </div>

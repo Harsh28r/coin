@@ -117,6 +117,10 @@ const About: React.FC = () => {
                    style={{ padding: '10px 20px', backgroundColor: '#1f2937', color: '#fff', borderRadius: '8px', textDecoration: 'none' }}>
                   YouTube
                 </a>
+                <a href="https://discord.gg/V2YY8nXjr5" target="_blank" rel="noopener noreferrer"
+                   style={{ padding: '10px 20px', backgroundColor: '#1f2937', color: '#fff', borderRadius: '8px', textDecoration: 'none' }}>
+                  Discord
+                </a>
               </div>
             </section>
 

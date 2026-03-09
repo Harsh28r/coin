@@ -239,7 +239,7 @@ const ExclusiveNews: React.FC = () => {
                   <div className="card-title">{decodeHtml(item.title)}</div>
                   <div className="card-text">{decodeHtml(item.description)}</div>
                   <div className="card-meta">
-                    <span className="author">{item.creator?.[0] || 'Unknown'}</span>
+                    <span className="author">CoinsClarity</span>
                     <span>{formatDate(item.pubDate)}</span>
                   </div>
                 </div>

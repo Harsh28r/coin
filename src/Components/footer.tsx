@@ -49,14 +49,14 @@ const Footer: React.FC = () => {
               style={{ width: 170, height: 'auto', marginBottom: 16, filter: 'brightness(1.1)' }}
               onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/image.png'; }}
             />
-            <p style={{ color: '#94a3b8', fontSize: 13, lineHeight: 1.7, marginBottom: 16 }}>
+            <p style={{ color: '#ffffff', fontSize: 13, lineHeight: 1.7, marginBottom: 16 }}>
               Real-time crypto news, market data, trading tools, and insights. Your all-in-one platform for navigating the digital asset space.
             </p>
             <div style={{ display: 'flex', gap: 12 }}>
               <a href="https://x.com/coinsclarity" target="_blank" rel="noreferrer" aria-label="X (Twitter)" style={{ color: '#64748b', transition: 'color 0.2s' }} onMouseEnter={e => e.currentTarget.style.color = '#f97316'} onMouseLeave={e => e.currentTarget.style.color = '#64748b'}><Twitter size={18} /></a>
               <a href="https://www.instagram.com/coinsclarity" target="_blank" rel="noreferrer" aria-label="Instagram" style={{ color: '#64748b', transition: 'color 0.2s' }} onMouseEnter={e => e.currentTarget.style.color = '#f97316'} onMouseLeave={e => e.currentTarget.style.color = '#64748b'}><Instagram size={18} /></a>
               <a href="https://youtube.com" target="_blank" rel="noreferrer" aria-label="YouTube" style={{ color: '#64748b', transition: 'color 0.2s' }} onMouseEnter={e => e.currentTarget.style.color = '#f97316'} onMouseLeave={e => e.currentTarget.style.color = '#64748b'}><Youtube size={18} /></a>
-              <a href="https://discord.com" target="_blank" rel="noreferrer" aria-label="Discord" style={{ color: '#64748b', transition: 'color 0.2s' }} onMouseEnter={e => e.currentTarget.style.color = '#f97316'} onMouseLeave={e => e.currentTarget.style.color = '#64748b'}><Discord size={18} /></a>
+              <a href="https://discord.gg/V2YY8nXjr5" target="_blank" rel="noreferrer" aria-label="Discord" style={{ color: '#64748b', transition: 'color 0.2s' }} onMouseEnter={e => e.currentTarget.style.color = '#f97316'} onMouseLeave={e => e.currentTarget.style.color = '#64748b'}><Discord size={18} /></a>
             </div>
           </Col>
 
@@ -68,6 +68,7 @@ const Footer: React.FC = () => {
             <a href="/contact" style={linkStyle} onMouseEnter={e => e.currentTarget.style.color = '#fff'} onMouseLeave={e => e.currentTarget.style.color = '#94a3b8'}>Contact</a>
             <a href="/advertise" style={linkStyle} onMouseEnter={e => e.currentTarget.style.color = '#fff'} onMouseLeave={e => e.currentTarget.style.color = '#94a3b8'}>Advertise</a>
             <a href="/blog" style={linkStyle} onMouseEnter={e => e.currentTarget.style.color = '#fff'} onMouseLeave={e => e.currentTarget.style.color = '#94a3b8'}>Blog</a>
+            <a href="https://daily.coinsclarity.com" target="_blank" rel="noreferrer" style={{ ...linkStyle, color: '#f97316', fontWeight: 600 }} onMouseEnter={e => { e.currentTarget.style.color = '#fff'; }} onMouseLeave={e => { e.currentTarget.style.color = '#f97316'; }}>Daily — India news & current affairs</a>
           </Col>
 
           {/* News & Content */}

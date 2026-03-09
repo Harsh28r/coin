@@ -60,7 +60,7 @@ const NewsListing: React.FC = () => {
       image_url: (li as any).image_url,
       link: li.link || '',
       content: li.content || li.description || '',
-      source_name: 'Crypto News',
+      source_name: 'CoinsClarity',
       keywords: li.coins,
     } as any;
     navigate(`/news/${id}`, { state: { item: stateItem } });

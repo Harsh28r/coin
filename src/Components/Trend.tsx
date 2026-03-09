@@ -143,7 +143,7 @@ const Exn: React.FC = () => {
                       {(() => { const r = computeImpactLevel(item); return `Impact: ${r.level}`; })()}
                     </span>
                     <small className="text-muted">By </small>
-                    <small className="text-warning "> {item.creator[0]}</small>
+                    <small className="text-warning">CoinsClarity</small>
                   </div>
                   <div className="ms-auto text-end">
                     <small className="text-muted">{new Date(item.pubDate).toLocaleDateString()}</small>
