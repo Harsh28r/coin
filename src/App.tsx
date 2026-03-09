@@ -44,6 +44,7 @@ import useAdSenseControl from './Components/AdSenseControl';
 import ArbitrageChecker from './Components/ArbitrageChecker';
 import CryptoTools from './Components/CryptoTools';
 import ArbitrageDashboard from './pages/ArbitrageDashboard';
+import AirdropDetail from './pages/AirdropDetail';
 import FloatingAIChat from './Components/FloatingAIChat';
 
 
@@ -107,6 +108,7 @@ function App() {
                   <Route path="/disclaimer" element={<Disclaimer />} />
                   <Route path="/arbitrage" element={<ArbitrageChecker />} />
                   <Route path="/arbitrage-scanner" element={<ArbitrageDashboard />} />
+                  <Route path="/airdrop/:id" element={<AirdropDetail />} />
                   <Route path="/tools" element={<CryptoTools />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>

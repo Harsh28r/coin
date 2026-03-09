@@ -378,6 +378,96 @@ img { max-width: 100%; height: auto; }
   section { padding: 1.5rem 0; }
 }
 
+/* Airdrop detail page — layout & style */
+.airdrop-detail-page .airdrop-detail-article {
+  max-width: 720px;
+  margin: 0 auto;
+}
+.airdrop-detail-back:hover {
+  color: var(--cc-orange, #f97316) !important;
+}
+.airdrop-detail-badge {
+  background: linear-gradient(135deg, rgba(249, 115, 22, 0.15) 0%, rgba(234, 88, 12, 0.1) 100%);
+  color: var(--cc-orange, #f97316);
+  border: 1px solid rgba(249, 115, 22, 0.35);
+}
+.airdrop-detail-date {
+  color: var(--text-muted, #64748b);
+}
+.airdrop-detail-title {
+  font-size: clamp(1.5rem, 4vw, 2rem);
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  color: var(--text);
+}
+.airdrop-detail-hero {
+  background: var(--card-bg);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+}
+[data-theme="dark"] .airdrop-detail-hero {
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+/* Airdrop detail — embedded feed HTML */
+.airdrop-detail-content {
+  font-size: 1.0625rem;
+  line-height: 1.8;
+  color: var(--text);
+}
+.airdrop-detail-content p {
+  margin-bottom: 1.25rem;
+}
+.airdrop-detail-content p:first-of-type {
+  font-size: 1.1rem;
+  color: var(--text-muted, #64748b);
+}
+.airdrop-detail-content img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 10px;
+  margin: 1rem 0;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+}
+.airdrop-detail-content ul,
+.airdrop-detail-content ol {
+  margin: 1rem 0;
+  padding-left: 1.5rem;
+}
+.airdrop-detail-content li {
+  margin-bottom: 0.35rem;
+}
+.airdrop-detail-content a {
+  color: var(--cc-orange, #f97316);
+  text-decoration: none;
+  font-weight: 500;
+}
+.airdrop-detail-content a:hover {
+  text-decoration: underline;
+}
+.airdrop-detail-content h2,
+.airdrop-detail-content h3,
+.airdrop-detail-content h4 {
+  margin-top: 1.75rem;
+  margin-bottom: 0.6rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+/* Trade exchanges card (airdrop detail + reuse) */
+.trade-exchanges-card .trade-exchanges-logos {
+  gap: 0.5rem;
+}
+.trade-exchange-logo-card:hover {
+  border-color: var(--cc-orange, #f97316) !important;
+  background: rgba(249, 115, 22, 0.06) !important;
+}
+.trade-exchange-logo-card .trade-exchange-initial {
+  background: linear-gradient(135deg, var(--cc-orange, #f97316), #ea580c);
+  color: #fff;
+  border-radius: 6px;
+}
+
 /* ===== LEGACY ===== */
 .App-logo { height: 40vmin; pointer-events: none; }
 @media (prefers-reduced-motion: no-preference) {

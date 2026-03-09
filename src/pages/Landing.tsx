@@ -21,6 +21,7 @@ import ArbitrageDashboard from './ArbitrageDashboard';
 import CryptoBreakingBanner from '../Components/CryptoBreakingBanner';
 import NewsletterCTA from '../Components/NewsletterCTA';
 import DailyNewsSection from '../Components/DailyNewsSection';
+import AirdropSection from '../Components/AirdropSection';
 
 /* AdSense-compliant placeholder - clearly marked as ad space, not fake content */
 const AdSpot: React.FC<{ variant?: 'leaderboard' | 'rectangle' | 'native'; label?: string; className?: string }> = ({ variant = 'leaderboard', label, className = '' }) => {
@@ -178,6 +179,9 @@ const LandingPage: React.FC = () => {
 
         {/* Blog */}
         <BlogSection />
+
+        {/* New Airdrops (RSS: Airdrop Alert) */}
+        <AirdropSection />
 
         {/* Newsletter CTA */}
         <NewsletterCTA />

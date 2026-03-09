@@ -8,6 +8,16 @@ const BINANCE_REF = process.env.REACT_APP_BINANCE_REF?.trim() || 'GRO_28502_WCKB
 const COINBASE_REF = process.env.REACT_APP_COINBASE_REF?.trim() || '';
 const COINDCX_INVITE = process.env.REACT_APP_COINDCX_INVITE?.trim() || 'https://invite.coindcx.com/99949721';
 
+/** Logo URLs for exchange cards (favicon or logo; fallback to initial in UI) */
+export const exchangeLogos: Record<string, string> = {
+  binance: 'https://bin.bnbstatic.com/static/images/common/favicon.ico',
+  coinbase: 'https://www.coinbase.com/favicon.ico',
+  coindcx: 'https://coindcx.com/favicon.ico',
+  okx: 'https://www.okx.com/favicon.ico',
+  hyperliquid: 'https://hyperliquid.xyz/favicon.ico',
+  airdropalert: 'https://airdropalert.com/favicon.ico',
+};
+
 export const tradeLinks = {
   binance: {
     signup: BINANCE_REF
@@ -26,5 +36,17 @@ export const tradeLinks = {
   coindcx: {
     signup: COINDCX_INVITE,
     label: 'CoinDCX',
+  },
+  okx: {
+    signup: 'https://www.okx.com/join',
+    label: 'OKX',
+  },
+  hyperliquid: {
+    signup: 'https://hyperliquid.xyz',
+    label: 'HyperLiquid',
+  },
+  airdropalert: {
+    signup: 'https://airdropalert.com',
+    label: 'Airdrop Alert',
   },
 };

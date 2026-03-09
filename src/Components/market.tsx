@@ -887,6 +887,7 @@ const MarketPriceAndNews: React.FC = () => {
 
       {/* Trade CTA — below table (punchy) */}
       <div
+        id="trade"
         className="trade-cta-strip"
         style={{
           marginTop: 8,
