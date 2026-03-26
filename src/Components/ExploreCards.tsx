@@ -272,80 +272,28 @@ const ExploreSection: React.FC = () => {
       setError(null);
       
       try {
-        // Fetch from CryptoSlate and other RSS sources to get diverse content
-        const [cryptoSlateResponse, rssResponse, anotherRssResponse, allRssResponse] = await Promise.all([
-          fetch(`${API_BASE_URL}/fetch-cryptoslate-rss?limit=10`),
-          fetch(`${API_BASE_URL}/fetch-rss`),
-          fetch(`${API_BASE_URL}/fetch-another-rss`),
-          fetch(`${API_BASE_URL}/fetch-all-rss?limit=10`)
-        ]);
-        
-        let allNews = [];
-        
-        // Prefer CryptoSlate content
-        if (cryptoSlateResponse.ok) {
-          const csData = await cryptoSlateResponse.json();
-          console.log('CryptoSlate RSS response:', csData);
-          if (csData.success && Array.isArray(csData.data)) {
-            const mappedNews = csData.data.map((item: any) => ({
-              article_id: item.article_id || `cs-${Date.now()}-${Math.random()}`,
-              image: item.image_url || `/web3_${Math.floor(Math.random() * 4) + 1}.png?height=300&width=200&text=${item.source_name || 'CryptoSlate'}`,
-              text: item.title || 'Crypto News',
-              title: item.title,
-              link: item.link,
-              source: 'Crypto News',
-              content: item.content || ''
-            }));
-            allNews.push(...mappedNews);
-            console.log(`Added ${mappedNews.length} items from CryptoSlate RSS source`);
-          }
-        }
+        // Fetch from Camify + Render in parallel for diverse content
+        const CAMIFY = 'https://camify.fun.coinsclarity.com';
+        const feedUrls = [
+          `${CAMIFY}/fetch-cryptoslate-rss?limit=10`,
+          `${CAMIFY}/fetch-cointelegraph-rss?limit=10`,
+          `${CAMIFY}/fetch-blockworks-rss?limit=10`,
+          `${CAMIFY}/fetch-finbold-rss?limit=10`,
+          `${CAMIFY}/fetch-protos-rss?limit=10`,
+          `${CAMIFY}/fetch-unchained-rss?limit=10`,
+          `${API_BASE_URL}/fetch-all-rss?limit=10`,
+        ];
 
-        // Process CoinTelegraph RSS source
-        if (rssResponse.ok) {
-          const rssData = await rssResponse.json();
-          console.log('First RSS response:', rssData);
-          if (rssData.success && Array.isArray(rssData.data)) {
-            const mappedNews = rssData.data.map((item: any) => ({
+        const feedResults = await Promise.allSettled(
+          feedUrls.map(u => fetch(u, { signal: AbortSignal.timeout(10000) }).then(r => r.json()).catch(() => null))
+        );
+
+        let allNews: any[] = [];
+        for (const r of feedResults) {
+          if ((r as any)?.status === 'fulfilled' && (r as any).value?.success) {
+            const arr = Array.isArray((r as any).value.data) ? (r as any).value.data : Array.isArray((r as any).value.items) ? (r as any).value.items : [];
+            const mapped = arr.map((item: any) => ({
               article_id: item.article_id || `rss-${Date.now()}-${Math.random()}`,
-              image: item.image_url || `/web3_${Math.floor(Math.random() * 4) + 1}.png?height=300&width=200&text=${item.source_name || 'Crypto'}`,
-              text: item.title || 'Crypto News',
-              title: item.title,
-              link: item.link,
-              source: 'Crypto News',
-              content: item.content || ''
-            }));
-            allNews.push(...mappedNews);
-            console.log(`Added ${mappedNews.length} items from first RSS source`);
-          }
-        }
-        
-        // Process second RSS source (Press Release)
-        if (anotherRssResponse.ok) {
-          const anotherRssData = await anotherRssResponse.json();
-          console.log('Second RSS response:', anotherRssData);
-          if (anotherRssData.success && Array.isArray(anotherRssData.data)) {
-            const mappedNews = anotherRssData.data.map((item: any) => ({
-              article_id: item.article_id || `another-rss-${Date.now()}-${Math.random()}`,
-              image: item.image_url || `/web3_${Math.floor(Math.random() * 4) + 1}.png?height=300&width=200&text=${item.source_name || 'Press'}`,
-              text: item.title || 'Crypto News',
-              title: item.title,
-              link: item.link,
-              source: item.source_name || 'Press Release',
-              content: item.content || ''
-            }));
-            allNews.push(...mappedNews);
-            console.log(`Added ${mappedNews.length} items from second RSS source`);
-          }
-        }
-        
-        // Process third RSS source (All RSS - for variety)
-        if (allRssResponse.ok) {
-          const allRssData = await allRssResponse.json();
-          console.log('Third RSS response:', allRssData);
-          if (allRssData.success && Array.isArray(allRssData.data)) {
-            const mappedNews = allRssData.data.map((item: any) => ({
-              article_id: item.article_id || `all-rss-${Date.now()}-${Math.random()}`,
               image: item.image_url || `/web3_${Math.floor(Math.random() * 4) + 1}.png?height=300&width=200&text=${item.source_name || 'News'}`,
               text: item.title || 'Crypto News',
               title: item.title,
@@ -353,8 +301,7 @@ const ExploreSection: React.FC = () => {
               source: item.source_name || 'Crypto News',
               content: item.content || ''
             }));
-            allNews.push(...mappedNews);
-            console.log(`Added ${mappedNews.length} items from third RSS source`);
+            allNews.push(...mapped);
           }
         }
         
@@ -582,7 +529,7 @@ const ExploreSection: React.FC = () => {
                 {(displayExploreCards.length > 0 ? displayExploreCards : exploreCards).map((card: any, index) => {
                   const imgSrc = card.image || card.image_url || `/web3_${(index % 4) + 1}.png`;
                   const titleText = card.title || card.text || card.description || `Explore card ${index + 1}`;
-                  const usedSource = card.source || card.source_name || 'Crypto';
+                  const usedSource = 'CoinsClarity';
                   return (
                   <Col key={card.article_id || card.id || index}>
                     <Card 
@@ -603,7 +550,7 @@ const ExploreSection: React.FC = () => {
                           pubDate: new Date().toISOString(),
                           image_url: imgSrc,
                           link: card.link || '#',
-                          source_name: card.source || card.source_name || 'Crypto',
+                          source_name: 'CoinsClarity',
                           content: card.content || ''
                         } } });
                       }}
@@ -668,7 +615,7 @@ const ExploreSection: React.FC = () => {
                                 pubDate: new Date().toISOString(),
                                 image_url: imgSrc,
                                 link: card.link || '#',
-                                source_name: card.source || card.source_name || 'Crypto',
+                                source_name: 'CoinsClarity',
                                 content: card.content || ''
                               } } }); }}
                             >

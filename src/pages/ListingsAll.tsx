@@ -18,22 +18,39 @@ const ListingsAll: React.FC = () => {
     const run = async () => {
       setLoading(true);
       try {
+        const CAMIFY = 'https://camify.fun.coinsclarity.com';
         const sources = [
-          'fetch-dailycoin-rss?limit=120',
-          'fetch-cryptobriefing-rss?limit=120',
-          'fetch-dailyhodl-rss?limit=120',
-          'fetch-ambcrypto-rss?limit=120',
-          'fetch-beincrypto-rss?limit=120',
-          'fetch-cryptopotato-rss?limit=120',
-          'fetch-utoday-rss?limit=120',
-          'fetch-bitcoinmagazine-rss?limit=120',
-          'fetch-coindesk-rss?limit=120',
+          `${CAMIFY}/fetch-cryptobriefing-rss?limit=120`,
+          `${CAMIFY}/fetch-dailyhodl-rss?limit=120`,
+          `${CAMIFY}/fetch-beincrypto-rss?limit=120`,
+          `${CAMIFY}/fetch-cryptopotato-rss?limit=120`,
+          `${CAMIFY}/fetch-utoday-rss?limit=120`,
+          `${CAMIFY}/fetch-coindesk-rss?limit=120`,
+          `${CAMIFY}/fetch-cointelegraph-rss?limit=120`,
+          `${CAMIFY}/fetch-decrypt-rss?limit=120`,
+          `${CAMIFY}/fetch-blockworks-rss?limit=120`,
+          `${CAMIFY}/fetch-bitcoinist-rss?limit=120`,
+          `${CAMIFY}/fetch-coingape-rss?limit=120`,
+          `${CAMIFY}/fetch-finbold-rss?limit=120`,
+          `${CAMIFY}/fetch-watcherguru-rss?limit=120`,
+          `${CAMIFY}/fetch-coinpedia-rss?limit=120`,
+          `${CAMIFY}/fetch-protos-rss?limit=120`,
+          `${CAMIFY}/fetch-unchained-rss?limit=120`,
+          `${CAMIFY}/fetch-thecryptobasic-rss?limit=120`,
+          `${CAMIFY}/fetch-blockonomi-rss?limit=120`,
+          `${CAMIFY}/fetch-coincu-rss?limit=120`,
+          `${CAMIFY}/fetch-cryptonewsz-rss?limit=120`,
+          `${CAMIFY}/fetch-ethereumworldnews-rss?limit=120`,
+          `${CAMIFY}/fetch-smartliquidity-rss?limit=120`,
+          `${CAMIFY}/fetch-chaingpt-rss?limit=120`,
+          `${API_BASE_URL}/fetch-all-rss?limit=200`,
         ];
-        const results = await Promise.allSettled(sources.map(s => fetch(`${API_BASE_URL}/${s}`).then(r => r.json()).catch(() => null)));
+        const results = await Promise.allSettled(sources.map(s => fetch(s, { signal: AbortSignal.timeout(12000) }).then(r => r.json()).catch(() => null)));
         let merged: any[] = [];
         for (const r of results) {
-          if ((r as any)?.status === 'fulfilled' && (r as any).value?.success && Array.isArray((r as any).value.data)) {
-            merged.push(...(r as any).value.data);
+          if ((r as any)?.status === 'fulfilled' && (r as any).value?.success) {
+            const arr = Array.isArray((r as any).value.data) ? (r as any).value.data : Array.isArray((r as any).value.items) ? (r as any).value.items : [];
+            merged.push(...arr);
           }
         }
         const listings = extractListingNews(merged);
@@ -210,7 +227,7 @@ const ListingsAll: React.FC = () => {
                       </div>
                       <Card.Title style={{ fontSize: '1rem' }}>{li.title}</Card.Title>
                       <div className="d-flex justify-content-between align-items-center mt-3">
-                        <small className="text-muted">{li.source_name}</small>
+                        <small className="text-muted">CoinsClarity</small>
                         <Button size="sm" variant="primary" style={orangeBtnStyle} onClick={() => openDetail(li)}>Read</Button>
                       </div>
                     </Card.Body>

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Container, Row, Col, Card, Button } from 'react-bootstrap';
+import { Container, Row, Col, Card, Button, Alert } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -74,10 +74,14 @@ const AllAINews: React.FC = () => {
       setIsLoading(true);
       setError(null);
       try {
-        // Fetch from both AI news endpoints with higher limits
+        // Fetch from AI news endpoints on BOTH backends for reliability
+        const CAMIFY = 'https://camify.fun.coinsclarity.com';
         const endpoints = [
+          { url: `${CAMIFY}/fetch-mit-ai-rss?limit=50`, source: 'MIT AI News' },
+          { url: `${CAMIFY}/fetch-venturebeat-ai-rss?limit=50`, source: 'VentureBeat AI' },
+          { url: `${CAMIFY}/fetch-techcrunch-ai-rss?limit=50`, source: 'TechCrunch AI' },
           { url: `${API_BASE_URL}/fetch-mit-ai-rss?limit=50`, source: 'MIT AI News' },
-          { url: `${API_BASE_URL}/fetch-arxiv-ai-rss?limit=50`, source: 'arXiv AI' }
+          { url: `${API_BASE_URL}/fetch-arxiv-ai-rss?limit=50`, source: 'arXiv AI' },
         ];
 
         let items: any[] = [];
@@ -85,7 +89,7 @@ const AllAINews: React.FC = () => {
         // Fetch from all endpoints in parallel
         const results = await Promise.allSettled(
           endpoints.map(async (endpoint) => {
-            const res = await fetch(endpoint.url);
+            const res = await fetch(endpoint.url, { signal: AbortSignal.timeout(12000) });
             if (!res.ok) throw new Error(`Failed to fetch ${endpoint.source}`);
             const data = await res.json();
             return { data, source: endpoint.source };
@@ -93,8 +97,13 @@ const AllAINews: React.FC = () => {
         );
 
         results.forEach((result) => {
-          if (result.status === 'fulfilled' && result.value.data?.success && Array.isArray(result.value.data.data)) {
-            const sourceItems = result.value.data.data.map((item: any) => ({
+          if (result.status === 'fulfilled' && result.value.data?.success) {
+            const arr = Array.isArray(result.value.data.data)
+              ? result.value.data.data
+              : Array.isArray(result.value.data.items)
+                ? result.value.data.items
+                : [];
+            const sourceItems = arr.map((item: any) => ({
               ...item,
               source: result.value.source
             }));
@@ -137,11 +146,16 @@ const AllAINews: React.FC = () => {
           deduped.sort((a, b) => new Date(b.pubDate).getTime() - new Date(a.pubDate).getTime());
 
           setNewsItems(deduped);
+          setError(null);
         } else {
-          throw new Error('No items fetched from AI sources');
+          // Upstream AI feeds can intermittently return empty/blocked.
+          // Keep UI stable with an empty state instead of throwing runtime errors.
+          setNewsItems([]);
+          setError(null);
         }
       } catch (error: any) {
         console.error('Error fetching AI news:', error);
+        setNewsItems([]);
         setError('Failed to load AI news');
       } finally {
         setIsLoading(false);
@@ -229,8 +243,10 @@ const AllAINews: React.FC = () => {
           ))}
         </Row>
       ) : displayItems.length === 0 && !error ? (
-        <div className="text-center py-5">
-          <p className="text-muted">No AI news available at the moment.</p>
+        <div className="text-center py-4">
+          <Alert variant="warning" className="mb-3">
+            AI feeds are temporarily unavailable right now. Please check back in a few minutes.
+          </Alert>
           <Button variant="warning" onClick={() => navigate('/')}>
             Back to Home
           </Button>
@@ -271,11 +287,11 @@ const AllAINews: React.FC = () => {
                     <span
                       className="badge"
                       style={{
-                        backgroundColor: (item as any).source?.includes('MIT') ? '#a31f34' : '#b31b1b',
+                        backgroundColor: '#f97316',
                         fontSize: '0.7rem'
                       }}
                     >
-                      {(item as any).source?.includes('MIT') ? 'MIT' : 'arXiv'}
+                      CoinsClarity
                     </span>
                   </div>
 
@@ -311,7 +327,7 @@ const AllAINews: React.FC = () => {
                     <div>
                       <small className="text-muted">By </small>
                       <small className="text-warning">
-                        {(item as any).source || item.creator?.[0] || 'Unknown'}
+                        CoinsClarity
                       </small>
                     </div>
                     <div className="ms-auto text-end">

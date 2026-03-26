@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Container, Row, Col, Table, Card, Button, Modal, ButtonGroup, Alert } from 'react-bootstrap';
+import { ExternalLink } from 'lucide-react';
+import { tradeLinks } from '../utils/tradeLinks';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { Line } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
@@ -882,6 +884,87 @@ const MarketPriceAndNews: React.FC = () => {
           )}
         </Modal.Body>
       </Modal>
+
+      {/* Trade CTA — below table (punchy) */}
+      <div
+        id="trade"
+        className="trade-cta-strip"
+        style={{
+          marginTop: 8,
+          padding: '28px 24px',
+          background: '#0f172a',
+          borderRadius: 16,
+          border: '1px solid rgba(249, 115, 22, 0.25)',
+          display: 'flex',
+          flexWrap: 'wrap',
+          alignItems: 'center',
+          gap: 16,
+        }}
+      >
+        <span className="trade-cta-label" style={{ color: '#ffffff', fontSize: '0.8rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', width: '100%', marginBottom: 4 }}>Ready to trade?</span>
+        <a
+          href={tradeLinks.binance.signup}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 10,
+            padding: '14px 28px',
+            background: 'linear-gradient(135deg, #f0b90b 0%, #d4a008 100%)',
+            color: '#000',
+            fontWeight: 800,
+            fontSize: '1rem',
+            letterSpacing: '0.02em',
+            borderRadius: 12,
+            textDecoration: 'none',
+            boxShadow: '0 6px 20px rgba(240, 185, 11, 0.5), 0 2px 0 rgba(0,0,0,0.15)',
+            transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = 'translateY(-3px) scale(1.02)';
+            e.currentTarget.style.boxShadow = '0 10px 28px rgba(240, 185, 11, 0.6), 0 4px 0 rgba(0,0,0,0.1)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = 'none';
+            e.currentTarget.style.boxShadow = '0 6px 20px rgba(240, 185, 11, 0.5), 0 2px 0 rgba(0,0,0,0.15)';
+          }}
+        >
+          Trade on Binance
+          <ExternalLink size={20} strokeWidth={2.5} />
+        </a>
+        <a
+          href={tradeLinks.coindcx.signup}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 10,
+            padding: '14px 28px',
+            background: 'linear-gradient(135deg, #f97316 0%, #c2410c 100%)',
+            color: '#fff',
+            fontWeight: 800,
+            fontSize: '1rem',
+            letterSpacing: '0.02em',
+            borderRadius: 12,
+            textDecoration: 'none',
+            boxShadow: '0 6px 20px rgba(249, 115, 22, 0.5), 0 2px 0 rgba(0,0,0,0.2)',
+            transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = 'translateY(-3px) scale(1.02)';
+            e.currentTarget.style.boxShadow = '0 10px 28px rgba(249, 115, 22, 0.6), 0 4px 0 rgba(0,0,0,0.15)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = 'none';
+            e.currentTarget.style.boxShadow = '0 6px 20px rgba(249, 115, 22, 0.5), 0 2px 0 rgba(0,0,0,0.2)';
+          }}
+        >
+          CoinDCX
+          <ExternalLink size={20} strokeWidth={2.5} />
+        </a>
+      </div>
     </Container>
   );
 };

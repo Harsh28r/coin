@@ -1,11 +1,13 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
-import { Carousel, Badge, Container } from 'react-bootstrap'
+import React, { useEffect, useState, useCallback } from 'react'
+import { Container } from 'react-bootstrap'
 import Skeleton from 'react-loading-skeleton'
 import 'react-loading-skeleton/dist/skeleton.css'
-import { useLanguage } from '../context/LanguageContext';
-import { useNewsTranslation } from '../hooks/useNewsTranslation';
+import { useNavigate } from 'react-router-dom'
+import { useLanguage } from '../context/LanguageContext'
+import { useNewsTranslation } from '../hooks/useNewsTranslation'
+import { generateArticleId } from '../utils/articleId'
 
 interface NewsItem {
   article_id?: string
@@ -16,230 +18,358 @@ interface NewsItem {
   image_url: string
   link: string
   source?: string
+  source_name?: string
   category?: string[]
+  content?: string
 }
 
-// Utility function to decode HTML entities
 const decodeHtml = (html: string): string => {
-  const txt = document.createElement('textarea');
-  txt.innerHTML = html;
-  return txt.value;
-};
+  const txt = document.createElement('textarea')
+  txt.innerHTML = html
+  return txt.value
+}
 
-// Fallback static data (in case API fails)
-const fallbackNewsItems = [
+const stripHtml = (html: string): string =>
+  html.replace(/<[^>]*>/g, ' ').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ').trim()
+
+const fallbackNewsItems: NewsItem[] = [
   {
-    title: "Bitcoin Price Forecast: Is The BTC Post-Halving Bottom Beckoning, Teasing $100K?",
-    description: "Bitcoin price forecast: Mundane trading engulfs the crypto market, as BTC settles in for a ranging motion ahead of a post-halving bull run.",
-    creator: ["John Isige"],
+    title: 'Bitcoin Breaks New Highs as Institutional Demand Surges',
+    description: 'Bitcoin continues its historic rally with unprecedented institutional inflows and ETF demand driving prices higher.',
+    creator: ['CoinsClarity'],
     pubDate: new Date().toISOString(),
-    image_url: "/market.png?height=600&width=1200",
-    link: "#",
-    category: ["Exclusive News"]
+    image_url: '/market.png',
+    link: '#',
+    category: ['Bitcoin']
   },
   {
-    title: "How To Avoid Going Bust In Crypto In 2024",
-    description: "In the midst of a booming market, safeguarding investments becomes paramount as traders navigate volatile conditions.",
-    creator: ["Tracy D'souza"],
+    title: 'Ethereum Layer 2 Ecosystem Hits Record Activity',
+    description: 'Ethereum L2 solutions see record transaction volumes as DeFi and gaming activity accelerates across rollups.',
+    creator: ['CoinsClarity'],
     pubDate: new Date().toISOString(),
-    image_url: "/market.png?height=600&width=1200",
-    link: "#",
-    category: ["Market Analysis"]
+    image_url: '/market.png',
+    link: '#',
+    category: ['Ethereum']
   },
   {
-    title: "Russian State Duma Contemplates Bill On Mining Cryptocurrencies",
-    description: "A bill on mining cryptocurrencies is being currently held in the Russian state of Duma for consideration.",
-    creator: ["Tracy D'souza"],
+    title: 'Global Crypto Regulation Framework Takes Shape',
+    description: 'Major economies move towards unified crypto regulation as the industry matures and institutional adoption grows.',
+    creator: ['CoinsClarity'],
     pubDate: new Date().toISOString(),
-    image_url: "/market.png?height=600&width=1200",
-    link: "#",
-    category: ["Regulation"]
+    image_url: '/market.png',
+    link: '#',
+    category: ['Regulation']
   }
 ]
 
 export default function NewsCarousel() {
-  const { t } = useLanguage();
-  const [newsItems, setNewsItems] = useState<NewsItem[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [showTranslationIndicator, setShowTranslationIndicator] = useState(false);
+  const { t } = useLanguage()
+  const navigate = useNavigate()
+  const [newsItems, setNewsItems] = useState<NewsItem[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [activeIndex, setActiveIndex] = useState(0)
+  const [isPaused, setIsPaused] = useState(false)
 
-  // Use the translation hook
-  const { displayItems, isTranslating, currentLanguage } = useNewsTranslation(newsItems);
-  
-  // Ensure displayItems have the correct structure and handle type safety
-  const typedDisplayItems: NewsItem[] = displayItems.map(item => ({
+  const { displayItems, isTranslating, currentLanguage } = useNewsTranslation(newsItems)
+
+  const items: NewsItem[] = (displayItems.length ? displayItems : newsItems).map((item: any) => ({
     article_id: item.article_id,
     title: item.title || '',
     description: item.description || '',
     creator: Array.isArray(item.creator) ? item.creator : [item.creator || 'Unknown'],
     pubDate: item.pubDate || new Date().toISOString(),
-    image_url: item.image_url || '/market.png?height=600&width=1200',
+    image_url: item.image_url || '/market.png',
     link: item.link || '#',
-    source: item.source || 'Crypto News',
-    category: Array.isArray(item.category) ? item.category : [item.category || 'Crypto News']
-  }));
-  
-  // Control translation indicator display to prevent flickering
+    source: item.source_name || item.source || 'Crypto News',
+    source_name: item.source_name || item.source || 'Crypto News',
+    category: Array.isArray(item.category) ? item.category : [item.category || 'Crypto News'],
+    content: item.content || item.description || ''
+  }))
+
+  // Fetch news
   useEffect(() => {
-    if (isTranslating && currentLanguage !== 'en') {
-      setShowTranslationIndicator(true);
-    } else {
-      setShowTranslationIndicator(false);
+    const CAMIFY = 'https://camify.fun.coinsclarity.com'
+    const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://c-back-2.onrender.com'
+
+    const tryFetch = async (url: string): Promise<NewsItem[]> => {
+      const res = await fetch(url, { signal: AbortSignal.timeout(10000) })
+      if (!res.ok) throw new Error(`${res.status}`)
+      const data = await res.json()
+      const arr = Array.isArray(data?.data) ? data.data : Array.isArray(data?.items) ? data.items : []
+      if (!arr.length) throw new Error('empty')
+      return arr.slice(0, 5).map((item: any) => ({
+        article_id: item.article_id || generateArticleId(item.link || item.title),
+        title: decodeHtml(item.title || 'Untitled'),
+        description: stripHtml(item.description || item.content || 'No description available'),
+        creator: Array.isArray(item.creator) ? item.creator : [item.creator || item.author || 'Unknown'],
+        pubDate: item.pubDate || new Date().toISOString(),
+        image_url: item.image_url || '/market.png',
+        link: item.link || '#',
+        source: item.source_name || 'Crypto News',
+        source_name: item.source_name || 'Crypto News',
+        category: Array.isArray(item.category) ? item.category : [item.category || 'Crypto News'],
+        content: item.content || item.description || ''
+      }))
     }
-  }, [isTranslating, currentLanguage]);
 
-  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://c-back-1.onrender.com';
-  const LOCAL_API_URL = 'http://localhost:5000';
-
-  useEffect(() => {
-    const fetchCarouselNews = async () => {
-      setIsLoading(true);
-      setError(null);
-
-      try {
-        // Try the new unified RSS endpoint first
-        let response;
+    const run = async () => {
+      setIsLoading(true)
+      const urls = [
+        `${CAMIFY}/fetch-all-rss?limit=5`,
+        `${CAMIFY}/fetch-cointelegraph-rss?limit=5`,
+        `${CAMIFY}/fetch-coindesk-rss?limit=5`,
+        `${API_BASE_URL}/fetch-all-rss?limit=5`,
+      ]
+      for (const url of urls) {
         try {
-          response = await fetch(`${API_BASE_URL}/fetch-all-rss?limit=5`);
-          if (!response.ok) throw new Error('Failed to fetch from unified endpoint');
-        } catch (error) {
-          console.warn('Unified endpoint failed, trying trending news:', error);
-          response = await fetch(`${API_BASE_URL}/trending-news`);
-          if (!response.ok) throw new Error('Failed to fetch trending news');
-        }
-
-        const data = await response.json();
-        
-        if (data.success && Array.isArray(data.data) && data.data.length > 0) {
-          // Take the first 3-5 items for carousel
-          const carouselItems = data.data.slice(0, 3).map((item: any) => ({
-            title: item.title || 'Untitled',
-            description: item.description || 'No description available',
-            creator: Array.isArray(item.creator) ? item.creator : [item.creator || 'Unknown'],
-            pubDate: item.pubDate || new Date().toISOString(),
-            image_url: item.image_url || '/market.png?height=600&width=1200',
-            link: item.link || '#',
-            source: 'Crypto News',
-            category: item.category || ['Crypto News']
-          }));
-          
-          setNewsItems(carouselItems);
-          console.log('Fetched carousel news:', carouselItems);
-        } else {
-          throw new Error('No valid news data received');
-        }
-      } catch (error: any) {
-        console.error('Error fetching carousel news:', error);
-        setError('Failed to load latest news. Showing fallback content.');
-        // Use fallback data
-        setNewsItems(fallbackNewsItems);
-      } finally {
-        setIsLoading(false);
+          const result = await tryFetch(url)
+          if (result.length) {
+            setNewsItems(result)
+            setIsLoading(false)
+            return
+          }
+        } catch {}
       }
-    };
+      // All failed — use fallback
+      setNewsItems(fallbackNewsItems)
+      setIsLoading(false)
+    }
 
-    fetchCarouselNews();
-  }, []);
+    run()
+  }, [])
 
-  // Format date consistently
+  // Auto-rotate
+  useEffect(() => {
+    if (isPaused || items.length <= 1) return
+    const timer = setInterval(() => {
+      setActiveIndex(prev => (prev + 1) % items.length)
+    }, 5000)
+    return () => clearInterval(timer)
+  }, [isPaused, items.length])
+
+  const goTo = useCallback((idx: number) => {
+    setActiveIndex(idx)
+  }, [])
+
+  const goPrev = useCallback(() => {
+    setActiveIndex(prev => (prev === 0 ? items.length - 1 : prev - 1))
+  }, [items.length])
+
+  const goNext = useCallback(() => {
+    setActiveIndex(prev => (prev + 1) % items.length)
+  }, [items.length])
+
+  const openArticle = (item: NewsItem) => {
+    const id = encodeURIComponent(item.article_id || generateArticleId(item.link || item.title))
+    navigate(`/news/${id}`, { state: { item } })
+  }
+
   const formatDate = (dateString: string): string => {
     try {
-      return new Date(dateString).toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-      });
+      const d = new Date(dateString)
+      const now = new Date()
+      const diffMs = now.getTime() - d.getTime()
+      const diffH = Math.floor(diffMs / 3600000)
+      if (diffH < 1) return 'Just now'
+      if (diffH < 24) return `${diffH}h ago`
+      return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
     } catch {
-      return 'Recent';
+      return 'Recent'
     }
-  };
-
-  // Get category display name
-  const getCategoryDisplay = (item: NewsItem): string => {
-    if (Array.isArray(item.category) && item.category.length > 0) {
-      return item.category[0];
-    }
-    return item.source || 'Crypto News';
-  };
+  }
 
   if (isLoading) {
     return (
       <Container fluid className="p-0">
-        <div className="position-relative" style={{ height: '600px' }}>
-          <Skeleton height="100%" width="100%" baseColor="#e0e0e0" highlightColor="#f5f5f5" />
-          <div 
-            className="position-absolute bottom-0 start-0 w-100 p-4"
-            style={{
-              background: 'linear-gradient(transparent, rgba(0,0,0,0.8))',
-              minHeight: '50%'
-            }}
-          >
-            <div className="d-flex justify-content-between align-items-center mb-3">
-              <Skeleton width={120} height={24} baseColor="#e0e0e0" highlightColor="#f5f5f5" />
-              <Skeleton width={200} height={16} baseColor="#e0e0e0" highlightColor="#f5f5f5" />
-            </div>
-            <Skeleton width="80%" height={40} baseColor="#e0e0e0" highlightColor="#f5f5f5" className="mb-3" />
-            <Skeleton count={2} width="90%" height={20} baseColor="#e0e0e0" highlightColor="#f5f5f5" />
-          </div>
+        <div style={{ position: 'relative', height: '520px', background: '#111' }}>
+          <Skeleton height="100%" width="100%" baseColor="#222" highlightColor="#333" />
         </div>
       </Container>
-    );
+    )
   }
+
+  const current = items[activeIndex] || items[0]
+  if (!current) return null
 
   return (
     <Container fluid className="p-0">
-      {error && (
-        <div className="alert alert-warning alert-dismissible fade show" role="alert">
-          {error}
-        </div>
-      )}
-      
-      {/* Translation indicator - only show when actively translating */}
-      {showTranslationIndicator && (
-        <div className="alert alert-info alert-dismissible fade show" role="alert" style={{ margin: '10px' }}>
-          🔄 Translating carousel news to {currentLanguage === 'hi' ? 'Hindi' : 
-            currentLanguage === 'es' ? 'Spanish' :
-            currentLanguage === 'fr' ? 'French' :
-            currentLanguage === 'de' ? 'German' :
-            currentLanguage === 'zh' ? 'Chinese' :
-            currentLanguage === 'ja' ? 'Japanese' :
-            currentLanguage === 'ko' ? 'Korean' :
-            currentLanguage === 'ar' ? 'Arabic' : currentLanguage}...
-        </div>
-      )}
-      
-      <Carousel 
-        controls={true}
-        indicators={false}
-        interval={5000}
-        className="news-carousel"
+      <div
+        style={{ position: 'relative', height: '520px', overflow: 'hidden', background: '#0a0a0a' }}
+        onMouseEnter={() => setIsPaused(true)}
+        onMouseLeave={() => setIsPaused(false)}
       >
-        {typedDisplayItems.map((item, index) => (
-          <Carousel.Item key={item.article_id || index}>
-            <a
-              href={item.link}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="d-block"
-              style={{ height: '600px', backgroundColor: '#1a1a1a' }}
-            >
-              <img
-                src={item.image_url}
-                alt={item.title}
-                loading="lazy"
-                decoding="async"
-                className="w-100 h-100 object-fit-cover"
+        {/* Background image */}
+        <div style={{
+          position: 'absolute', inset: 0,
+          backgroundImage: `url(${current.image_url})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          transition: 'background-image 0.6s ease-in-out',
+          filter: 'brightness(0.5)',
+        }} />
+
+        {/* Gradient overlay */}
+        <div style={{
+          position: 'absolute', inset: 0,
+          background: 'linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.6) 40%, rgba(0,0,0,0.2) 70%, transparent 100%)',
+        }} />
+
+        {/* Content */}
+        <div style={{
+          position: 'absolute', bottom: 0, left: 0, right: 0,
+          padding: '40px 48px',
+          zIndex: 2,
+        }}>
+          {/* Category badge + time */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px', flexWrap: 'wrap' }}>
+            <span style={{
+              background: '#f7931a',
+              color: '#000',
+              padding: '4px 14px',
+              borderRadius: '4px',
+              fontSize: '12px',
+              fontWeight: 700,
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px',
+            }}>
+              CoinsClarity
+            </span>
+            <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: '13px' }}>
+              {formatDate(current.pubDate)}
+            </span>
+            <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: '13px' }}>• CoinsClarity</span>
+          </div>
+
+          {/* Title */}
+          <h2
+            onClick={() => openArticle(current)}
+            style={{
+              color: '#fff',
+              fontSize: 'clamp(1.4rem, 3vw, 2.2rem)',
+              fontWeight: 800,
+              lineHeight: 1.25,
+              marginBottom: '12px',
+              cursor: 'pointer',
+              maxWidth: '800px',
+              textShadow: '0 2px 8px rgba(0,0,0,0.5)',
+              transition: 'color 0.2s',
+            }}
+            onMouseEnter={e => (e.currentTarget.style.color = '#f7931a')}
+            onMouseLeave={e => (e.currentTarget.style.color = '#fff')}
+          >
+            {current.title}
+          </h2>
+
+          {/* Description */}
+          <p style={{
+            color: 'rgba(255,255,255,0.75)',
+            fontSize: '15px',
+            lineHeight: 1.6,
+            maxWidth: '700px',
+            marginBottom: '20px',
+            display: '-webkit-box',
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: 'vertical' as any,
+            overflow: 'hidden',
+          }}>
+            {current.description.slice(0, 200)}{current.description.length > 200 ? '…' : ''}
+          </p>
+
+          {/* Read article button */}
+          <button
+            onClick={() => openArticle(current)}
+            style={{
+              background: '#f7931a',
+              color: '#000',
+              border: 'none',
+              padding: '10px 28px',
+              borderRadius: '6px',
+              fontSize: '14px',
+              fontWeight: 700,
+              cursor: 'pointer',
+              transition: 'all 0.2s',
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px',
+            }}
+            onMouseEnter={e => {
+              e.currentTarget.style.background = '#fff'
+              e.currentTarget.style.transform = 'translateY(-1px)'
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.background = '#f7931a'
+              e.currentTarget.style.transform = 'translateY(0)'
+            }}
+          >
+            Read Full Article →
+          </button>
+
+          {/* Dot indicators */}
+          <div style={{ display: 'flex', gap: '8px', marginTop: '24px' }}>
+            {items.map((_, idx) => (
+              <button
+                key={idx}
+                onClick={() => goTo(idx)}
                 style={{
-                  objectPosition: 'center',
-                  transition: 'opacity 0.3s ease-in-out'
+                  width: idx === activeIndex ? '32px' : '10px',
+                  height: '10px',
+                  borderRadius: '5px',
+                  border: 'none',
+                  background: idx === activeIndex ? '#f7931a' : 'rgba(255,255,255,0.4)',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease',
+                  padding: 0,
                 }}
+                aria-label={`Go to slide ${idx + 1}`}
               />
-            </a>
-          </Carousel.Item>
-        ))}
-      </Carousel>
+            ))}
+          </div>
+        </div>
+
+        {/* Prev / Next arrows */}
+        <button
+          onClick={goPrev}
+          style={{
+            position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)',
+            width: '44px', height: '44px', borderRadius: '50%',
+            background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(255,255,255,0.2)',
+            color: '#fff', fontSize: '20px', cursor: 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            transition: 'all 0.2s', zIndex: 3, backdropFilter: 'blur(4px)',
+          }}
+          onMouseEnter={e => { e.currentTarget.style.background = 'rgba(247,147,26,0.8)'; e.currentTarget.style.borderColor = '#f7931a' }}
+          onMouseLeave={e => { e.currentTarget.style.background = 'rgba(0,0,0,0.5)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)' }}
+          aria-label="Previous"
+        >
+          ‹
+        </button>
+        <button
+          onClick={goNext}
+          style={{
+            position: 'absolute', right: '16px', top: '50%', transform: 'translateY(-50%)',
+            width: '44px', height: '44px', borderRadius: '50%',
+            background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(255,255,255,0.2)',
+            color: '#fff', fontSize: '20px', cursor: 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            transition: 'all 0.2s', zIndex: 3, backdropFilter: 'blur(4px)',
+          }}
+          onMouseEnter={e => { e.currentTarget.style.background = 'rgba(247,147,26,0.8)'; e.currentTarget.style.borderColor = '#f7931a' }}
+          onMouseLeave={e => { e.currentTarget.style.background = 'rgba(0,0,0,0.5)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)' }}
+          aria-label="Next"
+        >
+          ›
+        </button>
+
+        {/* Slide counter */}
+        <div style={{
+          position: 'absolute', top: '20px', right: '20px',
+          background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)',
+          padding: '6px 14px', borderRadius: '20px',
+          color: 'rgba(255,255,255,0.8)', fontSize: '12px', fontWeight: 600,
+          zIndex: 3,
+        }}>
+          {activeIndex + 1} / {items.length}
+        </div>
+      </div>
     </Container>
   )
 }
-

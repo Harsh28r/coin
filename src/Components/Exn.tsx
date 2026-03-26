@@ -113,29 +113,31 @@ const Exn: React.FC = () => {
   useEffect(() => {
     const fetchNews = async () => {
       try {
-        // Try multiple sources in order until we have enough items
+        // Fetch from Camify + Render in parallel for max coverage
+        const CAMIFY = 'https://camify.fun.coinsclarity.com';
         const endpoints = [
-          `${API_BASE_URL}/fetch-all-rss?limit=24`,
-          `${API_BASE_URL}/fetch-rss?limit=24`,
-          `${API_BASE_URL}/fetch-defiant-rss?limit=24`,
-          `${API_BASE_URL}/fetch-coindesk-rss?limit=24`,
-          `${API_BASE_URL}/fetch-cryptoslate-rss?limit=24`,
-          `${API_BASE_URL}/fetch-decrypt-rss?limit=24`
+          `${CAMIFY}/fetch-cointelegraph-rss?limit=24`,
+          `${CAMIFY}/fetch-coindesk-rss?limit=24`,
+          `${CAMIFY}/fetch-decrypt-rss?limit=24`,
+          `${CAMIFY}/fetch-cryptoslate-rss?limit=24`,
+          `${CAMIFY}/fetch-blockworks-rss?limit=24`,
+          `${CAMIFY}/fetch-finbold-rss?limit=24`,
+          `${CAMIFY}/fetch-protos-rss?limit=24`,
+          `${CAMIFY}/fetch-unchained-rss?limit=24`,
+          `${CAMIFY}/fetch-thecryptobasic-rss?limit=24`,
+          `${CAMIFY}/fetch-blockonomi-rss?limit=24`,
+          `${API_BASE_URL}/fetch-all-rss?limit=50`,
         ];
 
+        const results = await Promise.allSettled(
+          endpoints.map(url => fetch(url, { signal: AbortSignal.timeout(10000) }).then(r => r.json()).catch(() => null))
+        );
         let items: any[] = [];
-        for (const url of endpoints) {
-          try {
-            const res = await fetch(url);
-            if (!res.ok) continue;
-            const data = await res.json();
-            if (data && Array.isArray(data.data) && data.data.length) {
-              items = items.concat(data.data);
-            }
-          } catch (e) {
-            // continue
+        for (const r of results) {
+          if ((r as any)?.status === 'fulfilled' && (r as any).value?.success) {
+            const arr = Array.isArray((r as any).value.data) ? (r as any).value.data : Array.isArray((r as any).value.items) ? (r as any).value.items : [];
+            items = items.concat(arr);
           }
-          if (items.length >= 12) break;
         }
 
         if (items.length) {
@@ -383,7 +385,7 @@ const Exn: React.FC = () => {
                         A
                       </div>
                       <small className="text-muted">
-                        {Array.isArray(item.creator) && item.creator.length > 0 ? item.creator[0] : 'Unknown'}
+                        CoinsClarity
                       </small>
                     </div>
                     <div className="text-end">

@@ -43,6 +43,26 @@ const DefaultSEO: React.FC = () => {
         description:
           'Track upcoming crypto events, conferences, and important dates in the digital asset space.',
       },
+      '/tools': {
+        title: 'Free Crypto Trading Tools & Calculators | CoinsClarity',
+        description:
+          'Professional crypto trading tools: profit calculator, DCA calculator, RSI scanner, funding rates, arbitrage checker, liquidation calculator, staking APY comparison. 100% free.',
+      },
+      '/arbitrage': {
+        title: 'Triangular Arbitrage Calculator | Free Crypto Tool | CoinsClarity',
+        description:
+          'Free triangular arbitrage calculator. Find profit opportunities across BTC, ETH, USDT and 15+ crypto pairs with real-time prices.',
+      },
+      '/blog': {
+        title: 'Crypto Blog: Expert Analysis & Insights | CoinsClarity',
+        description:
+          'Original crypto analysis, market insights, and expert commentary from CoinsClarity. In-depth articles on Bitcoin, Ethereum, DeFi and more.',
+      },
+      '/ai-news': {
+        title: 'AI & Machine Learning News in Crypto | CoinsClarity',
+        description:
+          'Latest AI and machine learning developments in cryptocurrency. Track AI crypto projects, research, and innovations.',
+      },
     };
     return (
       map[location.pathname] || {

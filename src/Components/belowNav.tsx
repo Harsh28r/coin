@@ -77,7 +77,9 @@ export function TopNav() {
     const fetchNews = async () => {
       setLoading(true);
       try {
-        const response = await fetch(`${API_BASE_URL}/fetch-all-rss?limit=5`);
+        const CAMIFY = 'https://camify.fun.coinsclarity.com';
+        let response = await fetch(`${CAMIFY}/fetch-all-rss?limit=5`, { signal: AbortSignal.timeout(8000) }).catch(() => null);
+        if (!response || !response.ok) response = await fetch(`${API_BASE_URL}/fetch-all-rss?limit=5`, { signal: AbortSignal.timeout(8000) });
         if (!response.ok) throw new Error('Failed to fetch news');
         const data = await response.json();
         if (data.success && Array.isArray(data.data)) {
@@ -245,7 +247,7 @@ export function TopNav() {
                         pubDate: match.pubDate || new Date().toISOString(),
                         image_url: match.image_url || match.image || '',
                         link: match.link || '#',
-                        source_name: 'Crypto News',
+                        source_name: 'CoinsClarity',
                         content: match.content || ''
                       } } });
                     } else {

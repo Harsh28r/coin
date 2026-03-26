@@ -1,5 +1,5 @@
 // Crypto-themed fallback images utility with diverse themes
-export const getCryptoFallbackImage = (title?: string, type: 'news' | 'blog' | 'nft' | 'coin' = 'news'): string => {
+export const getCryptoFallbackImage = (title?: string, type: 'news' | 'blog' | 'nft' | 'coin' | 'airdrop' = 'news'): string => {
   // Use diverse crypto-themed placeholder service with unique colors and text
   const cryptoThemes = {
     news: [
@@ -36,6 +36,13 @@ export const getCryptoFallbackImage = (title?: string, type: 'news' | 'blog' | '
       'https://placehold.co/200x200/2d1b69/ffd700?text=BNB',
       'https://placehold.co/200x200/0d1117/ff4757?text=ADA',
       'https://placehold.co/200x200/1e3a8a/10b981?text=SOL'
+    ],
+    airdrop: [
+      'https://placehold.co/400x250/0a0a0a/ff6b35?text=Airdrop',
+      'https://placehold.co/400x250/1a1a2e/00d4aa?text=Free+Tokens',
+      'https://placehold.co/400x250/2d1b69/ffd700?text=Rewards',
+      'https://placehold.co/400x250/064e3b/34d399?text=Claim',
+      'https://placehold.co/400x250/7c2d12/f59e0b?text=Crypto+Rewards'
     ]
   };
 
@@ -52,7 +59,7 @@ export const getCryptoFallbackImage = (title?: string, type: 'news' | 'blog' | '
 };
 
 // Helper function for image error handling
-export const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>, fallbackTitle?: string, type: 'news' | 'blog' | 'nft' | 'coin' = 'news') => {
+export const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>, fallbackTitle?: string, type: 'news' | 'blog' | 'nft' | 'coin' | 'airdrop' = 'news') => {
   const target = e.currentTarget as HTMLImageElement;
   target.src = getCryptoFallbackImage(fallbackTitle, type);
 };

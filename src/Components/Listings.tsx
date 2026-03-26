@@ -67,22 +67,34 @@ const Listings: React.FC = () => {
     const run = async () => {
       setLoading(true);
       try {
+        const CAMIFY = 'https://camify.fun.coinsclarity.com';
         const sources = [
-          'fetch-dailycoin-rss?limit=60',
-          'fetch-cryptobriefing-rss?limit=60',
-          'fetch-dailyhodl-rss?limit=60',
-          'fetch-ambcrypto-rss?limit=60',
-          'fetch-beincrypto-rss?limit=60',
-          'fetch-cryptopotato-rss?limit=60',
-          'fetch-utoday-rss?limit=60',
-          'fetch-bitcoinmagazine-rss?limit=60',
-          'fetch-coindesk-rss?limit=60',
+          `${CAMIFY}/fetch-cryptobriefing-rss?limit=60`,
+          `${CAMIFY}/fetch-dailyhodl-rss?limit=60`,
+          `${CAMIFY}/fetch-beincrypto-rss?limit=60`,
+          `${CAMIFY}/fetch-cryptopotato-rss?limit=60`,
+          `${CAMIFY}/fetch-utoday-rss?limit=60`,
+          `${CAMIFY}/fetch-coindesk-rss?limit=60`,
+          `${CAMIFY}/fetch-cointelegraph-rss?limit=60`,
+          `${CAMIFY}/fetch-decrypt-rss?limit=60`,
+          `${CAMIFY}/fetch-blockworks-rss?limit=60`,
+          `${CAMIFY}/fetch-bitcoinist-rss?limit=60`,
+          `${CAMIFY}/fetch-coingape-rss?limit=60`,
+          `${CAMIFY}/fetch-finbold-rss?limit=60`,
+          `${CAMIFY}/fetch-protos-rss?limit=60`,
+          `${CAMIFY}/fetch-unchained-rss?limit=60`,
+          `${CAMIFY}/fetch-thecryptobasic-rss?limit=60`,
+          `${CAMIFY}/fetch-blockonomi-rss?limit=60`,
+          `${CAMIFY}/fetch-coincu-rss?limit=60`,
+          `${CAMIFY}/fetch-cryptonewsz-rss?limit=60`,
+          `${API_BASE_URL}/fetch-all-rss?limit=100`,
         ];
-        const results = await Promise.allSettled(sources.map(s => fetch(`${API_BASE_URL}/${s}`).then(r => r.json()).catch(() => null)));
+        const results = await Promise.allSettled(sources.map(s => fetch(s, { signal: AbortSignal.timeout(12000) }).then(r => r.json()).catch(() => null)));
         let merged: any[] = [];
         for (const r of results) {
-          if ((r as any)?.status === 'fulfilled' && (r as any).value?.success && Array.isArray((r as any).value.data)) {
-            merged.push(...(r as any).value.data);
+          if ((r as any)?.status === 'fulfilled' && (r as any).value?.success) {
+            const arr = Array.isArray((r as any).value.data) ? (r as any).value.data : Array.isArray((r as any).value.items) ? (r as any).value.items : [];
+            merged.push(...arr);
           }
         }
         const listings = extractListingNews(merged);
@@ -104,7 +116,7 @@ const Listings: React.FC = () => {
       image_url: (li as any).image_url,
       link: li.link || '',
       content: li.content || li.description || '',
-      source_name: 'Crypto News',
+      source_name: 'CoinsClarity',
       keywords: li.coins,
     } as any;
     navigate(`/news/${id}`, { state: { item: stateItem } });
@@ -165,7 +177,7 @@ const Listings: React.FC = () => {
       <h1 className="mb-4 text-center" style={{ 
         fontSize: '2.5rem', 
         fontWeight: 'bold', 
-        color: '#1f2937',
+        color: 'var(--text)',
         borderBottom: '3px solid #f59e0b',
         paddingBottom: '1rem'
       }}>
@@ -174,13 +186,14 @@ const Listings: React.FC = () => {
 
       {/* Filter Controls */}
       <div className="mb-4 p-3" style={{
-        backgroundColor: '#f8fafc',
+        backgroundColor: 'var(--surface)',
         borderRadius: '12px',
-        border: '1px solid #e2e8f0'
+        border: '1px solid var(--border)',
+        color: 'var(--text)'
       }}>
         <Row className="g-3 align-items-end">
           <Col md={4}>
-            <label className="form-label small fw-bold text-muted">Search</label>
+            <label className="form-label small fw-bold" style={{ color: 'var(--text)' }}>Search</label>
             <input
               type="text"
               className="form-control"
@@ -192,7 +205,7 @@ const Listings: React.FC = () => {
             />
           </Col>
           <Col md={3}>
-            <label className="form-label small fw-bold text-muted">Exchange</label>
+            <label className="form-label small fw-bold" style={{ color: 'var(--text)' }}>Exchange</label>
             <select
               className="form-select"
               value={exchangeFilter}
@@ -207,7 +220,7 @@ const Listings: React.FC = () => {
             </select>
           </Col>
           <Col md={3}>
-            <label className="form-label small fw-bold text-muted">Time Period</label>
+            <label className="form-label small fw-bold" style={{ color: 'var(--text)' }}>Time Period</label>
             <select
               className="form-select"
               value={timeFilter}
@@ -237,7 +250,7 @@ const Listings: React.FC = () => {
           </Col>
         </Row>
         {filteredItems.length !== items.length && (
-          <div className="mt-2 text-muted small">
+          <div className="mt-2 small" style={{ color: 'var(--text)' }}>
             Showing {filteredItems.length} of {items.length} listings
           </div>
         )}
@@ -253,25 +266,25 @@ const Listings: React.FC = () => {
           <div className="col-md-3">
             <div className="p-2">
               <strong className="d-block text-white">Major Exchanges</strong>
-              <small className="text-muted">Binance, Coinbase, Kraken</small>
+              <small style={{ color: 'rgba(255,255,255,0.85)' }}>Binance, Coinbase, Kraken</small>
             </div>
           </div>
           <div className="col-md-3">
             <div className="p-2">
               <strong className="d-block text-white">New Listings</strong>
-              <small className="text-muted">Fresh token additions</small>
+              <small style={{ color: 'rgba(255,255,255,0.85)' }}>Fresh token additions</small>
             </div>
           </div>
           <div className="col-md-3">
             <div className="p-2">
               <strong className="d-block text-white">Trading Pairs</strong>
-              <small className="text-muted">USDT, BTC, ETH pairs</small>
+              <small style={{ color: 'rgba(255,255,255,0.85)' }}>USDT, BTC, ETH pairs</small>
             </div>
           </div>
           <div className="col-md-3">
             <div className="p-2">
               <strong className="d-block text-white">Market Data</strong>
-              <small className="text-muted">Volume & price info</small>
+              <small style={{ color: 'rgba(255,255,255,0.85)' }}>Volume & price info</small>
             </div>
           </div>
         </div>

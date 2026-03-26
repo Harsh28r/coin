@@ -8,6 +8,7 @@ import 'react-loading-skeleton/dist/skeleton.css'; // Import skeleton CSS
 import { useLanguage } from '../context/LanguageContext';
 import { useNewsTranslation } from '../hooks/useNewsTranslation';
 import { extractListingNews } from '../utils/listings';
+import { BRAND_DISPLAY_NAME, stripAppearedFirstOn } from '../utils/branding';
 
 interface TrendingNewsItem {
   article_id?: string;
@@ -19,6 +20,46 @@ interface TrendingNewsItem {
   source: string;
   link?: string;
   content?: string;
+}
+
+const SIDE_CAROUSEL_PLACEHOLDER = 'https://placehold.co/160x103/1a1a2e/64748b?text=News';
+
+function decodeHtmlEntities(str: string): string {
+  if (typeof str !== 'string') return '';
+  return str.replace(/&#(\d+);/g, (_, code) => String.fromCharCode(Number(code))).replace(/&quot;/g, '"').replace(/&apos;/g, "'").replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+}
+const SIDE_CAROUSEL_PLACEHOLDER_DATAURI = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="160" height="103" viewBox="0 0 160 103"><rect fill="%231a1a2e" width="160" height="103"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="%2364748b" font-size="14" font-family="sans-serif">News</text></svg>');
+
+function extractImgSrcFromHtml(html: string): string {
+  if (typeof html !== 'string' || !html.trim()) return '';
+  const m = html.match(/<img[^>]+src=["']([^"']+)["']/i);
+  return m ? m[1].trim() : '';
+}
+
+function getNewsImageUrl(it: any): string {
+  const enclosureUrl = it?.enclosure && (typeof it.enclosure === 'string' ? it.enclosure : it.enclosure?.url);
+  const enclosureFirst = Array.isArray(it?.enclosures) && it.enclosures[0] ? (it.enclosures[0]?.url || it.enclosures[0]) : '';
+  const mediaUrl = it?.media?.content?.[0]?.$?.url || it?.media?.thumbnail?.[0]?.$?.url || (it?.media?.thumbnail && typeof it.media.thumbnail === 'string' ? it.media.thumbnail : (it?.media?.thumbnail?.url));
+  const imageObjUrl = (it?.image && typeof it.image === 'object' && it.image?.url) ? it.image.url : (it?.thumbnail && typeof it.thumbnail === 'object' && it.thumbnail?.url) ? it.thumbnail.url : '';
+  const fromHtml = extractImgSrcFromHtml(it?.content || it?.description || '');
+  const featured = (typeof it?.featured_image === 'string' && it.featured_image.trim() !== '') ? it.featured_image : (typeof it?.featuredImage === 'string' ? it.featuredImage : typeof it?.og_image === 'string' ? it.og_image : typeof it?.cover_image === 'string' ? it.cover_image : '');
+  const raw =
+    (typeof it?.image_url === 'string' && it.image_url.trim() !== '') ? it.image_url
+    : (typeof it?.image === 'string' && it.image.trim() !== '') ? it.image
+    : (typeof it?.thumbnail === 'string' && it.thumbnail.trim() !== '') ? it.thumbnail
+    : (typeof enclosureUrl === 'string' && enclosureUrl.trim() !== '') ? enclosureUrl
+    : (typeof enclosureFirst === 'string' && enclosureFirst.trim() !== '') ? enclosureFirst
+    : (typeof mediaUrl === 'string' && mediaUrl.trim() !== '') ? mediaUrl
+    : (typeof imageObjUrl === 'string' && imageObjUrl.trim() !== '') ? imageObjUrl
+    : (typeof featured === 'string' && featured.trim() !== '') ? featured
+    : (fromHtml && fromHtml.trim() !== '') ? fromHtml
+    : '';
+  const s = typeof raw === 'string' ? raw.trim() : '';
+  if (!s) return SIDE_CAROUSEL_PLACEHOLDER;
+  if (/^https?:\/\//i.test(s)) return s;
+  if (/^\/\//.test(s)) return `https:${s}`;
+  if (s.startsWith('/')) return SIDE_CAROUSEL_PLACEHOLDER;
+  return SIDE_CAROUSEL_PLACEHOLDER;
 }
 
 const FeaturedCarousel: React.FC = () => {
@@ -35,6 +76,13 @@ const FeaturedCarousel: React.FC = () => {
   const dragCleanupRef = useRef<(() => void) | null>(null);
   const navigate = useNavigate();
   
+  // Fallback trending items for right side when API returns nothing
+  const fallbackTrendingNews: TrendingNewsItem[] = [
+    { title: 'Top Market Stories', excerpt: 'Catch up on the most important crypto headlines.', author: 'CoinsClarity', date: new Date().toLocaleDateString(), image: SIDE_CAROUSEL_PLACEHOLDER, source: 'Trending', link: '#' },
+    { title: 'New Listings and Pairs', excerpt: 'Latest token listings across major exchanges.', author: 'CoinsClarity', date: new Date().toLocaleDateString(), image: 'https://placehold.co/160x103/1a1a2e/64748b?text=Listings', source: 'Trending', link: '#' },
+    { title: 'DeFi & NFT Highlights', excerpt: 'What\'s moving in DeFi and NFTs.', author: 'CoinsClarity', date: new Date().toLocaleDateString(), image: 'https://placehold.co/160x103/1a1a2e/64748b?text=DeFi', source: 'Trending', link: '#' },
+  ];
+
   // Quick fallback slides to avoid empty UI
   const fallbackFeatureSlides = [
     {
@@ -109,7 +157,9 @@ const FeaturedCarousel: React.FC = () => {
     }
   }, [isTranslating, currentLanguage]);
   
+  const CAMIFY_BASE = 'https://camify.fun.coinsclarity.com';
   const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://c-back-2.onrender.com';
+  const USE_API_FALLBACK = API_BASE_URL && !API_BASE_URL.includes('localhost');
   const MOCK_API_BASE_URL = process.env.REACT_APP_USE_LOCAL_DB === 'true' ? 'http://localhost:5000' : '';
   const formatMDY = (input: string | Date) => {
     try {
@@ -133,7 +183,9 @@ const FeaturedCarousel: React.FC = () => {
   };
 
   useEffect(() => {
-    // Helper with timeout to prevent long stalls
+    const CAMIFY = CAMIFY_BASE;
+    const bases = [CAMIFY, ...(USE_API_FALLBACK ? [API_BASE_URL.replace(/\/$/, '')] : [])];
+
     const fetchJson = async (url: string, timeoutMs = 6000) => {
       const controller = new AbortController();
       const id = window.setTimeout(() => controller.abort(), timeoutMs);
@@ -141,122 +193,100 @@ const FeaturedCarousel: React.FC = () => {
         const res = await fetch(url, { signal: controller.signal });
         if (!res.ok) throw new Error('Bad response');
         return await res.json();
-      } catch (err) {
-        // swallow to keep UI responsive; caller handles nulls
+      } catch {
         return null as any;
       } finally {
         clearTimeout(id);
       }
     };
 
-    // Fetch top-N from each section for LEFT carousel
+    const extractArr = (j: any): any[] => {
+      if (!j) return [];
+      return Array.isArray(j.data) ? j.data : Array.isArray(j.items) ? j.items : [];
+    };
+
     const fetchFeatureSlides = async () => {
       setLoadingFeatures(true);
-      // Paint immediately with fallback while real data loads
       setFeatureSlides(fallbackFeatureSlides);
       setLoadingFeatures(false);
       try {
-        const endpoints = [
-          { url: `${API_BASE_URL}/fetch-cointelegraph-rss?limit=3`, label: 'Exclusive' },
-          { url: `${API_BASE_URL}/fetch-another-rss?limit=3`, label: 'Trending' },
-          { url: `${API_BASE_URL}/fetch-beincrypto-rss?limit=3`, label: 'Beyond the Headlines' },
-          { url: `${API_BASE_URL}/fetch-cryptopotato-rss?limit=3`, label: 'Did You Know' },
+        const slides: any[] = [];
+        const pushSlide = (it: any, source: string) => {
+          slides.push({
+            article_id: it.article_id,
+            title: it.title,
+            description: it.description || '',
+            creator: it.creator || ['Unknown'],
+            pubDate: it.pubDate || new Date().toISOString(),
+            image_url: it.image_url || '/image.png?height=450&width=800&text=News',
+            link: it.link || '#',
+            source,
+            content: it.content || it.description || ''
+          });
+        };
+
+        const heroPathGroups: { paths: string[]; label: string }[] = [
+          { paths: ['fetch-cointelegraph-rss', 'fetch-coindesk-rss', 'fetch-decrypt-rss', 'fetch-cryptoslate-rss', 'fetch-blockworks-rss', 'fetch-beincrypto-rss'], label: 'Exclusive' },
+          { paths: ['fetch-blockworks-rss', 'fetch-coindesk-rss', 'fetch-cointelegraph-rss', 'fetch-decrypt-rss', 'fetch-finbold-rss', 'fetch-coingape-rss'], label: 'Trending' },
+          { paths: ['fetch-beincrypto-rss', 'fetch-cryptopotato-rss', 'fetch-cryptobriefing-rss', 'fetch-coingape-rss', 'fetch-protos-rss', 'fetch-thecryptobasic-rss'], label: 'Beyond the Headlines' },
+          { paths: ['fetch-cryptopotato-rss', 'fetch-dailycoin-rss', 'fetch-utoday-rss', 'fetch-coincu-rss', 'fetch-cryptonewsz-rss', 'fetch-bitcoinist-rss'], label: 'Did You Know' },
         ];
-        const results = await Promise.allSettled(
-          endpoints.map(async (e) => {
-            const j = await fetchJson(e.url, 3500);
-            if (!j) return null;
-            return { j, label: e.label };
+        await Promise.all(
+          heroPathGroups.map(async (g) => {
+            for (const path of g.paths) {
+              const suffix = path.includes('?') ? path : `${path}?limit=7`;
+              for (const base of bases) {
+                const url = `${base}/${suffix}`;
+                const j = await fetchJson(url, 3500);
+                const arr = extractArr(j);
+                if (arr.length > 0) {
+                  arr.slice(0, 7).forEach((it: any) => pushSlide(it, g.label));
+                  return;
+                }
+              }
+            }
           })
         );
-        const slides: any[] = [];
-        results.forEach((res: any) => {
-          if (res.status === 'fulfilled' && res.value?.j?.success && Array.isArray(res.value.j.data) && res.value.j.data.length > 0) {
-            res.value.j.data.slice(0, 3).forEach((it: any) => {
-              slides.push({
-                article_id: it.article_id,
-                title: it.title,
-                description: it.description || '',
-                creator: it.creator || ['Unknown'],
-                pubDate: it.pubDate || new Date().toISOString(),
-                image_url: it.image_url || '/image.png?height=450&width=800&text=News',
-                link: it.link || '#',
-                source: res.value.label,
-                content: it.content || it.description || ''
-              });
-            });
-          }
-        });
 
-        // Press Releases: merge multiple sources and take top 2
-        try {
-          const pressSources = [
-            `${API_BASE_URL}/fetch-cryptobriefing-rss?limit=6`,
-            `${API_BASE_URL}/fetch-dailyhodl-rss?limit=6`,
-            `${API_BASE_URL}/fetch-another-rss?limit=6`
-          ];
-          const pressResults = await Promise.allSettled(
-            pressSources.map(async (u) => await fetchJson(u, 3500))
-          );
+        const pressPaths = ['fetch-cryptobriefing-rss', 'fetch-dailyhodl-rss', 'fetch-finbold-rss', 'fetch-beincrypto-rss', 'fetch-protos-rss', 'fetch-unchained-rss', 'fetch-blockonomi-rss', 'fetch-thecryptobasic-rss'];
+        for (const path of pressPaths) {
+          const suffix = `${path}?limit=10`;
           let pressItems: any[] = [];
-          pressResults.forEach((r: any) => {
-            if (r?.status === 'fulfilled' && r.value?.success && Array.isArray(r.value.data)) {
-              pressItems.push(...r.value.data);
-            }
-          });
-          pressItems.slice(0, 2).forEach((it: any) => {
-            slides.push({
-              article_id: it.article_id,
-              title: it.title,
-              description: it.description || '',
-              creator: it.creator || ['Unknown'],
-              pubDate: it.pubDate || new Date().toISOString(),
-              image_url: it.image_url || '/image.png?height=450&width=800&text=News',
-              link: it.link || '#',
-              source: 'Press Releases',
-              content: it.content || it.description || ''
-            });
-          });
-        } catch {}
+          for (const base of bases) {
+            const j = await fetchJson(`${base}/${suffix}`, 3500);
+            pressItems = extractArr(j);
+            if (pressItems.length) break;
+          }
+          if (pressItems.length) {
+            pressItems.slice(0, 4).forEach((it: any) => pushSlide(it, 'Press Releases'));
+            break;
+          }
+        }
 
-        // Listings: extract from aggregated sources and take top 2
-        try {
-          const listingSources = [
-            'fetch-dailycoin-rss?limit=30',
-            'fetch-cryptobriefing-rss?limit=30',
-            'fetch-dailyhodl-rss?limit=30',
-            'fetch-ambcrypto-rss?limit=30',
-            'fetch-beincrypto-rss?limit=30',
-            'fetch-cryptopotato-rss?limit=30',
-            'fetch-utoday-rss?limit=30',
-            'fetch-bitcoinmagazine-rss?limit=30',
-            'fetch-coindesk-rss?limit=30'
-          ];
-          const listingResponses = await Promise.allSettled(
-            listingSources.map(async (s) => await fetchJson(`${API_BASE_URL}/${s}`, 3500))
-          );
-          let merged: any[] = [];
-          listingResponses.forEach((r: any) => {
-            if (r?.status === 'fulfilled' && r.value?.success && Array.isArray(r.value.data)) {
-              merged.push(...r.value.data);
-            }
+        const listingPaths = ['fetch-dailycoin-rss', 'fetch-cryptobriefing-rss', 'fetch-beincrypto-rss', 'fetch-cryptopotato-rss', 'fetch-utoday-rss', 'fetch-coindesk-rss', 'fetch-coingape-rss', 'fetch-blockworks-rss', 'fetch-cointelegraph-rss', 'fetch-decrypt-rss', 'fetch-bitcoinist-rss', 'fetch-finbold-rss'];
+        let listingMerged: any[] = [];
+        for (const path of listingPaths) {
+          const suffix = `${path}?limit=20`;
+          for (const base of bases) {
+            const j = await fetchJson(`${base}/${suffix}`, 3500);
+            const arr = extractArr(j);
+            if (arr.length) listingMerged.push(...arr);
+          }
+        }
+        const listings = extractListingNews(listingMerged);
+        listings.slice(0, 4).forEach((li: any) => {
+          slides.push({
+            article_id: li.article_id,
+            title: li.title,
+            description: li.description || li.content || '',
+            creator: [''],
+            pubDate: li.pubDate || new Date().toISOString(),
+            image_url: li.image_url || '/image.png?height=450&width=800&text=Listing',
+            link: li.link || '#',
+            source: 'Listings',
+            content: li.content || li.description || ''
           });
-          const listings = extractListingNews(merged);
-          listings.slice(0, 2).forEach((li: any) => {
-            slides.push({
-              article_id: li.article_id,
-              title: li.title,
-              description: li.description || li.content || '',
-              creator: [''],
-              pubDate: li.pubDate || new Date().toISOString(),
-              image_url: li.image_url || '/image.png?height=450&width=800&text=Listing',
-              link: li.link || '#',
-              source: 'Listings',
-              content: li.content || li.description || ''
-            });
-          });
-        } catch {}
-        // De-dup by article_id/link/title
+        });
         const seen = new Set<string>();
         const deduped = slides.filter((s) => {
           const key = s.article_id || s.link || s.title;
@@ -264,11 +294,8 @@ const FeaturedCarousel: React.FC = () => {
           seen.add(key);
           return true;
         });
-        // Limit to a reasonable number to keep carousel smooth
-        let limited = deduped.slice(0, 12);
-        if (!limited.length) {
-          limited = fallbackFeatureSlides;
-        }
+        let limited = deduped.slice(0, 20);
+        if (!limited.length) limited = fallbackFeatureSlides;
         setFeatureSlides(limited);
       } catch {}
       finally { setLoadingFeatures(false); }
@@ -292,25 +319,30 @@ const FeaturedCarousel: React.FC = () => {
       };
 
       const cached = seedFromCache();
+      let hasItems = false;
       if (cached.length) {
         setTrendingNews(cached);
         setLoading(false);
+        hasItems = true;
       } else {
         setLoading(true);
       }
 
-      // Phase 1: quick sources with short timeout
+      const quickPaths = ['fetch-coindesk-rss', 'fetch-cointelegraph-rss', 'fetch-decrypt-rss', 'fetch-cryptoslate-rss', 'fetch-blockworks-rss', 'fetch-beincrypto-rss', 'fetch-cryptobriefing-rss', 'fetch-coingape-rss', 'fetch-finbold-rss', 'fetch-protos-rss', 'fetch-thecryptobasic-rss', 'fetch-coincu-rss', 'fetch-bitcoinist-rss', 'fetch-dailycoin-rss', 'fetch-cryptopotato-rss', 'fetch-utoday-rss'];
       try {
-        const quickSources = [
-          `${API_BASE_URL}/fetch-coindesk-rss?limit=12`,
-          `${API_BASE_URL}/fetch-dailycoin-rss?limit=12`,
-        ];
-        const quickResults = await Promise.allSettled(
-          quickSources.map(u => fetchJson(u, 4500).catch(() => null))
-        );
         let quickItems: any[] = [];
+        const quickPromises = quickPaths.map(async (path) => {
+          const suffix = `${path}?limit=12`;
+          for (const base of bases) {
+            const j = await fetchJson(`${base}/${suffix}`, 4500);
+            const arr = extractArr(j);
+            if (arr.length) return arr;
+          }
+          return [];
+        });
+        const quickResults = await Promise.allSettled(quickPromises);
         quickResults.forEach((r: any) => {
-          if (r?.status === 'fulfilled' && r.value?.success && Array.isArray(r.value.data)) quickItems.push(...r.value.data);
+          if (r?.status === 'fulfilled' && Array.isArray(r.value) && r.value.length) quickItems.push(...r.value);
         });
         if (quickItems.length) {
           const formattedQuick: TrendingNewsItem[] = quickItems.map((it: any) => ({
@@ -319,7 +351,7 @@ const FeaturedCarousel: React.FC = () => {
             excerpt: it.description || 'No description available',
             author: Array.isArray(it.creator) ? (it.creator[0] || 'Unknown') : (it.creator || 'Unknown'),
             date: new Date(it.pubDate || new Date().toISOString()).toLocaleDateString(),
-            image: (typeof it.image_url === 'string' && /^https?:\/\//i.test(it.image_url)) ? it.image_url : '/image.png',
+            image: getNewsImageUrl(it),
             source: 'Trending',
             link: it.link || '#',
             content: it.content || it.description || ''
@@ -334,29 +366,27 @@ const FeaturedCarousel: React.FC = () => {
           setTrendingNews(dedupQuick);
           saveCache(dedupQuick);
           setLoading(false);
+          hasItems = true;
         }
       } catch (error: any) {
         console.error('Error fetching quick trending:', error?.message || error);
       }
 
-      // Phase 2: background enrichment
+      const morePaths = ['fetch-cryptobriefing-rss', 'fetch-beincrypto-rss', 'fetch-decrypt-rss', 'fetch-blockworks-rss', 'fetch-finbold-rss', 'fetch-coingape-rss', 'fetch-protos-rss', 'fetch-thecryptobasic-rss', 'fetch-coincu-rss', 'fetch-cryptoslate-rss', 'fetch-unchained-rss', 'fetch-blockonomi-rss', 'fetch-bitcoinist-rss', 'fetch-dailycoin-rss', 'fetch-cryptopotato-rss', 'fetch-utoday-rss', 'fetch-cointelegraph-rss', 'fetch-coindesk-rss'];
       try {
-        const moreSources = [
-          `${API_BASE_URL}/fetch-cryptobriefing-rss?limit=12`,
-          `${API_BASE_URL}/fetch-dailyhodl-rss?limit=12`,
-          `${API_BASE_URL}/fetch-ambcrypto-rss?limit=12`,
-          `${API_BASE_URL}/fetch-beincrypto-rss?limit=12`,
-          `${API_BASE_URL}/fetch-bitcoinmagazine-rss?limit=12`,
-          `${API_BASE_URL}/fetch-decrypt-rss?limit=12`,
-        ];
-        const results = await Promise.allSettled(
-          moreSources.map(u => fetchJson(u, 6000).catch(() => null))
-        );
         let items: any[] = [];
-        results.forEach((res: any) => {
-          if (res?.status === 'fulfilled' && res.value?.success && Array.isArray(res.value.data)) {
-            items.push(...res.value.data);
+        const morePromises = morePaths.map(async (path) => {
+          const suffix = `${path}?limit=12`;
+          for (const base of bases) {
+            const j = await fetchJson(`${base}/${suffix}`, 6000);
+            const arr = extractArr(j);
+            if (arr.length) return arr;
           }
+          return [];
+        });
+        const results = await Promise.allSettled(morePromises);
+        results.forEach((res: any) => {
+          if (res?.status === 'fulfilled' && Array.isArray(res.value) && res.value.length) items.push(...res.value);
         });
         if (items.length) {
           const formatted: TrendingNewsItem[] = items.map((it: any) => ({
@@ -365,7 +395,7 @@ const FeaturedCarousel: React.FC = () => {
             excerpt: it.description || 'No description available',
             author: Array.isArray(it.creator) ? (it.creator[0] || 'Unknown') : (it.creator || 'Unknown'),
             date: new Date(it.pubDate || new Date().toISOString()).toLocaleDateString(),
-            image: (typeof it.image_url === 'string' && /^https?:\/\//i.test(it.image_url)) ? it.image_url : '/image.png',
+            image: getNewsImageUrl(it),
             source: 'Trending',
             link: it.link || '#',
             content: it.content || it.description || ''
@@ -382,8 +412,13 @@ const FeaturedCarousel: React.FC = () => {
           const merged = dedupByKey([ ...formatted, ...trendingNews ]).slice(0, 30);
           setTrendingNews(merged);
           saveCache(merged);
+          hasItems = true;
         }
       } catch {}
+      if (!hasItems) {
+        setTrendingNews(fallbackTrendingNews);
+        setLoading(false);
+      }
     };
 
     fetchTrendingNews();
@@ -405,7 +440,7 @@ const FeaturedCarousel: React.FC = () => {
     if (featureSlides.length > 1) {
       rotationTimerRef.current = window.setInterval(() => {
         setActiveIndex((prev) => (prev + 1) % featureSlides.length);
-      }, 3000);
+      }, 5000);
     }
     return () => {
       if (rotationTimerRef.current) {
@@ -472,23 +507,6 @@ const FeaturedCarousel: React.FC = () => {
           >
             <h5 className="text-danger">Error: {error}</h5>
           </div>
-        ) : loading ? (
-          <div className="my-custom-loading rounded-5" style={{ height: '450px', width: '95%', margin: '0 auto', position: 'relative', overflow: 'hidden' }}>
-            <Skeleton height={450} width="100%" baseColor="#e0e0e0" highlightColor="#f5f5f5" />
-            <div
-              className="d-flex flex-column justify-content-between"
-              style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, padding: '1rem' }}
-            >
-              <div className="d-flex justify-content-between align-items-center mt-4">
-                <Skeleton width={100} height={20} baseColor="#e0e0e0" highlightColor="#f5f5f5" />
-                <Skeleton width={80} height={20} baseColor="#e0e0e0" highlightColor="#f5f5f5" />
-              </div>
-              <div>
-                <Skeleton width="80%" height={30} baseColor="#e0e0e0" highlightColor="#f5f5f5" />
-                <Skeleton count={3} width="90%" height={20} baseColor="#e0e0e0" highlightColor="#f5f5f5" />
-              </div>
-            </div>
-          </div>
         ) : (!loadingFeatures && featureSlides.length > 0) ? (
           <>
             <Carousel
@@ -520,7 +538,7 @@ const FeaturedCarousel: React.FC = () => {
                       pubDate: news.pubDate || news.date || new Date().toISOString(),
                       image_url: news.image_url || news.image,
                       link: news.link || '#',
-                      source_name: 'Crypto News',
+                      source_name: BRAND_DISPLAY_NAME,
                       content: news.content || news.description || news.excerpt || ''
                     };
                     navigate(`/news/${id}`, { state: { item: stateItem } });
@@ -542,7 +560,7 @@ const FeaturedCarousel: React.FC = () => {
                         pubDate: news.pubDate || news.date || new Date().toISOString(),
                         image_url: news.image_url || news.image,
                         link: news.link || '#',
-                        source_name: 'Crypto News',
+                        source_name: BRAND_DISPLAY_NAME,
                         content: news.content || news.description || news.excerpt || ''
                       };
                       navigate(`/news/${id}`, { state: { item: stateItem } });
@@ -552,7 +570,7 @@ const FeaturedCarousel: React.FC = () => {
                   />
                   <Card.ImgOverlay
                     className="d-flex flex-column justify-content-end rounded-5"
-                    style={{ padding: '1rem', cursor: 'pointer', background: 'linear-gradient(180deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.35) 40%, rgba(0,0,0,0.15) 70%, rgba(0,0,0,0.0) 100%)' }}
+                    style={{ padding: '1rem', cursor: 'pointer', background: 'linear-gradient(0deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.6) 35%, rgba(0,0,0,0.25) 65%, transparent 100%)' }}
                     onClick={() => {
                       const id = news.article_id || encodeURIComponent(((news.link as string | undefined) || news.title));
                       const translated = Array.isArray(displayFeatureSlides) ? displayFeatureSlides[index] : null;
@@ -564,7 +582,7 @@ const FeaturedCarousel: React.FC = () => {
                         pubDate: news.pubDate || news.date || new Date().toISOString(),
                         image_url: news.image_url || news.image,
                         link: news.link || '#',
-                        source_name: 'Crypto News',
+                        source_name: BRAND_DISPLAY_NAME,
                         content: news.content || news.description || news.excerpt || ''
                       };
                       navigate(`/news/${id}`, { state: { item: stateItem } });
@@ -572,9 +590,9 @@ const FeaturedCarousel: React.FC = () => {
                   >
                     {/* Top-left badges */}
                     <div style={{ position: 'absolute', top: '12px', left: '12px', display: 'flex', gap: '10px', alignItems: 'center' }}>
-                      <span className="badge bg-light text-dark">{news.source || 'Top News'}</span>
+                      <span className="badge bg-light text-dark">{BRAND_DISPLAY_NAME}</span>
                       <span className="badge" style={{ backgroundColor: 'rgba(251,146,60,0.12)', border: '1px solid rgba(251,146,60,0.25)', color: '#fb923c' }}>
-                        {Array.isArray(news.creator) ? (news.creator[0] || 'Unknown') : (news.author || 'Unknown')}
+                        {BRAND_DISPLAY_NAME}
                       </span>
                     </div>
 
@@ -593,73 +611,128 @@ const FeaturedCarousel: React.FC = () => {
                           textAlign: 'left',
                           fontFamily: 'Inter, sans-serif',
                           fontWeight: 700,
-                          fontSize: 'clamp(1.25rem, 3vw, 2.5rem)',
-                          lineHeight: 1.2,
-                          letterSpacing: '0.02em',
+                          fontSize: 'clamp(1.1rem, 2.5vw, 1.8rem)',
+                          lineHeight: 1.25,
+                          letterSpacing: '0.01em',
                           maxWidth: '100%',
                           overflowWrap: 'break-word',
-                          textShadow: '0 2px 10px rgba(0,0,0,0.45)',
-                          color: '#ffffff'
+                          textShadow: '0 2px 12px rgba(0,0,0,0.8), 0 1px 4px rgba(0,0,0,0.6)',
+                          color: '#ffffff',
+                          display: '-webkit-box',
+                          WebkitLineClamp: 3,
+                          WebkitBoxOrient: 'vertical' as any,
+                          overflow: 'hidden',
                         }}
                       >
                         {(Array.isArray(displayFeatureSlides) && displayFeatureSlides[index]?.title) ? displayFeatureSlides[index].title : news.title}
                       </div>
                       <small
-                        className="text"
+                        className="hero-carousel-description"
                         style={{
-                          fontSize: 'clamp(0.95rem, 1.5vw, 1.25rem)',
-                          fontWeight: 500,
+                          fontSize: 'clamp(0.85rem, 1.3vw, 1.05rem)',
+                          fontWeight: 400,
                           display: '-webkit-box',
                           overflow: 'hidden',
                           WebkitBoxOrient: 'vertical',
-                          WebkitLineClamp: 4,
-                          lineHeight: 1.6,
-                          maxHeight: '8.8em',
-                          marginBottom: '1rem',
-                          textShadow: '0 1px 6px rgba(0,0,0,0.35)',
-                          color: '#ffffff'
+                          WebkitLineClamp: 2,
+                          lineHeight: 1.5,
+                          maxHeight: '3.2em',
+                          marginBottom: '0.5rem',
+                          color: '#ffffff',
+                          textShadow: '0 0 1px #000, 0 0 2px #000, 0 1px 4px #000, 0 2px 6px rgba(0,0,0,0.9)',
                         }}
                       >
-                        {(Array.isArray(displayFeatureSlides) && displayFeatureSlides[index]?.description) ? displayFeatureSlides[index].description : news.description}
+                        {stripAppearedFirstOn(decodeHtmlEntities((Array.isArray(displayFeatureSlides) && displayFeatureSlides[index]?.description) ? displayFeatureSlides[index].description : (news.description || '')))}
                       </small>
+                      <span className="hero-read-article-cta" style={{
+                        color: '#ffffff',
+                        fontSize: '14px',
+                        fontWeight: 800,
+                        textTransform: 'uppercase' as any,
+                        letterSpacing: '0.1em',
+                        textShadow: '0 0 1px #000, 0 0 2px #000, 0 1px 4px #000, 0 2px 8px rgba(0,0,0,0.9)',
+                      }}>
+                        Read Full Article →
+                      </span>
                     </div>
                   </Card.ImgOverlay>
-                  <div
-                    className="carousel-controls"
+                  {/* Prev button - left side */}
+                  <Button
+                    variant="dark"
+                    className="rounded-circle"
+                    onClick={(e) => { e.stopPropagation(); handlePrev(); }}
                     style={{
                       position: 'absolute',
-                      bottom: '10px',
-                      right: '10px',
+                      left: '12px',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      width: '42px',
+                      height: '42px',
+                      borderRadius: '50%',
+                      padding: '0',
+                      background: 'rgba(0,0,0,0.55)',
+                      border: '1px solid rgba(255,255,255,0.3)',
+                      backdropFilter: 'blur(4px)',
                       display: 'flex',
                       alignItems: 'center',
+                      justifyContent: 'center',
+                      zIndex: 5,
                     }}
                   >
-                    <Button
-                      variant="outline-light"
-                      className="rounded-circle me-4"
-                      onClick={(e) => { e.stopPropagation(); handlePrev(); }}
-                      style={{
-                        width: '40px',
-                        height: '40px',
-                        borderRadius: '50%',
-                        padding: '0',
-                      }}
-                    >
-                      <ChevronLeft style={{ marginLeft: '5px' }} />
-                    </Button>
-                    <Button
-                      variant="outline-light"
-                      className="rounded-circle"
-                      onClick={(e) => { e.stopPropagation(); handleNext(); }}
-                      style={{
-                        width: '40px',
-                        height: '40px',
-                        borderRadius: '50%',
-                        padding: '0',
-                      }}
-                    >
-                      <ChevronRight style={{ marginLeft: '5px' }} />
-                    </Button>
+                    <ChevronLeft size={20} color="#fff" />
+                  </Button>
+                  {/* Next button - right side */}
+                  <Button
+                    variant="dark"
+                    className="rounded-circle"
+                    onClick={(e) => { e.stopPropagation(); handleNext(); }}
+                    style={{
+                      position: 'absolute',
+                      right: '12px',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      width: '42px',
+                      height: '42px',
+                      borderRadius: '50%',
+                      padding: '0',
+                      background: 'rgba(0,0,0,0.55)',
+                      border: '1px solid rgba(255,255,255,0.3)',
+                      backdropFilter: 'blur(4px)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      zIndex: 5,
+                    }}
+                  >
+                    <ChevronRight size={20} color="#fff" />
+                  </Button>
+                  {/* Dot indicators */}
+                  <div style={{
+                    position: 'absolute',
+                    bottom: '14px',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    display: 'flex',
+                    gap: '6px',
+                    zIndex: 5,
+                  }}>
+                    {featureSlides.map((_: any, idx: number) => (
+                      <button
+                        key={idx}
+                        onClick={(e) => { e.stopPropagation(); setActiveIndex(idx); }}
+                        style={{
+                          width: idx === activeIndex ? '24px' : '8px',
+                          height: '8px',
+                          borderRadius: '4px',
+                          border: 'none',
+                          background: idx === activeIndex ? '#f7931a' : 'rgba(255,255,255,0.5)',
+                          cursor: 'pointer',
+                          transition: 'all 0.3s ease',
+                          padding: 0,
+                        }}
+                        aria-label={`Slide ${idx + 1}`}
+                      />
+                    ))}
                   </div>
                 </Carousel.Item>
               ))}
@@ -775,7 +848,7 @@ const FeaturedCarousel: React.FC = () => {
                                 pubDate: news.pubDate || news.date || new Date().toISOString(),
                                 image_url: news.image_url || news.image,
                                 link: news.link || '#',
-                                source_name: 'Crypto News',
+                                source_name: BRAND_DISPLAY_NAME,
                                 content: news.content || news.description || news.excerpt || ''
                               };
                               navigate(`/news/${id}`, { state: { item: stateItem } });
@@ -797,7 +870,7 @@ const FeaturedCarousel: React.FC = () => {
                               WebkitBoxOrient: 'vertical',
                             }}
                           >
-                            {news.description || news.excerpt}
+                            {stripAppearedFirstOn(news.description || news.excerpt || '')}
                           </p>
                           <small
                             className="text-muted d-flex justify-content-between"
@@ -820,7 +893,7 @@ const FeaturedCarousel: React.FC = () => {
                                   className="text-warning"
                                   style={{ marginLeft: '1px', fontSize: '12px' }}
                                 >
-                                  <strong>{news.author || (Array.isArray(news.creator) ? news.creator[0] : 'Unknown')}</strong>
+                                  <strong>{BRAND_DISPLAY_NAME}</strong>
                                 </small>
                               </div>
                             </div>
@@ -833,12 +906,17 @@ const FeaturedCarousel: React.FC = () => {
                         </Col>
                         <Col xs={4}>
                           <img
-                            src={news.image || news.image_url}
+                            src={news.image || (news as any).image_url || SIDE_CAROUSEL_PLACEHOLDER}
                             alt={news.title}
                             className="img-fluid rounded"
-                            style={{ height: '103px', objectFit: 'cover', backgroundColor: '#1a1a1a' }}
+                            style={{ height: '103px', objectFit: 'cover', backgroundColor: '#1a1a1a', minWidth: '120px' }}
                             loading="lazy"
                             decoding="async"
+                            onError={(e) => {
+                              const el = e.currentTarget;
+                              if (!el.src || el.src === SIDE_CAROUSEL_PLACEHOLDER_DATAURI) return;
+                              el.src = SIDE_CAROUSEL_PLACEHOLDER_DATAURI;
+                            }}
                           />
                         </Col>
                       </Row>
@@ -869,6 +947,16 @@ const FeaturedCarousel: React.FC = () => {
       </Col>
       <style>
         {`
+          .hero-carousel-description {
+            color: #ffffff !important;
+            -webkit-text-fill-color: #ffffff !important;
+            text-shadow: 0 0 1px #000, 0 0 2px #000, 0 1px 4px #000, 0 2px 6px rgba(0,0,0,0.9) !important;
+          }
+          .hero-read-article-cta {
+            color: #ffffff !important;
+            -webkit-text-fill-color: #ffffff !important;
+            text-shadow: 0 0 1px #000, 0 0 2px #000, 0 1px 4px #000, 0 2px 8px rgba(0,0,0,0.95) !important;
+          }
           @media (max-width: 768px) {
             .custom-carousel-item {
               width: 100% !important;

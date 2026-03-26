@@ -29,7 +29,7 @@ const translations = {
     'footer.enterEmail': 'Enter your email',
     'footer.subscribing': 'Subscribing...',
     'footer.subscriptionText': 'Get the latest crypto news and market updates delivered to your inbox',
-    'footer.copyright': '© Copyright 2025',
+    'footer.copyright': '© Copyright 2026',
     'footer.companyDescription': 'CoinsClarity is a versatile platform that shares the best, real-time, highest quality cryptocurrency market data. With an easy-to-use API, charts, and cryptocurrency glossary.',
     
     // Common translations
@@ -605,7 +605,7 @@ const translations = {
     'footer.enterEmail': 'أدخل بريدك الإلكتروني',
     'footer.subscribing': 'جاري الاشتراك...',
     'footer.subscriptionText': 'احصل على أحدث أخبار العملات المشفرة وتحديثات السوق في صندوق الوارد الخاص بك',
-    'footer.copyright': '© حقوق النشر 2025',
+    'footer.copyright': '© حقوق النشر 2026',
     'footer.companyDescription': 'CoinsClarity هي منصة متعددة الاستخدامات تشارك أفضل بيانات سوق العملات المشفرة في الوقت الفعلي وأعلى جودة. مع واجهة برمجة تطبيقات سهلة الاستخدام والرسوم البيانية وقاموس العملات المشفرة.',
     
     'news.exclusiveTitle': 'أخبار حصرية',

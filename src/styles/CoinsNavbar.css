@@ -1,60 +1,77 @@
-/* src/styles/CoinsNavbar.css */
+/* ===== NAVBAR ===== */
 .navbar {
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-.search-container {
-  position: relative;
-}
-.suggestions-dropdown {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
-  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 1px 0 rgba(0,0,0,0.06);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  border-radius: 12px;
+}
+.navbar-glass {
+  background: rgba(255,255,255,0.92) !important;
+  backdrop-filter: blur(16px);
+}
+[data-theme='dark'] .navbar-glass {
+  background: rgba(17,24,39,0.92) !important;
+}
+
+/* ===== NAV LINKS ===== */
+.nav-link {
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  letter-spacing: 0;
+  transition: color 0.2s ease;
+  position: relative;
+}
+.nav-link:after {
+  content: '';
+  position: absolute;
+  bottom: 2px;
+  left: 50%;
+  width: 0;
+  height: 2px;
+  background: #f97316;
+  transition: width 0.25s ease, left 0.25s ease;
+  border-radius: 1px;
+}
+.nav-link:hover:after,
+.nav-link.active:after {
+  width: 60%;
+  left: 20%;
+}
+.nav-link.active { color: #f97316 !important; font-weight: 600 !important; }
+
+/* ===== SEARCH ===== */
+.search-container { position: relative; }
+.suggestions-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: rgba(255,255,255,0.98);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
   max-height: 250px;
   overflow-y: auto;
   z-index: 1000;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
-  animation: dropdownFadeIn 0.3s ease;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+  animation: dropdownFadeIn 0.2s ease;
 }
-
 @keyframes dropdownFadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 .suggestion-item {
-  padding: 12px 16px;
+  padding: 10px 14px;
   cursor: pointer;
   display: flex;
   align-items: center;
-  transition: all 0.2s ease;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-  border-radius: 8px;
-  margin: 4px 8px;
+  transition: all 0.15s ease;
+  border-bottom: 1px solid #f3f4f6;
+  font-size: 14px;
 }
-.suggestion-item:last-child {
-  border-bottom: none;
-}
-.suggestion-item:hover,
-.suggestion-item:focus {
-  background: linear-gradient(135deg, #fff7ed, #ffedd5);
-  outline: none;
-  transform: translateX(5px);
-}
-.suggestion-item:focus-visible {
-  background: linear-gradient(135deg, #fff7ed, #ffedd5);
-  outline: 2px solid #f97316;
-  outline-offset: -2px;
+.suggestion-item:last-child { border-bottom: none; }
+.suggestion-item:hover {
+  background: #fff7ed;
 }
 .suggestions-error {
   position: absolute;
@@ -62,42 +79,35 @@
   left: 0;
   right: 0;
   z-index: 1000;
-  margin-top: 5px;
+  margin-top: 4px;
 }
-.cursor-pointer {
-  cursor: pointer;
-}
+.cursor-pointer { cursor: pointer; }
 
-/* Enhanced dropdown menu */
+/* ===== DROPDOWN ===== */
 .dropdown-menu {
-  border: none;
-  border-radius: 12px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
-  padding: 8px;
-  animation: dropdownFadeIn 0.3s ease;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+  padding: 6px;
+  animation: dropdownFadeIn 0.2s ease;
+  min-width: 180px;
+  z-index: 1040;
 }
-
 .dropdown-item {
-  border-radius: 8px;
-  padding: 10px 16px;
+  border-radius: 6px;
+  padding: 8px 14px;
   font-weight: 500;
-  transition: all 0.2s ease;
+  font-size: 14px;
+  transition: all 0.15s ease;
 }
-
 .dropdown-item:hover {
-  background: linear-gradient(135deg, #fff7ed, #ffedd5);
-  transform: translateX(5px);
+  background: #fff7ed;
+  color: #f97316;
 }
 
-/* Active nav link */
-.nav-link.active {
-  color: #f97316 !important;
-  font-weight: 600;
-}
-
-/* Search icon hover */
+/* ===== SEARCH ICON ===== */
 .search-container .cursor-pointer:hover {
   color: #f97316;
-  transform: scale(1.1);
-  transition: all 0.2s ease;
+  transform: scale(1.05);
+  transition: all 0.15s ease;
 }

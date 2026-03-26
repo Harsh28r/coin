@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Container, Row, Col, Card, Button } from 'react-bootstrap';
+import { Container, Row, Col, Card, Button, Alert } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -8,6 +8,7 @@ import 'react-loading-skeleton/dist/skeleton.css';
 import { useLanguage } from '../context/LanguageContext';
 import { useNewsTranslation } from '../hooks/useNewsTranslation';
 import { getCryptoFallbackImage, handleImageError } from '../utils/cryptoImages';
+import { BRAND_DISPLAY_NAME } from '../utils/branding';
 
 interface NewsItem {
   article_id?: string;
@@ -69,37 +70,92 @@ const AINews: React.FC = () => {
   };
 
   useEffect(() => {
+    const CAMIFY = 'https://camify.fun.coinsclarity.com';
+    const USE_API_FALLBACK = API_BASE_URL && !API_BASE_URL.includes('localhost');
+    const bases = [CAMIFY, ...(USE_API_FALLBACK ? [API_BASE_URL.replace(/\/$/, '')] : [])];
+
+    const fetchJson = async (url: string, timeoutMs = 10000) => {
+      const ctrl = new AbortController();
+      const id = setTimeout(() => ctrl.abort(), timeoutMs);
+      try {
+        const res = await fetch(url, { signal: ctrl.signal });
+        if (!res.ok) return null;
+        return await res.json();
+      } catch {
+        return null;
+      } finally {
+        clearTimeout(id);
+      }
+    };
+
+    const extractArr = (data: any): any[] => {
+      if (!data) return [];
+      return Array.isArray(data.data) ? data.data : Array.isArray(data.items) ? data.items : [];
+    };
+
     const fetchNews = async () => {
       setIsLoading(true);
       setError(null);
       try {
-        // Fetch from both AI news endpoints
-        const endpoints = [
-          { url: `${API_BASE_URL}/fetch-mit-ai-rss?limit=12`, source: 'MIT AI News' },
-          { url: `${API_BASE_URL}/fetch-arxiv-ai-rss?limit=12`, source: 'arXiv AI' }
+        const aiPaths = [
+          { path: 'fetch-mit-ai-rss', source: 'MIT AI News' },
+          { path: 'fetch-venturebeat-ai-rss', source: 'VentureBeat AI' },
+          { path: 'fetch-techcrunch-ai-rss', source: 'TechCrunch AI' },
+          { path: 'fetch-arxiv-ai-rss', source: 'arXiv AI' },
+          { path: 'fetch-chaingpt-rss', source: 'ChainGPT' },
+          { path: 'fetch-watcherguru-rss', source: 'Watcher Guru' },
         ];
 
         let items: any[] = [];
 
-        // Fetch from all endpoints in parallel
-        const results = await Promise.allSettled(
-          endpoints.map(async (endpoint) => {
-            const res = await fetch(endpoint.url);
-            if (!res.ok) throw new Error(`Failed to fetch ${endpoint.source}`);
-            const data = await res.json();
-            return { data, source: endpoint.source };
-          })
-        );
-
-        results.forEach((result) => {
-          if (result.status === 'fulfilled' && result.value.data?.success && Array.isArray(result.value.data.data)) {
-            const sourceItems = result.value.data.data.map((item: any) => ({
-              ...item,
-              source: result.value.source
-            }));
-            items = items.concat(sourceItems);
+        for (const { path, source } of aiPaths) {
+          const suffix = `${path}?limit=12`;
+          for (const base of bases) {
+            const data = await fetchJson(`${base}/${suffix}`);
+            const arr = extractArr(data);
+            if (arr.length) {
+              items = items.concat(arr.map((item: any) => ({ ...item, source })));
+              break;
+            }
           }
-        });
+        }
+
+        if (items.length === 0) {
+          const fallbackPaths = [
+            { path: 'fetch-coindesk-rss', source: 'CoinDesk' },
+            { path: 'fetch-cointelegraph-rss', source: 'Cointelegraph' },
+            { path: 'fetch-decrypt-rss', source: 'Decrypt' },
+            { path: 'fetch-cryptoslate-rss', source: 'CryptoSlate' },
+            { path: 'fetch-blockworks-rss', source: 'Blockworks' },
+            { path: 'fetch-beincrypto-rss', source: 'BeInCrypto' },
+            { path: 'fetch-cryptobriefing-rss', source: 'Crypto Briefing' },
+            { path: 'fetch-coingape-rss', source: 'CoinGape' },
+            { path: 'fetch-finbold-rss', source: 'Finbold' },
+            { path: 'fetch-protos-rss', source: 'Protos' },
+            { path: 'fetch-dailycoin-rss', source: 'DailyCoin' },
+            { path: 'fetch-cryptopotato-rss', source: 'CryptoPotato' },
+            { path: 'fetch-utoday-rss', source: 'U.Today' },
+            { path: 'fetch-coinpedia-rss', source: 'Coinpedia (India)' },
+            { path: 'fetch-coincu-rss', source: 'CoinCu' },
+            { path: 'fetch-cryptonewsz-rss', source: 'CryptoNewsZ (India)' },
+            { path: 'fetch-bitcoinist-rss', source: 'Bitcoinist' },
+            { path: 'fetch-thecryptobasic-rss', source: 'The Crypto Basic' },
+            { path: 'fetch-unchained-rss', source: 'Unchained' },
+            { path: 'fetch-all-rss', source: 'Crypto News' },
+          ];
+          for (const { path, source } of fallbackPaths) {
+            const suffix = `${path}?limit=12`;
+            for (const base of bases) {
+              const data = await fetchJson(`${base}/${suffix}`);
+              const arr = extractArr(data);
+              if (arr.length) {
+                items = items.concat(arr.map((item: any) => ({ ...item, source })));
+                if (items.length >= 8) break;
+              }
+            }
+            if (items.length >= 8) break;
+          }
+        }
 
         if (items.length) {
           // Normalize
@@ -117,7 +173,7 @@ const AINews: React.FC = () => {
               image_url: imageUrl,
               link: item.link || '#',
               content: item.content || '',
-              source: item.source || 'AI News',
+              source: BRAND_DISPLAY_NAME,
             } as NewsItem;
           });
 
@@ -136,11 +192,16 @@ const AINews: React.FC = () => {
           deduped.sort((a, b) => new Date(b.pubDate).getTime() - new Date(a.pubDate).getTime());
 
           setNewsItems(deduped.slice(0, 8));
+          setError(null);
         } else {
-          throw new Error('No items fetched from AI sources');
+          // Upstream AI feeds can intermittently return empty/blocked.
+          // Keep UI stable with an empty state instead of throwing runtime errors.
+          setNewsItems([]);
+          setError(null);
         }
       } catch (error: any) {
         console.error('Error fetching AI news:', error);
+        setNewsItems([]);
         setError('Failed to load AI news');
       } finally {
         setIsLoading(false);
@@ -176,137 +237,69 @@ const AINews: React.FC = () => {
   };
 
   return (
-    <Container fluid className="mt-5 skeleton-container" style={{ width: '92%' }}>
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <div>
-          <h4 className="m-0" style={{ fontWeight: 'bold', letterSpacing: '0.05em' }}>
-            AI & Machine Learning
-          </h4>
-          {isTranslating && (
-            <small className="text-muted">
-              Translating to {currentLanguage === 'hi' ? 'Hindi' :
-                currentLanguage === 'es' ? 'Spanish' :
-                currentLanguage === 'fr' ? 'French' :
-                currentLanguage === 'de' ? 'German' :
-                currentLanguage === 'zh' ? 'Chinese' :
-                currentLanguage === 'ja' ? 'Japanese' :
-                currentLanguage === 'ko' ? 'Korean' :
-                currentLanguage === 'ar' ? 'Arabic' : currentLanguage}...
-            </small>
-          )}
-        </div>
-        <Button
-          variant="link"
-          className="text-warning text-decoration-none"
-          onClick={() => navigate('/ai-news')}
-          aria-label="View all AI news"
-        >
-          View All
-          <ChevronRight className="ms-2" size={16} />
-        </Button>
+    <section style={{ maxWidth: 1280, margin: '0 auto', padding: '2rem 20px' }}>
+      {/* Section header */}
+      <div className="cc-section-header">
+        <h2>AI & Machine Learning</h2>
+        <a href="/ai-news" className="cc-view-all" onClick={(e) => { e.preventDefault(); navigate('/ai-news'); }}>
+          View All <ChevronRight size={14} />
+        </a>
       </div>
 
-      {error && <p className="text-danger">{error}</p>}
+      {error && <p style={{ color: '#ef4444', fontSize: 14 }}>{error}</p>}
 
       {isLoading ? (
-        <Row xs={1} md={2} lg={4} className="g-4">
-          {Array.from({ length: 8 }).map((_, index) => (
-            <Col key={index}>
-              <Card className="h-100 border-0 shadow-sm rounded-4">
-                <Skeleton height={200} className="rounded-top-4" />
-                <Card.Body className="d-flex flex-column">
-                  <Skeleton width="80%" height={20} baseColor="#e0e0e0" highlightColor="#f5f5f5" />
-                  <Skeleton count={2} width="90%" height={16} baseColor="#e0e0e0" highlightColor="#f5f5f5" className="mt-2" />
-                  <div className="mt-auto d-flex justify-content-between">
-                    <Skeleton width={100} height={14} baseColor="#e0e0e0" highlightColor="#f5f5f5" />
-                    <Skeleton width={80} height={14} baseColor="#e0e0e0" highlightColor="#f5f5f5" />
-                  </div>
-                </Card.Body>
-              </Card>
+        <Row xs={1} md={2} lg={4} className="g-3">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Col key={i}>
+              <div style={{ borderRadius: 12, overflow: 'hidden', border: '1px solid #f0f0f0', background: '#fff' }}>
+                <Skeleton height={180} width="100%" baseColor="#f3f4f6" highlightColor="#fafafa" />
+                <div style={{ padding: 16 }}>
+                  <Skeleton width="90%" height={16} baseColor="#f3f4f6" highlightColor="#fafafa" />
+                  <Skeleton width="70%" height={16} baseColor="#f3f4f6" highlightColor="#fafafa" style={{ marginTop: 8 }} />
+                  <Skeleton width="50%" height={12} baseColor="#f3f4f6" highlightColor="#fafafa" style={{ marginTop: 16 }} />
+                </div>
+              </div>
             </Col>
           ))}
         </Row>
       ) : displayItems.length === 0 && !error ? (
-        <p>No AI news available.</p>
+        <Alert variant="warning" className="mb-0" style={{ borderRadius: 10, fontSize: 14 }}>
+          AI feeds are temporarily unavailable right now. Please check back in a few minutes.
+        </Alert>
       ) : (
-        <Row xs={1} md={2} lg={4} className="g-4">
+        <Row xs={1} md={2} lg={4} className="g-3">
           {displayItems.slice(0, 8).map((item, index) => (
             <Col key={item.article_id || item.link || `${item.title}-${index}`}>
-              <Card
-                className="h-100 border-0 shadow-sm rounded-4"
-                style={{ cursor: 'pointer' }}
+              <div
+                className="cc-news-card h-100"
                 onClick={() => {
                   const targetId = item.article_id || encodeURIComponent(item.title);
                   navigate(`/news/${targetId}`, { state: { item } });
                 }}
               >
-                <Card.Img
-                  variant="top"
-                  className="rounded-top-4"
-                  src={item.image_url || getFallbackImage(index, item.title)}
-                  alt={item.title}
-                  style={{ height: '200px', objectFit: 'cover' }}
-                  onError={(e) => {
-                    handleImageError(e, item.title, 'news');
-                  }}
-                />
-                <Card.Body className="d-flex flex-column">
-                  <Card.Title
-                    className="fs-6 mb-3 text-start"
-                    style={{
-                      fontWeight: 'bold',
-                      color: 'black',
-                      overflow: 'hidden',
-                      display: '-webkit-box',
-                      WebkitBoxOrient: 'vertical',
-                      WebkitLineClamp: 2,
-                      maxHeight: '3em',
-                    }}
-                  >
-                    <a
-                      href={`/news/${item.article_id || encodeURIComponent(item.title)}`}
-                      className="text-black text-decoration-none"
-                      aria-label={item.title}
-                      style={{ cursor: 'pointer' }}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        const targetId = item.article_id || encodeURIComponent(item.title);
-                        navigate(`/news/${targetId}`, { state: { item } });
-                      }}
-                    >
-                      {decodeHtml(item.title)}
-                    </a>
-                  </Card.Title>
-                  <Card.Text
-                    className="text-muted small flex-grow-1 text-start fs-7"
-                    style={{
-                      overflow: 'hidden',
-                      display: '-webkit-box',
-                      WebkitBoxOrient: 'vertical',
-                      WebkitLineClamp: 2,
-                      maxHeight: '3em',
-                    }}
-                  >
-                    {decodeHtml(item.description)}
-                  </Card.Text>
-                  <div className="mt-auto d-flex justify-content-between align-items-center">
-                    <div>
-                      <small className="text-muted">By </small>
-                      <small className="text-warning">
-                        {(item as any).source || item.creator?.[0] || 'Unknown'}
-                      </small>
-                    </div>
-                    <div className="ms-auto text-end">
-                      <small className="text-muted">{formatDate(item.pubDate)}</small>
-                    </div>
+                <div style={{ overflow: 'hidden' }}>
+                  <img
+                    src={item.image_url || getFallbackImage(index, item.title)}
+                    alt={item.title}
+                    loading="lazy"
+                    onError={(e) => handleImageError(e, item.title, 'news')}
+                  />
+                </div>
+                <div className="card-body">
+                  <div className="card-title">{decodeHtml(item.title)}</div>
+                  <div className="card-text">{decodeHtml(item.description)}</div>
+                  <div className="card-meta">
+                    <span className="author">{BRAND_DISPLAY_NAME}</span>
+                    <span>{formatDate(item.pubDate)}</span>
                   </div>
-                </Card.Body>
-              </Card>
+                </div>
+              </div>
             </Col>
           ))}
         </Row>
       )}
-    </Container>
+    </section>
   );
 };
 

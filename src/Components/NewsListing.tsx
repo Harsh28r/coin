@@ -13,22 +13,32 @@ const NewsListing: React.FC = () => {
     const run = async () => {
       setLoading(true);
       try {
+        const CAMIFY = 'https://camify.fun.coinsclarity.com';
         const sources = [
-          'fetch-dailycoin-rss?limit=60',
-          'fetch-cryptobriefing-rss?limit=60',
-          'fetch-dailyhodl-rss?limit=60',
-          'fetch-ambcrypto-rss?limit=60',
-          'fetch-beincrypto-rss?limit=60',
-          'fetch-cryptopotato-rss?limit=60',
-          'fetch-utoday-rss?limit=60',
-          'fetch-bitcoinmagazine-rss?limit=60',
-          'fetch-coindesk-rss?limit=60',
+          `${CAMIFY}/fetch-cryptobriefing-rss?limit=60`,
+          `${CAMIFY}/fetch-beincrypto-rss?limit=60`,
+          `${CAMIFY}/fetch-cryptopotato-rss?limit=60`,
+          `${CAMIFY}/fetch-utoday-rss?limit=60`,
+          `${CAMIFY}/fetch-coindesk-rss?limit=60`,
+          `${CAMIFY}/fetch-cointelegraph-rss?limit=60`,
+          `${CAMIFY}/fetch-decrypt-rss?limit=60`,
+          `${CAMIFY}/fetch-blockworks-rss?limit=60`,
+          `${CAMIFY}/fetch-bitcoinist-rss?limit=60`,
+          `${CAMIFY}/fetch-coingape-rss?limit=60`,
+          `${CAMIFY}/fetch-finbold-rss?limit=60`,
+          `${CAMIFY}/fetch-protos-rss?limit=60`,
+          `${CAMIFY}/fetch-unchained-rss?limit=60`,
+          `${CAMIFY}/fetch-thecryptobasic-rss?limit=60`,
+          `${CAMIFY}/fetch-blockonomi-rss?limit=60`,
+          `${CAMIFY}/fetch-coincu-rss?limit=60`,
+          `${API_BASE_URL}/fetch-all-rss?limit=100`,
         ];
-        const results = await Promise.allSettled(sources.map(s => fetch(`${API_BASE_URL}/${s}`).then(r => r.json()).catch(() => null)));
+        const results = await Promise.allSettled(sources.map(s => fetch(s, { signal: AbortSignal.timeout(12000) }).then(r => r.json()).catch(() => null)));
         let merged: any[] = [];
         for (const r of results) {
-          if ((r as any)?.status === 'fulfilled' && (r as any).value?.success && Array.isArray((r as any).value.data)) {
-            merged.push(...(r as any).value.data);
+          if ((r as any)?.status === 'fulfilled' && (r as any).value?.success) {
+            const arr = Array.isArray((r as any).value.data) ? (r as any).value.data : Array.isArray((r as any).value.items) ? (r as any).value.items : [];
+            merged.push(...arr);
           }
         }
         const listings = extractListingNews(merged);
@@ -50,7 +60,7 @@ const NewsListing: React.FC = () => {
       image_url: (li as any).image_url,
       link: li.link || '',
       content: li.content || li.description || '',
-      source_name: 'Crypto News',
+      source_name: 'CoinsClarity',
       keywords: li.coins,
     } as any;
     navigate(`/news/${id}`, { state: { item: stateItem } });

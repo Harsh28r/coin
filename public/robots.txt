@@ -2,7 +2,7 @@ User-agent: *
 Allow: /
 
 Sitemap: https://coinsclarity.com/sitemap.xml
-
 # https://www.robotstxt.org/robotstxt.html
 User-agent: *
 Disallow:
+

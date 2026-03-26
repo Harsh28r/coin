@@ -66,11 +66,15 @@ const PresNews: React.FC = () => {
 
   useEffect(() => {
     const fetchNews = async () => {
+      const CAMIFY = 'https://camify.fun.coinsclarity.com';
       const sources = [
-        `${API_BASE_URL}/fetch-cryptobriefing-rss?limit=12`,
-        `${API_BASE_URL}/fetch-dailyhodl-rss?limit=12`,
-        `${API_BASE_URL}/fetch-beincrypto-rss?limit=12`,
-        `${API_BASE_URL}/fetch-another-rss?limit=12`,
+        `${CAMIFY}/fetch-cryptobriefing-rss?limit=12`,
+        `${CAMIFY}/fetch-dailyhodl-rss?limit=12`,
+        `${CAMIFY}/fetch-beincrypto-rss?limit=12`,
+        `${CAMIFY}/fetch-protos-rss?limit=12`,
+        `${CAMIFY}/fetch-unchained-rss?limit=12`,
+        `${CAMIFY}/fetch-blockonomi-rss?limit=12`,
+        `${API_BASE_URL}/fetch-all-rss?limit=12`,
       ];
       try {
         setLoading(true);
@@ -78,9 +82,11 @@ const PresNews: React.FC = () => {
         let payload: any = null;
         for (const url of sources) {
           try {
-            const res = await fetch(url);
+            const res = await fetch(url, { signal: AbortSignal.timeout(10000) });
             const data = await res.json();
-            if (data?.success && Array.isArray(data.data) && data.data.length) { payload = data; break; }
+            // Handle both { data: [...] } and { items: [...] }
+            const items = Array.isArray(data?.data) ? data.data : Array.isArray(data?.items) ? data.items : [];
+            if (data?.success && items.length) { payload = { ...data, data: items }; break; }
           } catch {}
         }
         if (!payload) throw new Error('All press sources failed');
@@ -248,30 +254,23 @@ const PresNews: React.FC = () => {
                   </Card.Text>
                   
                   <div className="news-actions">
-                    <button 
-                      onClick={() => toggleContent(index)} 
-                      className="btn btn-outline-primary btn-sm"
+                    <a 
+                      href={item.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="btn btn-primary btn-sm"
                     >
-                      {expandedIndex === index ? (
-                        <>
-                          <i className="fas fa-compress-alt me-1"></i>
-                          {t('news.showLess') || 'Show Less'}
-                        </>
-                      ) : (
-                        <>
-                          <i className="fas fa-expand-alt me-1"></i>
-                          {t('news.readMore') || 'Read More'}
-                        </>
-                      )}
-                    </button>
+                      <i className="fas fa-external-link-alt me-1"></i>
+                      {t('news.readOriginal') || 'Read Original →'}
+                    </a>
                     
                     <a 
                       href={`/news/${item.article_id || encodeURIComponent(item.title)}`}
-                      className="btn btn-primary btn-sm ms-2"
+                      className="btn btn-outline-secondary btn-sm ms-2"
                       onClick={(e) => { e.preventDefault(); const targetId = item.article_id || encodeURIComponent(item.title); navigate(`/news/${targetId}`, { state: { item: { ...item, content: item.content || item.description || '' } } }); }}
                     >
-                      <i className="fas fa-newspaper me-1"></i>
-                      {t('news.readFullArticle') || 'Read Full Article'}
+                      <i className="fas fa-info-circle me-1"></i>
+                      {t('news.viewSummary') || 'View Summary'}
                     </a>
                   </div>
                 </Card.Body>

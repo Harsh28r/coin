@@ -43,25 +43,27 @@ const InDepthNewsPage: React.FC = () => {
 		const run = async () => {
 			setLoading(true);
 			try {
+				const CAMIFY = 'https://camify.fun.coinsclarity.com';
 				const endpoints = [
-					`${API_BASE_URL}/fetch-beincrypto-rss?limit=24`,
-					`${API_BASE_URL}/fetch-coindesk-rss?limit=24`,
-					`${API_BASE_URL}/fetch-cryptoslate-rss?limit=24`,
-					`${API_BASE_URL}/fetch-ambcrypto-rss?limit=24`,
-					`${API_BASE_URL}/fetch-dailycoin-rss?limit=24`,
-					`${API_BASE_URL}/fetch-cryptopotato-rss?limit=24`,
-					`${API_BASE_URL}/fetch-utoday-rss?limit=24`,
-					`${API_BASE_URL}/fetch-all-rss?limit=24&source=BeInCrypto`,
-					`${API_BASE_URL}/fetch-all-rss?limit=24`
+					`${CAMIFY}/fetch-beincrypto-rss?limit=24`,
+					`${CAMIFY}/fetch-coindesk-rss?limit=24`,
+					`${CAMIFY}/fetch-cryptoslate-rss?limit=24`,
+					`${CAMIFY}/fetch-blockworks-rss?limit=24`,
+					`${CAMIFY}/fetch-finbold-rss?limit=24`,
+					`${CAMIFY}/fetch-protos-rss?limit=24`,
+					`${CAMIFY}/fetch-unchained-rss?limit=24`,
+					`${CAMIFY}/fetch-thecryptobasic-rss?limit=24`,
+					`${API_BASE_URL}/fetch-all-rss?limit=50`
 				];
 				let loaded: any[] | null = null;
 				for (const url of endpoints) {
 					try {
-						const res = await fetch(url);
+						const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
 						if (!res.ok) continue;
 						const data = await res.json();
-						if (data && Array.isArray(data.data) && data.data.length) {
-							loaded = data.data;
+						const arr = Array.isArray(data?.data) ? data.data : Array.isArray(data?.items) ? data.items : [];
+						if (data?.success && arr.length) {
+							loaded = arr;
 							break;
 						}
 					} catch {}
@@ -156,7 +158,7 @@ const InDepthNewsPage: React.FC = () => {
 								</Card.Title>
 								<Card.Text className="text-muted" style={{ display: '-webkit-box', WebkitBoxOrient: 'vertical', WebkitLineClamp: 3, overflow: 'hidden' }}>{item.description}</Card.Text>
 								<div className="mt-auto d-flex justify-content-between align-items-center">
-									<Badge bg="light" text="dark">{item.creator?.[0] || 'Unknown'}</Badge>
+									<Badge bg="light" text="dark">CoinsClarity</Badge>
 								</div>
 							</Card.Body>
 						</Card>

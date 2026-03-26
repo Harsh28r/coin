@@ -43,8 +43,19 @@ const PressRelease: React.FC = () => {
     return byTitle || effectiveReleases[effectiveReleases.length - 1] || null;
   }, [effectiveReleases, mainArticle]);
   
-  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://c-back-2.onrender.com';
+  const API_BASE_URL =
+    (process.env.REACT_APP_API_BASE_URL as string) ||
+    ((import.meta as any)?.env?.VITE_API_URL as string) ||
+    'https://camify.fun.coinsclarity.com';
   const MOCK_API_BASE_URL = process.env.REACT_APP_USE_LOCAL_DB === 'true' ? 'http://localhost:5000' : '';
+  const getApiBases = (): string[] => {
+    const apiBase = API_BASE_URL.replace(/\/$/, '');
+    return [
+      'https://camify.fun.coinsclarity.com',
+      apiBase,
+      'https://c-back-2.onrender.com',
+    ];
+  };
 
   const formatMDY = (input: string | Date) => {
     try {
@@ -86,30 +97,98 @@ const PressRelease: React.FC = () => {
           setIsLoading(false);
           return;
         } catch (error) {
-          console.warn('Failed to fetch from db.json, falling back to API:', error);
+          if ((error as Error)?.message !== 'Local db disabled') {
+            console.warn('Failed to fetch from db.json, falling back to API:', error);
+          }
         }
 
-        // Fetch from /fetch-another-rss
-        const response = await fetch(`${API_BASE_URL}/fetch-another-rss`);
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+        // Fetch from multiple RSS sources across backends
+        const rssEndpoints = [
+          '/fetch-cryptobriefing-rss?limit=18',
+          '/fetch-dailyhodl-rss?limit=18',
+          '/fetch-beincrypto-rss?limit=18',
+          '/fetch-another-rss?limit=18',
+        ];
+
+        let fetched: PressReleaseItem[] = [];
+
+        // Try each base + endpoint combo until we get results
+        outer:
+        for (const base of getApiBases()) {
+          for (const ep of rssEndpoints) {
+            try {
+              const response = await fetch(`${base.replace(/\/$/, '')}${ep}`, { signal: AbortSignal.timeout(10000) });
+              if (!response.ok) continue;
+
+              const data = await response.json();
+              const feedItems = Array.isArray(data?.data)
+                ? data.data
+                : Array.isArray(data?.items)
+                  ? data.items
+                  : Array.isArray(data)
+                    ? data
+                    : [];
+
+              if (feedItems.length > 0) {
+                fetched = feedItems.map((item: any) => ({
+                  article_id: item.article_id || item._id || item.id,
+                  title: item.title || 'Untitled',
+                  description: item.description || item.contentSnippet || 'No description available',
+                  author: Array.isArray(item.creator) ? item.creator.join(', ') : item.creator || item.author || 'Unknown',
+                  date: formatMDY(item.pubDate || item.publishedAt || item.date || new Date()),
+                  image: item.image_url || item.image || getCryptoFallbackImage(item.title, 'news'),
+                  link: item.link || item.url || '#',
+                }));
+                break outer;
+              }
+            } catch {
+              // try next
+            }
+          }
         }
-        const data = await response.json();
-        if (data.success && Array.isArray(data.data)) {
-          const formattedReleases = data.data.map((item: any) => ({
-            article_id: item.article_id,
-            title: item.title || 'Untitled',
-            description: item.description || 'No description available',
-            author: item.creator?.join(', ') || 'Unknown',
-            date: formatMDY(item.pubDate || new Date()),
-            image: item.image_url || getCryptoFallbackImage(item.title, 'news'),
-            link: item.link || item.url || '#',
-          }));
-          setOtherReleases(formattedReleases);
-          setMainArticle(formattedReleases[formattedReleases.length - 1] || null);
-          console.log('Fetched press releases from API:', formattedReleases);
+
+        // Final fallback to /news endpoint
+        if (fetched.length === 0) {
+          for (const base of getApiBases()) {
+            try {
+              const response = await fetch(`${base.replace(/\/$/, '')}/news?page=1&limit=18`, { signal: AbortSignal.timeout(10000) });
+              if (!response.ok) continue;
+
+              const data = await response.json();
+              const items = Array.isArray(data?.data)
+                ? data.data
+                : Array.isArray(data?.items)
+                  ? data.items
+                  : Array.isArray(data)
+                    ? data
+                    : [];
+
+              if (items.length > 0) {
+                fetched = items.map((item: any) => ({
+                  article_id: item.article_id || item._id || item.id,
+                  title: item.title || 'Untitled',
+                  description: item.description || item.contentSnippet || 'No description available',
+                  author: Array.isArray(item.creator) ? item.creator.join(', ') : item.creator || item.author || 'Unknown',
+                  date: formatMDY(item.pubDate || item.publishedAt || item.date || new Date()),
+                  image: item.image_url || item.image || getCryptoFallbackImage(item.title, 'news'),
+                  link: item.link || item.url || '#',
+                }));
+                break;
+              }
+            } catch {
+              // try next base
+            }
+          }
+        }
+
+        if (fetched.length > 0) {
+          setOtherReleases(fetched);
+          setMainArticle(fetched[fetched.length - 1] || null);
+          console.log('Fetched press releases from API:', fetched);
         } else {
-          throw new Error('Fetched data is not an array');
+          setError('Press releases are temporarily unavailable. Please refresh in a moment.');
+          setOtherReleases([]);
+          setMainArticle(null);
         }
       } catch (error: any) {
         console.error('Error fetching releases:', error);
@@ -146,12 +225,12 @@ const PressRelease: React.FC = () => {
               fontWeight: 900,
               letterSpacing: '0.03em',
               fontSize: '1.4rem',
-             
+              color: 'var(--text)'
             }}
           >
             Press Releases
           </h4>
-          <small style={{ color: '#6b7280' }}>Latest announcements and updates across crypto</small>
+          <small style={{ color: 'var(--text)' }}>Latest announcements and updates across crypto</small>
           {isTranslating && (
             <small className="text-muted d-block mt-1">
               🔄 Translating press releases to {currentLanguage === 'hi' ? 'Hindi' : 
@@ -222,7 +301,7 @@ const PressRelease: React.FC = () => {
             {effectiveMainArticle && (
               <Card
                 className="border-0 rounded-4"
-                style={{ height: 'auto', minHeight: '430px', cursor: 'pointer', overflow: 'hidden' }}
+                style={{ height: 'auto', minHeight: '430px', cursor: 'pointer', overflow: 'hidden', color: 'var(--text)' }}
                 onClick={() => {
                   const targetId = effectiveMainArticle.article_id || encodeURIComponent(effectiveMainArticle.title || '');
                   navigate(`/news/${targetId}`, { state: { item: {
@@ -233,7 +312,7 @@ const PressRelease: React.FC = () => {
                     pubDate: effectiveMainArticle.date,
                     image_url: effectiveMainArticle.image,
                     link: effectiveMainArticle.link,
-                    source_name: 'Crypto News',
+                    source_name: 'CoinsClarity',
                     content: effectiveMainArticle.description || ''
                   } } });
                 }}
@@ -260,7 +339,7 @@ const PressRelease: React.FC = () => {
                     <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
 
                     </div>
-                    <div style={{ fontWeight: 800, fontSize: '1.35rem', lineHeight: 1.25, marginBottom: 6 }}>{effectiveMainArticle.title}</div>
+                    <div style={{ fontWeight: 800, fontSize: '1.35rem', lineHeight: 1.25, marginBottom: 6, color: '#fff' }}>{effectiveMainArticle.title}</div>
                     <div
                       style={{
                         color: '#e5e7eb',
@@ -297,6 +376,7 @@ const PressRelease: React.FC = () => {
                   cursor: 'pointer',
                   boxShadow: '0 6px 16px rgba(0,0,0,0.06)',
                   transition: 'all 0.25s ease',
+                  color: 'var(--text)'
                 }}
                 onClick={() => {
                   const targetId = release.article_id || encodeURIComponent(release.title || '');
@@ -308,7 +388,7 @@ const PressRelease: React.FC = () => {
                     pubDate: release.date,
                     image_url: release.image,
                     link: release.link,
-                    source_name: 'Crypto News',
+                    source_name: 'CoinsClarity',
                     content: release.description || ''
                   } } });
                 }}
@@ -321,20 +401,20 @@ const PressRelease: React.FC = () => {
                   (e.currentTarget as HTMLDivElement).style.boxShadow = '0 6px 16px rgba(0,0,0,0.06)';
                 }}
               >
-                <Row className="g-2 align-items-center">
+                <Row className="g-2 align-items-center" style={{ color: 'var(--text)' }}>
                   <Col xs={8}>
-                    <Card.Body className="d-flex flex-column justify-content-between">
+                    <Card.Body className="d-flex flex-column justify-content-between" style={{ color: 'var(--text)' }}>
                       <div className="d-flex align-items-center mb-1" style={{ gap: 6 }}>
 
                       </div>
-                      <Card.Title className="h2 text-start" style={{ fontSize: '0.98rem', fontWeight: 800 }}>
+                      <Card.Title className="h2 text-start" style={{ fontSize: '0.98rem', fontWeight: 800, color: 'var(--text)' }}>
                         {release.title}
                       </Card.Title>
                       <Card.Text
                         className="small text-start description"
                         style={{
                           fontSize: '0.92rem',
-                          color: '#6b7280',
+                          color: 'var(--text)',
                           overflow: 'hidden',
                           display: '-webkit-box',
                           WebkitBoxOrient: 'vertical',
@@ -345,14 +425,14 @@ const PressRelease: React.FC = () => {
                       </Card.Text>
                       <div className="d-flex justify-content-between align-items-center">
                         <div>
-                          <small className="text-muted" style={{ fontSize: '0.85rem' }}>
+                          <small className="text-muted" style={{ fontSize: '0.85rem', color: 'var(--text)' }}>
                             By{' '}
                           </small>
                           <small className="text-warning" style={{ fontSize: '0.9rem', fontWeight: 600 }}>
                             {release.author}
                           </small>
                         </div>
-                        <small className="text-muted" style={{ fontSize: '0.75rem' }}>
+                        <small className="text-muted" style={{ fontSize: '0.75rem', color: 'var(--text)' }}>
                           {release.date}
                         </small>
                       </div>
