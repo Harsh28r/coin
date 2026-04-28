@@ -106,6 +106,7 @@ const LandingPage: React.FC = () => {
         <Helmet>
           <title>CoinsClarity - Crypto News, Listings, Markets</title>
           <meta name="description" content="Real-time crypto news with full articles, new listings, and market insights. Read everything on-platform in your language." />
+          <meta name="218eb9409bbc8f9e005400f6e6a7ed5ddfc4b5ac" content="218eb9409bbc8f9e005400f6e6a7ed5ddfc4b5ac" />
           <meta name="keywords" content="crypto news, bitcoin news, ethereum news, coin listings, market analysis, arbitrage, ai crypto news" />
           <link rel="canonical" href={`${window.location.origin}/`} />
           <meta property="og:type" content="website" />
