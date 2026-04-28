@@ -197,9 +197,25 @@ interface ApiResponse<T> {
 export const getOpportunities = async (limit: number = 20): Promise<ArbitrageOpportunity[]> => {
   try {
     const response = await axios.get<ApiResponse<ArbitrageOpportunity[]>>(
-      `${ARB_API_BASE}/arbitrage/opportunities?limit=${limit}`
+      `${ARB_API_BASE}/arbitrage/opportunities?limit=${Math.max(limit * 3, 30)}`
     );
-    return Array.isArray(response.data?.data) ? response.data.data : [];
+    const raw = Array.isArray(response.data?.data) ? response.data.data : [];
+
+    // Defensive: dedupe by symbol (keep highest netProfitPercent), drop unrealistic
+    // spreads — guards against bogus delisted-token data or stale records.
+    const bestBySymbol = new Map<string, ArbitrageOpportunity>();
+    for (const opp of raw) {
+      if (!opp || typeof opp.symbol !== 'string') continue;
+      const profit = Number(opp.profitPercent);
+      if (!Number.isFinite(profit) || profit > 2) continue; // sanity
+      const existing = bestBySymbol.get(opp.symbol);
+      if (!existing || Number(opp.netProfitPercent) > Number(existing.netProfitPercent)) {
+        bestBySymbol.set(opp.symbol, opp);
+      }
+    }
+    return Array.from(bestBySymbol.values())
+      .sort((a, b) => Number(b.netProfitPercent) - Number(a.netProfitPercent))
+      .slice(0, limit);
   } catch (error) {
     console.error('Error fetching opportunities:', error);
     return [];

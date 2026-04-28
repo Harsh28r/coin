@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { useNewsTranslation } from '../hooks/useNewsTranslation';
 import { computeImpactLevel } from '../utils/impact';
+import { resolveImageSrc, handleImageError } from '../utils/cryptoImages';
 
 interface NewsItem {
   article_id?: string;
@@ -72,6 +73,8 @@ const Exn: React.FC = () => {
       <Helmet>
         <title>Trending News | CoinsClarity</title>
         <meta name="description" content="Trending crypto news aggregated with full content on-platform." />
+        <meta name="robots" content="noindex, follow" />
+        <meta name="googlebot" content="noindex, follow" />
         <link rel="canonical" href={`${window.location.origin}/All-Trending-news`} />
       </Helmet>
       <h1 className="mb-4 text-center" style={{ 
@@ -122,7 +125,7 @@ const Exn: React.FC = () => {
         {Array.isArray(displayItems) && displayItems.map((item, index) => (
           <Col key={index}>
             <Card className="h-100 border-0 shadow-sm rounded-5">
-              <Card.Img variant="top rounded-4" src={item.image_url} alt={item.title} />
+              <Card.Img variant="top rounded-4" src={resolveImageSrc(item.image_url, item.title, 'news')} alt={item.title} onError={(e) => handleImageError(e, item.title, 'news')} />
               <Card.Body className="d-flex flex-column">
                 <Card.Title className="fs-6 mb-3 text-start custom-text" style={{ fontWeight: 'bold', color: 'black', overflow: 'hidden', display: '-webkit-box', WebkitBoxOrient: 'vertical', WebkitLineClamp: 2, maxHeight: '3em' }}>
                   <a 

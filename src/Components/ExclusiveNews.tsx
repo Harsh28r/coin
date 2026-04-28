@@ -9,7 +9,7 @@ import 'react-loading-skeleton/dist/skeleton.css'; // Import skeleton CSS
 import { useLanguage } from '../context/LanguageContext';
 import { Helmet } from 'react-helmet-async';
 import { useNewsTranslation } from '../hooks/useNewsTranslation';
-import { getCryptoFallbackImage, handleImageError } from '../utils/cryptoImages';
+import { getCryptoFallbackImage, handleImageError, isFakeImageUrl, resolveImageSrc } from '../utils/cryptoImages';
 
 interface NewsItem {
   article_id?: string;
@@ -46,6 +46,7 @@ const ExclusiveNews: React.FC = () => {
 
   const isValidImageUrl = (url?: string): boolean => {
     if (!url) return false;
+    if (isFakeImageUrl(url)) return false;
     if (!/^https?:\/\//i.test(url)) return false;
     const extOk = /(jpg|jpeg|png|gif|webp|svg|avif)(\?|#|$)/i.test(url);
     return extOk || url.includes('/media/') || url.includes('/uploads/') || url.includes('cdn');
@@ -229,7 +230,7 @@ const ExclusiveNews: React.FC = () => {
               >
                 <div style={{ overflow: 'hidden' }}>
                   <img
-                    src={item.image_url || getFallbackImage(index, item.title)}
+                    src={resolveImageSrc(item.image_url, item.title, 'news')}
                     alt={item.title}
                     loading="lazy"
                     onError={(e) => handleImageError(e, item.title, 'news')}

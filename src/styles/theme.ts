@@ -1,96 +1,93 @@
-// Centralized Design Tokens for CoinsClarity
-// Use these throughout the app for consistency
+// Centralized Design Tokens for CoinsClarity (Editorial)
+// Mirrors CSS variables in src/index.css. Prefer var(--token) in CSS;
+// use these JS values only when CSS vars aren't accessible (e.g. inline charts).
 
 export const colors = {
-  // Primary brand colors
+  // Primary brand — editorial orange
   primary: {
-    main: '#f97316',
-    light: '#fb923c',
-    dark: '#ea580c',
-    hover: '#ff8c00',
+    main: '#e85d2c',
+    light: '#f9a06b',
+    dark: '#c44820',
+    hover: '#c44820',
   },
 
-  // Neutral colors
+  // Neutral colors (warm, magazine paper)
   neutral: {
     white: '#ffffff',
-    gray50: '#f9fafb',
-    gray100: '#f3f4f6',
-    gray200: '#e5e7eb',
-    gray300: '#d1d5db',
-    gray400: '#9ca3af',
-    gray500: '#6b7280',
-    gray600: '#4b5563',
-    gray700: '#374151',
-    gray800: '#1f2937',
-    gray900: '#111827',
+    paper: '#faf8f5',
+    sand: '#f3efe9',
+    gray50: '#f5f4f1',
+    gray100: '#efece6',
+    gray200: '#e7e3dc',
+    gray300: '#d6d1c7',
+    gray400: '#a3a3a3',
+    gray500: '#737373',
+    gray600: '#525252',
+    gray700: '#404040',
+    gray800: '#262626',
+    gray900: '#0a0a0a',
     black: '#000000',
   },
 
   // Semantic colors
-  success: {
-    main: '#10b981',
-    light: '#34d399',
-    dark: '#059669',
-  },
-  error: {
-    main: '#ef4444',
-    light: '#f87171',
-    dark: '#dc2626',
-  },
-  warning: {
-    main: '#f59e0b',
-    light: '#fbbf24',
-    dark: '#d97706',
-  },
-  info: {
-    main: '#3b82f6',
-    light: '#60a5fa',
-    dark: '#2563eb',
-  },
+  success: { main: '#15803d', light: '#22c55e', dark: '#14532d' },
+  error: { main: '#b91c1c', light: '#ef4444', dark: '#991b1b' },
+  warning: { main: '#b45309', light: '#f59e0b', dark: '#92400e' },
+  info: { main: '#1d4ed8', light: '#3b82f6', dark: '#1e3a8a' },
 
   // Crypto-specific colors
   crypto: {
-    up: '#10b981',
-    down: '#ef4444',
+    up: '#15803d',
+    down: '#b91c1c',
     bitcoin: '#f7931a',
     ethereum: '#627eea',
   },
 
-  // Background colors
+  // Backgrounds
   background: {
-    primary: '#ffffff',
-    secondary: '#f9fafb',
-    tertiary: '#f3f4f6',
-    dark: '#1f2937',
-    overlay: 'rgba(0, 0, 0, 0.5)',
+    primary: '#faf8f5',
+    elevated: '#ffffff',
+    subtle: '#f3efe9',
+    dark: '#0a0a0a',
+    overlay: 'rgba(10, 10, 10, 0.55)',
   },
 
-  // Text colors
+  // Text
   text: {
-    primary: '#111827',
-    secondary: '#4b5563',
-    tertiary: '#6b7280',
-    inverse: '#ffffff',
-    link: '#3b82f6',
+    primary: '#0a0a0a',
+    secondary: '#404040',
+    muted: '#737373',
+    tertiary: '#a3a3a3',
+    inverse: '#fafafa',
+    link: '#e85d2c',
+  },
+
+  // Editorial accents
+  accents: {
+    deepGreen: '#0f5132',
+    highlightYellow: '#f5d27a',
+    breakingRed: '#c2261c',
   },
 };
 
 export const typography = {
   fontFamily: {
+    display: "'Fraunces', 'Source Serif Pro', Georgia, serif",
     primary: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
-    mono: "'Fira Code', 'Courier New', monospace",
+    mono: "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace",
   },
 
   fontSize: {
-    xs: '0.75rem',    // 12px
-    sm: '0.875rem',   // 14px
-    base: '1rem',     // 16px
-    lg: '1.125rem',   // 18px
-    xl: '1.25rem',    // 20px
-    '2xl': '1.5rem',  // 24px
-    '3xl': '1.875rem', // 30px
-    '4xl': '2.25rem', // 36px
-    '5xl': '3rem',    // 48px
+    xs: '0.75rem',
+    sm: '0.8125rem',
+    base: '0.9375rem',
+    md: '1rem',
+    lg: '1.125rem',
+    xl: '1.375rem',
+    '2xl': '1.75rem',
+    '3xl': '2.25rem',
+    '4xl': '3rem',
+    '5xl': '3.75rem',
   },
 
   fontWeight: {
@@ -98,12 +95,23 @@ export const typography = {
     medium: 500,
     semibold: 600,
     bold: 700,
+    extrabold: 800,
   },
 
   lineHeight: {
-    tight: 1.25,
+    tight: 1.15,
+    snug: 1.3,
     normal: 1.5,
-    relaxed: 1.75,
+    relaxed: 1.7,
+  },
+
+  letterSpacing: {
+    tighter: '-0.025em',
+    tight: '-0.015em',
+    normal: '0',
+    wide: '0.04em',
+    wider: '0.08em',
+    widest: '0.16em',
   },
 };
 
@@ -133,11 +141,12 @@ export const borderRadius = {
 };
 
 export const shadows = {
-  sm: '0 1px 2px rgba(0, 0, 0, 0.05)',
-  md: '0 4px 6px rgba(0, 0, 0, 0.1)',
-  lg: '0 10px 15px rgba(0, 0, 0, 0.1)',
-  xl: '0 20px 25px rgba(0, 0, 0, 0.15)',
-  '2xl': '0 25px 50px rgba(0, 0, 0, 0.25)',
+  xs: '0 1px 2px rgba(10, 10, 10, 0.04)',
+  sm: '0 1px 3px rgba(10, 10, 10, 0.05), 0 1px 2px rgba(10, 10, 10, 0.03)',
+  md: '0 4px 14px rgba(10, 10, 10, 0.06)',
+  lg: '0 12px 30px rgba(10, 10, 10, 0.08)',
+  xl: '0 20px 50px rgba(10, 10, 10, 0.12)',
+  '2xl': '0 32px 70px rgba(10, 10, 10, 0.18)',
 };
 
 export const breakpoints = {
@@ -169,19 +178,40 @@ export const zIndex = {
 // CSS-in-JS helper for common styles
 export const commonStyles = {
   cardHover: {
-    transform: 'translateY(-2px)',
-    boxShadow: shadows.lg,
+    transform: 'translateY(-1px)',
+    boxShadow: shadows.md,
+    borderColor: colors.neutral.gray300,
   },
   buttonBase: {
     fontWeight: typography.fontWeight.semibold,
     borderRadius: borderRadius.md,
     transition: transitions.normal,
     cursor: 'pointer',
+    fontFamily: typography.fontFamily.primary,
   },
   linkBase: {
     color: colors.text.link,
     textDecoration: 'none',
     transition: transitions.fast,
+  },
+  display: {
+    fontFamily: typography.fontFamily.display,
+    fontWeight: typography.fontWeight.bold,
+    letterSpacing: typography.letterSpacing.tighter,
+    lineHeight: typography.lineHeight.tight,
+  },
+  eyebrow: {
+    fontFamily: typography.fontFamily.primary,
+    fontSize: '11px',
+    fontWeight: typography.fontWeight.bold,
+    letterSpacing: typography.letterSpacing.widest,
+    textTransform: 'uppercase' as const,
+    color: colors.primary.main,
+  },
+  numeric: {
+    fontFamily: typography.fontFamily.mono,
+    fontFeatureSettings: '"tnum"',
+    letterSpacing: '-0.01em',
   },
 };
 

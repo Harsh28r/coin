@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import Skeleton from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
 import { useNewsTranslation } from '../hooks/useNewsTranslation';
+import { resolveImageSrc, handleImageError } from '../utils/cryptoImages';
 
 interface InDepthItem {
 	article_id: string;
@@ -144,9 +145,6 @@ const InDepthNews: React.FC = () => {
 					))
 				) : (
 					(Array.isArray(displayList) ? displayList : []).map((item: InDepthItem, idx: number) => {
-						const isHttp = (u?: string) => typeof u === 'string' && /^https?:\/\//i.test(u) && u.trim().length > 0;
-						const hasValidImage = isHttp(item.image_url);
-						const src = hasValidImage ? item.image_url : getFallbackImage(idx);
 						return (
 							<Col key={idx}>
 								<div
@@ -158,10 +156,10 @@ const InDepthNews: React.FC = () => {
 								>
 									<div style={{ overflow: 'hidden' }}>
 										<img
-											src={src}
+											src={resolveImageSrc(item.image_url, item.title, 'news')}
 											alt={item.title}
 											loading="lazy"
-											onError={(e: any) => { if (hasValidImage && !e.target.src.includes('unsplash')) { e.target.src = getFallbackImage(idx); } }}
+											onError={(e) => handleImageError(e, item.title, 'news')}
 										/>
 									</div>
 									<div className="card-body">

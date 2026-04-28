@@ -3,12 +3,10 @@ import { Container, Row, Col, Form, Button, Alert, InputGroup } from 'react-boot
 import { Twitter, Instagram, Youtube, DiscIcon as Discord, ExternalLink } from 'lucide-react';
 import { tradeLinks } from '../utils/tradeLinks';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import '@fontsource/inter';
-import { useLanguage } from '../context/LanguageContext';
 import LanguageSelector from './LanguageSelector';
+import './footer.css';
 
 const Footer: React.FC = () => {
-  const { t } = useLanguage();
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -35,123 +33,116 @@ const Footer: React.FC = () => {
     finally { setIsSubmitting(false); }
   };
 
-  const linkStyle: React.CSSProperties = { color: '#94a3b8', fontSize: 13, textDecoration: 'none', display: 'block', padding: '3px 0', transition: 'color 0.2s ease' };
-  const headingStyle: React.CSSProperties = { color: '#fff', fontSize: 13, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 16 };
-
   return (
-    <footer style={{ background: '#0f172a', color: '#94a3b8', paddingTop: 48, paddingBottom: 24, marginTop: 40 }}>
-      <Container style={{ maxWidth: 1280, padding: '0 20px' }}>
+    <footer className="cc-footer">
+      <Container style={{ maxWidth: 1280, padding: '0 24px' }}>
         <Row className="gy-4 mb-4">
           {/* Brand */}
           <Col lg={3} md={6}>
             <img
               src="/logo3.png"
-              alt="CoinsClarity Logo"
-              style={{ width: 170, height: 'auto', marginBottom: 16, filter: 'brightness(1.1)' }}
-              onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/image.png'; }}
+              alt="CoinsClarity"
+              className="cc-footer__brand-logo"
+              onError={(e) => {
+                const img = e.currentTarget as HTMLImageElement;
+                img.style.display = 'none';
+                const wm = img.nextElementSibling as HTMLElement | null;
+                if (wm) wm.style.display = 'inline-block';
+              }}
             />
-            <p style={{ color: '#ffffff', fontSize: 13, lineHeight: 1.7, marginBottom: 16 }}>
-              Real-time crypto news, market data, trading tools, and insights. Your all-in-one platform for navigating the digital asset space.
+            <span className="cc-footer__wordmark" style={{ display: 'none' }}>CoinsClarity</span>
+            <p className="cc-footer__tagline">
+              Real-time crypto news, market data, trading tools, and editorial analysis. The signal in the noise.
             </p>
-            <div style={{ display: 'flex', gap: 12 }}>
-              <a href="https://x.com/coinsclarity" target="_blank" rel="noreferrer" aria-label="X (Twitter)" style={{ color: '#64748b', transition: 'color 0.2s' }} onMouseEnter={e => e.currentTarget.style.color = '#f97316'} onMouseLeave={e => e.currentTarget.style.color = '#64748b'}><Twitter size={18} /></a>
-              <a href="https://www.instagram.com/coinsclarity" target="_blank" rel="noreferrer" aria-label="Instagram" style={{ color: '#64748b', transition: 'color 0.2s' }} onMouseEnter={e => e.currentTarget.style.color = '#f97316'} onMouseLeave={e => e.currentTarget.style.color = '#64748b'}><Instagram size={18} /></a>
-              <a href="https://youtube.com" target="_blank" rel="noreferrer" aria-label="YouTube" style={{ color: '#64748b', transition: 'color 0.2s' }} onMouseEnter={e => e.currentTarget.style.color = '#f97316'} onMouseLeave={e => e.currentTarget.style.color = '#64748b'}><Youtube size={18} /></a>
-              <a href="https://discord.gg/V2YY8nXjr5" target="_blank" rel="noreferrer" aria-label="Discord" style={{ color: '#64748b', transition: 'color 0.2s' }} onMouseEnter={e => e.currentTarget.style.color = '#f97316'} onMouseLeave={e => e.currentTarget.style.color = '#64748b'}><Discord size={18} /></a>
+            <div className="cc-footer__socials">
+              <a href="https://x.com/coinsclarity" target="_blank" rel="noreferrer" aria-label="X (Twitter)" className="cc-footer__social"><Twitter size={16} /></a>
+              <a href="https://www.instagram.com/coinsclarity" target="_blank" rel="noreferrer" aria-label="Instagram" className="cc-footer__social"><Instagram size={16} /></a>
+              <a href="https://youtube.com" target="_blank" rel="noreferrer" aria-label="YouTube" className="cc-footer__social"><Youtube size={16} /></a>
+              <a href="https://discord.gg/V2YY8nXjr5" target="_blank" rel="noreferrer" aria-label="Discord" className="cc-footer__social"><Discord size={16} /></a>
             </div>
           </Col>
 
-          {/* Company */}
           <Col lg={2} md={3} sm={6}>
-            <div style={headingStyle}>Company</div>
-            <a href="/" style={linkStyle} onMouseEnter={e => e.currentTarget.style.color = '#fff'} onMouseLeave={e => e.currentTarget.style.color = '#94a3b8'}>Home</a>
-            <a href="/about" style={linkStyle} onMouseEnter={e => e.currentTarget.style.color = '#fff'} onMouseLeave={e => e.currentTarget.style.color = '#94a3b8'}>About Us</a>
-            <a href="/contact" style={linkStyle} onMouseEnter={e => e.currentTarget.style.color = '#fff'} onMouseLeave={e => e.currentTarget.style.color = '#94a3b8'}>Contact</a>
-            <a href="/advertise" style={linkStyle} onMouseEnter={e => e.currentTarget.style.color = '#fff'} onMouseLeave={e => e.currentTarget.style.color = '#94a3b8'}>Advertise</a>
-            <a href="/blog" style={linkStyle} onMouseEnter={e => e.currentTarget.style.color = '#fff'} onMouseLeave={e => e.currentTarget.style.color = '#94a3b8'}>Blog</a>
-            <a href="https://daily.coinsclarity.com" target="_blank" rel="noreferrer" style={{ ...linkStyle, color: '#f97316', fontWeight: 600 }} onMouseEnter={e => { e.currentTarget.style.color = '#fff'; }} onMouseLeave={e => { e.currentTarget.style.color = '#f97316'; }}>Daily — India news & current affairs</a>
-          </Col>
-
-          {/* News & Content */}
-          <Col lg={2} md={3} sm={6}>
-            <div style={headingStyle}>News</div>
-            <a href="/exclusive-news" style={linkStyle} onMouseEnter={e => e.currentTarget.style.color = '#fff'} onMouseLeave={e => e.currentTarget.style.color = '#94a3b8'}>Exclusive News</a>
-            <a href="/All-Trending-news" style={linkStyle} onMouseEnter={e => e.currentTarget.style.color = '#fff'} onMouseLeave={e => e.currentTarget.style.color = '#94a3b8'}>Trending</a>
-            <a href="/press-news" style={linkStyle} onMouseEnter={e => e.currentTarget.style.color = '#fff'} onMouseLeave={e => e.currentTarget.style.color = '#94a3b8'}>Press Releases</a>
-            <a href="/ai-news" style={linkStyle} onMouseEnter={e => e.currentTarget.style.color = '#fff'} onMouseLeave={e => e.currentTarget.style.color = '#94a3b8'}>AI News</a>
-            <a href="/listings" style={linkStyle} onMouseEnter={e => e.currentTarget.style.color = '#fff'} onMouseLeave={e => e.currentTarget.style.color = '#94a3b8'}>Listings</a>
-          </Col>
-
-          {/* Trade (affiliate links — see TRADE_AFFILIATE_GUIDE.md) */}
-          <Col lg={2} md={3} sm={6}>
-            <div style={headingStyle}>Trade</div>
-            <a href={tradeLinks.binance.signup} target="_blank" rel="noopener noreferrer" style={linkStyle} onMouseEnter={e => e.currentTarget.style.color = '#fff'} onMouseLeave={e => e.currentTarget.style.color = '#94a3b8'}>
-              {tradeLinks.binance.label} <ExternalLink size={12} style={{ verticalAlign: 'middle', marginLeft: 2 }} />
+            <span className="cc-footer__heading">Company</span>
+            <a href="/" className="cc-footer__link">Home</a>
+            <a href="/about" className="cc-footer__link">About</a>
+            <a href="/contact" className="cc-footer__link">Contact</a>
+            <a href="/advertise" className="cc-footer__link">Advertise</a>
+            <a href="/blog" className="cc-footer__link">Blog</a>
+            <a href="https://daily.coinsclarity.com" target="_blank" rel="noreferrer" className="cc-footer__link cc-footer__link--accent">
+              Daily — India News
             </a>
-            <a href={tradeLinks.coinbase.signup} target="_blank" rel="noopener noreferrer" style={linkStyle} onMouseEnter={e => e.currentTarget.style.color = '#fff'} onMouseLeave={e => e.currentTarget.style.color = '#94a3b8'}>
-              {tradeLinks.coinbase.label} <ExternalLink size={12} style={{ verticalAlign: 'middle', marginLeft: 2 }} />
-            </a>
-            <a href={tradeLinks.coindcx.signup} target="_blank" rel="noopener noreferrer" style={linkStyle} onMouseEnter={e => e.currentTarget.style.color = '#fff'} onMouseLeave={e => e.currentTarget.style.color = '#94a3b8'}>
-              {tradeLinks.coindcx.label} <ExternalLink size={12} style={{ verticalAlign: 'middle', marginLeft: 2 }} />
-            </a>
-            <p style={{ color: '#64748b', fontSize: 11, marginTop: 8, marginBottom: 0 }}>We may earn a commission when you use these links.</p>
           </Col>
 
-          {/* Tools */}
           <Col lg={2} md={3} sm={6}>
-            <div style={headingStyle}>Tools</div>
-            <a href="/tools" style={linkStyle} onMouseEnter={e => e.currentTarget.style.color = '#fff'} onMouseLeave={e => e.currentTarget.style.color = '#94a3b8'}>All Tools</a>
-            <a href="/arbitrage-scanner" style={linkStyle} onMouseEnter={e => e.currentTarget.style.color = '#fff'} onMouseLeave={e => e.currentTarget.style.color = '#94a3b8'}>Arbitrage Scanner</a>
-            <a href="/watchlist" style={linkStyle} onMouseEnter={e => e.currentTarget.style.color = '#fff'} onMouseLeave={e => e.currentTarget.style.color = '#94a3b8'}>Watchlist</a>
-            <a href="/learn" style={linkStyle} onMouseEnter={e => e.currentTarget.style.color = '#fff'} onMouseLeave={e => e.currentTarget.style.color = '#94a3b8'}>Learn Crypto</a>
+            <span className="cc-footer__heading">News</span>
+            <a href="/exclusive-news" className="cc-footer__link">Exclusive</a>
+            <a href="/All-Trending-news" className="cc-footer__link">Trending</a>
+            <a href="/press-news" className="cc-footer__link">Press Releases</a>
+            <a href="/ai-news" className="cc-footer__link">AI News</a>
+            <a href="/listings" className="cc-footer__link">Listings</a>
+            <a href="/beyond-the-headlines" className="cc-footer__link">Beyond the Headlines</a>
           </Col>
 
-          {/* Newsletter */}
-          <Col lg={3} md={6}>
-            <div style={headingStyle}>Newsletter</div>
-            <p style={{ color: '#94a3b8', fontSize: 13, marginBottom: 12, lineHeight: 1.6 }}>
-              Get the top crypto stories, market movers, and exclusive insights delivered to your inbox every morning — free.
+          <Col lg={2} md={3} sm={6}>
+            <span className="cc-footer__heading">Trade</span>
+            <a href={tradeLinks.binance.signup} target="_blank" rel="noopener noreferrer" className="cc-footer__link">
+              {tradeLinks.binance.label} <ExternalLink size={11} style={{ verticalAlign: 'middle', marginLeft: 2 }} />
+            </a>
+            <a href={tradeLinks.coinbase.signup} target="_blank" rel="noopener noreferrer" className="cc-footer__link">
+              {tradeLinks.coinbase.label} <ExternalLink size={11} style={{ verticalAlign: 'middle', marginLeft: 2 }} />
+            </a>
+            <a href={tradeLinks.coindcx.signup} target="_blank" rel="noopener noreferrer" className="cc-footer__link">
+              {tradeLinks.coindcx.label} <ExternalLink size={11} style={{ verticalAlign: 'middle', marginLeft: 2 }} />
+            </a>
+            <a href={(tradeLinks as any).okx?.signup || '#'} target="_blank" rel="noopener noreferrer" className="cc-footer__link">
+              OKX <ExternalLink size={11} style={{ verticalAlign: 'middle', marginLeft: 2 }} />
+            </a>
+            <p className="cc-footer__note">We may earn a commission when you use these links.</p>
+          </Col>
+
+          <Col lg={3} md={12}>
+            <span className="cc-footer__heading">The Edge — Daily Brief</span>
+            <p className="cc-footer__tagline" style={{ marginBottom: 14 }}>
+              Top crypto stories, market movers, and editorial insight delivered every morning. Free.
             </p>
             {message && (
-              <Alert variant={message.type === 'success' ? 'success' : 'danger'} style={{ fontSize: 12, padding: '8px 12px', marginBottom: 8 }}>
+              <Alert
+                variant={message.type === 'success' ? 'success' : 'danger'}
+                style={{ fontSize: 12, padding: '8px 12px', marginBottom: 10 }}
+              >
                 {message.text}
               </Alert>
             )}
-            <Form onSubmit={handleSubscribe}>
+            <Form onSubmit={handleSubscribe} className="cc-footer__newsletter">
               <InputGroup size="sm">
                 <Form.Control
                   type="email"
-                  placeholder="Your email address"
+                  placeholder="your@email.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  style={{ background: '#1e293b', border: '1px solid #334155', color: '#e2e8f0', fontSize: 13, borderRadius: '6px 0 0 6px' }}
                 />
-                <Button
-                  type="submit"
-                  disabled={isSubmitting}
-                  style={{ background: '#f97316', border: 'none', fontSize: 13, fontWeight: 600, padding: '0 16px', borderRadius: '0 6px 6px 0' }}
-                >
-                  {isSubmitting ? '...' : 'Subscribe'}
+                <Button type="submit" disabled={isSubmitting}>
+                  {isSubmitting ? '…' : 'Subscribe'}
                 </Button>
               </InputGroup>
             </Form>
-            <small style={{ color: '#64748b', fontSize: 11, marginTop: 8, display: 'block' }}>
-              No spam, unsubscribe anytime. Join 5,000+ crypto enthusiasts.
+            <small style={{ color: '#525252', fontSize: 11, marginTop: 10, display: 'block' }}>
+              No spam. Unsubscribe anytime. Join 5,000+ subscribers.
             </small>
           </Col>
         </Row>
 
-        {/* Bottom bar */}
-        <div style={{ borderTop: '1px solid #1e293b', paddingTop: 20, marginTop: 16, display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
-          <div style={{ fontSize: 12, color: '#64748b' }}>
-            © {new Date().getFullYear()} CoinsClarity. All rights reserved.
+        <div className="cc-footer__bottom">
+          <div className="cc-footer__copy">
+            © {new Date().getFullYear()} CoinsClarity · An editorial crypto media platform.
           </div>
-          <div style={{ display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap' }}>
-            <a href="/privacy-policy" style={{ color: '#64748b', fontSize: 12, textDecoration: 'none' }} onMouseEnter={e => e.currentTarget.style.color = '#94a3b8'} onMouseLeave={e => e.currentTarget.style.color = '#64748b'}>Privacy</a>
-            <a href="/terms" style={{ color: '#64748b', fontSize: 12, textDecoration: 'none' }} onMouseEnter={e => e.currentTarget.style.color = '#94a3b8'} onMouseLeave={e => e.currentTarget.style.color = '#64748b'}>Terms</a>
-            <a href="/disclaimer" style={{ color: '#64748b', fontSize: 12, textDecoration: 'none' }} onMouseEnter={e => e.currentTarget.style.color = '#94a3b8'} onMouseLeave={e => e.currentTarget.style.color = '#64748b'}>Disclaimer</a>
-            <a href="/faq" style={{ color: '#64748b', fontSize: 12, textDecoration: 'none' }} onMouseEnter={e => e.currentTarget.style.color = '#94a3b8'} onMouseLeave={e => e.currentTarget.style.color = '#64748b'}>FAQ</a>
+          <div className="cc-footer__legal">
+            <a href="/privacy-policy">Privacy</a>
+            <a href="/terms">Terms</a>
+            <a href="/disclaimer">Disclaimer</a>
+            <a href="/faq">FAQ</a>
             <LanguageSelector />
           </div>
         </div>

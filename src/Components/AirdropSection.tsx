@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { Gift, ExternalLink } from 'lucide-react';
 import Skeleton from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
-import { getCryptoFallbackImage, handleImageError } from '../utils/cryptoImages';
+import { getCryptoFallbackImage, handleImageError, resolveImageSrc } from '../utils/cryptoImages';
 import TradeExchangesCard from './TradeExchangesCard';
 
 const RSS_API = 'https://api.rss2json.com/v1/api.json';
@@ -164,7 +164,7 @@ const AirdropSection: React.FC = () => {
                     }}
                   >
                     <img
-                      src={item.imageUrl || getCryptoFallbackImage(item.title, 'airdrop')}
+                      src={resolveImageSrc(item.imageUrl, item.title, 'airdrop')}
                       alt=""
                       className="w-100 h-100 object-fit-cover"
                       style={{ objectFit: 'cover' }}

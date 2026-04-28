@@ -1,63 +1,194 @@
-/* ===== CSS CUSTOM PROPERTIES ===== */
+/* ============================================================
+   CoinsClarity — Editorial Design Tokens
+   Inspired by editorial crypto media (CryptoSlate, The Defiant)
+   ============================================================ */
+
 :root {
-  --bg: #fafafa;
-  --text: #111827;
-  --text-secondary: #6b7280;
+  /* —— Type families —— */
+  --font-display: 'Fraunces', 'Source Serif Pro', Georgia, 'Times New Roman', serif;
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  /* —— Type scale (fluid) —— */
+  --fs-xs: 0.75rem;     /* 12 */
+  --fs-sm: 0.8125rem;   /* 13 */
+  --fs-base: 0.9375rem; /* 15 */
+  --fs-md: 1rem;        /* 16 */
+  --fs-lg: 1.125rem;    /* 18 */
+  --fs-xl: 1.375rem;    /* 22 */
+  --fs-2xl: 1.75rem;    /* 28 */
+  --fs-3xl: clamp(1.875rem, 2.5vw, 2.5rem);
+  --fs-display: clamp(2.25rem, 5vw, 3.75rem);
+
+  /* —— Light surfaces (warm off-white, paper-like) —— */
+  --bg: #faf8f5;          /* canvas */
+  --bg-elevated: #ffffff; /* cards / paper */
+  --bg-subtle: #f3efe9;   /* alt sections */
+  --surface: #ffffff;
   --card: #ffffff;
-  --surface: #f4f4f5;
-  --border: #e5e7eb;
-  --accent: #f97316;
-  --accent-hover: #ea580c;
-  --accent-bg: #fff7ed;
+  --card-bg: #ffffff;     /* legacy alias */
+
+  /* —— Light text —— */
+  --text: #0a0a0a;
+  --text-primary: #0a0a0a;
+  --text-secondary: #404040;
+  --text-muted: #737373;
+  --text-tertiary: #a3a3a3;
+
+  /* —— Light borders —— */
+  --border: #e7e3dc;
+  --border-subtle: #efece6;
+  --border-strong: #d6d1c7;
+
+  /* —— Brand / accents —— */
+  --accent: #e85d2c;      /* warmer, more editorial orange */
+  --accent-hover: #c44820;
+  --accent-soft: #fde8de;
+  --accent-bg: #fdf2eb;
+  --cc-orange: #e85d2c;   /* legacy alias */
+  --secondary: #0f5132;   /* deep editorial green */
+  --highlight: #f5d27a;   /* highlighter yellow (rarely used) */
+
+  /* —— Semantic —— */
+  --gain: #15803d;
+  --gain-bg: #ecfdf3;
+  --loss: #b91c1c;
+  --loss-bg: #fdecec;
+  --warning: #b45309;
+  --info: #1d4ed8;
+  --hot: #c2261c;         /* breaking-news red */
+
+  /* —— Radii / shadows —— */
+  --radius-sm: 4px;
+  --radius: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+
+  --shadow-xs: 0 1px 2px rgba(10, 10, 10, 0.04);
+  --shadow-sm: 0 1px 3px rgba(10, 10, 10, 0.05), 0 1px 2px rgba(10, 10, 10, 0.03);
+  --shadow-md: 0 4px 14px rgba(10, 10, 10, 0.06);
+  --shadow-lg: 0 12px 30px rgba(10, 10, 10, 0.08);
+
+  /* —— Layout —— */
+  --container: 1280px;
+  --container-narrow: 880px;
+  --gutter: 24px;
+
+  --transition: 200ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
+
+/* —— Dark theme (true editorial dark) —— */
+[data-theme='dark'] {
+  --bg: #0a0a0a;
+  --bg-elevated: #141414;
+  --bg-subtle: #161616;
+  --surface: #141414;
+  --card: #141414;
+  --card-bg: #141414;
+
+  --text: #fafafa;
+  --text-primary: #fafafa;
+  --text-secondary: #d4d4d4;
+  --text-muted: #a3a3a3;
+  --text-tertiary: #737373;
+
+  --border: #262626;
+  --border-subtle: #1f1f1f;
+  --border-strong: #404040;
+
+  --accent: #ff7a4a;
+  --accent-hover: #ff6a3d;
+  --accent-soft: rgba(232, 93, 44, 0.16);
+  --accent-bg: rgba(232, 93, 44, 0.12);
+  --cc-orange: #ff7a4a;
+  --secondary: #2f9e6f;
+
+  --gain: #4ade80;
+  --gain-bg: rgba(74, 222, 128, 0.1);
+  --loss: #f87171;
+  --loss-bg: rgba(248, 113, 113, 0.1);
+  --hot: #ef4444;
+
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 4px 14px rgba(0, 0, 0, 0.55);
+  --shadow-lg: 0 12px 30px rgba(0, 0, 0, 0.6);
+}
+
+/* ============================================================
+   Base
+   ============================================================ */
 
 html { scroll-behavior: smooth; }
 
-[data-theme='dark'] {
-  --bg: #0a0f1c;
-  --text: #e5e7eb;
-  --text-secondary: #9ca3af;
-  --card: #111827;
-  --surface: #0f172a;
-  --border: #1e293b;
-  --accent: #f97316;
-  --accent-hover: #fb923c;
-  --accent-bg: rgba(249,115,22,0.08);
-}
-
 body {
   margin: 0;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: var(--font-body);
+  font-size: var(--fs-base);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background: var(--bg);
   color: var(--text);
-  transition: background 0.3s ease, color 0.3s ease;
+  transition: background-color 0.25s ease, color 0.25s ease;
   text-rendering: optimizeLegibility;
+  font-feature-settings: 'cv11', 'ss01', 'ss02';
 }
 
-a { color: inherit; transition: color 0.2s ease; }
+a { color: inherit; transition: color var(--transition); }
 
-/* Theme-aware text */
-.page, h1, h2, h3, h4, h5, h6, p, span, small, label, li, .text-muted {
-  color: var(--text) !important;
+::selection { background: var(--accent); color: #fff; }
+
+/* Numerals & data: use mono everywhere we render figures */
+.num,
+.cc-num,
+.price,
+.cc-price,
+[data-num],
+.tabular-nums {
+  font-family: var(--font-mono);
+  font-feature-settings: 'tnum';
+  letter-spacing: -0.01em;
 }
 
-/* Theme-aware surfaces */
-.card, .navbar, .modal-content, .dropdown-menu {
-  background: var(--card) !important;
+/* ============================================================
+   Theme bridges (Bootstrap surfaces use our tokens)
+   ============================================================ */
+
+.card,
+.modal-content,
+.dropdown-menu,
+.offcanvas {
+  background-color: var(--bg-elevated) !important;
   color: var(--text) !important;
   border-color: var(--border) !important;
 }
 
-.form-control, .form-select, input, textarea {
-  background: var(--surface) !important;
+.form-control,
+.form-select,
+input,
+textarea,
+select {
+  background-color: var(--surface) !important;
   color: var(--text) !important;
   border-color: var(--border) !important;
 }
 
-[data-theme='dark'] .navbar a,
-[data-theme='dark'] .nav-link { color: var(--text) !important; }
+.dropdown-item { color: var(--text) !important; }
+.dropdown-item:hover { background-color: var(--bg-subtle) !important; }
+
+.table { color: var(--text) !important; }
+.table > :not(caption) > * > * { background-color: transparent !important; color: var(--text) !important; }
+
+.suggestions-dropdown {
+  background: var(--bg-elevated) !important;
+  color: var(--text) !important;
+  border: 1px solid var(--border) !important;
+}
+
+.card-header,
+.card-body,
+.card-footer { color: var(--text) !important; }
 
 [data-theme='dark'] body,
 [data-theme='dark'] .LandingPage,
@@ -66,23 +197,21 @@ a { color: inherit; transition: color 0.2s ease; }
   color: var(--text) !important;
 }
 
-.dropdown-item { color: var(--text) !important; }
-.table { color: var(--text) !important; }
-.suggestions-dropdown { background: var(--card) !important; color: var(--text) !important; border: 1px solid var(--border) !important; }
-.card-header, .card-body, .card-footer { color: var(--text) !important; }
-.btn-light, .btn-outline-light { color: var(--text) !important; }
-.text-dark { color: var(--text) !important; }
-.btn-link { color: var(--text) !important; }
+[data-theme='dark'] .navbar a,
+[data-theme='dark'] .nav-link { color: var(--text) !important; }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
+code,
+pre,
+kbd,
+samp {
+  font-family: var(--font-mono);
 }
 
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
+/* ============================================================
+   Animations (kept)
+   ============================================================ */
 
+@keyframes spin { 0% { transform: rotate(0); } 100% { transform: rotate(360deg); } }
 @keyframes bounce {
   0%, 20%, 53%, 80%, 100% { transform: translate3d(0,0,0); }
   40%, 43% { transform: translate3d(0,-30px,0); }

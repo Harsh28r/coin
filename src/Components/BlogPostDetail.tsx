@@ -1,17 +1,28 @@
-import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { Container, Row, Col, Button, Badge, Alert, Spinner } from 'react-bootstrap';
-import { 
-  ArrowLeft, 
-  User, 
-  Calendar, 
-  Heart, 
-  Share2, 
-  Bookmark,
-  Clock,
-} from 'lucide-react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { useParams, useNavigate, Link } from 'react-router-dom';
+import { ArrowLeft, Calendar, Clock, Heart, Bookmark, Share2, Twitter, Send, Copy } from 'lucide-react';
+import { Helmet } from 'react-helmet-async';
 import { useBlog } from '../context/BlogContext';
 import { format } from 'date-fns';
+import { resolveImageSrc, handleImageError } from '../utils/cryptoImages';
+import './BlogPostDetail.css';
+
+const stripTags = (html?: string): string => {
+  if (!html) return '';
+  return html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+};
+
+const wordCount = (s?: string) => stripTags(s).split(/\s+/).filter(Boolean).length;
+const readMinutes = (s?: string) => Math.max(1, Math.round(wordCount(s) / 220));
+
+const normalizeContent = (raw?: string): string => {
+  if (!raw) return '';
+  if (/<[^>]+>/.test(raw)) return raw;
+  return raw
+    .split(/\n{2,}/)
+    .map((p) => `<p>${p.replace(/\n/g, '<br/>')}</p>`)
+    .join('');
+};
 
 const BlogPostDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -24,336 +35,182 @@ const BlogPostDetail: React.FC = () => {
 
   useEffect(() => {
     if (id && posts.length > 0) {
-      const foundPost = getPostById(id);
-      if (foundPost) {
-        setPost(foundPost);
-      }
+      const found = getPostById(id);
+      if (found) setPost(found);
     }
   }, [id, posts, getPostById]);
 
-  const handleGoBack = () => {
-    navigate('/blog');
+  const flash = (msg: string, ms = 2000) => {
+    setActionMessage(msg);
+    setTimeout(() => setActionMessage(null), ms);
   };
 
   const handleLike = () => {
-    setIsLiked(!isLiked);
-    setActionMessage(isLiked ? 'Post unliked' : 'Post liked!');
-    setTimeout(() => setActionMessage(null), 2000);
+    setIsLiked((v) => !v);
+    flash(isLiked ? 'Unliked' : 'Liked!');
   };
 
   const handleBookmark = () => {
-    setIsBookmarked(!isBookmarked);
-    setActionMessage(isBookmarked ? 'Removed from bookmarks' : 'Added to bookmarks!');
-    setTimeout(() => setActionMessage(null), 2000);
+    setIsBookmarked((v) => !v);
+    flash(isBookmarked ? 'Removed from bookmarks' : 'Bookmarked');
   };
 
-  const handleShare = async () => {
+  const handleShareNative = async () => {
     try {
       if (navigator.share) {
         await navigator.share({
-          title: post.title,
-          text: post.content.substring(0, 100) + '...',
-          url: window.location.href
+          title: post?.title,
+          text: stripTags(post?.content).slice(0, 120) + '…',
+          url: window.location.href,
         });
       } else {
         await navigator.clipboard.writeText(window.location.href);
-        setActionMessage('Link copied to clipboard!');
-        setTimeout(() => setActionMessage(null), 2000);
+        flash('Link copied to clipboard');
       }
-    } catch (error) {
-      setActionMessage('Failed to share post');
-      setTimeout(() => setActionMessage(null), 2000);
+    } catch {
+      /* user cancelled or share failed silently */
     }
   };
 
-  const getCategoryColor = (category: string) => {
-    const colors: { [key: string]: string } = {
-      'Technology': 'primary',
-      'Crypto': 'warning',
-      'Finance': 'success',
-      'News': 'info',
-      'Tutorial': 'secondary',
-      'Analysis': 'dark'
-    };
-    return colors[category] || 'light';
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      flash('Link copied');
+    } catch {
+      flash('Copy failed');
+    }
   };
+
+  const tweetUrl = useMemo(() => {
+    if (!post) return '#';
+    return `https://twitter.com/intent/tweet?text=${encodeURIComponent(post.title)}&url=${encodeURIComponent(window.location.href)}`;
+  }, [post]);
+
+  const tgUrl = useMemo(() => {
+    if (!post) return '#';
+    return `https://t.me/share/url?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(post.title)}`;
+  }, [post]);
+
+  const related = useMemo(() => {
+    if (!post) return [];
+    return posts.filter((p) => p.id !== post.id).slice(0, 3);
+  }, [post, posts]);
 
   if (!post) {
     return (
-      <Container className="py-5">
-        <Row className="justify-content-center">
-          <Col lg={8}>
-            <div className="text-center">
-              <Spinner animation="border" variant="primary" />
-              <p className="mt-3">Loading post...</p>
-            </div>
-          </Col>
-        </Row>
-      </Container>
+      <div className="bd-shell">
+        <div className="bd-container bd-loading">
+          <div className="bd-skel-eyebrow" />
+          <div className="bd-skel-title" />
+          <div className="bd-skel-meta" />
+          <div className="bd-skel-hero" />
+          <div className="bd-skel-line" />
+          <div className="bd-skel-line" />
+          <div className="bd-skel-line bd-skel-line--short" />
+        </div>
+      </div>
     );
   }
 
-  const formattedDate = format(new Date(post.date), 'MMMM dd, yyyy');
-  const timeAgo = format(new Date(post.date), 'MMM dd');
+  const formattedDate = (() => {
+    try { return format(new Date(post.date), 'MMMM d, yyyy'); } catch { return ''; }
+  })();
+  const minutes = readMinutes(post.content);
+  const html = normalizeContent(post.content);
 
   return (
-    <>
-      {/* Hero Section */}
-      <div 
-        className="blog-detail-hero position-relative overflow-hidden"
-        style={{
-          background: '#f8fafc',
-          padding: '80px 0',
-          marginBottom: '60px',
-          borderBottom: '1px solid #e2e8f0'
-        }}
-      >
-        <Container>
-          <Row className="justify-content-center">
-            <Col lg={10}>
-              <Button 
-                variant="outline-secondary" 
-                size="sm"
-                className="mb-4 rounded-3 px-3 py-2"
-                onClick={handleGoBack}
-                style={{ 
-                  borderWidth: '1.5px',
-                  color: '#64748b',
-                  borderColor: '#cbd5e1'
-                }}
-              >
-                <ArrowLeft size={16} className="me-2" />
-                Back to Blog
-              </Button>
-              
-              <div className="text-center">
-                <Badge 
-                  bg={getCategoryColor((post as any).category || 'General')}
-                  className="px-3 py-2 mb-4 fw-semibold"
-                  style={{ 
-                    fontSize: '0.8rem', 
-                    letterSpacing: '0.5px',
-                    textTransform: 'uppercase'
-                  }}
-                >
-                  {(post as any).category || 'General'}
-                </Badge>
-                <h1 
-                  className="display-5 fw-bold mb-4"
-                  style={{
-                    color: '#1a202c',
-                    lineHeight: '1.2',
-                    maxWidth: '800px',
-                    margin: '0 auto'
-                  }}
-                >
-                  {post.title}
-                </h1>
-                <div className="d-flex justify-content-center align-items-center gap-5 text-muted">
-                  <div className="d-flex align-items-center">
-                    <div 
-                      className="rounded-circle me-3 d-flex align-items-center justify-content-center"
-                      style={{
-                        width: '40px',
-                        height: '40px',
-                        background: '#f1f5f9',
-                        border: '2px solid #e2e8f0',
-                        color: '#475569',
-                        fontSize: '1rem',
-                        fontWeight: '600'
-                      }}
-                    >
-                      {post.author.charAt(0).toUpperCase()}
-                    </div>
-                    <span className="fw-semibold text-dark">{post.author}</span>
+    <div className="bd-shell">
+      <Helmet>
+        <title>{post.title} | CoinsClarity</title>
+        <meta name="description" content={stripTags(post.content).slice(0, 160)} />
+        <meta property="og:title" content={post.title} />
+        <meta property="og:description" content={stripTags(post.content).slice(0, 200)} />
+        <meta property="og:image" content={resolveImageSrc(post.imageUrl, post.title, 'blog')} />
+        <meta property="og:type" content="article" />
+      </Helmet>
+
+      <div className="bd-container">
+        <button className="bd-back" onClick={() => navigate('/blog')}>
+          <ArrowLeft size={16} /> Back to blog
+        </button>
+
+        <header className="bd-header">
+          <span className="bd-eyebrow">{(post as any).category || 'Editorial'}</span>
+          <h1 className="bd-title">{post.title}</h1>
+          <div className="bd-meta">
+            <div className="bd-author">
+              <div className="bd-avatar">{(post.author || '?').charAt(0).toUpperCase()}</div>
+              <span><strong>{post.author}</strong></span>
+            </div>
+            <span className="bd-dot" aria-hidden>·</span>
+            <span className="bd-meta__item"><Calendar size={14} /> {formattedDate}</span>
+            <span className="bd-dot" aria-hidden>·</span>
+            <span className="bd-meta__item"><Clock size={14} /> {minutes} min read</span>
+          </div>
+        </header>
+
+        <div className="bd-layout">
+          <aside className="bd-rail" aria-label="Article actions">
+            <button className={`bd-rail__btn ${isLiked ? 'is-active' : ''}`} onClick={handleLike} title={isLiked ? 'Unlike' : 'Like'} aria-label="Like">
+              <Heart size={18} fill={isLiked ? 'currentColor' : 'none'} />
+            </button>
+            <button className={`bd-rail__btn ${isBookmarked ? 'is-active' : ''}`} onClick={handleBookmark} title={isBookmarked ? 'Unbookmark' : 'Bookmark'} aria-label="Bookmark">
+              <Bookmark size={18} fill={isBookmarked ? 'currentColor' : 'none'} />
+            </button>
+            <a className="bd-rail__btn" href={tweetUrl} target="_blank" rel="noopener noreferrer" title="Share on X" aria-label="Share on X">
+              <Twitter size={18} />
+            </a>
+            <a className="bd-rail__btn" href={tgUrl} target="_blank" rel="noopener noreferrer" title="Share on Telegram" aria-label="Share on Telegram">
+              <Send size={18} />
+            </a>
+            <button className="bd-rail__btn" onClick={handleCopy} title="Copy link" aria-label="Copy link">
+              <Copy size={18} />
+            </button>
+            <button className="bd-rail__btn" onClick={handleShareNative} title="Share" aria-label="Share">
+              <Share2 size={18} />
+            </button>
+          </aside>
+
+          <article className="bd-article">
+            <figure className="bd-figure">
+              <img
+                src={resolveImageSrc(post.imageUrl, post.title, 'blog')}
+                alt={post.title}
+                loading="eager"
+                onError={(e) => handleImageError(e, post.title, 'blog')}
+              />
+            </figure>
+            <div className="bd-prose" dangerouslySetInnerHTML={{ __html: html }} />
+
+            {actionMessage && <div className="bd-toast">{actionMessage}</div>}
+          </article>
+        </div>
+
+        {related.length > 0 && (
+          <section className="bd-related">
+            <h3 className="bd-related__head">More from the blog</h3>
+            <div className="bd-related__grid">
+              {related.map((p) => (
+                <Link key={p.id} to={`/blog/${p.id}`} className="bd-related__card">
+                  <div className="bd-related__media">
+                    <img
+                      src={resolveImageSrc(p.imageUrl, p.title, 'blog')}
+                      alt=""
+                      loading="lazy"
+                      onError={(e) => handleImageError(e, p.title, 'blog')}
+                    />
                   </div>
-                  <div className="d-flex align-items-center">
-                    <Calendar size={18} className="me-2 text-muted" />
-                    <span className="text-muted">{formattedDate}</span>
+                  <div className="bd-related__body">
+                    <h4>{p.title}</h4>
+                    <span>{p.author} · {readMinutes(p.content)} min</span>
                   </div>
-                  <div className="d-flex align-items-center">
-                    <Clock size={18} className="me-2 text-muted" />
-                    <span className="text-muted">{timeAgo}</span>
-                  </div>
-                </div>
-              </div>
-            </Col>
-          </Row>
-        </Container>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
       </div>
-
-      {/* Main Content */}
-      <Container className="py-5">
-        <Row className="justify-content-center">
-          <Col lg={8}>
-            {/* Action Message */}
-            {actionMessage && (
-              <Alert 
-                variant="info" 
-                className="mb-4"
-                dismissible
-                onClose={() => setActionMessage(null)}
-              >
-                {actionMessage}
-              </Alert>
-            )}
-
-            {/* Featured Image */}
-            {post.imageUrl && (
-              <div className="mb-5">
-                <img 
-                  src={post.imageUrl} 
-                  alt={post.title}
-                  className="img-fluid rounded-4 shadow-lg"
-                  style={{ 
-                    width: '100%',
-                    maxHeight: '500px',
-                    objectFit: 'cover'
-                  }}
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src = 'https://placehold.co/800x400?text=Blog+Post';
-                  }}
-                />
-              </div>
-            )}
-
-            {/* Article Content */}
-            <div 
-              className="blog-content mb-5"
-              style={{
-                fontSize: '1.1rem',
-                lineHeight: '1.8',
-                color: '#374151'
-              }}
-            >
-              {post.content}
-            </div>
-
-            {/* Action Buttons */}
-            <div className="d-flex justify-content-center gap-4 mb-5">
-              <Button 
-                variant={isLiked ? 'danger' : 'outline-danger'}
-                size="lg"
-                className="rounded-3 px-4 py-2"
-                onClick={handleLike}
-                style={{ 
-                  borderWidth: '1.5px',
-                  fontWeight: '500'
-                }}
-              >
-                <Heart size={18} className={`me-2 ${isLiked ? 'fill-current' : ''}`} />
-                {isLiked ? 'Liked' : 'Like'}
-              </Button>
-              
-              <Button 
-                variant={isBookmarked ? 'warning' : 'outline-warning'}
-                size="lg"
-                className="rounded-3 px-4 py-2"
-                onClick={handleBookmark}
-                style={{ 
-                  borderWidth: '1.5px',
-                  fontWeight: '500'
-                }}
-              >
-                <Bookmark size={18} className={`me-2 ${isBookmarked ? 'fill-current' : ''}`} />
-                {isBookmarked ? 'Saved' : 'Save'}
-              </Button>
-              
-              <Button 
-                variant="outline-primary"
-                size="lg"
-                className="rounded-3 px-4 py-2"
-                onClick={handleShare}
-                style={{ 
-                  borderWidth: '1.5px',
-                  fontWeight: '500'
-                }}
-              >
-                <Share2 size={18} className="me-2" />
-                Share
-              </Button>
-            </div>
-
-            {/* Back to Blog Button */}
-            <div className="text-center">
-              <Button 
-                variant="outline-secondary"
-                size="lg"
-                className="rounded-3 px-5 py-2"
-                onClick={handleGoBack}
-                style={{ 
-                  borderWidth: '1.5px',
-                  fontWeight: '500'
-                }}
-              >
-                <ArrowLeft size={18} className="me-2" />
-                Back to All Posts
-              </Button>
-            </div>
-          </Col>
-        </Row>
-      </Container>
-
-      {/* Enhanced Styling */}
-      <style>{`
-        .blog-detail-hero {
-          position: relative;
-          overflow: hidden;
-        }
-        
-        .blog-content {
-          font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        }
-        
-        .blog-content p {
-          margin-bottom: 1.5rem;
-          color: #374151;
-          line-height: 1.8;
-        }
-        
-        .blog-content h2, .blog-content h3, .blog-content h4 {
-          margin-top: 2rem;
-          margin-bottom: 1rem;
-          color: #1a202c;
-          font-weight: 600;
-        }
-        
-        .blog-content img {
-          max-width: 100%;
-          height: auto;
-          border-radius: 8px;
-          margin: 1.5rem 0;
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-        
-        .blog-content blockquote {
-          border-left: 4px solid #3182ce;
-          padding-left: 1.5rem;
-          margin: 1.5rem 0;
-          font-style: italic;
-          color: #64748b;
-          background: #f8fafc;
-          padding: 1.5rem;
-          border-radius: 0 8px 8px 0;
-        }
-        
-        /* Responsive adjustments */
-        @media (max-width: 768px) {
-          .blog-detail-hero h1 {
-            font-size: 2rem !important;
-          }
-          
-          .blog-detail-hero .d-flex {
-            flex-direction: column;
-            gap: 1rem !important;
-          }
-          
-          .blog-content {
-            font-size: 1rem;
-          }
-        }
-      `}</style>
-    </>
+    </div>
   );
 };
 

@@ -1,6 +1,6 @@
-// src/components/organisms/CoinsNavbar.tsx
+// src/Components/navbar.tsx — Editorial CoinsClarity navbar
 import React, { useState, useEffect } from 'react';
-import { Navbar, Nav, NavDropdown, Form, FormControl, Container, Spinner, Alert, Button } from 'react-bootstrap';
+import { Navbar, Nav, NavDropdown, Form, FormControl, Container, Spinner, Alert } from 'react-bootstrap';
 import { Search, CircleDollarSign, Landmark, Sun, Moon } from 'lucide-react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -23,13 +23,10 @@ const CoinsNavbar: React.FC = () => {
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
   const navigate = useNavigate();
 
-  // Add scroll listener for glassmorphism effect
   useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20);
-    };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    const onScroll = () => setIsScrolled(window.scrollY > 12);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
   useEffect(() => {
@@ -59,57 +56,39 @@ const CoinsNavbar: React.FC = () => {
   ];
 
   const debouncedFetchSuggestions = _.debounce(async (query: string) => {
-    if (!query.trim()) {
-      setSuggestions([]);
-      setError(null);
-      return;
-    }
+    if (!query.trim()) { setSuggestions([]); setError(null); return; }
     setLoadingSuggestions(true);
     setError(null);
 
     try {
-      // Try backend proxy first (if implemented)
       const backendUrl = `${API_BASE_URL}/search-suggestions?query=${encodeURIComponent(query)}`;
       try {
         const resp = await fetch(backendUrl, { headers: { 'Content-Type': 'application/json' } });
         if (resp.ok) {
           const data = await resp.json();
-          const suggestions = (data?.coins || []).slice(0, 10).map((item: any) => ({
+          const list = (data?.coins || []).slice(0, 10).map((item: any) => ({
             type: 'coins' as const,
             name: item.name,
             id: item.id,
           }));
-          setSuggestions(suggestions.length > 0 ? suggestions : mockSuggestions.filter((s) => s.name.toLowerCase().includes(query.toLowerCase())));
+          setSuggestions(list.length ? list : mockSuggestions.filter((s) => s.name.toLowerCase().includes(query.toLowerCase())));
           return;
         }
-      } catch (_) {
-        // Fallback to CoinGecko directly if backend proxy not available
-      }
+      } catch (_) { /* fall through */ }
 
       const response = await fetch(`${COINGECKO_API_BASE_URL}/search?query=${encodeURIComponent(query)}`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
       });
-      if (!response.ok) {
-        throw new Error(`CoinGecko search failed: ${response.statusText}`);
-      }
+      if (!response.ok) throw new Error(`CoinGecko search failed: ${response.statusText}`);
       const data = await response.json();
-      const coinSuggestions = data.coins?.slice(0, 5).map((item: any) => ({
-        type: 'coins' as const,
-        name: item.name,
-        id: item.id,
-      })) || [];
-      const exchangeSuggestions = data.exchanges?.slice(0, 5).map((item: any) => ({
-        type: 'exchanges' as const,
-        name: item.name,
-        id: item.id,
-      })) || [];
-
-      const suggestions = [...coinSuggestions, ...exchangeSuggestions];
-      setSuggestions(suggestions.length > 0 ? suggestions : mockSuggestions.filter((s) => s.name.toLowerCase().includes(query.toLowerCase())));
-    } catch (error: any) {
-      console.error('Error fetching suggestions:', error);
-      setError('Failed to load suggestions. Using mock data.');
+      const coinSuggestions: SearchSuggestion[] = data.coins?.slice(0, 5).map((item: any) => ({ type: 'coins' as const, name: item.name, id: item.id })) || [];
+      const exchangeSuggestions: SearchSuggestion[] = data.exchanges?.slice(0, 5).map((item: any) => ({ type: 'exchanges' as const, name: item.name, id: item.id })) || [];
+      const list = [...coinSuggestions, ...exchangeSuggestions];
+      setSuggestions(list.length ? list : mockSuggestions.filter((s) => s.name.toLowerCase().includes(query.toLowerCase())));
+    } catch (e) {
+      console.error('Error fetching suggestions:', e);
+      setError('Failed to load suggestions.');
       setSuggestions(mockSuggestions.filter((s) => s.name.toLowerCase().includes(query.toLowerCase())));
     } finally {
       setLoadingSuggestions(false);
@@ -117,47 +96,22 @@ const CoinsNavbar: React.FC = () => {
   }, 300);
 
   useEffect(() => {
-    if (searchQuery.trim()) {
-      debouncedFetchSuggestions(searchQuery);
-    } else {
-      setSuggestions([]);
-      setError(null);
-    }
+    if (searchQuery.trim()) debouncedFetchSuggestions(searchQuery);
+    else { setSuggestions([]); setError(null); }
     return () => debouncedFetchSuggestions.cancel();
   }, [searchQuery]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    if (searchQuery.trim()) {
-      navigate(`/search?query=${encodeURIComponent(searchQuery)}`);
-    }
+    if (searchQuery.trim()) navigate(`/search?query=${encodeURIComponent(searchQuery)}`);
   };
-
-  const handleSuggestionClick = (suggestion: SearchSuggestion) => {
-    setSearchQuery(suggestion.name);
+  const handleSuggestionClick = (s: SearchSuggestion) => {
+    setSearchQuery(s.name);
     setSuggestions([]);
-    navigate(`/search?query=${encodeURIComponent(suggestion.name)}`);
+    navigate(`/search?query=${encodeURIComponent(s.name)}`);
   };
-
-  const linkStyles = {
-    fontFamily: 'Inter, sans-serif',
-    fontSize: '16px',
-    fontWeight: 600,
-    letterSpacing: '0.04em',
-  };
-
-  const handleToggle = () => setExpanded((prev) => !prev);
   const handleNavItemClick = () => setExpanded(false);
-  const handleThemeToggle = () => setTheme((prev) => (prev === 'light' ? 'dark' : 'light'));
-
-  const barCommon: React.CSSProperties = {
-    display: 'block',
-    width: 24,
-    height: 2,
-    background: '#111',
-    transition: 'transform 250ms ease, opacity 250ms ease',
-    borderRadius: 2
-  };
+  const handleThemeToggle = () => setTheme((p) => (p === 'light' ? 'dark' : 'light'));
 
   return (
     <Navbar
@@ -165,137 +119,124 @@ const CoinsNavbar: React.FC = () => {
       expand="lg"
       expanded={expanded}
       onToggle={(next) => setExpanded(Boolean(next))}
-      className={`py-2 ${isScrolled ? 'navbar-glass' : ''}`}
-      style={{
-        background: 'var(--card)',
-        color: 'var(--text)',
-        boxShadow: isScrolled ? '0 1px 8px rgba(0,0,0,0.06)' : 'none',
-        borderBottom: '1px solid var(--border)',
-        position: 'sticky',
-        top: 0,
-        zIndex: 1030,
-        transition: 'all 0.3s ease'
-      }}
+      className={`cc-navbar ${isScrolled ? 'is-scrolled' : ''}`}
     >
-      <Container fluid style={{ maxWidth: 1280, margin: '0 auto', padding: '0 20px' }}>
-        <Navbar.Brand as={Link} to="/" className="d-flex align-items-center">
-          <img
-            src="/logo3.png"
-            alt="CoinsClarity"
-            loading="eager"
-            style={{ height: 56, width: 'auto', objectFit: 'contain', display: 'block' }}
-            onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/image.png'; }}
-          />
-        </Navbar.Brand>
-        {/* Custom hamburger using Navbar.Toggle for proper accessibility/control */}
-        <Navbar.Toggle
-          aria-controls="basic-navbar-nav"
-          aria-label={expanded ? 'Close menu' : 'Open menu'}
-          className="border-0 bg-transparent d-lg-none"
-          style={{ cursor: 'pointer', zIndex: 3, border: 'none', outline: 'none', boxShadow: 'none' }}
-        >
-          <div style={{ display: 'inline-flex', flexDirection: 'column', gap: 5 }}>
-            <span style={{ ...barCommon, transform: expanded ? 'translateY(7px) rotate(45deg)' : 'none' }} />
-            <span style={{ ...barCommon, opacity: expanded ? 0 : 1 }} />
-            <span style={{ ...barCommon, transform: expanded ? 'translateY(-7px) rotate(-45deg)' : 'none' }} />
-          </div>
-        </Navbar.Toggle>
-        <Navbar.Collapse id="basic-navbar-nav">
-          <Nav className="me-auto gap-1" style={linkStyles}>
-            <NavDropdown title="News" id="news-dropdown">
-              <NavDropdown.Item as={NavLink} to="/exclusive-news" onClick={handleNavItemClick}>Exclusive News</NavDropdown.Item>
-              <NavDropdown.Item as={NavLink} to="/All-Trending-news" onClick={handleNavItemClick}>Trending</NavDropdown.Item>
-              <NavDropdown.Item as={NavLink} to="/press-news" onClick={handleNavItemClick}>Press Releases</NavDropdown.Item>
-              <NavDropdown.Item as={NavLink} to="/ai-news" onClick={handleNavItemClick}>AI News</NavDropdown.Item>
-              <NavDropdown.Divider />
-              <NavDropdown.Item as={NavLink} to="/beyond-the-headlines" onClick={handleNavItemClick}>Beyond the Headlines</NavDropdown.Item>
-              <NavDropdown.Divider />
-              <NavDropdown.Item as="a" href="https://daily.coinsclarity.com" target="_blank" rel="noreferrer" onClick={handleNavItemClick} style={{ fontWeight: 600, color: '#f97316' }}>Daily — India news & current affairs</NavDropdown.Item>
-            </NavDropdown>
-            <Nav.Link as={NavLink} to="/listings" onClick={handleNavItemClick}>Listings</Nav.Link>
-            <Nav.Link as={NavLink} to="/learn" onClick={handleNavItemClick}>Learn</Nav.Link>
-            <NavDropdown title="Tools" id="tools-dropdown">
-              <NavDropdown.Item as={NavLink} to="/tools" onClick={handleNavItemClick}>All Tools</NavDropdown.Item>
-              <NavDropdown.Item as={NavLink} to="/arbitrage-scanner" onClick={handleNavItemClick}>Arbitrage Scanner</NavDropdown.Item>
-              <NavDropdown.Item as={NavLink} to="/watchlist" onClick={handleNavItemClick}>Watchlist</NavDropdown.Item>
-            </NavDropdown>
-            <Nav.Link as={NavLink} to="/blog" onClick={handleNavItemClick}>Blog</Nav.Link>
-          </Nav>
-          <Form className="d-flex justify-content-center me-2" onSubmit={handleSearch}>
-            <div className="position-relative search-container">
+      <Container fluid style={{ maxWidth: 1280, margin: '0 auto', padding: '0 24px' }}>
+        <div className="cc-navbar__row w-100">
+          <Navbar.Brand as={Link} to="/" className="cc-navbar__brand">
+            <img
+              src="/logo3.png"
+              alt="CoinsClarity"
+              loading="eager"
+              onError={(e) => {
+                const img = e.currentTarget as HTMLImageElement;
+                img.style.display = 'none';
+                const wm = img.parentElement?.querySelector('.cc-navbar__wordmark') as HTMLElement | null;
+                if (wm) wm.style.display = 'inline';
+              }}
+            />
+            <span className="cc-navbar__wordmark" style={{ display: 'none' }}>CoinsClarity</span>
+          </Navbar.Brand>
+
+          <Navbar.Toggle
+            aria-controls="basic-navbar-nav"
+            aria-label={expanded ? 'Close menu' : 'Open menu'}
+            className="cc-navbar__toggle d-lg-none"
+          >
+            <span className="bar" style={{ transform: expanded ? 'translateY(7px) rotate(45deg)' : 'none' }} />
+            <span className="bar" style={{ opacity: expanded ? 0 : 1 }} />
+            <span className="bar" style={{ transform: expanded ? 'translateY(-7px) rotate(-45deg)' : 'none' }} />
+          </Navbar.Toggle>
+
+          <Navbar.Collapse id="basic-navbar-nav" className="cc-navbar__collapse">
+            <Nav className="cc-navbar__menu">
+              <NavDropdown title="News" id="news-dropdown">
+                <NavDropdown.Item as={NavLink} to="/exclusive-news" onClick={handleNavItemClick}>Exclusive News</NavDropdown.Item>
+                <NavDropdown.Item as={NavLink} to="/All-Trending-news" onClick={handleNavItemClick}>Trending</NavDropdown.Item>
+                <NavDropdown.Item as={NavLink} to="/press-news" onClick={handleNavItemClick}>Press Releases</NavDropdown.Item>
+                <NavDropdown.Item as={NavLink} to="/ai-news" onClick={handleNavItemClick}>AI News</NavDropdown.Item>
+                <NavDropdown.Divider />
+                <NavDropdown.Item as={NavLink} to="/beyond-the-headlines" onClick={handleNavItemClick}>Beyond the Headlines</NavDropdown.Item>
+                <NavDropdown.Divider />
+                <NavDropdown.Item as="a" href="https://daily.coinsclarity.com" target="_blank" rel="noreferrer" onClick={handleNavItemClick} style={{ color: 'var(--accent)', fontWeight: 700 }}>
+                  Daily — India News
+                </NavDropdown.Item>
+              </NavDropdown>
+              <Nav.Link as={NavLink} to="/listings" onClick={handleNavItemClick}>Listings</Nav.Link>
+              <Nav.Link as={NavLink} to="/learn" onClick={handleNavItemClick}>Learn</Nav.Link>
+              <NavDropdown title="Tools" id="tools-dropdown">
+                <NavDropdown.Item as={NavLink} to="/tools" onClick={handleNavItemClick}>All Tools</NavDropdown.Item>
+                <NavDropdown.Item as={NavLink} to="/arbitrage-scanner" onClick={handleNavItemClick}>Arbitrage Scanner</NavDropdown.Item>
+                <NavDropdown.Item as={NavLink} to="/watchlist" onClick={handleNavItemClick}>Watchlist</NavDropdown.Item>
+              </NavDropdown>
+              <Nav.Link as={NavLink} to="/blog" onClick={handleNavItemClick}>Blog</Nav.Link>
+            </Nav>
+
+            <Form className="cc-navbar__search" onSubmit={handleSearch}>
               <FormControl
                 type="search"
                 placeholder="Search coins, news, exchanges..."
                 aria-label="Search"
-                className="form-control-animated"
-                style={{
-                  width: '280px',
-                  height: '40px',
-                  fontSize: '15px',
-                  borderRadius: '12px',
-                  border: '2px solid #e5e7eb',
-                  paddingRight: '40px'
-                }}
                 value={searchQuery}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
               />
               <Search
-                className="position-absolute top-50 end-0 translate-middle-y me-2 cursor-pointer"
-                size={20}
+                className="cc-navbar__search-icon"
+                size={18}
                 onClick={handleSearch}
               />
               {suggestions.length > 0 && (
                 <div className="suggestions-dropdown">
                   {loadingSuggestions ? (
-                    <div className="suggestion-item text-center">
-                      <Spinner animation="border" variant="primary" size="sm" />
+                    <div className="suggestion-item" style={{ justifyContent: 'center' }}>
+                      <Spinner animation="border" variant="warning" size="sm" />
                     </div>
                   ) : (
-                    suggestions.map((suggestion, index) => (
+                    suggestions.map((s, i) => (
                       <div
-                        key={`${suggestion.type}-${suggestion.id}-${index}`}
+                        key={`${s.type}-${s.id}-${i}`}
                         className="suggestion-item"
-                        onClick={() => handleSuggestionClick(suggestion)}
+                        onClick={() => handleSuggestionClick(s)}
                       >
-                        {suggestion.type === 'coins' ? (
-                          <CircleDollarSign size={16} className="me-2" />
-                        ) : (
-                          <Landmark size={16} className="me-2" />
-                        )}
-                        {suggestion.name} <small>({suggestion.type})</small>
+                        {s.type === 'coins'
+                          ? <CircleDollarSign size={15} className="me-2" style={{ color: 'var(--text-muted)' }} />
+                          : <Landmark size={15} className="me-2" style={{ color: 'var(--text-muted)' }} />}
+                        <span style={{ fontWeight: 500 }}>{s.name}</span>
+                        <small>{s.type}</small>
                       </div>
                     ))
                   )}
                 </div>
               )}
               {error && (
-                <Alert variant="danger" className="suggestions-error">
+                <Alert variant="danger" className="suggestions-error" style={{ fontSize: 12 }}>
                   {error}
                 </Alert>
               )}
-            </div>
-          </Form>
-          <Nav className="align-items-center gap-2">
-            <Nav.Link as={NavLink} to="/advertise" onClick={handleNavItemClick} className="p-0 me-1">
-              <Button
-                variant="warning"
-                size="sm"
-                style={{ fontSize: '13px', padding: '6px 16px', color: '#fff', background: '#f97316', border: 'none', borderRadius: '8px', fontWeight: 600 }}
+            </Form>
+
+            <Nav className="cc-navbar__actions">
+              <Nav.Link
+                as={NavLink}
+                to="/advertise"
+                onClick={handleNavItemClick}
+                className="cc-navbar__cta p-0 d-inline-flex align-items-center"
+                style={{ display: 'inline-flex' }}
               >
                 Advertise
-              </Button>
-            </Nav.Link>
-            <Button
-              variant="link"
-              className="d-flex align-items-center justify-content-center p-0"
-              style={{ width: 36, height: 36, color: 'var(--text)', opacity: 0.6 }}
-              onClick={handleThemeToggle}
-              aria-label="Toggle theme"
-            >
-              {theme === 'light' ? <Moon size={16} /> : <Sun size={16} />}
-            </Button>
-          </Nav>
-        </Navbar.Collapse>
+              </Nav.Link>
+              <button
+                type="button"
+                className="cc-navbar__icon-btn"
+                onClick={handleThemeToggle}
+                aria-label="Toggle theme"
+                title={theme === 'light' ? 'Switch to dark' : 'Switch to light'}
+              >
+                {theme === 'light' ? <Moon size={16} /> : <Sun size={16} />}
+              </button>
+            </Nav>
+          </Navbar.Collapse>
+        </div>
       </Container>
     </Navbar>
   );

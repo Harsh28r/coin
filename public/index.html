@@ -105,12 +105,19 @@
       gtag('config', 'G-XXXXXXX');
     </script>
     <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo3.png" />
+    <!-- Editorial typography — Fraunces (display serif), Inter (body), JetBrains Mono (numerics) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700;9..144,800&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
     <!-- Google Funding Choices (GDPR Consent) -->
     <script async src="https://fundingchoicesmessages.google.com/i/pub-8105894285796694?ers=1" nonce=""></script>
     <script nonce="">(function() {function signalGooglefcPresent() {if (!window.frames['googlefcPresent']) {if (document.body) {const iframe = document.createElement('iframe'); iframe.style = 'width: 0; height: 0; border: none; z-index: -1000; left: -1000px; top: -1000px;'; iframe.style.display = 'none'; iframe.name = 'googlefcPresent'; document.body.appendChild(iframe);} else {setTimeout(signalGooglefcPresent, 0);}}}signalGooglefcPresent();})();</script>
-    <!-- Google AdSense -->
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8105894285796694"
-     crossorigin="anonymous"></script>
+    <!-- Google AdSense is loaded conditionally per-route by src/Components/AdSenseControl.tsx
+         to avoid policy issues on aggregator/news pages. -->
+    <meta name="google-adsense-account" content="ca-pub-8105894285796694" />
     <!--
       manifest.json provides metadata used when your web app is installed on a
       user's mobile device or desktop. See https://developers.google.com/web/fundamentals/web-app-manifest/

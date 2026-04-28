@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Container, Row, Col, Table, Card, Button, Modal, ButtonGroup, Alert } from 'react-bootstrap';
 import { ExternalLink } from 'lucide-react';
-import { tradeLinks } from '../utils/tradeLinks';
+import { tradeLinks, exchangeLogos } from '../utils/tradeLinks';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { Line } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
@@ -885,85 +885,84 @@ const MarketPriceAndNews: React.FC = () => {
         </Modal.Body>
       </Modal>
 
-      {/* Trade CTA — below table (punchy) */}
+      {/* Trade CTA — below table, professional with exchange symbols */}
       <div
         id="trade"
         className="trade-cta-strip"
         style={{
-          marginTop: 8,
-          padding: '28px 24px',
-          background: '#0f172a',
+          marginTop: 12,
+          padding: '32px 28px',
+          background: 'linear-gradient(145deg, #0f172a 0%, #1e293b 100%)',
           borderRadius: 16,
-          border: '1px solid rgba(249, 115, 22, 0.25)',
-          display: 'flex',
-          flexWrap: 'wrap',
-          alignItems: 'center',
-          gap: 16,
+          border: '1px solid rgba(249, 115, 22, 0.2)',
+          boxShadow: '0 4px 24px rgba(0,0,0,0.12)',
         }}
       >
-        <span className="trade-cta-label" style={{ color: '#ffffff', fontSize: '0.8rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', width: '100%', marginBottom: 4 }}>Ready to trade?</span>
-        <a
-          href={tradeLinks.binance.signup}
-          target="_blank"
-          rel="noopener noreferrer"
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 10,
-            padding: '14px 28px',
-            background: 'linear-gradient(135deg, #f0b90b 0%, #d4a008 100%)',
-            color: '#000',
-            fontWeight: 800,
-            fontSize: '1rem',
-            letterSpacing: '0.02em',
-            borderRadius: 12,
-            textDecoration: 'none',
-            boxShadow: '0 6px 20px rgba(240, 185, 11, 0.5), 0 2px 0 rgba(0,0,0,0.15)',
-            transition: 'transform 0.2s ease, box-shadow 0.2s ease',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.transform = 'translateY(-3px) scale(1.02)';
-            e.currentTarget.style.boxShadow = '0 10px 28px rgba(240, 185, 11, 0.6), 0 4px 0 rgba(0,0,0,0.1)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.transform = 'none';
-            e.currentTarget.style.boxShadow = '0 6px 20px rgba(240, 185, 11, 0.5), 0 2px 0 rgba(0,0,0,0.15)';
-          }}
-        >
-          Trade on Binance
-          <ExternalLink size={20} strokeWidth={2.5} />
-        </a>
-        <a
-          href={tradeLinks.coindcx.signup}
-          target="_blank"
-          rel="noopener noreferrer"
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 10,
-            padding: '14px 28px',
-            background: 'linear-gradient(135deg, #f97316 0%, #c2410c 100%)',
-            color: '#fff',
-            fontWeight: 800,
-            fontSize: '1rem',
-            letterSpacing: '0.02em',
-            borderRadius: 12,
-            textDecoration: 'none',
-            boxShadow: '0 6px 20px rgba(249, 115, 22, 0.5), 0 2px 0 rgba(0,0,0,0.2)',
-            transition: 'transform 0.2s ease, box-shadow 0.2s ease',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.transform = 'translateY(-3px) scale(1.02)';
-            e.currentTarget.style.boxShadow = '0 10px 28px rgba(249, 115, 22, 0.6), 0 4px 0 rgba(0,0,0,0.15)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.transform = 'none';
-            e.currentTarget.style.boxShadow = '0 6px 20px rgba(249, 115, 22, 0.5), 0 2px 0 rgba(0,0,0,0.2)';
-          }}
-        >
-          CoinDCX
-          <ExternalLink size={20} strokeWidth={2.5} />
-        </a>
+        <div style={{ marginBottom: 20 }}>
+          <div className="trade-cta-label" style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 6 }}>
+            Ready to trade?
+          </div>
+          <p style={{ color: '#fff', fontSize: '0.95rem', margin: 0, fontWeight: 500, lineHeight: 1.4 }}>
+            Use our referral links below. Claim sign-up bonuses and trade your crypto on trusted exchanges.
+          </p>
+        </div>
+        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'stretch', gap: 12 }}>
+          {[
+            { key: 'binance' as const, gradient: 'linear-gradient(135deg, #f0b90b 0%, #d4a008 100%)', textColor: '#000', shadow: 'rgba(240, 185, 11, 0.4)' },
+            { key: 'coindcx' as const, gradient: 'linear-gradient(135deg, #f97316 0%, #c2410c 100%)', textColor: '#fff', shadow: 'rgba(249, 115, 22, 0.4)' },
+            { key: 'okx' as const, gradient: 'linear-gradient(135deg, #1a1d2e 0%, #2d3142 100%)', textColor: '#fff', shadow: 'rgba(0,0,0,0.3)' },
+          ].map(({ key, gradient, textColor, shadow }) => {
+            const link = tradeLinks[key];
+            const logoUrl = exchangeLogos[key];
+            if (!link) return null;
+            return (
+              <a
+                key={key}
+                href={link.signup}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="trade-cta-exchange-btn"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 12,
+                  padding: '14px 22px',
+                  background: gradient,
+                  color: textColor,
+                  fontWeight: 700,
+                  fontSize: '0.95rem',
+                  letterSpacing: '0.02em',
+                  borderRadius: 12,
+                  textDecoration: 'none',
+                  boxShadow: `0 4px 16px ${shadow}`,
+                  transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+                  border: key === 'okx' ? '1px solid rgba(255,255,255,0.12)' : 'none',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = `0 8px 24px ${shadow}`;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'none';
+                  e.currentTarget.style.boxShadow = `0 4px 16px ${shadow}`;
+                }}
+              >
+                <span style={{ width: 28, height: 28, borderRadius: 8, overflow: 'hidden', background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  {logoUrl ? (
+                    <>
+                      <img src={logoUrl} alt="" width={20} height={20} style={{ objectFit: 'contain' }} onError={(e) => { e.currentTarget.style.display = 'none'; const n = e.currentTarget.nextElementSibling as HTMLElement; if (n) n.style.display = 'block'; }} />
+                      <span style={{ display: 'none', fontSize: 12, fontWeight: 800 }}>{link.label.charAt(0)}</span>
+                    </>
+                  ) : (
+                    <span style={{ fontSize: 12, fontWeight: 800 }}>{link.label.charAt(0)}</span>
+                  )}
+                </span>
+                <span>{link.label}</span>
+                <ExternalLink size={16} strokeWidth={2.5} style={{ opacity: 0.9 }} />
+              </a>
+            );
+          })}
+        </div>
       </div>
     </Container>
   );

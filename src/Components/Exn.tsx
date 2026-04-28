@@ -5,7 +5,8 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { useNewsTranslation } from '../hooks/useNewsTranslation';
-import { getCryptoFallbackImage, handleImageError } from '../utils/cryptoImages';
+import { getCryptoFallbackImage, handleImageError, resolveImageSrc } from '../utils/cryptoImages';
+import NoIndex from './NoIndex';
 
 // Add CSS animations
 const styles = `
@@ -208,6 +209,7 @@ const Exn: React.FC = () => {
 
   return (
     <Container fluid className="mt-5" style={{ width: '92%' }}>
+      <NoIndex />
       {/* Hero Section with Gradient Background */}
       <div className="text-center mb-5 p-4 rounded-4" style={{
         background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
@@ -316,7 +318,7 @@ const Exn: React.FC = () => {
               <div style={{ position: 'relative', overflow: 'hidden' }}>
                 <Card.Img 
                   variant="top" 
-                  src={item.image_url} 
+                  src={resolveImageSrc(item.image_url, item.title, 'news')} 
                   alt={item.title}
                   loading="lazy"
                   referrerPolicy="no-referrer"

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Newspaper } from 'lucide-react';
 import CoinsNavbar from '../Components/navbar'
-import FeaturedCarousel from '../Components/sideCarousal'
+import EditorialHero from '../Components/EditorialHero'
 import ExclusiveNews from '../Components/ExclusiveNews'
 import MarketPriceAndNews from '../Components/market'
 import TrendingCoins from '../Components/TrendingCoins'
@@ -127,10 +127,8 @@ const LandingPage: React.FC = () => {
         <CryptoBreakingBanner />
         <ScrollingStats />
 
-        {/* Hero carousel section */}
-        <div style={{ maxWidth: 1280, margin: '0 auto', padding: '0 20px' }}>
-          <FeaturedCarousel />
-        </div>
+        {/* Hero — editorial magazine layout */}
+        <EditorialHero />
 
         {/* Advertisement Space */}
         <div style={{ maxWidth: 1280, margin: '0 auto', padding: '0 20px' }}>

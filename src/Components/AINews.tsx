@@ -7,7 +7,7 @@ import Skeleton from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
 import { useLanguage } from '../context/LanguageContext';
 import { useNewsTranslation } from '../hooks/useNewsTranslation';
-import { getCryptoFallbackImage, handleImageError } from '../utils/cryptoImages';
+import { getCryptoFallbackImage, handleImageError, resolveImageSrc } from '../utils/cryptoImages';
 import { BRAND_DISPLAY_NAME } from '../utils/branding';
 
 interface NewsItem {
@@ -280,7 +280,7 @@ const AINews: React.FC = () => {
               >
                 <div style={{ overflow: 'hidden' }}>
                   <img
-                    src={item.image_url || getFallbackImage(index, item.title)}
+                    src={resolveImageSrc(item.image_url, item.title, 'news')}
                     alt={item.title}
                     loading="lazy"
                     onError={(e) => handleImageError(e, item.title, 'news')}

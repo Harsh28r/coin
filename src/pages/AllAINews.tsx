@@ -8,7 +8,7 @@ import 'react-loading-skeleton/dist/skeleton.css';
 import { Helmet } from 'react-helmet-async';
 import { useLanguage } from '../context/LanguageContext';
 import { useNewsTranslation } from '../hooks/useNewsTranslation';
-import { getCryptoFallbackImage, handleImageError } from '../utils/cryptoImages';
+import { getCryptoFallbackImage, handleImageError, resolveImageSrc } from '../utils/cryptoImages';
 
 interface NewsItem {
   article_id?: string;
@@ -195,6 +195,8 @@ const AllAINews: React.FC = () => {
       <Helmet>
         <title>AI & Machine Learning News | CoinsClarity</title>
         <meta name="description" content="Latest AI and Machine Learning research from MIT and arXiv" />
+        <meta name="robots" content="noindex, follow" />
+        <meta name="googlebot" content="noindex, follow" />
         <link rel="canonical" href={`${window.location.origin}/ai-news`} />
       </Helmet>
 
@@ -274,7 +276,7 @@ const AllAINews: React.FC = () => {
                 <Card.Img
                   variant="top"
                   className="rounded-top-4"
-                  src={item.image_url || getFallbackImage(index, item.title)}
+                  src={resolveImageSrc(item.image_url, item.title, 'news')}
                   alt={item.title}
                   style={{ height: '200px', objectFit: 'cover' }}
                   onError={(e) => {

@@ -8,7 +8,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { useNewsTranslation } from '../hooks/useNewsTranslation';
 import Skeleton from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
-import { getCryptoFallbackImage, handleImageError } from '../utils/cryptoImages';
+import { getCryptoFallbackImage, handleImageError, resolveImageSrc } from '../utils/cryptoImages';
 
 interface BlogPost {
   id: string;
@@ -190,7 +190,7 @@ const BlogSection: React.FC = () => {
                 <div className="position-relative">
                   <Card.Img
                     variant="top"
-                    src={post.imageUrl}
+                    src={resolveImageSrc(post.imageUrl, post.title, 'blog')}
                     alt={post.title}
                     className="object-fit-cover"
                     style={{ 

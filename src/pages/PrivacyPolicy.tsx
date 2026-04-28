@@ -26,7 +26,7 @@ const PrivacyPolicy: React.FC = () => {
             <Shield size={40} color="#f97316" />
             <h1 style={{ color: '#f97316', fontSize: '2.5rem', margin: 0 }}>Privacy Policy</h1>
           </div>
-          <p style={{ color: '#ffffff', marginBottom: '30px' }}>Last updated: December 17, 2024</p>
+          <p style={{ color: '#ffffff', marginBottom: '30px' }}>Last updated: April 28, 2026</p>
           
           <div style={{ color: '#ffffff', lineHeight: '1.8' }}>
             <section style={{ marginBottom: '30px' }}>
@@ -74,11 +74,33 @@ const PrivacyPolicy: React.FC = () => {
             </section>
 
             <section style={{ marginBottom: '30px' }}>
-              <h2 style={{ color: '#fff', fontSize: '1.5rem', marginBottom: '15px' }}>4. Google AdSense</h2>
+              <h2 style={{ color: '#fff', fontSize: '1.5rem', marginBottom: '15px' }}>4. Google AdSense &amp; Third-Party Advertising</h2>
               <p>
-                We use Google AdSense to display advertisements on our website. Google AdSense uses cookies 
-                to serve ads based on your prior visits to our website or other websites. You can opt out of 
-                personalized advertising by visiting <a href="https://www.google.com/settings/ads" target="_blank" rel="noopener noreferrer" style={{ color: '#f97316' }}>Google Ads Settings</a>.
+                Third party vendors, including Google, use cookies to serve ads based on a user&rsquo;s prior visits
+                to this website or other websites.
+              </p>
+              <p style={{ marginTop: '12px' }}>
+                Google&rsquo;s use of advertising cookies enables it and its partners to serve ads to our users
+                based on their visit to our sites and/or other sites on the Internet.
+              </p>
+              <p style={{ marginTop: '12px' }}>
+                Google uses the <strong>DoubleClick DART cookie</strong> to serve ads to our users based on their
+                visit to coinsclarity.com and other sites on the Internet. Users may opt out of the use of the DART
+                cookie by visiting the
+                {' '}<a href="https://policies.google.com/technologies/ads" target="_blank" rel="noopener noreferrer" style={{ color: '#f97316' }}>Google ads and content network privacy policy</a>.
+              </p>
+              <p style={{ marginTop: '12px' }}>
+                Users may opt out of personalized advertising by visiting
+                {' '}<a href="https://www.google.com/settings/ads" target="_blank" rel="noopener noreferrer" style={{ color: '#f97316' }}>Google Ads Settings</a>{' '}
+                or by visiting
+                {' '}<a href="https://www.aboutads.info/choices/" target="_blank" rel="noopener noreferrer" style={{ color: '#f97316' }}>www.aboutads.info/choices</a>.
+              </p>
+              <p style={{ marginTop: '12px' }}>
+                Some of our advertising partners may also use cookies and web beacons on our site. They include
+                Google AdSense and other third-party ad networks. These advertising servers and networks use
+                technology that sends advertisements and links that appear on coinsclarity.com directly to your
+                browser. Your IP address is automatically received when this occurs. We have no access to or
+                control over these cookies that are used by third-party advertisers.
               </p>
             </section>
 
@@ -156,7 +178,7 @@ const PrivacyPolicy: React.FC = () => {
                 If you have any questions about this Privacy Policy, please contact us at:
               </p>
               <ul style={{ paddingLeft: '20px', marginTop: '10px', listStyle: 'none' }}>
-                {/* <li>Email: <a href="mailto:harshgupta0028@gmail.com" style={{ color: '#f97316' }}>harshgupta0028@gmail.com</a></li> */}
+                <li>Email: <a href="mailto:contact@coinsclarity.com" style={{ color: '#f97316' }}>contact@coinsclarity.com</a></li>
                 <li>Website: <a href="https://coinsclarity.com" style={{ color: '#f97316' }}>coinsclarity.com</a></li>
               </ul>
             </section>

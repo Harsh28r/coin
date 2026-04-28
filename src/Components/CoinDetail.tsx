@@ -1,791 +1,488 @@
-import React, { useEffect, useState, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react';
+import { useParams, useNavigate, Link } from 'react-router-dom';
+import {
+  ArrowLeft,
+  ExternalLink,
+  Globe,
+  TrendingUp,
+  TrendingDown,
+  RefreshCw,
+  Github,
+  Twitter,
+  MessageCircle,
+} from 'lucide-react';
+import { Helmet } from 'react-helmet-async';
 import { useCurrency } from '../context/CurrencyContext';
-import { createChart, IChartApi, ISeriesApi, LineData, Time } from 'lightweight-charts';
 import WatchlistButton from './WatchlistButton';
+import { resolveImageSrc, handleImageError } from '../utils/cryptoImages';
+import './CoinDetail.css';
 
-
-
-
-
-
+type Timeframe = '1D' | '7D' | '30D' | '1Y' | 'MAX';
 
 interface CoinData {
   id: string;
   name: string;
   symbol: string;
-  current_price: number;
-  price_change_percentage_24h: number;
-  price_change_percentage_7d: number;
-  price_change_percentage_30d: number;
-  market_cap: number;
-  market_cap_rank: number;
-  total_volume: number;
-  circulating_supply: number;
-  total_supply: number;
-  max_supply: number | null;
-  image: string;
-  description: { en: string };
-  links: {
-    homepage: string[];
-    blockchain_site: string[];
-    official_forum_url: string[];
-    chat_url: string[];
-    announcement_url: string[];
-    repos_url: { github: string[]; bitbucket: string[] };
+  image: { large?: string; small?: string; thumb?: string } | string;
+  market_cap_rank?: number;
+  description?: { en?: string };
+  links?: {
+    homepage?: string[];
+    blockchain_site?: string[];
+    twitter_screen_name?: string;
+    subreddit_url?: string;
+    chat_url?: string[];
+    repos_url?: { github?: string[] };
   };
-  market_data: {
-    price_change_24h_in_currency: { [key: string]: number };
-    market_cap_change_24h_in_currency: { [key: string]: number };
-    total_volume: { [key: string]: number };
-    market_cap: { [key: string]: number };
+  market_data?: {
+    current_price?: Record<string, number>;
+    market_cap?: Record<string, number>;
+    total_volume?: Record<string, number>;
+    fully_diluted_valuation?: Record<string, number>;
+    high_24h?: Record<string, number>;
+    low_24h?: Record<string, number>;
+    ath?: Record<string, number>;
+    ath_date?: Record<string, string>;
+    ath_change_percentage?: Record<string, number>;
+    atl?: Record<string, number>;
+    atl_date?: Record<string, string>;
+    price_change_percentage_24h?: number;
+    price_change_percentage_7d?: number;
+    price_change_percentage_30d?: number;
+    price_change_percentage_1y?: number;
+    circulating_supply?: number;
+    total_supply?: number;
+    max_supply?: number | null;
   };
 }
 
-interface ChartDataPoint {
-  time: Time;
+interface ChartPoint {
+  time: number;
   value: number;
 }
+
+const TF_TO_DAYS: Record<Timeframe, number | 'max'> = {
+  '1D': 1,
+  '7D': 7,
+  '30D': 30,
+  '1Y': 365,
+  MAX: 'max',
+};
+
+const formatBig = (n?: number): string => {
+  if (n === undefined || n === null || !isFinite(n)) return '—';
+  if (Math.abs(n) >= 1e12) return (n / 1e12).toFixed(2) + 'T';
+  if (Math.abs(n) >= 1e9) return (n / 1e9).toFixed(2) + 'B';
+  if (Math.abs(n) >= 1e6) return (n / 1e6).toFixed(2) + 'M';
+  if (Math.abs(n) >= 1e3) return (n / 1e3).toFixed(2) + 'K';
+  return n.toLocaleString(undefined, { maximumFractionDigits: 2 });
+};
+
+const formatSupply = (n?: number | null): string => {
+  if (n === undefined || n === null || !isFinite(n)) return '—';
+  return Math.round(n).toLocaleString();
+};
+
+const safePct = (n?: number): number => (typeof n === 'number' && isFinite(n) ? n : 0);
+
+const niceFmtPercent = (n?: number): string => {
+  if (n === undefined || n === null || !isFinite(n)) return '0.00%';
+  return `${n >= 0 ? '+' : ''}${n.toFixed(2)}%`;
+};
+
+const formatRelativeDate = (iso?: string): string => {
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return '';
+  return d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+};
+
+const stripHostname = (url: string): string => {
+  try { return new URL(url).hostname.replace(/^www\./, ''); } catch { return url; }
+};
+
+// ── Custom SVG price chart ──────────────────────────────────────
+interface PriceChartProps {
+  data: ChartPoint[];
+  width: number;
+  height: number;
+  timeframe: Timeframe;
+  formatPrice: (v: number) => string;
+  hover: { x: number; y: number; idx: number } | null;
+  onHover: (h: { x: number; y: number; idx: number } | null) => void;
+}
+
+const PriceChart: React.FC<PriceChartProps> = ({ data, width, height, timeframe, formatPrice, hover, onHover }) => {
+  const PAD_L = 8;
+  const PAD_R = 64;
+  const PAD_T = 18;
+  const PAD_B = 28;
+
+  const svgRef = useRef<SVGSVGElement>(null);
+
+  const { pathLine, pathArea, minV, maxV, xs, ys } = useMemo(() => {
+    if (!data.length) {
+      return { pathLine: '', pathArea: '', minV: 0, maxV: 0, xs: [] as number[], ys: [] as number[] };
+    }
+    const values = data.map((p) => p.value);
+    let mn = Math.min(...values);
+    let mx = Math.max(...values);
+    if (mn === mx) {
+      mn = mn * 0.99;
+      mx = mx * 1.01;
+    }
+    // Pad range a touch
+    const range = mx - mn;
+    mn -= range * 0.06;
+    mx += range * 0.06;
+
+    const innerW = Math.max(width - PAD_L - PAD_R, 50);
+    const innerH = Math.max(height - PAD_T - PAD_B, 50);
+
+    const xs: number[] = [];
+    const ys: number[] = [];
+    let line = '';
+    for (let i = 0; i < data.length; i++) {
+      const x = PAD_L + (i / (data.length - 1)) * innerW;
+      const y = PAD_T + innerH - ((data[i].value - mn) / (mx - mn)) * innerH;
+      xs.push(x);
+      ys.push(y);
+      line += i === 0 ? `M ${x.toFixed(2)} ${y.toFixed(2)}` : ` L ${x.toFixed(2)} ${y.toFixed(2)}`;
+    }
+    const area = `${line} L ${xs[xs.length - 1].toFixed(2)} ${(PAD_T + innerH).toFixed(2)} L ${xs[0].toFixed(2)} ${(PAD_T + innerH).toFixed(2)} Z`;
+    return { pathLine: line, pathArea: area, minV: mn, maxV: mx, xs, ys };
+  }, [data, width, height]);
+
+  const startVal = data[0]?.value ?? 0;
+  const endVal = data[data.length - 1]?.value ?? 0;
+  const isUp = endVal >= startVal;
+  const stroke = isUp ? '#10b981' : '#ef4444';
+  const gradId = isUp ? 'cdg-up' : 'cdg-down';
+  const topColor = isUp ? 'rgba(16, 185, 129, 0.32)' : 'rgba(239, 68, 68, 0.32)';
+  const botColor = isUp ? 'rgba(16, 185, 129, 0.0)' : 'rgba(239, 68, 68, 0.0)';
+
+  const yTicks = useMemo(() => {
+    const n = 5;
+    const out: { y: number; v: number }[] = [];
+    for (let i = 0; i <= n; i++) {
+      const v = maxV - (i / n) * (maxV - minV);
+      const y = PAD_T + (i / n) * (height - PAD_T - PAD_B);
+      out.push({ y, v });
+    }
+    return out;
+  }, [minV, maxV, height]);
+
+  const xTickIndices = useMemo(() => {
+    const target = 6;
+    if (data.length <= target) return data.map((_, i) => i);
+    const step = Math.max(1, Math.floor((data.length - 1) / (target - 1)));
+    const out: number[] = [];
+    for (let i = 0; i < data.length; i += step) out.push(i);
+    if (out[out.length - 1] !== data.length - 1) out.push(data.length - 1);
+    return out;
+  }, [data]);
+
+  const formatX = useCallback((time: number) => {
+    const d = new Date(time * 1000);
+    if (timeframe === '1D') return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+    if (timeframe === 'MAX' || timeframe === '1Y') return d.toLocaleDateString([], { month: 'short', year: '2-digit' });
+    return d.toLocaleDateString([], { month: 'short', day: 'numeric' });
+  }, [timeframe]);
+
+  const handleMove = (e: React.MouseEvent<SVGSVGElement>) => {
+    if (!svgRef.current || !data.length) return;
+    const rect = svgRef.current.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const innerW = width - PAD_L - PAD_R;
+    const ratio = (x - PAD_L) / innerW;
+    if (ratio < 0 || ratio > 1) {
+      onHover(null);
+      return;
+    }
+    const idx = Math.max(0, Math.min(data.length - 1, Math.round(ratio * (data.length - 1))));
+    onHover({ x: xs[idx], y: ys[idx], idx });
+  };
+
+  const handleLeave = () => onHover(null);
+
+  if (!data.length) return null;
+
+  const tooltip = hover && data[hover.idx];
+  const tooltipX = hover ? Math.min(Math.max(hover.x + 10, 60), width - 120) : 0;
+  const tooltipY = hover ? Math.max(hover.y - 60, 6) : 0;
+
+  return (
+    <svg
+      ref={svgRef}
+      className="cd-svg"
+      width={width}
+      height={height}
+      viewBox={`0 0 ${width} ${height}`}
+      onMouseMove={handleMove}
+      onMouseLeave={handleLeave}
+    >
+      <defs>
+        <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={topColor} />
+          <stop offset="100%" stopColor={botColor} />
+        </linearGradient>
+      </defs>
+
+      {yTicks.map((t, i) => (
+        <g key={`y${i}`}>
+          <line
+            x1={PAD_L}
+            x2={width - PAD_R}
+            y1={t.y}
+            y2={t.y}
+            stroke="var(--border, #e5e7eb)"
+            strokeWidth={1}
+            strokeDasharray={i === yTicks.length - 1 ? '0' : '3 3'}
+            opacity={i === yTicks.length - 1 ? 1 : 0.4}
+          />
+          <text x={width - PAD_R + 6} y={t.y + 4} fontSize={11} fill="var(--text-muted, #6b7280)" fontFamily="Inter, sans-serif">
+            {formatPrice(t.v)}
+          </text>
+        </g>
+      ))}
+
+      <path d={pathArea} fill={`url(#${gradId})`} />
+      <path d={pathLine} fill="none" stroke={stroke} strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" />
+
+      {xTickIndices.map((i) => (
+        <text
+          key={`x${i}`}
+          x={xs[i]}
+          y={height - 8}
+          fontSize={11}
+          fill="var(--text-muted, #6b7280)"
+          fontFamily="Inter, sans-serif"
+          textAnchor={i === 0 ? 'start' : i === data.length - 1 ? 'end' : 'middle'}
+        >
+          {formatX(data[i].time)}
+        </text>
+      ))}
+
+      {hover && tooltip && (
+        <g>
+          <line x1={hover.x} x2={hover.x} y1={PAD_T} y2={height - PAD_B} stroke="#f97316" strokeWidth={1} strokeDasharray="3 3" opacity={0.8} />
+          <circle cx={hover.x} cy={hover.y} r={5} fill="#fff" stroke={stroke} strokeWidth={2} />
+          <g transform={`translate(${tooltipX}, ${tooltipY})`}>
+            <rect width={120} height={50} rx={8} fill="rgba(15, 23, 42, 0.92)" />
+            <text x={10} y={20} fontSize={12} fill="#94a3b8" fontFamily="Inter, sans-serif">
+              {new Date(tooltip.time * 1000).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+            </text>
+            <text x={10} y={38} fontSize={13} fill="#ffffff" fontWeight={700} fontFamily="Inter, sans-serif">
+              {formatPrice(tooltip.value)}
+            </text>
+          </g>
+        </g>
+      )}
+    </svg>
+  );
+};
 
 const CoinDetail: React.FC = () => {
   const { coinId } = useParams<{ coinId: string }>();
   const navigate = useNavigate();
   const { currency, formatPrice } = useCurrency();
+  const cur = (currency || 'usd').toLowerCase();
+
   const [coin, setCoin] = useState<CoinData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [timeframe, setTimeframe] = useState<'1D' | '7D' | '30D' | '1Y'>('1D');
-  const [chartData, setChartData] = useState<ChartDataPoint[]>([]);
+  const [timeframe, setTimeframe] = useState<Timeframe>('30D');
+  const [chartData, setChartData] = useState<ChartPoint[]>([]);
   const [chartLoading, setChartLoading] = useState(false);
-  const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
-  const chartRef = useRef<HTMLDivElement>(null);
-  const chartInstanceRef = useRef<IChartApi | null>(null);
-  const seriesRef = useRef<any>(null);
+  const [chartError, setChartError] = useState<string | null>(null);
+  const [showFullDesc, setShowFullDesc] = useState(false);
 
-  // Fetch coin data with real-time updates
-  useEffect(() => {
-    if (!coinId) return;
-    
-    const fetchCoinData = async () => {
-      try {
-        setLoading(true);
-        
-        // Use CoinGecko API with proper headers and error handling
-        const response = await fetch(
-          `https://api.coingecko.com/api/v3/coins/${coinId}?localization=false&tickers=false&market_data=true&community_data=false&developer_data=false&sparkline=false`,
-          {
-            headers: {
-              'Accept': 'application/json',
-              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-            }
-          }
-        );
-        
-        if (response.ok) {
-          const data = await response.json();
-          setCoin(data);
-          setError(null);
-        } else {
-          throw new Error(`API Error: ${response.status}`);
-        }
-        
-      } catch (err) {
-        console.error('Error fetching coin data:', err);
-        setError('Unable to fetch live data. Please try again later.');
-        // Create basic mock data as fallback
-        const mockCoin = createBasicMockCoinData(coinId);
-        setCoin(mockCoin);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const chartWrapRef = useRef<HTMLDivElement>(null);
+  const [chartSize, setChartSize] = useState({ w: 800, h: 380 });
+  const [hover, setHover] = useState<{ x: number; y: number; idx: number } | null>(null);
 
-    fetchCoinData();
-    
-    // Set up real-time updates every 60 seconds (more reasonable rate)
-    const interval = setInterval(() => {
-      fetchCoinData();
-      setLastUpdate(new Date());
-    }, 60000);
-    
-    return () => clearInterval(interval);
-  }, [coinId]);
-
-  // Fetch chart data when timeframe changes
-  useEffect(() => {
-    if (!coinId || !currency) return;
-
-    const fetchChartData = async () => {
-      try {
-        setChartLoading(true);
-
-        // Calculate days based on timeframe
-        const days = timeframe === '1D' ? 1 : timeframe === '7D' ? 7 : timeframe === '30D' ? 30 : 365;
-
-        // Try direct API first, then fallback to proxy
-        let response;
-        const apiUrl = `https://api.coingecko.com/api/v3/coins/${coinId}/market_chart?vs_currency=${currency.toLowerCase()}&days=${days}&interval=${timeframe === '1D' ? 'hourly' : 'daily'}`;
-
-        try {
-          // Try direct CoinGecko API first
-          response = await fetch(apiUrl, {
-            headers: {
-              'Accept': 'application/json'
-            }
-          });
-
-          if (!response.ok) {
-            throw new Error('Direct API failed');
-          }
-        } catch (directError) {
-          // Try CORS proxy as fallback
-          console.log('Direct API failed, trying proxy...');
-          const proxyUrl = 'https://corsproxy.io/?';
-          response = await fetch(proxyUrl + encodeURIComponent(apiUrl));
-        }
-
-        if (response && response.ok) {
-          const data = await response.json();
-          const prices = data.prices || [];
-
-          if (prices.length > 0) {
-            const chartDataPoints: ChartDataPoint[] = prices.map((price: [number, number]) => ({
-              time: Math.floor(price[0] / 1000) as Time,
-              value: price[1]
-            }));
-
-            setChartData(chartDataPoints);
-            if (chartInstanceRef.current && seriesRef.current) {
-              updateChartData(chartDataPoints);
-            }
-            return;
-          }
-        }
-
-        // If we get here, data fetch failed - use fallback
-        throw new Error('Failed to fetch chart data');
-
-      } catch (err) {
-        console.error('Error fetching chart data:', err);
-        // Generate realistic mock data as fallback
-        const daysForFallback = timeframe === '1D' ? 1 : timeframe === '7D' ? 7 : timeframe === '30D' ? 30 : 365;
-        const mockData = generateRealisticChartData(daysForFallback, coin?.current_price || 100);
-        setChartData(mockData);
-        if (chartInstanceRef.current && seriesRef.current) {
-          updateChartData(mockData);
-        }
-      } finally {
-        setChartLoading(false);
-      }
-    };
-
-    fetchChartData();
-  }, [coinId, currency, timeframe, coin?.current_price]);
-
-  // Auto-generate 1D chart data when component loads
-  useEffect(() => {
-    if (coin && chartData.length === 0) {
-      const mockData = generateRealisticChartData(1, coin.current_price || 100);
-      setChartData(mockData);
-    }
-  }, [coin]);
-
-  // Generate realistic chart data for fallback
-  const generateRealisticChartData = (days: number, basePrice: number): ChartDataPoint[] => {
-    const data: ChartDataPoint[] = [];
-    const now = Date.now();
-    const interval = timeframe === '1D' ? 3600000 : 86400000; // 1 hour or 1 day in ms
-    
-    let currentPrice = basePrice;
-    let trend = 0;
-    
-    for (let i = days; i >= 0; i--) {
-      const timestamp = now - (i * interval);
-      const time = Math.floor(timestamp / 1000) as Time;
-      
-      // Create more realistic price movements
-      const marketTrend = Math.sin(i * 0.05) * 0.01; // Longer-term trend
-      const volatility = (Math.random() - 0.5) * 0.03; // ±1.5% volatility
-      const momentum = trend * 0.1; // Some momentum from previous changes
-      
-      const change = marketTrend + volatility + momentum;
-      trend = change; // Store for momentum
-      
-      const newPrice = Math.max(0.01, currentPrice * (1 + change));
-      
-      data.push({ 
-        time, 
-        value: newPrice
-      });
-      
-      currentPrice = newPrice;
-    }
-    
-    return data;
-  };
-
-  // Initialize TradingView chart
-  const initializeChart = () => {
-    if (!chartRef.current) return;
-    
-    // Clean up existing chart
-    if (chartInstanceRef.current) {
-      chartInstanceRef.current.remove();
-      chartInstanceRef.current = null;
-      seriesRef.current = null;
-    }
-    
-    // Clear container
-    chartRef.current.innerHTML = '';
-    
-    const chartHeight = window.innerWidth < 768 ? 300 : 400;
-
-    const chart = createChart(chartRef.current, {
-      width: chartRef.current.clientWidth,
-      height: chartHeight,
-      layout: {
-        background: { color: '#ffffff' },
-        textColor: '#64748b',
-        fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-      },
-      grid: {
-        vertLines: { color: '#f1f5f9', style: 1 },
-        horzLines: { color: '#f1f5f9', style: 1 },
-      },
-      crosshair: {
-        mode: 0,
-        vertLine: {
-          color: '#f97316',
-          width: 1,
-          style: 2,
-          labelBackgroundColor: '#f97316',
-        },
-        horzLine: {
-          color: '#f97316',
-          width: 1,
-          style: 2,
-          labelBackgroundColor: '#f97316',
-        },
-      },
-      rightPriceScale: {
-        borderColor: '#e2e8f0',
-        scaleMargins: {
-          top: 0.1,
-          bottom: 0.1,
-        },
-      },
-      timeScale: {
-        borderColor: '#e2e8f0',
-        timeVisible: true,
-        secondsVisible: false,
-        tickMarkFormatter: (time: any) => {
-          const date = new Date(time * 1000);
-          return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-        },
-      },
-      handleScroll: {
-        mouseWheel: true,
-        pressedMouseMove: true,
-      },
-      handleScale: {
-        axisPressedMouseMove: true,
-        mouseWheel: true,
-        pinch: true,
-      },
-    });
-
-    // Try different methods to add area series for better visual
-    let areaSeries;
+  // ── Resilient JSON fetcher with cache + multi-proxy fallback ───
+  const fetchJsonResilient = useCallback(async (path: string, ttlMs: number): Promise<any> => {
+    const cacheKey = `cd:${path}`;
     try {
-      // Method 1: Try addAreaSeries if it exists (lightweight-charts v4+)
-      if (typeof (chart as any).addAreaSeries === 'function') {
-        areaSeries = (chart as any).addAreaSeries({
-          lineColor: '#f97316',
-          topColor: 'rgba(249, 115, 22, 0.4)',
-          bottomColor: 'rgba(249, 115, 22, 0.05)',
-          lineWidth: 2,
-          priceLineVisible: true,
-          lastValueVisible: true,
-          crosshairMarkerVisible: true,
-          crosshairMarkerRadius: 4,
-          crosshairMarkerBorderColor: '#f97316',
-          crosshairMarkerBackgroundColor: '#ffffff',
-        });
-      } else if (typeof (chart as any).addLineSeries === 'function') {
-        // Fallback to line series
-        areaSeries = (chart as any).addLineSeries({
-          color: '#f97316',
-          lineWidth: 2,
-          priceLineVisible: true,
-          lastValueVisible: true,
-          crosshairMarkerVisible: true,
-          crosshairMarkerRadius: 4,
-        });
-      } else {
-        // Method 2: Try addSeries with Area type
-        areaSeries = (chart as any).addSeries('Area', {
-          lineColor: '#f97316',
-          topColor: 'rgba(249, 115, 22, 0.4)',
-          bottomColor: 'rgba(249, 115, 22, 0.05)',
-          lineWidth: 2,
-        });
+      const raw = sessionStorage.getItem(cacheKey);
+      if (raw) {
+        const cached = JSON.parse(raw);
+        if (cached && cached.t && Date.now() - cached.t < ttlMs && cached.d) {
+          return cached.d;
+        }
       }
-    } catch (error) {
-      console.error('Error adding area series:', error);
-      // Final fallback
-      areaSeries = (chart as any).addLineSeries({
-        color: '#f97316',
-        lineWidth: 2,
-      });
-    }
+    } catch { /* ignore */ }
 
-    chartInstanceRef.current = chart;
-    seriesRef.current = areaSeries;
-
-    // Handle resize
-    const handleResize = () => {
-      if (chartRef.current && chartInstanceRef.current) {
-        const newHeight = window.innerWidth < 768 ? 300 : 400;
-        chartInstanceRef.current.applyOptions({
-          width: chartRef.current.clientWidth,
-          height: newHeight,
-        });
-      }
-    };
-
-    window.addEventListener('resize', handleResize);
-    
-    return () => {
-      window.removeEventListener('resize', handleResize);
-      if (chartInstanceRef.current) {
-        chartInstanceRef.current.remove();
-        chartInstanceRef.current = null;
-        seriesRef.current = null;
-      }
-    };
-  };
-
-  // Update chart data
-  const updateChartData = (data: ChartDataPoint[]) => {
-    if (!seriesRef.current || data.length === 0) return;
-    
-    try {
-      seriesRef.current.setData(data);
-      
-      if (chartInstanceRef.current) {
-        chartInstanceRef.current.timeScale().fitContent();
-      }
-    } catch (error) {
-      console.error('Error updating chart data:', error);
-      // Fallback to SVG chart
-      createFallbackChart(data);
-    }
-  };
-
-  // Create fallback SVG chart
-  const createFallbackChart = (data: ChartDataPoint[]) => {
-    if (!chartRef.current) return;
-
-    const container = chartRef.current;
-    container.innerHTML = '';
-
-    const width = container.clientWidth;
-    const height = window.innerWidth < 768 ? 300 : 400;
-    
-    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    svg.setAttribute('width', width.toString());
-    svg.setAttribute('height', height.toString());
-    svg.style.background = 'white';
-    
-    if (data.length === 0) return;
-    
-    const values = data.map(d => d.value);
-    const minValue = Math.min(...values);
-    const maxValue = Math.max(...values);
-    const range = maxValue - minValue;
-    
-    // Create gradient
-    const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
-    const gradient = document.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');
-    gradient.setAttribute('id', 'chartGradient');
-    gradient.setAttribute('x1', '0%');
-    gradient.setAttribute('y1', '0%');
-    gradient.setAttribute('x2', '0%');
-    gradient.setAttribute('y2', '100%');
-    
-    const stop1 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
-    stop1.setAttribute('offset', '0%');
-    stop1.setAttribute('stop-color', '#f97316');
-    stop1.setAttribute('stop-opacity', '0.3');
-    
-    const stop2 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
-    stop2.setAttribute('offset', '100%');
-    stop2.setAttribute('stop-color', '#ea580c');
-    stop2.setAttribute('stop-opacity', '0.1');
-    
-    gradient.appendChild(stop1);
-    gradient.appendChild(stop2);
-    defs.appendChild(gradient);
-    svg.appendChild(defs);
-    
-    // Create path
-    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-    let pathData = '';
-    
-    data.forEach((point, index) => {
-      const x = (index / (data.length - 1)) * width;
-      const y = height - ((point.value - minValue) / range) * height;
-      
-      if (index === 0) {
-        pathData += `M ${x} ${y}`;
-      } else {
-        pathData += ` L ${x} ${y}`;
-      }
-    });
-    
-    path.setAttribute('d', pathData);
-    path.setAttribute('stroke', '#f97316');
-    path.setAttribute('stroke-width', '2');
-    path.setAttribute('fill', 'none');
-    path.setAttribute('stroke-linecap', 'round');
-    path.setAttribute('stroke-linejoin', 'round');
-    
-    // Create area
-    const areaPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-    const areaData = pathData + ` L ${width} ${height} L 0 ${height} Z`;
-    areaPath.setAttribute('d', areaData);
-    areaPath.setAttribute('fill', 'url(#chartGradient)');
-    
-    // Add grid lines
-    for (let i = 0; i <= 4; i++) {
-      const y = (i / 4) * height;
-      const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-      line.setAttribute('x1', '0');
-      line.setAttribute('y1', y.toString());
-      line.setAttribute('x2', width.toString());
-      line.setAttribute('y2', y.toString());
-      line.setAttribute('stroke', '#f1f5f9');
-      line.setAttribute('stroke-width', '1');
-      svg.appendChild(line);
-    }
-    
-    for (let i = 0; i <= 4; i++) {
-      const x = (i / 4) * width;
-      const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-      line.setAttribute('x1', x.toString());
-      line.setAttribute('y1', '0');
-      line.setAttribute('x2', x.toString());
-      line.setAttribute('y2', height.toString());
-      line.setAttribute('stroke', '#f1f5f9');
-      line.setAttribute('stroke-width', '1');
-      svg.appendChild(line);
-    }
-    
-    // Add price labels on the right
-    for (let i = 0; i <= 4; i++) {
-      const y = (i / 4) * height;
-      const price = maxValue - (i / 4) * range;
-      const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-      label.setAttribute('x', (width - 8).toString());
-      label.setAttribute('y', (y + 4).toString());
-      label.setAttribute('font-family', 'Arial, sans-serif');
-      label.setAttribute('font-size', '10');
-      label.setAttribute('fill', '#64748b');
-      label.setAttribute('text-anchor', 'end');
-      label.textContent = formatPrice(price, currency);
-      svg.appendChild(label);
-    }
-    
-    // Add time labels at the bottom
-    for (let i = 0; i <= 4; i++) {
-      const x = (i / 4) * width;
-      const dataIndex = Math.floor((i / 4) * (data.length - 1));
-      const timestamp = data[dataIndex]?.time;
-      if (timestamp) {
-        const date = new Date(Number(timestamp) * 1000);
-        const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-        label.setAttribute('x', x.toString());
-        label.setAttribute('y', (height - 8).toString());
-        label.setAttribute('font-family', 'Arial, sans-serif');
-        label.setAttribute('font-size', '10');
-        label.setAttribute('fill', '#94a3b8');
-        label.setAttribute('text-anchor', 'middle');
-        const timeLabel = timeframe === '1D' 
-          ? date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
-          : date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-        label.textContent = timeLabel;
-        svg.appendChild(label);
-      }
-    }
-    
-    svg.appendChild(areaPath);
-    svg.appendChild(path);
-    
-    // Add title
-    const title = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-    title.setAttribute('x', '20');
-    title.setAttribute('y', '30');
-    title.setAttribute('font-family', 'Arial, sans-serif');
-    title.setAttribute('font-size', '18');
-    title.setAttribute('font-weight', 'bold');
-    title.setAttribute('fill', '#f97316');
-    title.textContent = `${coin?.name || 'Crypto'} Price Chart`;
-    
-    // Add subtitle with timeframe
-    const subtitle = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-    subtitle.setAttribute('x', '20');
-    subtitle.setAttribute('y', '50');
-    subtitle.setAttribute('font-family', 'Arial, sans-serif');
-    subtitle.setAttribute('font-size', '12');
-    subtitle.setAttribute('fill', '#64748b');
-    subtitle.textContent = `${timeframe} timeframe • ${data.length} data points`;
-    
-    // Add current price
-    const currentPrice = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-    currentPrice.setAttribute('x', '20');
-    currentPrice.setAttribute('y', '70');
-    currentPrice.setAttribute('font-family', 'Arial, sans-serif');
-    currentPrice.setAttribute('font-size', '14');
-    currentPrice.setAttribute('font-weight', 'bold');
-    currentPrice.setAttribute('fill', '#0f172a');
-    currentPrice.textContent = `Current: ${formatPrice(data[data.length - 1]?.value || 0, currency)}`;
-    
-    // Add price change
-    const priceChange = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-    const change = data.length > 1 ? ((data[data.length - 1].value - data[0].value) / data[0].value * 100) : 0;
-    priceChange.setAttribute('x', '20');
-    priceChange.setAttribute('y', '90');
-    priceChange.setAttribute('font-family', 'Arial, sans-serif');
-    priceChange.setAttribute('font-size', '14');
-    priceChange.setAttribute('font-weight', 'bold');
-    priceChange.setAttribute('fill', change >= 0 ? '#059669' : '#dc2626');
-    priceChange.textContent = `Change: ${change >= 0 ? '+' : ''}${change.toFixed(2)}%`;
-    
-    svg.appendChild(title);
-    svg.appendChild(subtitle);
-    svg.appendChild(currentPrice);
-    svg.appendChild(priceChange);
-    
-    // Add status indicator
-    const statusCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-    statusCircle.setAttribute('cx', (width - 30).toString());
-    statusCircle.setAttribute('cy', '30');
-    statusCircle.setAttribute('r', '8');
-    statusCircle.setAttribute('fill', '#f97316');
-    
-    const statusText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-    statusText.setAttribute('x', (width - 15).toString());
-    statusText.setAttribute('y', '35');
-    statusText.setAttribute('font-family', 'Arial, sans-serif');
-    statusText.setAttribute('font-size', '12');
-    statusText.setAttribute('font-weight', 'bold');
-    statusText.setAttribute('fill', '#ea580c');
-    statusText.textContent = 'LIVE';
-    
-    svg.appendChild(statusCircle);
-    svg.appendChild(statusText);
-    
-    container.appendChild(svg);
-  };
-
-  // Initialize chart when component mounts
-  useEffect(() => {
-    let cleanup: (() => void) | undefined;
-    const timer = setTimeout(() => {
+    const direct = `https://api.coingecko.com${path}`;
+    const candidates = [
+      direct,
+      `https://corsproxy.io/?${encodeURIComponent(direct)}`,
+      `https://c-back-seven.vercel.app${direct}`,
+    ];
+    let lastErr: any = null;
+    for (const url of candidates) {
       try {
-        cleanup = initializeChart();
-      } catch (error) {
-        console.error('Error initializing TradingView chart:', error);
-        // If TradingView fails, we'll use the fallback SVG chart when data is available
-      }
-    }, 100);
-
-    return () => {
-      clearTimeout(timer);
-      if (cleanup) {
-        cleanup();
-      }
-    };
+        const res = await fetch(url, { headers: { Accept: 'application/json' } });
+        if (!res.ok) { lastErr = new Error(`HTTP ${res.status}`); continue; }
+        const json = await res.json();
+        try { sessionStorage.setItem(cacheKey, JSON.stringify({ t: Date.now(), d: json })); } catch { /* ignore */ }
+        return json;
+      } catch (e) { lastErr = e; }
+    }
+    throw lastErr || new Error('All endpoints failed');
   }, []);
 
-  // Update chart data whenever chartData changes
+  // ── Fetch coin data ─────────────────────────────────────────────
   useEffect(() => {
-    if (chartData.length > 0) {
-      if (!chartInstanceRef.current || !seriesRef.current) {
-        // Try to initialize TradingView chart
-        try {
-          initializeChart();
-          setTimeout(() => {
-            if (seriesRef.current) {
-              updateChartData(chartData);
-            } else {
-              // Fallback to SVG chart
-              createFallbackChart(chartData);
-            }
-          }, 300);
-        } catch (error) {
-          console.error('TradingView chart failed, using SVG fallback:', error);
-          createFallbackChart(chartData);
+    if (!coinId) return;
+    let cancelled = false;
+
+    const run = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const path = `/api/v3/coins/${coinId}?localization=false&tickers=false&market_data=true&community_data=false&developer_data=false&sparkline=false`;
+        const data = await fetchJsonResilient(path, 60_000);
+        if (!cancelled) setCoin(data);
+      } catch (err: any) {
+        if (!cancelled) {
+          console.error('coin fetch failed', err);
+          setError('Live data unavailable. Showing cached metadata.');
         }
-      } else {
-        updateChartData(chartData);
+      } finally {
+        if (!cancelled) setLoading(false);
       }
-    }
-  }, [chartData]);
+    };
 
-  // Re-initialize chart when timeframe changes
+    run();
+    const id = setInterval(run, 60_000);
+    return () => { cancelled = true; clearInterval(id); };
+  }, [coinId, fetchJsonResilient]);
+
+  // ── Fetch chart series ──────────────────────────────────────────
   useEffect(() => {
-    if (chartInstanceRef.current) {
-      initializeChart();
-    }
-  }, [timeframe]);
+    if (!coinId) return;
+    let cancelled = false;
 
-  const formatNumber = (num: number) => {
-    if (num >= 1e12) return (num / 1e12).toFixed(2) + 'T';
-    if (num >= 1e9) return (num / 1e9).toFixed(2) + 'B';
-    if (num >= 1e6) return (num / 1e6).toFixed(2) + 'M';
-    if (num >= 1e3) return (num / 1e3).toFixed(2) + 'K';
-    return num.toFixed(2);
-  };
-
-  const getPriceChangeColor = (change: number | undefined) => {
-    if (change === undefined || change === null) return '#6b7280';
-    return change >= 0 ? '#059669' : '#dc2626';
-  };
-
-  const getPriceChangeIcon = (change: number | undefined) => {
-    if (change === undefined || change === null) return '−';
-    return change >= 0 ? '↗' : '↘';
-  };
-
-  const formatPriceChange = (change: number | undefined) => {
-    if (change === undefined || change === null) return '0.00';
-    return change.toFixed(2);
-  };
-
-  // Get coin image URL from various sources
-  const getCoinImageUrl = (coinId: string): string => {
-    // Map of popular coin IDs to their CoinGecko image URLs
-    const coinImageMap: { [key: string]: string } = {
-      'bitcoin': 'https://assets.coingecko.com/coins/images/1/large/bitcoin.png',
-      'ethereum': 'https://assets.coingecko.com/coins/images/279/large/ethereum.png',
-      'tether': 'https://assets.coingecko.com/coins/images/325/large/Tether.png',
-      'binancecoin': 'https://assets.coingecko.com/coins/images/825/large/bnb-icon2_2x.png',
-      'ripple': 'https://assets.coingecko.com/coins/images/44/large/xrp-symbol-white-128.png',
-      'usd-coin': 'https://assets.coingecko.com/coins/images/6319/large/USD_Coin_icon.png',
-      'solana': 'https://assets.coingecko.com/coins/images/4128/large/solana.png',
-      'cardano': 'https://assets.coingecko.com/coins/images/975/large/cardano.png',
-      'dogecoin': 'https://assets.coingecko.com/coins/images/5/large/dogecoin.png',
-      'tron': 'https://assets.coingecko.com/coins/images/1094/large/tron-logo.png',
-      'polkadot': 'https://assets.coingecko.com/coins/images/12171/large/polkadot.png',
-      'polygon': 'https://assets.coingecko.com/coins/images/4713/large/matic-token-icon.png',
-      'litecoin': 'https://assets.coingecko.com/coins/images/2/large/litecoin.png',
-      'shiba-inu': 'https://assets.coingecko.com/coins/images/11939/large/shiba.png',
-      'avalanche-2': 'https://assets.coingecko.com/coins/images/12559/large/Avalanche_Circle_RedWhite_Trans.png',
-      'chainlink': 'https://assets.coingecko.com/coins/images/877/large/chainlink-new-logo.png',
-      'uniswap': 'https://assets.coingecko.com/coins/images/12504/large/uniswap-uni.png',
-      'stellar': 'https://assets.coingecko.com/coins/images/100/large/Stellar_symbol_black_RGB.png',
-      'monero': 'https://assets.coingecko.com/coins/images/69/large/monero_logo.png',
-      'cosmos': 'https://assets.coingecko.com/coins/images/1481/large/cosmos_hub.png',
-      'ethereum-classic': 'https://assets.coingecko.com/coins/images/453/large/ethereum-classic-logo.png',
-      'filecoin': 'https://assets.coingecko.com/coins/images/12817/large/filecoin.png',
-      'hedera-hashgraph': 'https://assets.coingecko.com/coins/images/3688/large/hbar.png',
-      'internet-computer': 'https://assets.coingecko.com/coins/images/14495/large/Internet_Computer_logo.png',
-      'aptos': 'https://assets.coingecko.com/coins/images/26455/large/aptos_round.png',
-      'arbitrum': 'https://assets.coingecko.com/coins/images/16547/large/photo_2023-03-29_21.47.00.jpeg',
-      'optimism': 'https://assets.coingecko.com/coins/images/25244/large/Optimism.png',
-      'near': 'https://assets.coingecko.com/coins/images/10365/large/near.jpg',
-      'vechain': 'https://assets.coingecko.com/coins/images/1167/large/VET_Token_Icon.png',
-      'aave': 'https://assets.coingecko.com/coins/images/12645/large/AAVE.png',
-    };
-
-    // Return from map if available
-    if (coinImageMap[coinId]) {
-      return coinImageMap[coinId];
-    }
-
-    // Try CoinGecko's thumb endpoint as fallback (smaller but reliable)
-    return `https://assets.coingecko.com/coins/images/1/small/${coinId}.png`;
-  };
-
-  // Create basic mock data as fallback
-  const createBasicMockCoinData = (id: string): CoinData => {
-    return {
-      id: id,
-      name: id.charAt(0).toUpperCase() + id.slice(1).replace(/-/g, ' '),
-      symbol: id.slice(0, 3).toUpperCase(),
-      current_price: 100,
-      price_change_percentage_24h: 0,
-      price_change_percentage_7d: 0,
-      price_change_percentage_30d: 0,
-      market_cap: 1000000000,
-      market_cap_rank: 999,
-      total_volume: 50000000,
-      circulating_supply: 1000000,
-      total_supply: 1000000,
-      max_supply: null,
-      image: getCoinImageUrl(id),
-      description: { en: `Sample data for ${id}. This is placeholder information while we attempt to fetch live data from the API.` },
-      links: {
-        homepage: [],
-        blockchain_site: [],
-        official_forum_url: [],
-        chat_url: [],
-        announcement_url: [],
-        repos_url: { github: [], bitbucket: [] }
-      },
-      market_data: {
-        price_change_24h_in_currency: { usd: 0 },
-        market_cap_change_24h_in_currency: { usd: 0 },
-        total_volume: { usd: 50000000 },
-        market_cap: { usd: 1000000000 }
+    const fetchChart = async () => {
+      setChartLoading(true);
+      setChartError(null);
+      try {
+        const days = TF_TO_DAYS[timeframe];
+        const interval = timeframe === '1D' ? 'hourly' : 'daily';
+        const path = `/api/v3/coins/${coinId}/market_chart?vs_currency=${cur}&days=${days}${days === 1 ? `&interval=${interval}` : ''}`;
+        const ttl = timeframe === '1D' ? 60_000 : timeframe === '7D' ? 5 * 60_000 : 15 * 60_000;
+        const data = await fetchJsonResilient(path, ttl);
+        const prices: [number, number][] = data?.prices || [];
+        if (!prices.length) throw new Error('empty series');
+        // Dedupe timestamps (lightweight-charts requires monotonic, unique time)
+        const seen = new Set<number>();
+        const points: ChartPoint[] = [];
+        for (const [ms, v] of prices) {
+          const t = Math.floor(ms / 1000);
+          if (seen.has(t)) continue;
+          seen.add(t);
+          if (typeof v === 'number' && isFinite(v)) {
+            points.push({ time: t, value: v });
+          }
+        }
+        points.sort((a, b) => a.time - b.time);
+        if (!cancelled) setChartData(points);
+      } catch (err: any) {
+        if (!cancelled) {
+          console.error('chart fetch failed', err);
+          setChartError('Could not load chart data.');
+          setChartData([]);
+        }
+      } finally {
+        if (!cancelled) setChartLoading(false);
       }
     };
-  };
 
-  if (loading) {
+    fetchChart();
+    return () => { cancelled = true; };
+  }, [coinId, cur, timeframe, fetchJsonResilient]);
+
+  // ── Track chart container size ──────────────────────────────────
+  useEffect(() => {
+    const el = chartWrapRef.current;
+    if (!el) return;
+    const measure = () => {
+      const w = Math.max(el.clientWidth, 320);
+      const h = Math.max(el.clientHeight, 280);
+      setChartSize((prev) => (prev.w === w && prev.h === h ? prev : { w, h }));
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  // ── Derived view-model ──────────────────────────────────────────
+  const md = coin?.market_data;
+  const price = md?.current_price?.[cur] ?? md?.current_price?.usd;
+  const marketCap = md?.market_cap?.[cur] ?? md?.market_cap?.usd;
+  const volume = md?.total_volume?.[cur] ?? md?.total_volume?.usd;
+  const fdv = md?.fully_diluted_valuation?.[cur] ?? md?.fully_diluted_valuation?.usd;
+  const high24 = md?.high_24h?.[cur] ?? md?.high_24h?.usd;
+  const low24 = md?.low_24h?.[cur] ?? md?.low_24h?.usd;
+  const ath = md?.ath?.[cur] ?? md?.ath?.usd;
+  const athDate = md?.ath_date?.[cur] ?? md?.ath_date?.usd;
+  const athPct = md?.ath_change_percentage?.[cur] ?? md?.ath_change_percentage?.usd;
+  const atl = md?.atl?.[cur] ?? md?.atl?.usd;
+  const atlDate = md?.atl_date?.[cur] ?? md?.atl_date?.usd;
+  const change24 = md?.price_change_percentage_24h;
+  const change7 = md?.price_change_percentage_7d;
+  const change30 = md?.price_change_percentage_30d;
+  const change1y = md?.price_change_percentage_1y;
+  const supplyCirc = md?.circulating_supply;
+  const supplyTotal = md?.total_supply;
+  const supplyMax = md?.max_supply ?? null;
+
+  const supplyPct = supplyMax && supplyCirc ? Math.min(100, (supplyCirc / supplyMax) * 100) : null;
+
+  const coinImage = useMemo(() => {
+    if (!coin) return '';
+    if (typeof coin.image === 'string') return coin.image;
+    return coin.image?.large || coin.image?.small || coin.image?.thumb || '';
+  }, [coin]);
+
+  const description = useMemo(() => {
+    const raw = coin?.description?.en || '';
+    return raw.replace(/<a /g, '<a target="_blank" rel="noopener noreferrer" ');
+  }, [coin]);
+
+  const shortDesc = useMemo(() => {
+    if (!description) return '';
+    const text = description.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+    if (text.length <= 320) return text;
+    return text.slice(0, 320).replace(/\s\S*$/, '') + '…';
+  }, [description]);
+
+  const homepage = coin?.links?.homepage?.find((u) => !!u && /^https?:\/\//i.test(u));
+  const explorer = coin?.links?.blockchain_site?.find((u) => !!u && /^https?:\/\//i.test(u));
+  const twitter = coin?.links?.twitter_screen_name;
+  const subreddit = coin?.links?.subreddit_url;
+  const github = coin?.links?.repos_url?.github?.find((u) => !!u);
+
+  // ── Render ──────────────────────────────────────────────────────
+  if (loading && !coin) {
     return (
-      <div style={{
-        minHeight: '100vh',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center'
-      }}>
-        <div style={{ textAlign: 'center' }}>
-          <div style={{ position: 'relative' }}>
-            <div style={{
-              width: '80px',
-              height: '80px',
-              border: '4px solid rgba(255,255,255,0.3)',
-              borderTop: '4px solid #ffffff',
-              borderRadius: '50%',
-              animation: 'spin 1s linear infinite',
-              margin: '0 auto',
-              boxShadow: '0 20px 40px rgba(0,0,0,0.2)'
-            }}></div>
-            <div style={{
-              position: 'absolute',
-              inset: 0,
-              border: '4px solid transparent',
-              borderTop: '4px solid rgba(255,255,255,0.6)',
-              borderRadius: '50%',
-              animation: 'spin 1.5s linear infinite reverse'
-            }}></div>
+      <div className="cd-shell">
+        <div className="cd-container cd-skel">
+          <div className="cd-skel__back" />
+          <div className="cd-skel__head">
+            <div className="cd-skel__avatar" />
+            <div className="cd-skel__title" />
           </div>
-          <h3 style={{
-            marginTop: '32px',
-            fontSize: '28px',
-            fontWeight: 700,
-            color: '#ffffff',
-            textShadow: '0 4px 8px rgba(0,0,0,0.3)'
-          }}>Loading {coinId?.toUpperCase()} Data</h3>
-          <p style={{
-            marginTop: '16px',
-            color: 'rgba(255,255,255,0.9)',
-            fontSize: '18px',
-            fontWeight: 500
-          }}>Fetching live market information...</p>
+          <div className="cd-skel__price" />
+          <div className="cd-skel__stats">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="cd-skel__stat" />
+            ))}
+          </div>
+          <div className="cd-skel__chart" />
         </div>
       </div>
     );
@@ -793,497 +490,275 @@ const CoinDetail: React.FC = () => {
 
   if (!coin) {
     return (
-      <div style={{
-        minHeight: '100vh',
-        background: 'linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center'
-      }}>
-        <div style={{
-          textAlign: 'center',
-          maxWidth: '500px',
-          margin: '0 auto',
-          padding: '0 24px'
-        }}>
-          <div style={{
-            fontSize: '120px',
-            color: '#ffffff',
-            marginBottom: '32px',
-            textShadow: '0 8px 16px rgba(0,0,0,0.3)'
-          }}>🚫</div>
-          <h2 style={{
-            fontSize: '36px',
-            fontWeight: 800,
-            color: '#ffffff',
-            marginBottom: '24px',
-            textShadow: '0 4px 8px rgba(0,0,0,0.3)'
-          }}>Coin Not Found</h2>
-          <p style={{
-            color: 'rgba(255,255,255,0.9)',
-            marginBottom: '40px',
-            fontSize: '20px',
-            lineHeight: '1.6'
-          }}>We couldn't find information for "{coinId}". Please check the coin ID and try again.</p>
-          <button
-            onClick={() => navigate('/')}
-            style={{
-              width: '100%',
-              background: 'linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%)',
-              color: '#333',
-              padding: '20px 40px',
-              borderRadius: '16px',
-              border: 'none',
-              fontSize: '18px',
-              fontWeight: 700,
-              cursor: 'pointer',
-              boxShadow: '0 20px 40px rgba(0,0,0,0.2)',
-              transition: 'all 0.3s ease'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'translateY(-4px)';
-              e.currentTarget.style.boxShadow = '0 25px 50px rgba(0,0,0,0.3)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'translateY(0)';
-              e.currentTarget.style.boxShadow = '0 20px 40px rgba(0,0,0,0.2)';
-            }}
-          >
-            🏠 Go Back Home
+      <div className="cd-shell">
+        <div className="cd-container cd-empty">
+          <h1>Couldn't find “{coinId}”.</h1>
+          <p>{error || 'CoinGecko returned no data for this asset.'}</p>
+          <button className="cd-btn cd-btn--ghost" onClick={() => navigate('/')}>
+            <ArrowLeft size={16} /> Back home
           </button>
         </div>
       </div>
     );
   }
 
+  const change24Class = safePct(change24) >= 0 ? 'is-up' : 'is-down';
+
   return (
-    <div style={{
-      minHeight: '100vh',
-      background: '#f8fafc',
-      position: 'relative'
-    }}>
+    <div className="cd-shell">
+      <Helmet>
+        <title>{coin.name} ({coin.symbol?.toUpperCase()}) Price, Chart & Market Cap | CoinsClarity</title>
+        <meta name="description" content={`Live ${coin.name} (${coin.symbol?.toUpperCase()}) price, chart and market data.`} />
+      </Helmet>
 
-      {/* Header */}
-      <div style={{
-        backgroundColor: '#ffffff',
-        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-        borderBottom: '1px solid #e5e7eb',
-        position: 'sticky',
-        top: 0,
-        zIndex: 1000
-      }}>
-        <div style={{
-          maxWidth: '1200px',
-          margin: '0 auto',
-          padding: '0 24px'
-        }}>
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: '16px 0'
-          }}>
-            <button
-              onClick={() => navigate('/')}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                color: '#6b7280',
-                border: 'none',
-                background: 'transparent',
-                cursor: 'pointer',
-                fontSize: '14px',
-                fontWeight: 500,
-                padding: '8px 0',
-                transition: 'color 0.2s ease'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.color = '#f97316';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.color = '#6b7280';
-              }}
-            >
-              <svg style={{ width: '16px', height: '16px', marginRight: '6px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-              Back
-            </button>
-
-            <span style={{
-              fontSize: '12px',
-              color: '#9ca3af',
-              fontWeight: 500
-            }}>
-              Last updated: {lastUpdate.toLocaleTimeString()}
-            </span>
+      <div className="cd-topbar">
+        <div className="cd-container cd-topbar__inner">
+          <button className="cd-back" onClick={() => navigate(-1)} aria-label="Back">
+            <ArrowLeft size={16} /> Back
+          </button>
+          <Link to="/" className="cd-crumbs">
+            <span>Home</span>
+            <span className="cd-crumbs__sep">/</span>
+            <span>Markets</span>
+            <span className="cd-crumbs__sep">/</span>
+            <strong>{coin.name}</strong>
+          </Link>
+          <div className="cd-topbar__refresh">
+            <RefreshCw size={14} />
+            <span>Live · refreshes every 60s</span>
           </div>
         </div>
       </div>
 
-      <div className="coin-detail-container" style={{
-        maxWidth: '1200px',
-        margin: '0 auto',
-        padding: '32px 24px',
-        position: 'relative',
-        zIndex: 1
-      }}>
-        {/* Error Indicator */}
+      <div className="cd-container cd-main">
         {error && (
-          <div style={{
-            background: '#fef3c7',
-            border: '1px solid #fbbf24',
-            borderRadius: '12px',
-            padding: '16px 20px',
-            marginBottom: '24px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '12px'
-          }}>
-            <span style={{ fontSize: '18px' }}>⚠️</span>
-            <p style={{ color: '#92400e', fontWeight: 500, margin: 0, fontSize: '14px' }}>
-              Showing sample data. Live data unavailable.
-            </p>
+          <div className="cd-banner cd-banner--warn">
+            <span>{error}</span>
           </div>
         )}
-        
-        {/* Coin Header */}
-        <div className="coin-header" style={{
-          background: '#ffffff',
-          borderRadius: '16px',
-          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
-          border: '1px solid #e5e7eb',
-          padding: '32px',
-          marginBottom: '24px',
-          position: 'relative',
-          overflow: 'hidden'
-        }}>
-          <div>
-            <div className="coin-header-content" style={{
-              display: 'flex',
-              alignItems: 'center',
-              marginBottom: '24px'
-            }}>
-              <img
-                src={coin.image}
-                alt={coin.name}
-                style={{
-                  width: '64px',
-                  height: '64px',
-                  borderRadius: '12px',
-                  marginRight: '20px',
-                  backgroundColor: '#f3f4f6',
-                  objectFit: 'contain'
-                }}
-                loading="lazy"
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  // Try CoinGecko CDN if current image fails
-                  if (!target.src.includes('coingecko')) {
-                    target.src = `https://assets.coingecko.com/coins/images/1/large/${coin.id}.png`;
-                  } else {
-                    // Final fallback - show coin initial
-                    target.style.display = 'none';
-                    const parent = target.parentElement;
-                    if (parent && !parent.querySelector('.coin-fallback-icon')) {
-                      const fallback = document.createElement('div');
-                      fallback.className = 'coin-fallback-icon';
-                      fallback.style.cssText = 'width: 64px; height: 64px; border-radius: 12px; margin-right: 20px; background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 24px;';
-                      fallback.textContent = coin.symbol?.charAt(0) || coin.name?.charAt(0) || '?';
-                      parent.insertBefore(fallback, target);
-                    }
-                  }
-                }}
-              />
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '4px' }}>
-                  <h1 style={{
-                    fontSize: '24px',
-                    fontWeight: 700,
-                    color: '#1f2937',
-                    margin: 0
-                  }}>{coin.name}</h1>
-                  <span style={{
-                    fontSize: '14px',
-                    fontWeight: 600,
-                    color: '#6b7280',
-                    textTransform: 'uppercase',
-                    background: '#f3f4f6',
-                    padding: '4px 8px',
-                    borderRadius: '6px'
-                  }}>{coin.symbol}</span>
-                  {coin.market_cap_rank && (
-                    <span style={{
-                      fontSize: '12px',
-                      fontWeight: 600,
-                      color: '#f97316',
-                      background: '#fff7ed',
-                      padding: '4px 8px',
-                      borderRadius: '6px'
-                    }}>Rank #{coin.market_cap_rank}</span>
-                  )}
-                </div>
-                <div style={{ display: 'flex', alignItems: 'baseline', gap: '12px' }}>
-                  <span style={{
-                    fontSize: '32px',
-                    fontWeight: 700,
-                    color: '#1f2937'
-                  }}>{formatPrice(coin.current_price)}</span>
-                  <span style={{
-                    fontSize: '16px',
-                    fontWeight: 600,
-                    color: coin.price_change_percentage_24h >= 0 ? '#10b981' : '#ef4444'
-                  }}>
-                    {coin.price_change_percentage_24h >= 0 ? '↑' : '↓'} {Math.abs(coin.price_change_percentage_24h || 0).toFixed(2)}%
-                  </span>
-                </div>
-              </div>
-              <div style={{ marginLeft: 'auto' }}>
-                <WatchlistButton
-                  coin={{
-                    id: coin.id,
-                    symbol: coin.symbol,
-                    name: coin.name,
-                    image: coin.image,
-                    priceAtAdd: coin.current_price
-                  }}
-                  variant="button"
-                />
-              </div>
-            </div>
 
-            {/* Stats Grid */}
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
-              gap: '16px',
-              padding: '20px 0',
-              borderTop: '1px solid #e5e7eb'
-            }}>
-              <div>
-                <p style={{ fontSize: '12px', color: '#6b7280', margin: '0 0 4px 0', fontWeight: 500 }}>Market Cap</p>
-                <p style={{ fontSize: '16px', color: '#1f2937', margin: 0, fontWeight: 600 }}>{formatPrice(coin.market_cap)}</p>
-              </div>
-              <div>
-                <p style={{ fontSize: '12px', color: '#6b7280', margin: '0 0 4px 0', fontWeight: 500 }}>24h Volume</p>
-                <p style={{ fontSize: '16px', color: '#1f2937', margin: 0, fontWeight: 600 }}>{formatPrice(coin.total_volume)}</p>
-              </div>
-              <div>
-                <p style={{ fontSize: '12px', color: '#6b7280', margin: '0 0 4px 0', fontWeight: 500 }}>Circulating Supply</p>
-                <p style={{ fontSize: '16px', color: '#1f2937', margin: 0, fontWeight: 600 }}>{coin.circulating_supply?.toLocaleString() || 'N/A'}</p>
-              </div>
-              {coin.max_supply && (
-                <div>
-                  <p style={{ fontSize: '12px', color: '#6b7280', margin: '0 0 4px 0', fontWeight: 500 }}>Max Supply</p>
-                  <p style={{ fontSize: '16px', color: '#1f2937', margin: 0, fontWeight: 600 }}>{coin.max_supply.toLocaleString()}</p>
-                </div>
-              )}
+        {/* HERO */}
+        <header className="cd-hero">
+          <div className="cd-hero__id">
+            <img
+              className="cd-hero__logo"
+              src={resolveImageSrc(coinImage, coin.name, 'coin')}
+              alt={coin.name}
+              loading="eager"
+              onError={(e) => handleImageError(e, coin.name, 'coin')}
+            />
+            <div className="cd-hero__meta">
+              <h1 className="cd-hero__name">
+                {coin.name}
+                <span className="cd-hero__symbol">{coin.symbol?.toUpperCase()}</span>
+              </h1>
+              {coin.market_cap_rank ? <span className="cd-hero__rank">Rank #{coin.market_cap_rank}</span> : null}
             </div>
           </div>
-        </div>
 
-        {/* Chart Section */}
-        <div style={{
-          background: '#ffffff',
-          borderRadius: '16px',
-          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
-          border: '1px solid #e5e7eb',
-          padding: '24px',
-          marginBottom: '24px'
-        }}>
-          <div style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            marginBottom: '20px',
-            flexWrap: 'wrap',
-            gap: '12px'
-          }}>
-            <div>
-              <h2 style={{ fontSize: '18px', fontWeight: 600, color: '#1f2937', margin: '0 0 4px 0' }}>Price Chart</h2>
-              <p style={{ fontSize: '12px', color: '#9ca3af', margin: 0 }}>
-                {coin?.name} price over time
-              </p>
+          <div className="cd-hero__price-block">
+            <div className="cd-hero__price">
+              {price !== undefined ? formatPrice(price) : '—'}
             </div>
-            <div style={{
-              display: 'flex',
-              gap: '6px',
-              background: '#f3f4f6',
-              padding: '4px',
-              borderRadius: '10px'
-            }}>
-              {(['1D', '7D', '30D', '1Y'] as const).map((tf) => (
+            <div className={`cd-hero__change ${change24Class}`}>
+              {safePct(change24) >= 0 ? <TrendingUp size={16} /> : <TrendingDown size={16} />}
+              {niceFmtPercent(change24)}
+              <span className="cd-hero__change-label">24h</span>
+            </div>
+          </div>
+
+          <div className="cd-hero__actions">
+            <WatchlistButton
+              coin={{
+                id: coin.id,
+                symbol: coin.symbol,
+                name: coin.name,
+                image: coinImage,
+                priceAtAdd: price,
+              }}
+              variant="button"
+            />
+          </div>
+        </header>
+
+        {/* PERFORMANCE STRIP */}
+        <section className="cd-perf">
+          {[
+            { label: '24h', val: change24 },
+            { label: '7d', val: change7 },
+            { label: '30d', val: change30 },
+            { label: '1y', val: change1y },
+          ].map((p) => (
+            <div key={p.label} className={`cd-perf__cell ${safePct(p.val) >= 0 ? 'is-up' : 'is-down'}`}>
+              <span className="cd-perf__label">{p.label}</span>
+              <span className="cd-perf__value">{niceFmtPercent(p.val)}</span>
+            </div>
+          ))}
+        </section>
+
+        {/* CHART */}
+        <section className="cd-card cd-chart">
+          <div className="cd-chart__head">
+            <div>
+              <h2>Price chart</h2>
+              <p>{coin.name} · {timeframe === 'MAX' ? 'all time' : timeframe}</p>
+            </div>
+            <div className="cd-tabs">
+              {(['1D', '7D', '30D', '1Y', 'MAX'] as Timeframe[]).map((tf) => (
                 <button
                   key={tf}
                   onClick={() => setTimeframe(tf)}
-                  style={{
-                    padding: '8px 16px',
-                    borderRadius: '8px',
-                    border: 'none',
-                    fontSize: '13px',
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                    background: timeframe === tf ? '#ffffff' : 'transparent',
-                    color: timeframe === tf ? '#f97316' : '#6b7280',
-                    boxShadow: timeframe === tf ? '0 1px 3px rgba(0, 0, 0, 0.1)' : 'none',
-                    transition: 'all 0.2s ease'
-                  }}
-                  onMouseEnter={(e) => {
-                    if (timeframe !== tf) {
-                      e.currentTarget.style.color = '#f97316';
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (timeframe !== tf) {
-                      e.currentTarget.style.color = '#6b7280';
-                    }
-                  }}
+                  className={`cd-tab ${timeframe === tf ? 'is-active' : ''}`}
                 >
                   {tf}
                 </button>
               ))}
             </div>
           </div>
-          <div style={{
-            position: 'relative',
-            height: window.innerWidth < 768 ? '300px' : '400px',
-            width: '100%',
-            borderRadius: '8px',
-            overflow: 'hidden'
-          }}>
-            <div ref={chartRef} style={{ height: '100%', width: '100%' }}></div>
+
+          <div className="cd-chart__canvas" ref={chartWrapRef}>
+            {chartData.length > 1 ? (
+              <PriceChart
+                data={chartData}
+                width={chartSize.w}
+                height={chartSize.h}
+                timeframe={timeframe}
+                formatPrice={(v) => formatPrice(v)}
+                hover={hover}
+                onHover={setHover}
+              />
+            ) : !chartLoading && !chartError ? (
+              <div className="cd-chart__overlay">
+                <p style={{ color: 'var(--text-muted, #6b7280)', fontSize: 13 }}>No chart data.</p>
+              </div>
+            ) : null}
             {chartLoading && (
-              <div style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                background: 'rgba(255, 255, 255, 0.9)',
-                backdropFilter: 'blur(4px)'
-              }}>
-                <div style={{ textAlign: 'center' }}>
-                  <div style={{
-                    width: '40px',
-                    height: '40px',
-                    border: '3px solid #f3f4f6',
-                    borderTop: '3px solid #f97316',
-                    borderRadius: '50%',
-                    animation: 'spin 1s linear infinite',
-                    margin: '0 auto 12px'
-                  }}></div>
-                  <p style={{
-                    margin: 0,
-                    fontSize: '14px',
-                    color: '#6b7280',
-                    fontWeight: 500
-                  }}>Loading chart...</p>
-                </div>
+              <div className="cd-chart__overlay">
+                <div className="cd-spinner" />
+              </div>
+            )}
+            {chartError && !chartLoading && (
+              <div className="cd-chart__overlay cd-chart__error">
+                <p>{chartError}</p>
+                <button className="cd-btn cd-btn--ghost" onClick={() => setTimeframe(timeframe)}>Retry</button>
               </div>
             )}
           </div>
-        </div>
+        </section>
 
-        {/* Description */}
-        {coin.description?.en && (
-          <div style={{
-            background: '#ffffff',
-            borderRadius: '16px',
-            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-            border: '1px solid #e5e7eb',
-            padding: '24px',
-            marginBottom: '24px'
-          }}>
-            <h2 style={{ fontSize: '18px', fontWeight: 600, color: '#1f2937', margin: '0 0 16px 0' }}>About {coin.name}</h2>
-            <p style={{
-              fontSize: '14px',
-              color: '#4b5563',
-              lineHeight: '1.7',
-              margin: 0
-            }} dangerouslySetInnerHTML={{
-              __html: coin.description.en.split('. ').slice(0, 3).join('. ') + '.'
-            }} />
+        {/* STATS */}
+        <section className="cd-stats">
+          <div className="cd-stat">
+            <span className="cd-stat__label">Market cap</span>
+            <span className="cd-stat__value">{marketCap !== undefined ? formatPrice(marketCap) : '—'}</span>
           </div>
-        )}
-      </div>
+          <div className="cd-stat">
+            <span className="cd-stat__label">24h volume</span>
+            <span className="cd-stat__value">{volume !== undefined ? formatPrice(volume) : '—'}</span>
+          </div>
+          <div className="cd-stat">
+            <span className="cd-stat__label">Fully diluted valuation</span>
+            <span className="cd-stat__value">{fdv !== undefined ? formatPrice(fdv) : '—'}</span>
+          </div>
+          <div className="cd-stat">
+            <span className="cd-stat__label">24h range</span>
+            <span className="cd-stat__value cd-stat__value--small">
+              {low24 !== undefined ? formatPrice(low24) : '—'} – {high24 !== undefined ? formatPrice(high24) : '—'}
+            </span>
+          </div>
+          <div className="cd-stat">
+            <span className="cd-stat__label">All-time high</span>
+            <span className="cd-stat__value">{ath !== undefined ? formatPrice(ath) : '—'}</span>
+            {athPct !== undefined && (
+              <span className={`cd-stat__sub ${safePct(athPct) >= 0 ? 'is-up' : 'is-down'}`}>
+                {niceFmtPercent(athPct)} {athDate ? `· ${formatRelativeDate(athDate)}` : ''}
+              </span>
+            )}
+          </div>
+          <div className="cd-stat">
+            <span className="cd-stat__label">All-time low</span>
+            <span className="cd-stat__value">{atl !== undefined ? formatPrice(atl) : '—'}</span>
+            {atlDate && <span className="cd-stat__sub">{formatRelativeDate(atlDate)}</span>}
+          </div>
+          <div className="cd-stat">
+            <span className="cd-stat__label">Circulating supply</span>
+            <span className="cd-stat__value">{formatSupply(supplyCirc)} <small>{coin.symbol?.toUpperCase()}</small></span>
+            {supplyPct !== null && (
+              <div className="cd-supply">
+                <div className="cd-supply__bar"><div style={{ width: `${supplyPct}%` }} /></div>
+                <span>{supplyPct.toFixed(1)}% of max</span>
+              </div>
+            )}
+          </div>
+          <div className="cd-stat">
+            <span className="cd-stat__label">Total / Max supply</span>
+            <span className="cd-stat__value cd-stat__value--small">
+              {formatSupply(supplyTotal)} / {supplyMax ? formatSupply(supplyMax) : '∞'}
+            </span>
+          </div>
+        </section>
 
-      <style>{`
-        @keyframes spin {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
-        }
-      `}</style>
+        {/* ABOUT + LINKS */}
+        <section className="cd-grid">
+          {description && (
+            <div className="cd-card cd-about">
+              <h2>About {coin.name}</h2>
+              <div
+                className={`cd-prose ${showFullDesc ? '' : 'is-clamped'}`}
+                dangerouslySetInnerHTML={{ __html: showFullDesc ? description : `<p>${shortDesc}</p>` }}
+              />
+              {description.length > 320 && (
+                <button className="cd-link" onClick={() => setShowFullDesc((v) => !v)}>
+                  {showFullDesc ? 'Read less' : 'Read more'}
+                </button>
+              )}
+            </div>
+          )}
+
+          <aside className="cd-card cd-links">
+            <h3>Links</h3>
+            <ul>
+              {homepage && (
+                <li>
+                  <a href={homepage} target="_blank" rel="noopener noreferrer">
+                    <Globe size={16} /> <span>{stripHostname(homepage)}</span> <ExternalLink size={12} />
+                  </a>
+                </li>
+              )}
+              {explorer && (
+                <li>
+                  <a href={explorer} target="_blank" rel="noopener noreferrer">
+                    <ExternalLink size={16} /> <span>{stripHostname(explorer)}</span> <ExternalLink size={12} />
+                  </a>
+                </li>
+              )}
+              {twitter && (
+                <li>
+                  <a href={`https://twitter.com/${twitter}`} target="_blank" rel="noopener noreferrer">
+                    <Twitter size={16} /> <span>@{twitter}</span> <ExternalLink size={12} />
+                  </a>
+                </li>
+              )}
+              {subreddit && (
+                <li>
+                  <a href={subreddit} target="_blank" rel="noopener noreferrer">
+                    <MessageCircle size={16} /> <span>Reddit</span> <ExternalLink size={12} />
+                  </a>
+                </li>
+              )}
+              {github && (
+                <li>
+                  <a href={github} target="_blank" rel="noopener noreferrer">
+                    <Github size={16} /> <span>GitHub</span> <ExternalLink size={12} />
+                  </a>
+                </li>
+              )}
+            </ul>
+          </aside>
+        </section>
+      </div>
     </div>
   );
 };
-
-// Helper function to get coin image URL
-function getDefaultCoinImageUrl(coinId: string): string {
-  const coinImageMap: { [key: string]: string } = {
-    'bitcoin': 'https://assets.coingecko.com/coins/images/1/large/bitcoin.png',
-    'ethereum': 'https://assets.coingecko.com/coins/images/279/large/ethereum.png',
-    'tether': 'https://assets.coingecko.com/coins/images/325/large/Tether.png',
-    'binancecoin': 'https://assets.coingecko.com/coins/images/825/large/bnb-icon2_2x.png',
-    'ripple': 'https://assets.coingecko.com/coins/images/44/large/xrp-symbol-white-128.png',
-    'usd-coin': 'https://assets.coingecko.com/coins/images/6319/large/USD_Coin_icon.png',
-    'solana': 'https://assets.coingecko.com/coins/images/4128/large/solana.png',
-    'cardano': 'https://assets.coingecko.com/coins/images/975/large/cardano.png',
-    'dogecoin': 'https://assets.coingecko.com/coins/images/5/large/dogecoin.png',
-    'tron': 'https://assets.coingecko.com/coins/images/1094/large/tron-logo.png',
-    'polkadot': 'https://assets.coingecko.com/coins/images/12171/large/polkadot.png',
-    'polygon': 'https://assets.coingecko.com/coins/images/4713/large/matic-token-icon.png',
-    'litecoin': 'https://assets.coingecko.com/coins/images/2/large/litecoin.png',
-    'shiba-inu': 'https://assets.coingecko.com/coins/images/11939/large/shiba.png',
-    'avalanche-2': 'https://assets.coingecko.com/coins/images/12559/large/Avalanche_Circle_RedWhite_Trans.png',
-    'chainlink': 'https://assets.coingecko.com/coins/images/877/large/chainlink-new-logo.png',
-    'uniswap': 'https://assets.coingecko.com/coins/images/12504/large/uniswap-uni.png',
-  };
-
-  if (coinImageMap[coinId]) {
-    return coinImageMap[coinId];
-  }
-
-  // Use CoinGecko CDN pattern as fallback
-  return `https://assets.coingecko.com/coins/images/1/large/${coinId}.png`;
-}
-
-// Helper function to create mock coin data
-function createBasicMockCoinData(coinId: string | undefined): CoinData {
-  const id = coinId || 'unknown';
-  return {
-    id: id,
-    name: coinId ? coinId.charAt(0).toUpperCase() + coinId.slice(1).replace(/-/g, ' ') : 'Unknown Coin',
-    symbol: coinId?.substring(0, 4).toUpperCase() || 'UNK',
-    current_price: Math.random() * 1000,
-    price_change_percentage_24h: (Math.random() - 0.5) * 20,
-    price_change_percentage_7d: (Math.random() - 0.5) * 30,
-    price_change_percentage_30d: (Math.random() - 0.5) * 50,
-    market_cap: Math.floor(Math.random() * 10000000000),
-    market_cap_rank: Math.floor(Math.random() * 100) + 1,
-    total_volume: Math.floor(Math.random() * 1000000000),
-    circulating_supply: Math.floor(Math.random() * 100000000),
-    total_supply: Math.floor(Math.random() * 200000000),
-    max_supply: Math.random() > 0.5 ? Math.floor(Math.random() * 500000000) : null,
-    image: getDefaultCoinImageUrl(id),
-    description: { en: 'Sample cryptocurrency data. Live data is currently unavailable.' },
-    links: {
-      homepage: [],
-      blockchain_site: [],
-      official_forum_url: [],
-      chat_url: [],
-      announcement_url: [],
-      repos_url: { github: [], bitbucket: [] }
-    },
-    market_data: {
-      price_change_24h_in_currency: {},
-      market_cap_change_24h_in_currency: {},
-      total_volume: {},
-      market_cap: {}
-    }
-  };
-}
 
 export default CoinDetail;

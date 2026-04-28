@@ -5,6 +5,8 @@ import './PressNews.css';
 import { useLanguage } from '../context/LanguageContext';
 import { useNewsTranslation } from '../hooks/useNewsTranslation';
 import { useNavigate } from 'react-router-dom';
+import { resolveImageSrc, handleImageError } from '../utils/cryptoImages';
+import NoIndex from './NoIndex';
 
 interface NewsItem {
   article_id?: string;
@@ -157,6 +159,7 @@ const PresNews: React.FC = () => {
 
   return (
     <Container fluid className="mt-5" style={{ width: '92%' }}>
+      <NoIndex />
       <h1 className="mb-4 text-center" style={{ 
         fontSize: '2.5rem', 
         fontWeight: 'bold', 
@@ -205,13 +208,10 @@ const PresNews: React.FC = () => {
                   >
                     <Card.Img 
                       variant="top" 
-                      src={item.image_url} 
+                      src={resolveImageSrc(item.image_url, item.title, 'news')} 
                       alt={item.title}
                       className="news-image"
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        target.src = 'https://via.placeholder.com/400x250?text=News+Image';
-                      }}
+                      onError={(e) => handleImageError(e, item.title, 'news')}
                     />
                   </a>
                   <div className="news-overlay">

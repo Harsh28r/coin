@@ -1,8 +1,15 @@
 User-agent: *
 Allow: /
+Disallow: /news/
+Disallow: /ai-news
+Disallow: /exclusive-news
+Disallow: /press-releases
+Disallow: /search
+Disallow: /admin
+Disallow: /api/
+
+# Allow Google AdSense crawler everywhere so it can serve ads on permitted pages
+User-agent: Mediapartners-Google
+Allow: /
 
 Sitemap: https://coinsclarity.com/sitemap.xml
-# https://www.robotstxt.org/robotstxt.html
-User-agent: *
-Disallow:
-

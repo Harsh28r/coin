@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import Skeleton from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
 import { useNewsTranslation } from '../hooks/useNewsTranslation';
+import NoIndex from '../Components/NoIndex';
 
 interface InDepthItem {
 	article_id: string;
@@ -82,6 +83,7 @@ const InDepthNewsPage: React.FC = () => {
 
 	return (
 		<Container className="mt-4" style={{ maxWidth: 1200 }}>
+			<NoIndex />
 			<h1 className="mb-4 text-center" style={{ 
 				fontSize: '2.5rem', 
 				fontWeight: 'bold', 

@@ -9,6 +9,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { useNewsTranslation } from '../hooks/useNewsTranslation';
 import { extractListingNews } from '../utils/listings';
 import { BRAND_DISPLAY_NAME, stripAppearedFirstOn } from '../utils/branding';
+import { resolveImageSrc, handleImageError } from '../utils/cryptoImages';
 
 interface TrendingNewsItem {
   article_id?: string;
@@ -218,7 +219,7 @@ const FeaturedCarousel: React.FC = () => {
             description: it.description || '',
             creator: it.creator || ['Unknown'],
             pubDate: it.pubDate || new Date().toISOString(),
-            image_url: it.image_url || '/image.png?height=450&width=800&text=News',
+            image_url: getNewsImageUrl(it),
             link: it.link || '#',
             source,
             content: it.content || it.description || ''
@@ -281,7 +282,7 @@ const FeaturedCarousel: React.FC = () => {
             description: li.description || li.content || '',
             creator: [''],
             pubDate: li.pubDate || new Date().toISOString(),
-            image_url: li.image_url || '/image.png?height=450&width=800&text=Listing',
+            image_url: getNewsImageUrl(li),
             link: li.link || '#',
             source: 'Listings',
             content: li.content || li.description || ''
@@ -545,10 +546,11 @@ const FeaturedCarousel: React.FC = () => {
                   }}
                 >
                   <Card.Img
-                    src={news.image_url || news.image || '/image.png?height=450&width=800&text=News'}
+                    src={resolveImageSrc((news as any).image_url || (news as any).image, news.title, 'news')}
                     alt={news.title}
                     className="rounded-4"
                     style={{ height: '100%', objectFit: 'cover', width: '100%', cursor: 'pointer', backgroundColor: '#0b0f1a' }}
+                    onError={(e) => handleImageError(e, news.title, 'news')}
                     onClick={() => {
                       const id = news.article_id || encodeURIComponent(((news.link as string | undefined) || news.title));
                       const translated = Array.isArray(displayFeatureSlides) ? displayFeatureSlides[index] : null;
@@ -906,17 +908,13 @@ const FeaturedCarousel: React.FC = () => {
                         </Col>
                         <Col xs={4}>
                           <img
-                            src={news.image || (news as any).image_url || SIDE_CAROUSEL_PLACEHOLDER}
+                            src={resolveImageSrc((news as any).image || (news as any).image_url, news.title, 'news')}
                             alt={news.title}
                             className="img-fluid rounded"
                             style={{ height: '103px', objectFit: 'cover', backgroundColor: '#1a1a1a', minWidth: '120px' }}
                             loading="lazy"
                             decoding="async"
-                            onError={(e) => {
-                              const el = e.currentTarget;
-                              if (!el.src || el.src === SIDE_CAROUSEL_PLACEHOLDER_DATAURI) return;
-                              el.src = SIDE_CAROUSEL_PLACEHOLDER_DATAURI;
-                            }}
+                            onError={(e) => handleImageError(e, news.title, 'news')}
                           />
                         </Col>
                       </Row>

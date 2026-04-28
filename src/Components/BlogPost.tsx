@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { BlogPost as BlogPostType } from '../types/blog';
 import PropTypes from 'prop-types';
+import { resolveImageSrc, handleImageError } from '../utils/cryptoImages';
 
 interface BlogPostProps {
   post: BlogPostType;
@@ -146,13 +147,11 @@ const BlogPost: React.FC<BlogPostProps> = ({
         <div className="position-relative">
           <Card.Img 
             variant="top" 
-            src={post.imageUrl} 
+            src={resolveImageSrc(post.imageUrl, post.title, 'blog')} 
             alt={post.title}
             className="object-fit-cover"
             style={{ height: '160px' }}
-            onError={(e) => {
-              e.currentTarget.src = 'https://placehold.co/400x160?text=Blog+Post';
-            }}
+            onError={(e) => handleImageError(e, post.title, 'blog')}
           />
           <div className="position-absolute top-0 start-0 m-2">
             <Badge 
@@ -196,13 +195,11 @@ const BlogPost: React.FC<BlogPostProps> = ({
         <div className="position-relative overflow-hidden">
           <Card.Img 
             variant="top" 
-            src={post.imageUrl} 
+            src={resolveImageSrc(post.imageUrl, post.title, 'blog')} 
             alt={post.title}
             className="object-fit-cover"
             style={{ height: '280px' }}
-            onError={(e) => {
-              e.currentTarget.src = 'https://placehold.co/600x280?text=Featured+Post';
-            }}
+            onError={(e) => handleImageError(e, post.title, 'blog')}
           />
           <div className="position-absolute top-0 start-0 m-3">
             <Badge 
@@ -291,16 +288,14 @@ const BlogPost: React.FC<BlogPostProps> = ({
 
     return (
       <Card className="border-0 shadow-sm mb-5">
-        {post.imageUrl && (
-          <Card.Img
-            variant="top"
-            src={post.imageUrl}
-            alt={post.title}
-            className="object-fit-cover"
-            style={{ maxHeight: '360px' }}
-            onError={(e) => { (e.currentTarget as HTMLImageElement).src = 'https://placehold.co/800x360?text=Blog'; }}
-          />
-        )}
+        <Card.Img
+          variant="top"
+          src={resolveImageSrc(post.imageUrl, post.title, 'blog')}
+          alt={post.title}
+          className="object-fit-cover"
+          style={{ maxHeight: '360px' }}
+          onError={(e) => handleImageError(e, post.title, 'blog')}
+        />
         <Card.Body className="p-4">
           <h1 className="fw-bold mb-3" style={{ fontSize: 'clamp(1.5rem, 2.5vw, 2.25rem)' }}>{post.title}</h1>
           <div className="d-flex align-items-center text-muted mb-4" style={{ gap: 16 }}>
@@ -345,13 +340,11 @@ const BlogPost: React.FC<BlogPostProps> = ({
       <div className="position-relative">
         <Card.Img 
           variant="top" 
-          src={post.imageUrl} 
+          src={resolveImageSrc(post.imageUrl, post.title, 'blog')} 
           alt={post.title}
           className="object-fit-cover"
           style={{ height: '220px' }}
-          onError={(e) => {
-            e.currentTarget.src = 'https://placehold.co/400x220?text=Blog+Post';
-          }}
+          onError={(e) => handleImageError(e, post.title, 'blog')}
         />
         <div className="position-absolute top-0 start-0 m-3">
           <Badge 

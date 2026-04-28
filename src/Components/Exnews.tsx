@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { Container, Row, Col, Card, Button } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import { resolveImageSrc, handleImageError } from '../utils/cryptoImages';
+import NoIndex from './NoIndex';
 
 interface NewsItem {
   article_id?: string;
@@ -62,6 +64,7 @@ const AllNews: React.FC = () => {
 
   return (
     <Container fluid className="mt-5 px-3 px-md-4" style={{ maxWidth: '900px', margin: '0 auto' }}>
+      <NoIndex />
       <h1 className="mb-4 text-center" style={{ 
         fontSize: '2.5rem', 
         fontWeight: 'bold', 
@@ -114,12 +117,13 @@ const AllNews: React.FC = () => {
                 <Col md={4}>
                   <Card.Img
                     variant="top"
-                    src={item.image_url}
+                    src={resolveImageSrc(item.image_url, item.title, 'news')}
                     alt={item.title}
                     className="rounded-start-4"
                     style={{ height: '200px', objectFit: 'cover', backgroundColor: '#1a1a1a' }}
                     loading="lazy"
                     decoding="async"
+                    onError={(e) => handleImageError(e, item.title, 'news')}
                   />
                 </Col>
                 <Col md={8}>

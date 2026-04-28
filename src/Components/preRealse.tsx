@@ -8,7 +8,7 @@ import Skeleton from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css'; // Import skeleton CSS
 import { useLanguage } from '../context/LanguageContext';
 import { useNewsTranslation } from '../hooks/useNewsTranslation';
-import { getCryptoFallbackImage, handleImageError } from '../utils/cryptoImages';
+import { getCryptoFallbackImage, handleImageError, resolveImageSrc } from '../utils/cryptoImages';
 import { Helmet } from 'react-helmet-async';
 
 interface PressReleaseItem {
@@ -319,12 +319,10 @@ const PressRelease: React.FC = () => {
               >
                 <div style={{ position: 'relative', height: '628px', borderRadius: '20px', overflow: 'hidden' }}>
                   <img
-                    src={effectiveMainArticle.image}
+                    src={resolveImageSrc(effectiveMainArticle.image, effectiveMainArticle.title, 'news')}
                     alt={effectiveMainArticle.title}
                     style={{ height: '100%', width: '100%', objectFit: 'cover' }}
-                    onError={(e) => {
-                      handleImageError(e, effectiveMainArticle.title, 'news');
-                    }}
+                    onError={(e) => handleImageError(e, effectiveMainArticle.title, 'news')}
                   />
                   {/* Overlay gradient */}
                   <div
@@ -440,14 +438,12 @@ const PressRelease: React.FC = () => {
                   </Col>
                   <Col xs={4}>
                     <Image
-                      src={release.image}
+                      src={resolveImageSrc(release.image, release.title, 'news')}
                       alt={release.title}
                       fluid
                       className="h-100 object-fit-cover rounded-3"
                       style={{ height: 'auto', maxHeight: '120px' }}
-                      onError={(e) => {
-                        handleImageError(e, release.title, 'news');
-                      }}
+                      onError={(e) => handleImageError(e, release.title, 'news')}
                     />
                   </Col>
                 </Row>

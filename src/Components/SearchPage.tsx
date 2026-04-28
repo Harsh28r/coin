@@ -4,6 +4,7 @@ import { Container, Spinner, Alert, Card, Button, Row, Col, Badge, ButtonGroup, 
 import { useLocation, useNavigate } from 'react-router-dom';
 import _ from 'lodash';
 import { CircleDollarSign, Landmark, Newspaper, Layers, Image as ImageIcon } from 'lucide-react';
+import { resolveImageSrc, handleImageError } from '../utils/cryptoImages';
 
 interface SearchResult {
   type: 'news' | 'coins' | 'exchanges' | 'nfts';
@@ -314,22 +315,12 @@ const SearchPage: React.FC = () => {
       <Col key={`${item.type}-${index}`} xs={12} sm={6} md={4} lg={3} className="d-flex">
         <Card className="mb-3 shadow-sm border-0 rounded-4 flex-fill" style={{ overflow: 'hidden', cursor: 'pointer' }} onClick={() => handleInternalNavigate(item)}>
           <div style={{ position: 'relative', paddingTop: '56%', backgroundColor: '#f8f9fa' }}>
-            {item.image_url || item.image ? (
-              <img
-                src={item.image_url || item.image || ''}
-                alt={item.name || item.title || 'Untitled'}
-                style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
-                onError={(e) => {
-                  const img = e.currentTarget as HTMLImageElement;
-                  img.onerror = null;
-                  img.src = 'https://placehold.co/600x400?text=Image';
-                }}
-              />
-            ) : (
-              <div className="d-flex align-items-center justify-content-center text-muted" style={{ position: 'absolute', inset: 0 }}>
-                <ImageIcon size={24} className="me-2" /> No image
-              </div>
-            )}
+            <img
+              src={resolveImageSrc(item.image_url || item.image, item.name || item.title, item.type === 'nfts' ? 'nft' : 'news')}
+              alt={item.name || item.title || 'Untitled'}
+              style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
+              onError={(e) => handleImageError(e, item.name || item.title, item.type === 'nfts' ? 'nft' : 'news')}
+            />
             <div style={{ position: 'absolute', top: 8, left: 8 }}>{renderTypeBadge(item.type)}</div>
           </div>
           <Card.Body className="d-flex flex-column">

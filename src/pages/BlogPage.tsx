@@ -21,7 +21,7 @@ const BlogPage: React.FC = () => {
             fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
           }}
         >
-          {/* Enhanced Header with subtle shadow */}
+          {/* Enhanced Header with subtle shadow  dd*/}
           <div style={{ 
             boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
             background: 'rgba(255, 255, 255, 0.95)',
