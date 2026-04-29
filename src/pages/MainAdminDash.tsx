@@ -10,6 +10,7 @@ import { useBlog } from '../context/BlogContext';
 import { BlogPost as BlogPostType } from '../types/blog';
 import BlogForm from '../Components/BlogForm';
 import NewsletterAdmin from '../Components/NewsletterAdmin';
+import CustomDigestAdmin from '../Components/CustomDigestAdmin';
 // Single API base (admin side) with multi-base fallback
 const API_BASE_URL: string = (process.env.REACT_APP_API_BASE_URL) || 'https://c-back-seven.vercel.app';
 const getAdminApiBases = (): string[] => {
@@ -639,7 +640,12 @@ const MainDashboard: React.FC = () => {
       case 'users':
         return <UsersSection />;
       case 'newsletter':
-        return <NewsletterAdmin />;
+        return (
+          <>
+            <CustomDigestAdmin fetchJson={fetchJson} />
+            <NewsletterAdmin />
+          </>
+        );
       case 'blog':
         return (
           <>
