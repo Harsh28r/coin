@@ -102,6 +102,7 @@ const NewsDetail: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(!newsItem);
   const [error, setError] = useState<string | null>(null);
   const [statusMsg, setStatusMsg] = useState<string>('Fetching article…');
+  const [bgEnriching, setBgEnriching] = useState<boolean>(false);
 
   const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://c-back-2.onrender.com';
   const CAMIFY = 'https://camify.fun.coinsclarity.com';
@@ -425,13 +426,14 @@ const NewsDetail: React.FC = () => {
 
     const backgroundEnrich = (item: NewsItem) => {
       if (!needsFullFetch(item)) return;
-      // Silent — no visible loader, just swap in when ready.
+      if (!cancelled) setBgEnriching(true);
       fetchFullContent(item.link)
         .then(full => {
           if (!full || cancelled || !id) return;
           mergeFullContent(id, full);
         })
-        .catch(() => {});
+        .catch(() => {})
+        .finally(() => { if (!cancelled) setBgEnriching(false); });
     };
 
     const run = async () => {
@@ -704,7 +706,6 @@ const NewsDetail: React.FC = () => {
       container.querySelectorAll('img').forEach(img => {
         if (matchesHero(img as HTMLImageElement)) {
           const wrap = img.closest('figure, picture, a, p, div');
-          // Only kill the wrapper if it's basically just the image (no real text)
           if (wrap && (wrap.textContent || '').trim().length < 80) {
             wrap.remove();
           } else {
@@ -712,6 +713,30 @@ const NewsDetail: React.FC = () => {
           }
         }
       });
+    }
+
+    // Belt + suspenders: when a hero image is shown, kill the FIRST image in the
+    // body even if the URL doesn't match (some sources rehost/proxy the lead).
+    if (heroBase) {
+      const firstImg = container.querySelector('img');
+      if (firstImg) {
+        // Walk up to the closest top-level child of the container.
+        let node: Element | null = firstImg;
+        while (node && node.parentElement && node.parentElement !== container) {
+          node = node.parentElement;
+        }
+        const block = node || firstImg;
+        const idx = Array.from(container.children).indexOf(block as Element);
+        // Only treat as the lead image if it sits in the first 3 blocks.
+        if (idx >= 0 && idx < 3) {
+          const blockText = (block.textContent || '').trim();
+          if (blockText.length < 120) {
+            block.remove();
+          } else {
+            firstImg.remove();
+          }
+        }
+      }
     }
 
     // Strip leading title/empty/visual blocks. Visual blocks only stripped when a hero
@@ -774,14 +799,57 @@ const NewsDetail: React.FC = () => {
     return container.innerHTML.trim();
   };
 
+  // Pull the first real image out of the body so we can promote it to hero
+  // when the stored image_url is a fake/placeholder. Skips logos, icons,
+  // tracking pixels, etc.
+  const extractFirstImage = (html?: string): string | null => {
+    if (!html || typeof window === 'undefined') return null;
+    try {
+      const tmp = document.createElement('div');
+      tmp.innerHTML = html;
+      const imgs = Array.from(tmp.querySelectorAll('img'));
+      for (const img of imgs) {
+        const src =
+          img.getAttribute('src') ||
+          img.getAttribute('data-src') ||
+          img.getAttribute('data-lazy-src') ||
+          img.getAttribute('data-original') ||
+          (img.getAttribute('srcset') || '').split(',')[0]?.trim().split(/\s+/)[0] ||
+          '';
+        if (!src || !/^https?:/i.test(src)) continue;
+        const lower = src.toLowerCase();
+        if (
+          lower.includes('logo') ||
+          lower.includes('icon') ||
+          lower.includes('avatar') ||
+          lower.includes('1x1') ||
+          lower.includes('pixel') ||
+          lower.includes('tracking')
+        ) continue;
+        const w = parseInt(img.getAttribute('width') || '0', 10);
+        if (w && w < 200) continue;
+        return src;
+      }
+    } catch {}
+    return null;
+  };
+
+  const heroImage = useMemo(() => {
+    const stored = newsItem?.image_url;
+    if (stored && !isFakeImageUrl(stored)) return stored;
+    const fromBody = extractFirstImage(
+      newsItem?.contentHtml || newsItem?.fullContent || newsItem?.content || '',
+    );
+    return fromBody || stored || '';
+  }, [newsItem?.image_url, newsItem?.contentHtml, newsItem?.fullContent, newsItem?.content]);
+
   const getNormalizedContentHtml = (htmlOrText?: string): string => {
     const raw = stripAppearedFirstOn((htmlOrText || '').trim());
     if (!raw) return '';
     const looksLikeHtml = /<[^>]+>/.test(raw);
-    // Pass undefined hero when the stored image_url is a known placeholder so the
-    // sanitizer keeps the article's own lead image instead of stripping it.
-    const realHero = isFakeImageUrl(newsItem?.image_url) ? undefined : newsItem?.image_url;
-    if (looksLikeHtml) return sanitizeScrapedHtml(raw, newsItem?.title, realHero);
+    // Always pass the *resolved* hero (including the one we promoted from body)
+    // so the sanitizer can dedupe it from the article body.
+    if (looksLikeHtml) return sanitizeScrapedHtml(raw, newsItem?.title, heroImage);
     const paragraphs = raw
       .split(/\n{2,}/)
       .map(p => `<p>${p.replace(/\n/g, '<br/>')}</p>`)
@@ -1008,29 +1076,47 @@ const NewsDetail: React.FC = () => {
           </aside>
 
           <article className="ns-article" ref={contentRef}>
-            {(newsItem.image_url || true) && (
-              <figure className="ns-figure">
-                <img
-                  src={resolveImageSrc(newsItem.image_url, newsItem.title, 'news')}
-                  alt={newsItem.title}
-                  loading="eager"
-                  decoding="async"
-                  onError={(e) => handleImageError(e, newsItem.title, 'news')}
-                />
-              </figure>
-            )}
-
-            {(newsItem.contentHtml || newsItem.fullContent || newsItem.content || newsItem.description || '').length > 0 && (
-              <div
-                className="ns-body"
-                style={{ fontSize: `${(1.05 * fontScale).toFixed(2)}rem` }}
-                dangerouslySetInnerHTML={{
-                  __html: getNormalizedContentHtml(
-                    newsItem.contentHtml || newsItem.fullContent || newsItem.content || newsItem.description || '',
-                  ),
-                }}
+            <figure className="ns-figure">
+              <img
+                src={resolveImageSrc(heroImage, newsItem.title, 'news')}
+                alt={newsItem.title}
+                loading="eager"
+                decoding="async"
+                onError={(e) => handleImageError(e, newsItem.title, 'news')}
               />
-            )}
+            </figure>
+
+            {(() => {
+              const bodyHtml =
+                newsItem.contentHtml || newsItem.fullContent || newsItem.content || newsItem.description || '';
+              const haveText = textLength(bodyHtml);
+              const showBodyShimmer = bgEnriching && haveText < 600;
+              return (
+                <>
+                  {haveText > 0 && (
+                    <div
+                      className="ns-body"
+                      style={{ fontSize: `${(1.05 * fontScale).toFixed(2)}rem` }}
+                      dangerouslySetInnerHTML={{ __html: getNormalizedContentHtml(bodyHtml) }}
+                    />
+                  )}
+                  {showBodyShimmer && (
+                    <div className="ns-body-skeleton" role="status" aria-live="polite">
+                      <div className="ns-status ns-status--inline">
+                        <span className="ns-status__dot" />
+                        <span className="ns-status__msg">Loading full article…</span>
+                      </div>
+                      <div className="ns-skeleton ns-skeleton--p shimmer" />
+                      <div className="ns-skeleton ns-skeleton--p shimmer" />
+                      <div className="ns-skeleton ns-skeleton--p ns-skeleton--p-short shimmer" />
+                      <div className="ns-skeleton ns-skeleton--p shimmer" />
+                      <div className="ns-skeleton ns-skeleton--p shimmer" />
+                      <div className="ns-skeleton ns-skeleton--p ns-skeleton--p-short shimmer" />
+                    </div>
+                  )}
+                </>
+              );
+            })()}
 
             <p className="ns-attribution">— {BRAND_DISPLAY_NAME}</p>
 

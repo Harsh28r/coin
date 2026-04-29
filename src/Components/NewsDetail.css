@@ -926,6 +926,15 @@
   color: rgba(255, 255, 255, 0.7);
 }
 
+/* In-body skeleton shown while we scrape the full article in the background */
+.ns-body-skeleton {
+  margin: 16px 0 24px;
+}
+
+.ns-status--inline {
+  margin: 4px 0 16px;
+}
+
 /* ── Responsive ────────────────────────────────────────────── */
 @media (max-width: 900px) {
   .ns-grid {
