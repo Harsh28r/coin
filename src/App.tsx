@@ -46,6 +46,10 @@ import CryptoTools from './Components/CryptoTools';
 import ArbitrageDashboard from './pages/ArbitrageDashboard';
 import AirdropDetail from './pages/AirdropDetail';
 import FloatingAIChat from './Components/FloatingAIChat';
+import FearGreedPage from './pages/tools/FearGreed';
+import GasTrackerPage from './pages/tools/GasTracker';
+import ScamCheckPage from './pages/tools/ScamCheck';
+import CompareCoinsPage from './pages/tools/CompareCoins';
 
 
 const ScrollToTop: React.FC = () => {
@@ -110,6 +114,11 @@ function App() {
                   <Route path="/arbitrage-scanner" element={<ArbitrageDashboard />} />
                   <Route path="/airdrop/:id" element={<AirdropDetail />} />
                   <Route path="/tools" element={<CryptoTools />} />
+                  <Route path="/tools/fear-greed" element={<FearGreedPage />} />
+                  <Route path="/tools/gas" element={<GasTrackerPage />} />
+                  <Route path="/tools/scam-check" element={<ScamCheckPage />} />
+                  <Route path="/compare" element={<CompareCoinsPage />} />
+                  <Route path="/compare/:slug" element={<CompareCoinsPage />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </div>

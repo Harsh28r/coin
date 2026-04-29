@@ -281,6 +281,50 @@ const CryptoTools: React.FC = () => {
             )}
           </div>
 
+          {/* ── Featured dedicated tools (deep-linkable, SEO-friendly) ── */}
+          <div className="mb-5">
+            <div className="text-center mb-3">
+              <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase', color: '#e85d2c' }}>
+                Featured tools
+              </span>
+            </div>
+            <div className="row g-3">
+              {[
+                { to: '/tools/fear-greed',  emoji: '📈', title: 'Fear & Greed Index',  dek: 'Live crypto sentiment gauge with 30-day history.' },
+                { to: '/tools/gas',         emoji: '⛽', title: 'Multi-chain Gas Tracker', dek: 'Live gas across ETH, Polygon, Arbitrum, Base, Optimism, BNB.' },
+                { to: '/tools/scam-check',  emoji: '🛡️', title: 'Scam & Honeypot Checker', dek: 'Paste any token contract — get a 10-point security audit.' },
+                { to: '/compare',           emoji: '⚖️', title: 'Compare Coins',  dek: 'Side-by-side fundamentals for any two cryptos.' },
+              ].map(t => (
+                <div key={t.to} className="col-sm-6 col-lg-3">
+                  <Link
+                    to={t.to}
+                    className="d-block h-100 p-3 rounded-3 text-decoration-none"
+                    style={{
+                      background: '#fff',
+                      border: '1px solid rgba(0,0,0,0.08)',
+                      transition: 'all 0.18s',
+                      color: 'inherit',
+                    }}
+                    onMouseEnter={e => {
+                      (e.currentTarget as HTMLElement).style.transform = 'translateY(-2px)';
+                      (e.currentTarget as HTMLElement).style.borderColor = '#e85d2c';
+                      (e.currentTarget as HTMLElement).style.boxShadow = '0 8px 24px rgba(232,93,44,0.12)';
+                    }}
+                    onMouseLeave={e => {
+                      (e.currentTarget as HTMLElement).style.transform = 'translateY(0)';
+                      (e.currentTarget as HTMLElement).style.borderColor = 'rgba(0,0,0,0.08)';
+                      (e.currentTarget as HTMLElement).style.boxShadow = 'none';
+                    }}
+                  >
+                    <div style={{ fontSize: 28, marginBottom: 6 }}>{t.emoji}</div>
+                    <div style={{ fontWeight: 700, marginBottom: 4 }}>{t.title}</div>
+                    <div style={{ fontSize: 13, color: '#64748b' }}>{t.dek}</div>
+                  </Link>
+                </div>
+              ))}
+            </div>
+          </div>
+
           {/* Navigation Tabs */}
           <Nav variant="pills" className="justify-content-center mb-4 flex-wrap gap-2">
             <Nav.Item>

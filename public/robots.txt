@@ -1,5 +1,11 @@
 User-agent: *
 Allow: /
+Allow: /tools
+Allow: /tools/fear-greed
+Allow: /tools/gas
+Allow: /tools/scam-check
+Allow: /compare
+Allow: /compare/*
 Disallow: /news/
 Disallow: /ai-news
 Disallow: /exclusive-news
