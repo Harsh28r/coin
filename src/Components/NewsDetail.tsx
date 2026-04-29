@@ -22,6 +22,7 @@ import { Helmet } from 'react-helmet-async';
 import { resolveImageSrc, isFakeImageUrl, handleImageError } from '../utils/cryptoImages';
 import { summarize } from '../utils/summarize';
 import { defaultPublicBackend } from '../utils/rssBackendBases';
+import { postNewsletterSubscribe } from '../utils/newsletterSubscribe';
 import './NewsDetail.css';
 
 interface NewsItem {
@@ -114,6 +115,8 @@ const NewsDetail: React.FC = () => {
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [fontScale, setFontScale] = useState(1);
   const [copyFeedback, setCopyFeedback] = useState<string | null>(null);
+  const [digestEmail, setDigestEmail] = useState('');
+  const [digestBusy, setDigestBusy] = useState(false);
   const [isTtsPlaying, setIsTtsPlaying] = useState(false);
   const ttsUtterancesRef = useRef<SpeechSynthesisUtterance[] | null>(null);
 
@@ -1220,14 +1223,33 @@ const NewsDetail: React.FC = () => {
               </div>
               <form
                 className="ns-newsletter__form"
-                onSubmit={(e) => {
+                onSubmit={async (e) => {
                   e.preventDefault();
-                  setCopyFeedback('Subscribed (demo)');
-                  setTimeout(() => setCopyFeedback(null), 1500);
+                  const v = digestEmail.trim();
+                  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) {
+                    setCopyFeedback('Enter a valid email');
+                    setTimeout(() => setCopyFeedback(null), 2000);
+                    return;
+                  }
+                  setDigestBusy(true);
+                  const out = await postNewsletterSubscribe(v, `news_article:${id || 'unknown'}`);
+                  setDigestBusy(false);
+                  setCopyFeedback(out.ok ? out.message : out.message);
+                  if (out.ok) setDigestEmail('');
+                  setTimeout(() => setCopyFeedback(null), 3200);
                 }}
               >
-                <input type="email" placeholder="you@email.com" required />
-                <button type="submit">Subscribe</button>
+                <input
+                  type="email"
+                  placeholder="you@email.com"
+                  required
+                  value={digestEmail}
+                  onChange={(e) => setDigestEmail(e.target.value)}
+                  disabled={digestBusy}
+                />
+                <button type="submit" disabled={digestBusy}>
+                  {digestBusy ? '…' : 'Subscribe'}
+                </button>
               </form>
             </div>
           </article>

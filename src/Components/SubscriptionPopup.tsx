@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://c-back-2.onrender.com' || 'http://localhost:5000';
+import { postNewsletterSubscribe } from '../utils/newsletterSubscribe';
 
 interface SubscriptionPopupProps {
   onClose: () => void;
@@ -84,21 +83,10 @@ const SubscriptionPopup: React.FC<SubscriptionPopupProps> = ({ onClose, onSubscr
     setMessage('');
 
     try {
-      const response = await fetch(`${API_BASE_URL}/subscribe`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: email.trim(),
-          name: name.trim() || undefined,
-        }),
-      });
+      const out = await postNewsletterSubscribe(email, 'subscription_popup');
 
-      const data = await response.json();
-
-      if (data.success) {
-        setMessage('🎉 Successfully subscribed! Check your email for confirmation.');
+      if (out.ok) {
+        setMessage(out.message);
         setMessageType('success');
         setEmail('');
         setName('');
@@ -110,7 +98,7 @@ const SubscriptionPopup: React.FC<SubscriptionPopupProps> = ({ onClose, onSubscr
           onClose();
         }, 2000);
       } else {
-        setMessage(data.message || 'Failed to subscribe. Please try again.');
+        setMessage(out.message);
         setMessageType('error');
       }
     } catch (error) {

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Container, Row, Col, Form, Button, Alert, InputGroup } from 'react-bootstrap';
 import { Mail, ArrowRight } from 'lucide-react';
+import { postNewsletterSubscribe } from '../utils/newsletterSubscribe';
 
 const NewsletterCTA: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -21,19 +22,14 @@ const NewsletterCTA: React.FC = () => {
 
     setStatus('loading');
     try {
-      const res = await fetch(`${API_BASE_URL}/subscribe`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: email.trim(), name: '' }),
-      });
-      const data = await res.json();
-      if (data.success) {
+      const out = await postNewsletterSubscribe(email, 'newsletter_cta');
+      if (out.ok) {
         setStatus('success');
-        setMessage('You\'re in! Check your inbox for a welcome email.');
+        setMessage(out.message);
         setEmail('');
       } else {
         setStatus('error');
-        setMessage(data.message || 'Something went wrong. Try again.');
+        setMessage(out.message);
       }
     } catch {
       setStatus('error');

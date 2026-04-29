@@ -7,8 +7,7 @@ import 'react-loading-skeleton/dist/skeleton.css';
 import './ExploreCards.css';
 import { useLanguage } from '../context/LanguageContext';
 import { useNavigate } from 'react-router-dom';
-import { useNewsTranslation } from '../hooks/useNewsTranslation';
-import { defaultPublicBackend } from '../utils/rssBackendBases';
+import { postNewsletterSubscribe } from '../utils/newsletterSubscribe';
 
 interface TrendingNewsItem {
   article_id?: string;
@@ -409,20 +408,14 @@ const ExploreSection: React.FC = () => {
     }
     setSubmitting(true);
     setSubMessage(null);
-    const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://c-back-2.onrender.com';
     try {
-      const resp = await fetch(`${ API_BASE_URL || 'http://localhost:5000'}/subscribe`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: subEmail.trim(), name: subName.trim() }),
-      });
-      const data = await resp.json();
-      if (data.success) {
-        setSubMessage({ type: 'success', text: data.message || 'Subscribed successfully!' });
+      const out = await postNewsletterSubscribe(subEmail, 'explore_cards');
+      if (out.ok) {
+        setSubMessage({ type: 'success', text: out.message });
         setSubEmail('');
         setSubName('');
       } else {
-        setSubMessage({ type: 'error', text: data.message || 'Subscription failed. Please try again.' });
+        setSubMessage({ type: 'error', text: out.message });
       }
     } catch (_) {
       setSubMessage({ type: 'error', text: 'Network error. Please try again.' });

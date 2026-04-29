@@ -7,12 +7,12 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { X, Mail, Check } from 'lucide-react';
 import './NewsletterModal.css';
+import { postNewsletterSubscribe } from '../utils/newsletterSubscribe';
 
 const STORAGE_KEY = 'cc_newsletter_dismissed_until';
 const SUBMITTED_KEY = 'cc_newsletter_subscribed';
 const PENDING_KEY = 'cc_newsletter_pending';
 const DISMISS_TTL = 14 * 24 * 60 * 60 * 1000; // 14 days
-const API_PATH = '/api/newsletter/subscribe';
 
 const isHidden = (): boolean => {
   try {
@@ -93,27 +93,23 @@ const NewsletterModal: React.FC = () => {
     setStatus('submitting');
     setErrMsg('');
 
-    // Always record locally first so we never lose a lead even if the API is
-    // down or not yet implemented.
-    recordSubscribed(cleaned);
-
     try {
-      const res = await fetch(API_PATH, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: cleaned, source: window.location.pathname }),
-        signal: AbortSignal.timeout(8000),
-      });
-      // Even if API isn't wired yet (404), we still mark success — the local
-      // record will be flushed once the backend is live (you can add a sync
-      // job that reads PENDING_KEY).
-      if (!res.ok && res.status !== 404) throw new Error('api');
+      const out = await postNewsletterSubscribe(
+        cleaned,
+        typeof window !== 'undefined' ? `modal:${window.location.pathname}` : 'modal',
+      );
+      if (out.ok) {
+        recordSubscribed(cleaned);
+        setStatus('done');
+        setTimeout(() => setOpen(false), 2400);
+      } else {
+        setErrMsg(out.message);
+        setStatus('err');
+      }
     } catch {
-      // swallow — recordSubscribed already saved the lead
+      setErrMsg('Network error. Try again or check your connection.');
+      setStatus('err');
     }
-
-    setStatus('done');
-    setTimeout(() => setOpen(false), 2400);
   };
 
   if (!open) return null;

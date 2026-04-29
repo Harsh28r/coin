@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Container, Row, Col, Form, Button, Alert, InputGroup } from 'react-bootstrap';
 import { Twitter, Instagram, Youtube, DiscIcon as Discord, ExternalLink, Send } from 'lucide-react';
 import { tradeLinks } from '../utils/tradeLinks';
+import { postNewsletterSubscribe } from '../utils/newsletterSubscribe';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import LanguageSelector from './LanguageSelector';
 import './footer.css';
@@ -21,16 +22,19 @@ const Footer: React.FC = () => {
     setIsSubmitting(true);
     setMessage(null);
     try {
-      const response = await fetch(`${API_BASE_URL || 'http://localhost:5000'}/subscribe`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: email.trim(), name: name.trim() }),
-      });
-      const data = await response.json();
-      if (data.success) { setMessage({ type: 'success', text: data.message }); setEmail(''); setName(''); }
-      else { setMessage({ type: 'error', text: data.message || 'Subscription failed.' }); }
-    } catch { setMessage({ type: 'error', text: 'Network error. Please try again.' }); }
-    finally { setIsSubmitting(false); }
+      const out = await postNewsletterSubscribe(email, 'footer');
+      if (out.ok) {
+        setMessage({ type: 'success', text: out.message });
+        setEmail('');
+        setName('');
+      } else {
+        setMessage({ type: 'error', text: out.message });
+      }
+    } catch {
+      setMessage({ type: 'error', text: 'Network error. Please try again.' });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
