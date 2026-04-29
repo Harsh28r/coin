@@ -170,6 +170,11 @@ const MarketPriceAndNews: React.FC = () => {
       localStorage.removeItem(key);
       return null;
     }
+    // Reject empty arrays — they represent a failed/rate-limited fetch that got cached
+    if (Array.isArray(data) && data.length === 0) {
+      localStorage.removeItem(key);
+      return null;
+    }
     return data;
   };
 
@@ -466,7 +471,22 @@ const MarketPriceAndNews: React.FC = () => {
       }
     ];
 
-    // Fetch crypto market data (same-origin /backend → camify on coinsclarity.com)
+    const CG_MARKETS = 'coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=1&sparkline=false';
+    const parseCoinGeckoMarkets = (data: any[]): CryptoData[] =>
+      data.map((coin: any) => ({
+        id: coin.id,
+        rank: coin.market_cap_rank,
+        symbol: coin.symbol,
+        name: coin.name,
+        supply: coin.circulating_supply,
+        max_supply: coin.max_supply,
+        market_cap_usd: coin.market_cap,
+        volume_usd_24h: coin.total_volume,
+        price_usd: coin.current_price,
+        change_percent_24h: coin.price_change_percentage_24h,
+        image: coin.image,
+      }));
+
     const fetchCryptoData = async () => {
       setCryptoLoading(true);
       try {
@@ -475,31 +495,31 @@ const MarketPriceAndNews: React.FC = () => {
           setCryptoData(cachedCryptoData);
           return;
         }
-        const data = await fetchWithRetry(
-          coingeckoV3Url(
-            'coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=1&sparkline=false',
-          ),
-        );
-        if (!Array.isArray(data)) throw new Error('Invalid markets response');
-        const formattedData: CryptoData[] = data.map((coin: any) => ({
-          id: coin.id,
-          rank: coin.market_cap_rank,
-          symbol: coin.symbol,
-          name: coin.name,
-          supply: coin.circulating_supply,
-          max_supply: coin.max_supply,
-          market_cap_usd: coin.market_cap,
-          volume_usd_24h: coin.total_volume,
-          price_usd: coin.current_price,
-          change_percent_24h: coin.price_change_percentage_24h,
-          image: coin.image,
-        }));
+
+        // Attempt 1: backend proxy (works on coinsclarity.com, avoids CORS)
+        let data: any = null;
+        try {
+          data = await fetchWithRetry(coingeckoV3Url(CG_MARKETS));
+        } catch {}
+
+        // Attempt 2: direct CoinGecko (works in dev and when proxy is down)
+        if (!Array.isArray(data) || data.length === 0) {
+          try {
+            const res = await fetch(
+              `https://api.coingecko.com/api/v3/${CG_MARKETS}`,
+              { signal: AbortSignal.timeout(10000) }
+            );
+            if (res.ok) data = await res.json();
+          } catch {}
+        }
+
+        if (!Array.isArray(data) || data.length === 0) throw new Error('No market data returned');
+        const formattedData = parseCoinGeckoMarkets(data);
         setCryptoData(formattedData);
         cacheData('cryptoData', formattedData, 1000 * 60 * 5);
       } catch (error: any) {
         console.warn('Crypto markets unavailable, using mock:', error?.message);
         setCryptoData(mockCryptoData);
-        setError(`Using mock data due to API issues: ${error.message}`);
       } finally {
         setCryptoLoading(false);
       }
