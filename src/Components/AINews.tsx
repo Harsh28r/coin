@@ -39,7 +39,23 @@ const AINews: React.FC = () => {
   // Use the translation hook
   const { displayItems, isTranslating, currentLanguage } = useNewsTranslation(newsItems);
 
-  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://c-back-2.onrender.com';
+  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://c-back-seven.vercel.app';
+
+  /** Same resilience as `services/api.ts` — camify often 502s; Vercel/Render still answer. */
+  const RSS_API_BASES: string[] = Array.from(
+    new Set(
+      [
+        API_BASE_URL.replace(/\/$/, ''),
+        API_BASE_URL.replace(/\/$/, '').endsWith('/api')
+          ? API_BASE_URL.replace(/\/$/, '').replace(/\/api$/, '')
+          : '',
+        'https://c-back-seven.vercel.app',
+        'https://c-back-1.onrender.com',
+        'https://c-back-2.onrender.com',
+        'https://camify.fun.coinsclarity.com',
+      ].filter(Boolean) as string[],
+    ),
+  );
 
   const isValidImageUrl = (url?: string): boolean => {
     if (!url) return false;
@@ -70,15 +86,15 @@ const AINews: React.FC = () => {
   };
 
   useEffect(() => {
-    const CAMIFY = 'https://camify.fun.coinsclarity.com';
-    const USE_API_FALLBACK = API_BASE_URL && !API_BASE_URL.includes('localhost');
-    const bases = [CAMIFY, ...(USE_API_FALLBACK ? [API_BASE_URL.replace(/\/$/, '')] : [])];
-
-    const fetchJson = async (url: string, timeoutMs = 10000) => {
+    const fetchJson = async (url: string, timeoutMs = 12000) => {
       const ctrl = new AbortController();
       const id = setTimeout(() => ctrl.abort(), timeoutMs);
       try {
-        const res = await fetch(url, { signal: ctrl.signal });
+        const res = await fetch(url, {
+          signal: ctrl.signal,
+          credentials: 'omit',
+          mode: 'cors',
+        });
         if (!res.ok) return null;
         return await res.json();
       } catch {
@@ -86,6 +102,18 @@ const AINews: React.FC = () => {
       } finally {
         clearTimeout(id);
       }
+    };
+
+    /** Try `/path` and `/api/path` — deploys differ (nginx vs Express mount). */
+    const fetchFromBase = async (base: string, pathWithQuery: string) => {
+      const q = pathWithQuery.replace(/^\//, '');
+      const b = base.replace(/\/$/, '');
+      const candidates = [`${b}/${q}`, `${b}/api/${q}`];
+      for (const url of candidates) {
+        const data = await fetchJson(url);
+        if (data) return data;
+      }
+      return null;
     };
 
     const extractArr = (data: any): any[] => {
@@ -110,8 +138,8 @@ const AINews: React.FC = () => {
 
         for (const { path, source } of aiPaths) {
           const suffix = `${path}?limit=12`;
-          for (const base of bases) {
-            const data = await fetchJson(`${base}/${suffix}`);
+          for (const base of RSS_API_BASES) {
+            const data = await fetchFromBase(base, suffix);
             const arr = extractArr(data);
             if (arr.length) {
               items = items.concat(arr.map((item: any) => ({ ...item, source })));
@@ -145,8 +173,8 @@ const AINews: React.FC = () => {
           ];
           for (const { path, source } of fallbackPaths) {
             const suffix = `${path}?limit=12`;
-            for (const base of bases) {
-              const data = await fetchJson(`${base}/${suffix}`);
+            for (const base of RSS_API_BASES) {
+              const data = await fetchFromBase(base, suffix);
               const arr = extractArr(data);
               if (arr.length) {
                 items = items.concat(arr.map((item: any) => ({ ...item, source })));
@@ -209,7 +237,7 @@ const AINews: React.FC = () => {
     };
 
     fetchNews();
-  }, []);
+  }, [API_BASE_URL]);
 
   // AI-themed fallback images
   const getFallbackImage = (index: number, title?: string): string => {
