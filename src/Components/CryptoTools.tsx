@@ -293,9 +293,10 @@ const CryptoTools: React.FC = () => {
                 { to: '/tools/fear-greed',  emoji: '📈', title: 'Fear & Greed Index',  dek: 'Live crypto sentiment gauge with 30-day history.' },
                 { to: '/tools/gas',         emoji: '⛽', title: 'Multi-chain Gas Tracker', dek: 'Live gas across ETH, Polygon, Arbitrum, Base, Optimism, BNB.' },
                 { to: '/tools/scam-check',  emoji: '🛡️', title: 'Scam & Honeypot Checker', dek: 'Paste any token contract — get a 10-point security audit.' },
+                { to: '/tools/unlocks',     emoji: '🗓️', title: 'Token Unlock Calendar', dek: 'Upcoming cliffs across 200+ projects.' },
                 { to: '/compare',           emoji: '⚖️', title: 'Compare Coins',  dek: 'Side-by-side fundamentals for any two cryptos.' },
               ].map(t => (
-                <div key={t.to} className="col-sm-6 col-lg-3">
+                <div key={t.to} className="col-6 col-md-4 col-lg-3 col-xl">
                   <Link
                     to={t.to}
                     className="d-block h-100 p-3 rounded-3 text-decoration-none"

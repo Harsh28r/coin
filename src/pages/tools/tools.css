@@ -438,6 +438,140 @@
 }
 .cmp-coin-head img { width: 28px; height: 28px; border-radius: 50%; }
 
+/* ── Token Unlocks specific ──────────────────────────────────── */
+.ul-kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin-bottom: 24px;
+}
+.ul-kpi {
+  background: #fff;
+  border: 1px solid var(--border-subtle, rgba(0, 0, 0, 0.08));
+  border-radius: 12px;
+  padding: 16px 18px;
+}
+.ul-kpi__label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted, #525866);
+  margin-bottom: 6px;
+}
+.ul-kpi__value {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--text, #111);
+  line-height: 1;
+}
+.ul-kpi__sub { font-size: 12px; color: var(--text-muted, #525866); margin-top: 4px; }
+
+.ul-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 16px;
+}
+.ul-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: #fff;
+  border: 1px solid var(--border-subtle, rgba(0, 0, 0, 0.08));
+  border-radius: 999px;
+  flex: 1;
+  min-width: 200px;
+}
+.ul-search input { border: none; outline: none; background: transparent; flex: 1; font-size: 14px; color: inherit; }
+.ul-tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+.ul-tab {
+  padding: 6px 14px;
+  background: #fff;
+  border: 1px solid var(--border-subtle, rgba(0, 0, 0, 0.08));
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted, #525866);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.ul-tab:hover { border-color: var(--accent, #e85d2c); color: var(--accent, #e85d2c); }
+.ul-tab.is-on { background: var(--accent, #e85d2c); color: #fff; border-color: var(--accent, #e85d2c); }
+
+.ul-table-wrap { overflow-x: auto; }
+.ul-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  border: 1px solid var(--border-subtle, rgba(0, 0, 0, 0.08));
+  border-radius: 14px;
+  overflow: hidden;
+  font-size: 14px;
+}
+.ul-table th, .ul-table td {
+  padding: 12px 16px;
+  text-align: left;
+  border-bottom: 1px solid var(--border-subtle, rgba(0, 0, 0, 0.06));
+}
+.ul-table th {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted, #525866);
+  background: var(--bg-subtle, #f8f4ee);
+}
+.ul-table td.num, .ul-table th.num { text-align: right; font-variant-numeric: tabular-nums; }
+.ul-table tr:last-child td { border-bottom: none; }
+.ul-table tr:hover td { background: rgba(232, 93, 44, 0.03); }
+
+.ul-tok { display: flex; align-items: center; gap: 10px; }
+.ul-tok img { width: 28px; height: 28px; border-radius: 50%; }
+.ul-tok__placeholder {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: var(--accent, #e85d2c); color: #fff;
+  display: grid; place-items: center; font-size: 11px; font-weight: 800;
+}
+.ul-tok__sym { font-weight: 700; color: var(--text, #111); }
+.ul-tok__name { font-size: 12px; color: var(--text-muted, #525866); }
+
+.ul-countdown {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  color: var(--accent, #e85d2c);
+}
+.ul-warm { color: #f59e0b; font-weight: 700; }
+.ul-hot { color: #dc2626; font-weight: 800; }
+
+.ul-source {
+  margin-top: 16px;
+  font-size: 12px;
+  color: var(--text-muted, #525866);
+}
+.ul-source a { color: var(--accent, #e85d2c); text-decoration: none; display: inline-flex; align-items: center; gap: 4px; }
+
+[data-theme='dark'] .ul-kpi,
+[data-bs-theme='dark'] .ul-kpi,
+[data-theme='dark'] .ul-search,
+[data-bs-theme='dark'] .ul-search,
+[data-theme='dark'] .ul-tab,
+[data-bs-theme='dark'] .ul-tab,
+[data-theme='dark'] .ul-table,
+[data-bs-theme='dark'] .ul-table {
+  background: #1a1d24;
+  border-color: rgba(255, 255, 255, 0.08);
+}
+[data-theme='dark'] .ul-kpi__value,
+[data-bs-theme='dark'] .ul-kpi__value,
+[data-theme='dark'] .ul-tok__sym,
+[data-bs-theme='dark'] .ul-tok__sym { color: #fff; }
+[data-theme='dark'] .ul-table th,
+[data-bs-theme='dark'] .ul-table th { background: rgba(255, 255, 255, 0.04); }
+
 /* ── Empty / loading ─────────────────────────────────────────── */
 .tool-empty {
   text-align: center;

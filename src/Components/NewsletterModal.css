@@ -1,0 +1,193 @@
+/* NewsletterModal.css */
+
+.nl-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(11, 12, 17, 0.5);
+  backdrop-filter: blur(4px);
+  z-index: 9999;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  animation: nl-fade-in 0.2s ease-out;
+}
+
+@keyframes nl-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.nl-modal {
+  position: relative;
+  width: 100%;
+  max-width: 460px;
+  background: #fff;
+  border-radius: 18px;
+  padding: 32px 28px 24px;
+  text-align: center;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.25);
+  animation: nl-slide-up 0.32s cubic-bezier(.2, .9, .3, 1);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+@keyframes nl-slide-up {
+  from { transform: translateY(16px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+.nl-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.05);
+  border: none;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  color: #525866;
+  transition: all 0.15s;
+}
+.nl-close:hover { background: rgba(0, 0, 0, 0.1); color: #111; }
+
+.nl-icon {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 16px;
+  background: linear-gradient(135deg, #e85d2c, #f59e0b);
+  color: #fff;
+  border-radius: 16px;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 8px 24px rgba(232, 93, 44, 0.3);
+}
+
+.nl-title {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 1.6rem;
+  font-weight: 800;
+  margin: 0 0 8px;
+  color: #111;
+  letter-spacing: -0.01em;
+}
+
+.nl-sub {
+  font-size: 14px;
+  line-height: 1.55;
+  color: #525866;
+  margin: 0 0 20px;
+}
+
+.nl-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.nl-form input {
+  padding: 12px 14px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 10px;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.nl-form input:focus { border-color: #e85d2c; }
+.nl-form button {
+  padding: 12px;
+  background: #e85d2c;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.nl-form button:hover:not(:disabled) {
+  background: #d44e1f;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(232, 93, 44, 0.35);
+}
+.nl-form button:disabled { opacity: 0.6; cursor: wait; }
+
+.nl-err {
+  font-size: 13px;
+  color: #dc2626;
+  margin-top: -4px;
+  margin-bottom: 12px;
+}
+
+.nl-trust {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  font-size: 11px;
+  color: #525866;
+  font-weight: 600;
+}
+
+.nl-done { padding: 8px 0; }
+.nl-done__icon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 16px;
+  background: #16a34a;
+  color: #fff;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 8px 24px rgba(22, 163, 74, 0.35);
+  animation: nl-pop 0.4s cubic-bezier(.2, .9, .3, 1.4);
+}
+@keyframes nl-pop {
+  from { transform: scale(0.5); opacity: 0; }
+  to   { transform: scale(1);   opacity: 1; }
+}
+.nl-done h2 {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 1.6rem;
+  font-weight: 800;
+  margin: 0 0 8px;
+  color: #111;
+}
+.nl-done p {
+  font-size: 14px;
+  color: #525866;
+  margin: 0;
+}
+
+[data-theme='dark'] .nl-modal,
+[data-bs-theme='dark'] .nl-modal {
+  background: #1a1d24;
+  color: #e7e9ee;
+}
+[data-theme='dark'] .nl-title,
+[data-bs-theme='dark'] .nl-title,
+[data-theme='dark'] .nl-done h2,
+[data-bs-theme='dark'] .nl-done h2 { color: #fff; }
+[data-theme='dark'] .nl-sub,
+[data-bs-theme='dark'] .nl-sub,
+[data-theme='dark'] .nl-trust,
+[data-bs-theme='dark'] .nl-trust,
+[data-theme='dark'] .nl-done p,
+[data-bs-theme='dark'] .nl-done p { color: rgba(255, 255, 255, 0.65); }
+[data-theme='dark'] .nl-form input,
+[data-bs-theme='dark'] .nl-form input {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #fff;
+}
+[data-theme='dark'] .nl-close,
+[data-bs-theme='dark'] .nl-close {
+  background: rgba(255, 255, 255, 0.06);
+  color: #e7e9ee;
+}
+
+@media (max-width: 480px) {
+  .nl-modal { padding: 28px 20px 20px; }
+  .nl-title { font-size: 1.35rem; }
+}

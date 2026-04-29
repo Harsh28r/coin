@@ -50,6 +50,8 @@ import FearGreedPage from './pages/tools/FearGreed';
 import GasTrackerPage from './pages/tools/GasTracker';
 import ScamCheckPage from './pages/tools/ScamCheck';
 import CompareCoinsPage from './pages/tools/CompareCoins';
+import TokenUnlocksPage from './pages/tools/TokenUnlocks';
+import NewsletterModal from './Components/NewsletterModal';
 
 
 const ScrollToTop: React.FC = () => {
@@ -82,6 +84,7 @@ function App() {
                 <Analytics />
                 <BackToTop />
                 <FloatingAIChat />
+                <NewsletterModal />
                 <Routes>
                   <Route path="/" element={<LandingPage />} />
                   <Route path="/blog/:id" element={<BlogPostDetail />} />
@@ -117,6 +120,7 @@ function App() {
                   <Route path="/tools/fear-greed" element={<FearGreedPage />} />
                   <Route path="/tools/gas" element={<GasTrackerPage />} />
                   <Route path="/tools/scam-check" element={<ScamCheckPage />} />
+                  <Route path="/tools/unlocks" element={<TokenUnlocksPage />} />
                   <Route path="/compare" element={<CompareCoinsPage />} />
                   <Route path="/compare/:slug" element={<CompareCoinsPage />} />
                   <Route path="*" element={<NotFound />} />

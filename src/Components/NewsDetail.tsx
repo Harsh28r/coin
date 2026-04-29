@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { Helmet } from 'react-helmet-async';
 import { resolveImageSrc, isFakeImageUrl, handleImageError } from '../utils/cryptoImages';
+import { summarize } from '../utils/summarize';
 import './NewsDetail.css';
 
 interface NewsItem {
@@ -1085,6 +1086,28 @@ const NewsDetail: React.FC = () => {
                 onError={(e) => handleImageError(e, newsItem.title, 'news')}
               />
             </figure>
+
+            {(() => {
+              const bodyForSummary =
+                newsItem.contentHtml || newsItem.fullContent || newsItem.content || newsItem.description || '';
+              if (textLength(bodyForSummary) < 300) return null;
+              const { bullets } = summarize(bodyForSummary, {
+                maxBullets: 3,
+                cacheId: newsItem.article_id,
+              });
+              if (bullets.length < 2) return null;
+              return (
+                <div className="ns-tldr">
+                  <div className="ns-tldr__head">
+                    <span className="ns-tldr__badge">TL;DR</span>
+                    <span className="ns-tldr__sub">3-bullet summary · auto-generated</span>
+                  </div>
+                  <ul className="ns-tldr__list">
+                    {bullets.map((b, i) => <li key={i}>{b}</li>)}
+                  </ul>
+                </div>
+              );
+            })()}
 
             {(() => {
               const bodyHtml =

@@ -4,6 +4,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, ArrowLeftRight } from 'lucide-react';
 import CoinsNavbar from '../../Components/navbar';
 import Footer from '../../Components/footer';
+import AffiliateButtons from '../../Components/AffiliateButtons';
 import './tools.css';
 
 interface CoinSearchHit {
@@ -336,6 +337,12 @@ const CompareCoinsPage: React.FC = () => {
                 })}
               </tbody>
             </table>
+          )}
+
+          {!loading && coinA && coinB && (
+            <>
+              <AffiliateButtons symbol={coinA.symbol} coinName={`${coinA.name} or ${coinB.name}`} />
+            </>
           )}
 
           {!loading && coinA && coinB && (

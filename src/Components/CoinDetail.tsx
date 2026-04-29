@@ -15,6 +15,7 @@ import { Helmet } from 'react-helmet-async';
 import { useCurrency } from '../context/CurrencyContext';
 import WatchlistButton from './WatchlistButton';
 import { resolveImageSrc, handleImageError } from '../utils/cryptoImages';
+import AffiliateButtons from './AffiliateButtons';
 import './CoinDetail.css';
 
 type Timeframe = '1D' | '7D' | '30D' | '1Y' | 'MAX';
@@ -697,6 +698,9 @@ const CoinDetail: React.FC = () => {
             </span>
           </div>
         </section>
+
+        {/* WHERE TO BUY (affiliate revenue) */}
+        <AffiliateButtons symbol={coin.symbol} coinName={coin.name} />
 
         {/* ABOUT + LINKS */}
         <section className="cd-grid">

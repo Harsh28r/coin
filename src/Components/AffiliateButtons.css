@@ -1,0 +1,163 @@
+/* AffiliateButtons.css */
+
+.aff-section {
+  margin: 32px 0;
+  padding: 24px;
+  background: linear-gradient(135deg, rgba(232, 93, 44, 0.06) 0%, rgba(245, 158, 11, 0.04) 100%);
+  border: 1px solid rgba(232, 93, 44, 0.15);
+  border-radius: 16px;
+}
+.aff-section__head { margin-bottom: 18px; }
+.aff-section__title {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 1.5rem;
+  font-weight: 800;
+  margin: 0 0 4px;
+  color: var(--text, #111);
+}
+.aff-section__sub {
+  font-size: 13px;
+  color: var(--text-muted, #525866);
+}
+
+.aff-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+}
+.aff-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 12px;
+  text-decoration: none;
+  color: inherit;
+  transition: all 0.18s;
+}
+.aff-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.06);
+  border-color: rgba(0, 0, 0, 0.16);
+}
+.aff-card__logo {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 18px;
+  flex-shrink: 0;
+  font-weight: 800;
+}
+.aff-card__body { flex: 1; min-width: 0; }
+.aff-card__name {
+  font-weight: 700;
+  font-size: 15px;
+  margin-bottom: 2px;
+  color: var(--text, #111);
+}
+.aff-card__perk {
+  font-size: 11px;
+  color: var(--text-muted, #525866);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 600;
+}
+.aff-card__cta {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 999px;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.aff-disclaimer {
+  margin: 16px 0 0;
+  font-size: 11px;
+  color: var(--text-muted, #525866);
+  line-height: 1.5;
+}
+
+/* ── Compact bar variant — fits inline near coin headers / cards ── */
+.aff-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: var(--bg-subtle, #f8f4ee);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 10px;
+  font-size: 13px;
+}
+.aff-bar__label {
+  font-weight: 600;
+  color: var(--text-muted, #525866);
+}
+.aff-pill {
+  padding: 4px 12px;
+  border: 1px solid;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 12px;
+  text-decoration: none;
+  color: var(--text, #111);
+  background: #fff;
+  transition: all 0.15s;
+}
+.aff-pill:hover {
+  color: #fff;
+  background: currentColor;
+}
+.aff-pill[data-aff-exchange="binance"]:hover  { background: #f0b90b; border-color: #f0b90b; }
+.aff-pill[data-aff-exchange="bybit"]:hover    { background: #f7a600; border-color: #f7a600; }
+.aff-pill[data-aff-exchange="okx"]:hover      { background: #000;    border-color: #000; color: #fff; }
+.aff-pill[data-aff-exchange="kucoin"]:hover   { background: #24ae8f; border-color: #24ae8f; }
+.aff-bar__disclaimer {
+  margin-left: auto;
+  font-size: 10px;
+  color: var(--text-muted, #525866);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  opacity: 0.6;
+}
+
+/* ── Dark mode ─────────────────────────────────────────────────── */
+[data-theme='dark'] .aff-section,
+[data-bs-theme='dark'] .aff-section {
+  background: linear-gradient(135deg, rgba(232, 93, 44, 0.12) 0%, rgba(245, 158, 11, 0.06) 100%);
+  border-color: rgba(232, 93, 44, 0.25);
+}
+[data-theme='dark'] .aff-card,
+[data-bs-theme='dark'] .aff-card {
+  background: #1a1d24;
+  border-color: rgba(255, 255, 255, 0.08);
+}
+[data-theme='dark'] .aff-section__title,
+[data-bs-theme='dark'] .aff-section__title,
+[data-theme='dark'] .aff-card__name,
+[data-bs-theme='dark'] .aff-card__name {
+  color: #fff;
+}
+[data-theme='dark'] .aff-bar,
+[data-bs-theme='dark'] .aff-bar {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+[data-theme='dark'] .aff-pill,
+[data-bs-theme='dark'] .aff-pill {
+  background: #1a1d24;
+  color: #e7e9ee;
+}
+
+@media (max-width: 600px) {
+  .aff-card { flex-wrap: wrap; }
+  .aff-card__cta { width: 100%; text-align: center; padding: 8px; margin-top: 4px; }
+}

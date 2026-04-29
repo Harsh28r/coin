@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Container, Row, Col, Form, Button, Alert, InputGroup } from 'react-bootstrap';
-import { Twitter, Instagram, Youtube, DiscIcon as Discord, ExternalLink } from 'lucide-react';
+import { Twitter, Instagram, Youtube, DiscIcon as Discord, ExternalLink, Send } from 'lucide-react';
 import { tradeLinks } from '../utils/tradeLinks';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import LanguageSelector from './LanguageSelector';
@@ -59,6 +59,7 @@ const Footer: React.FC = () => {
               <a href="https://www.instagram.com/coinsclarity" target="_blank" rel="noreferrer" aria-label="Instagram" className="cc-footer__social"><Instagram size={16} /></a>
               <a href="https://youtube.com" target="_blank" rel="noreferrer" aria-label="YouTube" className="cc-footer__social"><Youtube size={16} /></a>
               <a href="https://discord.gg/V2YY8nXjr5" target="_blank" rel="noreferrer" aria-label="Discord" className="cc-footer__social"><Discord size={16} /></a>
+              <a href="https://t.me/CoinsClarityBot" target="_blank" rel="noreferrer" aria-label="Telegram bot" className="cc-footer__social"><Send size={16} /></a>
             </div>
           </Col>
 
