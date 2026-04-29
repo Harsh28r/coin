@@ -9,6 +9,7 @@ import { Helmet } from 'react-helmet-async';
 import { useLanguage } from '../context/LanguageContext';
 import { useNewsTranslation } from '../hooks/useNewsTranslation';
 import { getCryptoFallbackImage, handleImageError, resolveImageSrc } from '../utils/cryptoImages';
+import { buildRssBackendBases } from '../utils/rssBackendBases';
 
 interface NewsItem {
   article_id?: string;
@@ -39,7 +40,7 @@ const AllAINews: React.FC = () => {
   // Use the translation hook
   const { displayItems, isTranslating, currentLanguage } = useNewsTranslation(newsItems);
 
-  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://c-back-2.onrender.com';
+  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://c-back-seven.vercel.app';
 
   const isValidImageUrl = (url?: string): boolean => {
     if (!url) return false;
@@ -74,42 +75,53 @@ const AllAINews: React.FC = () => {
       setIsLoading(true);
       setError(null);
       try {
-        // Fetch from AI news endpoints on BOTH backends for reliability
-        const CAMIFY = 'https://camify.fun.coinsclarity.com';
-        const endpoints = [
-          { url: `${CAMIFY}/fetch-mit-ai-rss?limit=50`, source: 'MIT AI News' },
-          { url: `${CAMIFY}/fetch-venturebeat-ai-rss?limit=50`, source: 'VentureBeat AI' },
-          { url: `${CAMIFY}/fetch-techcrunch-ai-rss?limit=50`, source: 'TechCrunch AI' },
-          { url: `${API_BASE_URL}/fetch-mit-ai-rss?limit=50`, source: 'MIT AI News' },
-          { url: `${API_BASE_URL}/fetch-arxiv-ai-rss?limit=50`, source: 'arXiv AI' },
+        const bases = buildRssBackendBases(API_BASE_URL);
+
+        const fetchJson = async (url: string) => {
+          const res = await fetch(url, {
+            credentials: 'omit',
+            mode: 'cors',
+            signal: AbortSignal.timeout(12000),
+          });
+          if (!res.ok) return null;
+          return res.json();
+        };
+
+        const fetchFromBase = async (base: string, pathWithQuery: string) => {
+          const q = pathWithQuery.replace(/^\//, '');
+          const b = base.replace(/\/$/, '');
+          for (const url of [`${b}/${q}`, `${b}/api/${q}`]) {
+            const data = await fetchJson(url);
+            if (data) return data;
+          }
+          return null;
+        };
+
+        const extractArr = (data: any): any[] => {
+          if (!data) return [];
+          return Array.isArray(data.data) ? data.data : Array.isArray(data.items) ? data.items : [];
+        };
+
+        const pathSpecs = [
+          { path: 'fetch-mit-ai-rss?limit=50', source: 'MIT AI News' },
+          { path: 'fetch-venturebeat-ai-rss?limit=50', source: 'VentureBeat AI' },
+          { path: 'fetch-techcrunch-ai-rss?limit=50', source: 'TechCrunch AI' },
+          { path: 'fetch-arxiv-ai-rss?limit=50', source: 'arXiv AI' },
         ];
 
         let items: any[] = [];
 
-        // Fetch from all endpoints in parallel
-        const results = await Promise.allSettled(
-          endpoints.map(async (endpoint) => {
-            const res = await fetch(endpoint.url, { signal: AbortSignal.timeout(12000) });
-            if (!res.ok) throw new Error(`Failed to fetch ${endpoint.source}`);
-            const data = await res.json();
-            return { data, source: endpoint.source };
-          })
-        );
-
-        results.forEach((result) => {
-          if (result.status === 'fulfilled' && result.value.data?.success) {
-            const arr = Array.isArray(result.value.data.data)
-              ? result.value.data.data
-              : Array.isArray(result.value.data.items)
-                ? result.value.data.items
-                : [];
-            const sourceItems = arr.map((item: any) => ({
-              ...item,
-              source: result.value.source
-            }));
-            items = items.concat(sourceItems);
+        for (const { path, source } of pathSpecs) {
+          for (const base of bases) {
+            const data = await fetchFromBase(base, path);
+            if (!data) continue;
+            const arr = extractArr(data);
+            if (arr.length) {
+              items = items.concat(arr.map((item: any) => ({ ...item, source })));
+              break;
+            }
           }
-        });
+        }
 
         if (items.length) {
           // Normalize
@@ -163,7 +175,7 @@ const AllAINews: React.FC = () => {
     };
 
     fetchNews();
-  }, []);
+  }, [API_BASE_URL]);
 
   // Fallback images
   const getFallbackImage = (index: number, title?: string): string => {

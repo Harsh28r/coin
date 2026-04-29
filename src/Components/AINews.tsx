@@ -9,6 +9,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { useNewsTranslation } from '../hooks/useNewsTranslation';
 import { getCryptoFallbackImage, handleImageError, resolveImageSrc } from '../utils/cryptoImages';
 import { BRAND_DISPLAY_NAME } from '../utils/branding';
+import { buildRssBackendBases } from '../utils/rssBackendBases';
 
 interface NewsItem {
   article_id?: string;
@@ -41,22 +42,6 @@ const AINews: React.FC = () => {
 
   const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://c-back-seven.vercel.app';
 
-  /** Same resilience as `services/api.ts` — camify often 502s; Vercel/Render still answer. */
-  const RSS_API_BASES: string[] = Array.from(
-    new Set(
-      [
-        API_BASE_URL.replace(/\/$/, ''),
-        API_BASE_URL.replace(/\/$/, '').endsWith('/api')
-          ? API_BASE_URL.replace(/\/$/, '').replace(/\/api$/, '')
-          : '',
-        'https://c-back-seven.vercel.app',
-        'https://c-back-1.onrender.com',
-        'https://c-back-2.onrender.com',
-        'https://camify.fun.coinsclarity.com',
-      ].filter(Boolean) as string[],
-    ),
-  );
-
   const isValidImageUrl = (url?: string): boolean => {
     if (!url) return false;
     if (!/^https?:\/\//i.test(url)) return false;
@@ -86,6 +71,9 @@ const AINews: React.FC = () => {
   };
 
   useEffect(() => {
+    /** Vercel/Render first — if REACT_APP_API_BASE_URL is camify, we still try mirrors before it. */
+    const bases = buildRssBackendBases(API_BASE_URL);
+
     const fetchJson = async (url: string, timeoutMs = 12000) => {
       const ctrl = new AbortController();
       const id = setTimeout(() => ctrl.abort(), timeoutMs);
@@ -138,7 +126,7 @@ const AINews: React.FC = () => {
 
         for (const { path, source } of aiPaths) {
           const suffix = `${path}?limit=12`;
-          for (const base of RSS_API_BASES) {
+          for (const base of bases) {
             const data = await fetchFromBase(base, suffix);
             const arr = extractArr(data);
             if (arr.length) {
@@ -173,7 +161,7 @@ const AINews: React.FC = () => {
           ];
           for (const { path, source } of fallbackPaths) {
             const suffix = `${path}?limit=12`;
-            for (const base of RSS_API_BASES) {
+            for (const base of bases) {
               const data = await fetchFromBase(base, suffix);
               const arr = extractArr(data);
               if (arr.length) {
