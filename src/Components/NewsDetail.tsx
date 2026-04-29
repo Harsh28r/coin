@@ -38,16 +38,28 @@ interface NewsItem {
   category?: string[];
 }
 
-// ─── tiny in-memory + sessionStorage cache ─────────────────────────────────
+// ─── memory + localStorage cache (24h) — survives tab close & deep-link revisit
 const MEM_CACHE = new Map<string, { item: NewsItem; ts: number }>();
-const CACHE_TTL_MS = 5 * 60 * 1000;
+const CACHE_TTL_MS = 24 * 60 * 60 * 1000;
 const CACHE_KEY = (id: string) => `news:${id}`;
+const READ_STALE = (id: string): NewsItem | null => {
+  // Read even if stale — used as instant placeholder while we re-fetch.
+  const m = MEM_CACHE.get(id);
+  if (m) return m.item;
+  try {
+    const raw = localStorage.getItem(CACHE_KEY(id)) || sessionStorage.getItem(CACHE_KEY(id));
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (parsed && parsed.item) return parsed.item as NewsItem;
+  } catch {}
+  return null;
+};
 
 const readCache = (id: string): NewsItem | null => {
   const m = MEM_CACHE.get(id);
   if (m && Date.now() - m.ts < CACHE_TTL_MS) return m.item;
   try {
-    const raw = sessionStorage.getItem(CACHE_KEY(id));
+    const raw = localStorage.getItem(CACHE_KEY(id)) || sessionStorage.getItem(CACHE_KEY(id));
     if (!raw) return null;
     const parsed = JSON.parse(raw);
     if (parsed && parsed.ts && Date.now() - parsed.ts < CACHE_TTL_MS) {
@@ -62,8 +74,17 @@ const writeCache = (id: string, item: NewsItem) => {
   const entry = { item, ts: Date.now() };
   MEM_CACHE.set(id, entry);
   try {
-    sessionStorage.setItem(CACHE_KEY(id), JSON.stringify(entry));
-  } catch {}
+    const json = JSON.stringify(entry);
+    localStorage.setItem(CACHE_KEY(id), json);
+    sessionStorage.setItem(CACHE_KEY(id), json);
+  } catch {
+    // localStorage full — best-effort prune oldest news:* keys
+    try {
+      const keys = Object.keys(localStorage).filter(k => k.startsWith('news:'));
+      if (keys.length > 30) keys.slice(0, keys.length - 30).forEach(k => localStorage.removeItem(k));
+      localStorage.setItem(CACHE_KEY(id), JSON.stringify(entry));
+    } catch {}
+  }
 };
 
 const NewsDetail: React.FC = () => {
@@ -75,11 +96,12 @@ const NewsDetail: React.FC = () => {
   const [newsItem, setNewsItem] = useState<NewsItem | null>(() => {
     const fromState = navState && (navState.item || navState.newsItem);
     if (fromState) return fromState as NewsItem;
-    if (id) return readCache(id);
+    if (id) return readCache(id) || READ_STALE(id);
     return null;
   });
   const [loading, setLoading] = useState<boolean>(!newsItem);
   const [error, setError] = useState<string | null>(null);
+  const [statusMsg, setStatusMsg] = useState<string>('Fetching article…');
 
   const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://c-back-2.onrender.com';
   const CAMIFY = 'https://camify.fun.coinsclarity.com';
@@ -313,23 +335,30 @@ const NewsDetail: React.FC = () => {
         return norm;
       });
 
+    // Order matters even with Promise.any — kicks off in declaration order.
+    // Fastest endpoints first; the 60s-cold-start Render endpoint goes LAST
+    // with a tight 6s cap so it can never hold us up.
+    const PER_SOURCE_RSS = [
+      'coindesk', 'cryptoslate', 'cointelegraph', 'decrypt', 'blockworks',
+      'beincrypto', 'finbold', 'coingape', 'bitcoinist', 'cryptobriefing',
+      'protos', 'unchained', 'thecryptobasic', 'blockonomi', 'coincu',
+      'cryptonewsz', 'ethereumworldnews', 'chaingpt', 'watcherguru', 'coinpedia',
+      'smartliquidity',
+    ];
+
     const racers: Promise<NewsItem>[] = [
-      // Direct lookups (fastest if available)
-      wrapMatch(tryFetch(`${CAMIFY}/article/${encodeURIComponent(articleId)}`, 8000)),
-      wrapMatch(tryFetch(`${API_BASE_URL}/news/${encodeURIComponent(articleId)}`, 12000)),
-      // Single-shot multi-collection endpoints
-      wrapMatch(tryFetch(`${CAMIFY}/posts`, 10000)),
-      // Aggregate + per-source RSS endpoints (parallel, first hit wins)
-      wrapMatch(tryFetch(`${CAMIFY}/fetch-all-rss?limit=100`, 12000)),
-      ...[
-        'cryptoslate', 'cointelegraph', 'coindesk', 'decrypt', 'blockworks',
-        'beincrypto', 'finbold', 'coingape', 'bitcoinist', 'cryptobriefing',
-        'protos', 'unchained', 'thecryptobasic', 'blockonomi', 'coincu',
-        'cryptonewsz', 'ethereumworldnews', 'chaingpt', 'watcherguru', 'coinpedia',
-        'smartliquidity',
-      ].map(src =>
-        wrapMatch(tryFetch(`${CAMIFY}/fetch-${src}-rss?limit=50`, 12000)),
+      // Per-source RSS — typically 200–500 ms each, all fired in parallel.
+      ...PER_SOURCE_RSS.map(src =>
+        wrapMatch(tryFetch(`${CAMIFY}/fetch-${src}-rss?limit=50`, 6000)),
       ),
+      // Aggregate (~4.5 s) — covers the rest.
+      wrapMatch(tryFetch(`${CAMIFY}/fetch-all-rss?limit=100`, 8000)),
+      // Multi-collection scan.
+      wrapMatch(tryFetch(`${CAMIFY}/posts`, 4000)),
+      // Direct id lookup (often 404s but 200s instantly when it's a hit).
+      wrapMatch(tryFetch(`${CAMIFY}/article/${encodeURIComponent(articleId)}`, 4000)),
+      // Render-hosted fallback — cold-starts up to 60 s, hard-cap at 6 s.
+      wrapMatch(tryFetch(`${API_BASE_URL}/news/${encodeURIComponent(articleId)}`, 6000)),
     ];
 
     try {
@@ -422,7 +451,7 @@ const NewsDetail: React.FC = () => {
         return;
       }
 
-      // Fresh load — check cache first (instant for back-nav / repeat visit)
+      // Fresh cache hit — instant render, no skeleton.
       const cached = readCache(id);
       if (cached) {
         if (!cancelled) {
@@ -430,11 +459,32 @@ const NewsDetail: React.FC = () => {
           setLoading(false);
           setError(null);
         }
+        backgroundEnrich(cached);
+        return;
       }
 
-      if (!cached) setLoading(true);
+      // Stale cache hit — show it instantly under a "refreshing" hint, then refetch.
+      const stale = READ_STALE(id);
+      if (stale) {
+        if (!cancelled) {
+          setNewsItem(stale);
+          setLoading(false);
+          setError(null);
+        }
+      } else {
+        if (!cancelled) {
+          setLoading(true);
+          setStatusMsg('Fetching article…');
+        }
+      }
+
+      // Progressive status hints so the skeleton never feels frozen.
+      const hint1 = setTimeout(() => !cancelled && setStatusMsg('Reaching news sources…'), 1200);
+      const hint2 = setTimeout(() => !cancelled && setStatusMsg('Server warming up, hang tight…'), 4000);
+      const hint3 = setTimeout(() => !cancelled && setStatusMsg('Almost there…'), 8000);
 
       const resolved = await fetchArticleParallel(id);
+      clearTimeout(hint1); clearTimeout(hint2); clearTimeout(hint3);
       if (cancelled) return;
 
       if (resolved) {
@@ -443,7 +493,7 @@ const NewsDetail: React.FC = () => {
         setError(null);
         setLoading(false);
         backgroundEnrich(resolved);
-      } else if (!cached) {
+      } else if (!stale) {
         setError('News article not found');
         setLoading(false);
       }
@@ -758,15 +808,23 @@ const NewsDetail: React.FC = () => {
   if (loading && !newsItem) {
     return (
       <div className="ns-shell">
-        <div className="ns-progress"><div className="ns-progress__bar" style={{ width: '12%' }} /></div>
+        <div className="ns-progress"><div className="ns-progress__bar ns-progress__bar--indet" /></div>
         <div className="ns-container">
           <button className="ns-back" onClick={handleBack}><ArrowLeft size={16} /> Back</button>
+
+          <div className="ns-status" role="status" aria-live="polite">
+            <span className="ns-status__dot" />
+            <span className="ns-status__msg">{statusMsg}</span>
+          </div>
+
           <div className="ns-skeleton ns-skeleton--eyebrow shimmer" />
           <div className="ns-skeleton ns-skeleton--title shimmer" />
           <div className="ns-skeleton ns-skeleton--title-2 shimmer" />
           <div className="ns-skeleton ns-skeleton--meta shimmer" />
           <div className="ns-skeleton ns-skeleton--hero shimmer" />
           <div className="ns-skeleton ns-skeleton--p shimmer" />
+          <div className="ns-skeleton ns-skeleton--p shimmer" />
+          <div className="ns-skeleton ns-skeleton--p ns-skeleton--p-short shimmer" />
           <div className="ns-skeleton ns-skeleton--p shimmer" />
           <div className="ns-skeleton ns-skeleton--p ns-skeleton--p-short shimmer" />
           <div className="ns-skeleton ns-skeleton--p shimmer" />
