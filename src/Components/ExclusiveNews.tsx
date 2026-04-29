@@ -101,25 +101,33 @@ const ExclusiveNews: React.FC = () => {
           return null;
         };
 
-        const pathSpecs = [
-          { path: 'fetch-cointelegraph-rss?limit=24', source: 'Cointelegraph' },
+        // Try fetch-all-rss first across all backends — 1 request instead of 100+.
+        // Only fall back to individual sources if the aggregated endpoint fails everywhere.
+        const allRssPaths = ['fetch-all-rss?limit=100', 'fetch-cointelegraph-rss?limit=50'];
+        const fallbackPaths = [
           { path: 'fetch-coindesk-rss?limit=24', source: 'CoinDesk' },
           { path: 'fetch-decrypt-rss?limit=24', source: 'Decrypt' },
-          { path: 'fetch-cryptoslate-rss?limit=24', source: 'CryptoSlate' },
-          { path: 'fetch-cryptobriefing-rss?limit=24', source: 'Crypto Briefing' },
           { path: 'fetch-beincrypto-rss?limit=24', source: 'BeInCrypto' },
           { path: 'fetch-blockworks-rss?limit=24', source: 'Blockworks' },
-          { path: 'fetch-finbold-rss?limit=24', source: 'Finbold' },
-          { path: 'fetch-protos-rss?limit=24', source: 'Protos' },
-          { path: 'fetch-unchained-rss?limit=24', source: 'Unchained' },
-          { path: 'fetch-thecryptobasic-rss?limit=24', source: 'The Crypto Basic' },
-          { path: 'fetch-blockonomi-rss?limit=24', source: 'Blockonomi' },
-          { path: 'fetch-all-rss?limit=50', source: 'All' },
         ];
 
         let items: any[] = [];
 
-        for (const { path } of pathSpecs) {
+        // Pass 1: try aggregated endpoint across all backends
+        for (const base of bases) {
+          for (const path of allRssPaths) {
+            const value = await fetchFromBase(base, path);
+            if (value?.success) {
+              const arr = Array.isArray(value.data) ? value.data : Array.isArray(value.items) ? value.items : [];
+              if (arr.length >= 6) { items = arr; break; }
+            }
+          }
+          if (items.length >= 6) break;
+        }
+
+        // Pass 2: if still empty, try a few individual sources (capped to 4 × backends)
+        if (items.length === 0) {
+        for (const { path } of fallbackPaths) {
           for (const base of bases) {
             const value = await fetchFromBase(base, path);
             if (value?.success) {
@@ -131,6 +139,7 @@ const ExclusiveNews: React.FC = () => {
             }
           }
         }
+        } // end fallback pass
 
         if (items.length) {
           const normalizedRaw = items.map((item: any, i: number) => {

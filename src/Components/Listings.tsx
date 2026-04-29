@@ -7,7 +7,7 @@ import Skeleton from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
 import { useNewsTranslation } from '../hooks/useNewsTranslation';
 import { Helmet } from 'react-helmet-async';
-import { defaultPublicBackend } from '../utils/rssBackendBases';
+import { buildRssBackendBases } from '../utils/rssBackendBases';
 
 const Listings: React.FC = () => {
   const navigate = useNavigate();
@@ -68,35 +68,18 @@ const Listings: React.FC = () => {
     const run = async () => {
       setLoading(true);
       try {
-        const CAMIFY = defaultPublicBackend();
-        const sources = [
-          `${CAMIFY}/fetch-cryptobriefing-rss?limit=60`,
-          `${CAMIFY}/fetch-dailyhodl-rss?limit=60`,
-          `${CAMIFY}/fetch-beincrypto-rss?limit=60`,
-          `${CAMIFY}/fetch-cryptopotato-rss?limit=60`,
-          `${CAMIFY}/fetch-utoday-rss?limit=60`,
-          `${CAMIFY}/fetch-coindesk-rss?limit=60`,
-          `${CAMIFY}/fetch-cointelegraph-rss?limit=60`,
-          `${CAMIFY}/fetch-decrypt-rss?limit=60`,
-          `${CAMIFY}/fetch-blockworks-rss?limit=60`,
-          `${CAMIFY}/fetch-bitcoinist-rss?limit=60`,
-          `${CAMIFY}/fetch-coingape-rss?limit=60`,
-          `${CAMIFY}/fetch-finbold-rss?limit=60`,
-          `${CAMIFY}/fetch-protos-rss?limit=60`,
-          `${CAMIFY}/fetch-unchained-rss?limit=60`,
-          `${CAMIFY}/fetch-thecryptobasic-rss?limit=60`,
-          `${CAMIFY}/fetch-blockonomi-rss?limit=60`,
-          `${CAMIFY}/fetch-coincu-rss?limit=60`,
-          `${CAMIFY}/fetch-cryptonewsz-rss?limit=60`,
-          `${API_BASE_URL}/fetch-all-rss?limit=100`,
-        ];
-        const results = await Promise.allSettled(sources.map(s => fetch(s, { signal: AbortSignal.timeout(12000) }).then(r => r.json()).catch(() => null)));
+        // Try fetch-all-rss across backends (fallback chain) instead of 19 parallel per-source requests.
+        const bases = buildRssBackendBases(API_BASE_URL);
         let merged: any[] = [];
-        for (const r of results) {
-          if ((r as any)?.status === 'fulfilled' && (r as any).value?.success) {
-            const arr = Array.isArray((r as any).value.data) ? (r as any).value.data : Array.isArray((r as any).value.items) ? (r as any).value.items : [];
-            merged.push(...arr);
-          }
+        for (const base of bases) {
+          try {
+            const url = `${base.replace(/\/$/, '')}/fetch-all-rss?limit=200`;
+            const res = await fetch(url, { signal: AbortSignal.timeout(12000) });
+            if (!res.ok) continue;
+            const data = await res.json();
+            const arr = Array.isArray(data?.data) ? data.data : Array.isArray(data?.items) ? data.items : [];
+            if (data?.success && arr.length > 0) { merged = arr; break; }
+          } catch {}
         }
         const listings = extractListingNews(merged);
         setItems(listings);

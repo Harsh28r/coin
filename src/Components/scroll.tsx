@@ -132,20 +132,26 @@ export const ScrollingStats = () => {
         throw new Error('Invalid response format');
       }
     } catch (error) {
-      // Fallback data for scrolling
-      const fallbackData = [
-        { symbol: 'BTC', priceUsd: '45000.00', changePercent24Hr: '2.5' },
-        { symbol: 'ETH', priceUsd: '3200.00', changePercent24Hr: '1.8' },
-        { symbol: 'BNB', priceUsd: '320.00', changePercent24Hr: '0.8' },
-        { symbol: 'ADA', priceUsd: '0.48', changePercent24Hr: '-1.2' },
-        { symbol: 'SOL', priceUsd: '24.50', changePercent24Hr: '3.2' },
-        { symbol: 'DOT', priceUsd: '7.20', changePercent24Hr: '-0.5' },
-        { symbol: 'DOGE', priceUsd: '0.085', changePercent24Hr: '4.1' },
-        { symbol: 'AVAX', priceUsd: '15.30', changePercent24Hr: '2.8' },
-        { symbol: 'MATIC', priceUsd: '0.92', changePercent24Hr: '1.5' },
-        { symbol: 'LINK', priceUsd: '12.80', changePercent24Hr: '-0.8' }
-      ];
-      setScrollingStats(fallbackData);
+      // Fallback: try direct CoinGecko (works without proxy, no API key needed for basic endpoint)
+      try {
+        const cgRes = await fetch(
+          'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=20&page=1&price_change_percentage=24h',
+          { signal: AbortSignal.timeout(8000) }
+        );
+        if (cgRes.ok) {
+          const cgData = await cgRes.json();
+          if (Array.isArray(cgData) && cgData.length) {
+            setScrollingStats(cgData.map((item: any) => ({
+              symbol: String(item.symbol || '').toUpperCase(),
+              priceUsd: String(item.current_price ?? ''),
+              changePercent24Hr: String(item.price_change_percentage_24h ?? '0'),
+            })));
+            return;
+          }
+        }
+      } catch {}
+      // Last resort: show empty — don't display stale prices
+      setScrollingStats([]);
     } finally {
       setLoading(false);
     }

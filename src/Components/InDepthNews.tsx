@@ -7,7 +7,7 @@ import Skeleton from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
 import { useNewsTranslation } from '../hooks/useNewsTranslation';
 import { resolveImageSrc, handleImageError } from '../utils/cryptoImages';
-import { defaultPublicBackend } from '../utils/rssBackendBases';
+import { buildRssBackendBases } from '../utils/rssBackendBases';
 
 interface InDepthItem {
 	article_id: string;
@@ -55,29 +55,21 @@ const InDepthNews: React.FC = () => {
 			setLoading(true);
 			setError(null);
 			try {
-				const CAMIFY = defaultPublicBackend();
-				const endpoints = [
-					`${CAMIFY}/fetch-beincrypto-rss?limit=8`,
-					`${CAMIFY}/fetch-coindesk-rss?limit=8`,
-					`${CAMIFY}/fetch-cryptoslate-rss?limit=8`,
-					`${CAMIFY}/fetch-blockworks-rss?limit=8`,
-					`${CAMIFY}/fetch-finbold-rss?limit=8`,
-					`${CAMIFY}/fetch-protos-rss?limit=8`,
-					`${CAMIFY}/fetch-unchained-rss?limit=8`,
-					`${API_BASE_URL}/fetch-all-rss?limit=16`
-				];
+				// Use fallback chain: /backend proxy → mirrors → camify
+				const bases = buildRssBackendBases(API_BASE_URL);
+				const paths = ['fetch-all-rss?limit=24', 'fetch-beincrypto-rss?limit=16', 'fetch-coindesk-rss?limit=16'];
 				let loaded: any[] | null = null;
-				for (const url of endpoints) {
-					try {
-						const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
-						if (!res.ok) continue;
-						const data = await res.json();
-						const arr = Array.isArray(data?.data) ? data.data : Array.isArray(data?.items) ? data.items : [];
-						if (data?.success && arr.length) {
-							loaded = arr;
-							break;
-						}
-					} catch {}
+				outer: for (const base of bases) {
+					for (const p of paths) {
+						try {
+							const url = `${base.replace(/\/$/, '')}/${p}`;
+							const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
+							if (!res.ok) continue;
+							const data = await res.json();
+							const arr = Array.isArray(data?.data) ? data.data : Array.isArray(data?.items) ? data.items : [];
+							if (data?.success && arr.length >= 4) { loaded = arr; break outer; }
+						} catch {}
+					}
 				}
 
 				if (!cancelled) {

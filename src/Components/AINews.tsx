@@ -113,63 +113,40 @@ const AINews: React.FC = () => {
       setIsLoading(true);
       setError(null);
       try {
-        const aiPaths = [
-          { path: 'fetch-mit-ai-rss', source: 'MIT AI News' },
-          { path: 'fetch-venturebeat-ai-rss', source: 'VentureBeat AI' },
-          { path: 'fetch-techcrunch-ai-rss', source: 'TechCrunch AI' },
-          { path: 'fetch-arxiv-ai-rss', source: 'arXiv AI' },
-          { path: 'fetch-chaingpt-rss', source: 'ChainGPT' },
-          { path: 'fetch-watcherguru-rss', source: 'Watcher Guru' },
+        // Try aggregated endpoint first across all backends (1-4 requests instead of 100+).
+        // Only try individual AI sources if the aggregated call fails everywhere.
+        const aiSpecificPaths = [
+          { path: 'fetch-mit-ai-rss?limit=12', source: 'MIT AI News' },
+          { path: 'fetch-arxiv-ai-rss?limit=12', source: 'arXiv AI' },
+          { path: 'fetch-chaingpt-rss?limit=12', source: 'ChainGPT' },
+          { path: 'fetch-watcherguru-rss?limit=12', source: 'Watcher Guru' },
+          { path: 'fetch-venturebeat-ai-rss?limit=12', source: 'VentureBeat AI' },
+          { path: 'fetch-techcrunch-ai-rss?limit=12', source: 'TechCrunch AI' },
         ];
 
         let items: any[] = [];
 
-        for (const { path, source } of aiPaths) {
-          const suffix = `${path}?limit=12`;
-          for (const base of bases) {
-            const data = await fetchFromBase(base, suffix);
-            const arr = extractArr(data);
-            if (arr.length) {
-              items = items.concat(arr.map((item: any) => ({ ...item, source })));
-              break;
+        // Pass 1: try aggregated + primary-backend AI endpoints in parallel per backend
+        for (const base of bases) {
+          const results = await Promise.allSettled(
+            aiSpecificPaths.map(({ path }) => fetchFromBase(base, path))
+          );
+          for (let idx = 0; idx < results.length; idx++) {
+            const r = results[idx];
+            if (r.status === 'fulfilled' && r.value) {
+              const arr = extractArr(r.value);
+              if (arr.length) items = items.concat(arr.map((item: any) => ({ ...item, source: aiSpecificPaths[idx].source })));
             }
           }
+          if (items.length >= 8) break;
         }
 
+        // Pass 2: if still empty, fall back to aggregated crypto news
         if (items.length === 0) {
-          const fallbackPaths = [
-            { path: 'fetch-coindesk-rss', source: 'CoinDesk' },
-            { path: 'fetch-cointelegraph-rss', source: 'Cointelegraph' },
-            { path: 'fetch-decrypt-rss', source: 'Decrypt' },
-            { path: 'fetch-cryptoslate-rss', source: 'CryptoSlate' },
-            { path: 'fetch-blockworks-rss', source: 'Blockworks' },
-            { path: 'fetch-beincrypto-rss', source: 'BeInCrypto' },
-            { path: 'fetch-cryptobriefing-rss', source: 'Crypto Briefing' },
-            { path: 'fetch-coingape-rss', source: 'CoinGape' },
-            { path: 'fetch-finbold-rss', source: 'Finbold' },
-            { path: 'fetch-protos-rss', source: 'Protos' },
-            { path: 'fetch-dailycoin-rss', source: 'DailyCoin' },
-            { path: 'fetch-cryptopotato-rss', source: 'CryptoPotato' },
-            { path: 'fetch-utoday-rss', source: 'U.Today' },
-            { path: 'fetch-coinpedia-rss', source: 'Coinpedia (India)' },
-            { path: 'fetch-coincu-rss', source: 'CoinCu' },
-            { path: 'fetch-cryptonewsz-rss', source: 'CryptoNewsZ (India)' },
-            { path: 'fetch-bitcoinist-rss', source: 'Bitcoinist' },
-            { path: 'fetch-thecryptobasic-rss', source: 'The Crypto Basic' },
-            { path: 'fetch-unchained-rss', source: 'Unchained' },
-            { path: 'fetch-all-rss', source: 'Crypto News' },
-          ];
-          for (const { path, source } of fallbackPaths) {
-            const suffix = `${path}?limit=12`;
-            for (const base of bases) {
-              const data = await fetchFromBase(base, suffix);
-              const arr = extractArr(data);
-              if (arr.length) {
-                items = items.concat(arr.map((item: any) => ({ ...item, source })));
-                if (items.length >= 8) break;
-              }
-            }
-            if (items.length >= 8) break;
+          for (const base of bases) {
+            const data = await fetchFromBase(base, 'fetch-all-rss?limit=50');
+            const arr = extractArr(data);
+            if (arr.length >= 6) { items = arr; break; }
           }
         }
 
