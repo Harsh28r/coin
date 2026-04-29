@@ -6,7 +6,7 @@ import Skeleton from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
 import { BRAND_DISPLAY_NAME, stripAppearedFirstOn } from '../utils/branding';
 import { resolveImageSrc, handleImageError } from '../utils/cryptoImages';
-import { defaultPublicBackend } from '../utils/rssBackendBases';
+import { buildRssBackendBases } from '../utils/rssBackendBases';
 import './EditorialHero.css';
 
 interface HeroItem {
@@ -109,7 +109,6 @@ const EditorialHero: React.FC = () => {
   const [items, setItems] = useState<HeroItem[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const CAMIFY = defaultPublicBackend();
   const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://c-back-2.onrender.com';
 
   useEffect(() => {
@@ -130,61 +129,65 @@ const EditorialHero: React.FC = () => {
     };
 
     (async () => {
-      const sources: { url: string; category: string }[] = [
-        { url: `${CAMIFY}/fetch-cointelegraph-rss?limit=4`, category: 'Top Story' },
-        { url: `${CAMIFY}/fetch-coindesk-rss?limit=4`, category: 'Markets' },
-        { url: `${CAMIFY}/fetch-decrypt-rss?limit=4`, category: 'Editorial' },
-        { url: `${CAMIFY}/fetch-cryptoslate-rss?limit=4`, category: 'Insights' },
-        { url: `${CAMIFY}/fetch-blockworks-rss?limit=4`, category: 'Industry' },
-      ];
+      const bases = buildRssBackendBases(API_BASE_URL);
+      const mapItem = (it: any, cat: string, idx: number): HeroItem => {
+        const desc = stripAppearedFirstOn(decodeHtml(it.description || ''));
+        return {
+          article_id: it.article_id || it.id || it.guid || `${cat}-${idx}`,
+          title: decodeHtml(it.title || 'Untitled'),
+          description: desc.replace(/<[^>]+>/g, '').slice(0, 220),
+          creator: Array.isArray(it.creator) ? it.creator : [it.author || BRAND_DISPLAY_NAME],
+          pubDate: it.pubDate || it.date || new Date().toISOString(),
+          image_url: getImage(it),
+          link: it.link || '#',
+          source: it.source_name || cat,
+          category: Array.isArray(it.category) ? it.category[0] : (it.category || cat),
+          content: it.content || it.description || '',
+        };
+      };
 
-      const results = await Promise.allSettled(sources.map(s => fetchJson(s.url, 5500)));
-      const merged: HeroItem[] = [];
-      results.forEach((res, idx) => {
-        if (res.status !== 'fulfilled' || !res.value) return;
-        const arr = extract(res.value);
-        const cat = sources[idx].category;
-        arr.slice(0, 2).forEach((it: any) => {
-          const desc = stripAppearedFirstOn(decodeHtml(it.description || ''));
-          merged.push({
-            article_id: it.article_id || it.id || it.guid || `${cat}-${merged.length}`,
-            title: decodeHtml(it.title || 'Untitled'),
-            description: desc.replace(/<[^>]+>/g, '').slice(0, 220),
-            creator: Array.isArray(it.creator) ? it.creator : [it.author || BRAND_DISPLAY_NAME],
-            pubDate: it.pubDate || it.date || new Date().toISOString(),
-            image_url: getImage(it),
-            link: it.link || '#',
-            source: it.source_name || cat,
-            category: cat,
-            content: it.content || it.description || '',
+      // Pass 1: try aggregated fetch-all-rss across all backends (1 request per backend)
+      let merged: HeroItem[] = [];
+      for (const base of bases) {
+        const j = await fetchJson(`${base.replace(/\/$/, '')}/fetch-all-rss?limit=12`, 6000);
+        if (j?.success) {
+          const arr = extract(j);
+          if (arr.length >= 3) {
+            merged = arr.slice(0, 10).map((it: any, i: number) => mapItem(it, 'Top Story', i));
+            break;
+          }
+        }
+      }
+
+      // Pass 2: try individual sources per backend if aggregated failed
+      if (!merged.length) {
+        const categories = [
+          { path: 'fetch-cointelegraph-rss?limit=4', category: 'Top Story' },
+          { path: 'fetch-coindesk-rss?limit=4', category: 'Markets' },
+          { path: 'fetch-decrypt-rss?limit=4', category: 'Editorial' },
+          { path: 'fetch-cryptoslate-rss?limit=4', category: 'Insights' },
+          { path: 'fetch-blockworks-rss?limit=4', category: 'Industry' },
+        ];
+        for (const base of bases) {
+          const results = await Promise.allSettled(
+            categories.map(({ path }) => fetchJson(`${base.replace(/\/$/, '')}/${path}`, 5500))
+          );
+          results.forEach((res, idx) => {
+            if (res.status !== 'fulfilled' || !res.value) return;
+            const arr = extract(res.value);
+            const cat = categories[idx].category;
+            arr.slice(0, 2).forEach((it: any) => {
+              merged.push(mapItem(it, cat, merged.length));
+            });
           });
-        });
-      });
-
-      // If nothing fetched, fall back to API_BASE_URL aggregator once
-      let final = merged;
-      if (!final.length) {
-        const j = await fetchJson(`${API_BASE_URL}/fetch-all-rss?limit=8`, 6000);
-        const arr = extract(j);
-        if (arr.length) {
-          final = arr.slice(0, 8).map((it: any, i: number) => ({
-            article_id: it.article_id || it.guid || `agg-${i}`,
-            title: decodeHtml(it.title || 'Untitled'),
-            description: stripAppearedFirstOn(decodeHtml(it.description || '')).replace(/<[^>]+>/g, '').slice(0, 220),
-            creator: Array.isArray(it.creator) ? it.creator : [BRAND_DISPLAY_NAME],
-            pubDate: it.pubDate || new Date().toISOString(),
-            image_url: getImage(it),
-            link: it.link || '#',
-            source: it.source_name || 'News',
-            category: 'News',
-          }));
+          if (merged.length >= 3) break;
         }
       }
 
       if (cancelled) return;
       // Dedupe by title
       const seen = new Set<string>();
-      const dedup = (final.length ? final : FALLBACK).filter(x => {
+      const dedup = (merged.length ? merged : FALLBACK).filter(x => {
         const key = (x.title || '').toLowerCase().trim();
         if (!key || seen.has(key)) return false;
         seen.add(key);
