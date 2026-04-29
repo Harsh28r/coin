@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useCurrency } from '../context/CurrencyContext';
 import { useAuth } from '../context/AuthContext';
 import CoinTicker from './CoinTicker';
+import { defaultPublicBackend } from '../utils/rssBackendBases';
 
 interface Translation {
   comp: string;
@@ -77,7 +78,7 @@ export function TopNav() {
     const fetchNews = async () => {
       setLoading(true);
       try {
-        const CAMIFY = 'https://camify.fun.coinsclarity.com';
+        const CAMIFY = defaultPublicBackend();
         let response = await fetch(`${CAMIFY}/fetch-all-rss?limit=5`, { signal: AbortSignal.timeout(8000) }).catch(() => null);
         if (!response || !response.ok) response = await fetch(`${API_BASE_URL}/fetch-all-rss?limit=5`, { signal: AbortSignal.timeout(8000) });
         if (!response.ok) throw new Error('Failed to fetch news');

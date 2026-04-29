@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { coingeckoV3Url } from '../utils/coingeckoUrl';
 import { useCurrency } from '../context/CurrencyContext';
 import { useNavigate } from 'react-router-dom';
 
@@ -87,7 +88,9 @@ const CoinTicker: React.FC<CoinTickerProps> = ({ fixed = true, top = 60, height 
     const fetchCoins = async () => {
       try {
         const vs = currency.toLowerCase();
-        const url = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=${encodeURIComponent(vs)}&order=market_cap_desc&per_page=${perPage}&page=1&sparkline=true&price_change_percentage=24h`;
+        const url = coingeckoV3Url(
+          `coins/markets?vs_currency=${encodeURIComponent(vs)}&order=market_cap_desc&per_page=${perPage}&page=1&sparkline=true&price_change_percentage=24h`,
+        );
         const res = await fetch(url);
         if (!res.ok) throw new Error('Failed to fetch');
         const data = await res.json();

@@ -6,6 +6,7 @@ import { Link, NavLink, useNavigate } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import _ from 'lodash';
 import '../styles/CoinsNavbar.css';
+import { coingeckoV3Url } from '../utils/coingeckoUrl';
 
 interface SearchSuggestion {
   type: 'coins' | 'exchanges';
@@ -48,7 +49,6 @@ const CoinsNavbar: React.FC = () => {
   }, [theme]);
 
   const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
-  const COINGECKO_API_BASE_URL = 'https://api.coingecko.com/api/v3';
   const mockSuggestions: SearchSuggestion[] = [
     { type: 'coins', name: 'Bitcoin', id: 'bitcoin' },
     { type: 'coins', name: 'BNB', id: 'bnb' },
@@ -76,7 +76,7 @@ const CoinsNavbar: React.FC = () => {
         }
       } catch (_) { /* fall through */ }
 
-      const response = await fetch(`${COINGECKO_API_BASE_URL}/search?query=${encodeURIComponent(query)}`, {
+      const response = await fetch(coingeckoV3Url(`search?query=${encodeURIComponent(query)}`), {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
       });

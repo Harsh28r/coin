@@ -16,6 +16,7 @@ import { useCurrency } from '../context/CurrencyContext';
 import WatchlistButton from './WatchlistButton';
 import { resolveImageSrc, handleImageError } from '../utils/cryptoImages';
 import AffiliateButtons from './AffiliateButtons';
+import { coingeckoV3Url } from '../utils/coingeckoUrl';
 import './CoinDetail.css';
 
 type Timeframe = '1D' | '7D' | '30D' | '1Y' | 'MAX';
@@ -315,8 +316,11 @@ const CoinDetail: React.FC = () => {
       }
     } catch { /* ignore */ }
 
+    const cgRel = path.startsWith('/api/v3/') ? path.slice(8) : path.replace(/^\/+/, '');
+    const proxied = coingeckoV3Url(cgRel);
     const direct = `https://api.coingecko.com${path}`;
     const candidates = [
+      proxied,
       direct,
       `https://corsproxy.io/?${encodeURIComponent(direct)}`,
       `https://c-back-seven.vercel.app${direct}`,

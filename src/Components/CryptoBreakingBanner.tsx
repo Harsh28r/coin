@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { buildRssBackendBases, joinBackendPath } from '../utils/rssBackendBases';
 
 type RawItem = {
   article_id?: string;
@@ -60,17 +61,12 @@ const normalizeItem = (item: RawItem, idx: number): BreakingItem => {
   return { id, title, description, author, pubDate, image_url, link, isBreaking };
 };
 
-const getApiBases = (): string[] => {
-  const envA = (process.env.REACT_APP_API_URL as string) || '';
-  const envB = (process.env.REACT_APP_API_BASE_URL as string) || '';
-  const host = typeof window !== 'undefined' ? window.location.hostname : '';
-  const sameOrigin = typeof window !== 'undefined' ? `${window.location.origin}/api` : '';
-  const isProd = typeof window !== 'undefined' && !/localhost|127\.0\.0\.1/i.test(host);
-  const local = isProd ? '' : 'http://localhost:5000';
-  const camify = 'https://camify.fun.coinsclarity.com/api';
-  const list = [sameOrigin, envA, envB, camify, local].filter(Boolean);
-  return Array.from(new Set(list.map((v) => String(v).replace(/\/$/, ''))));
-};
+const rssApiBases = (): string[] =>
+  buildRssBackendBases(
+    (process.env.REACT_APP_API_URL as string) ||
+      process.env.REACT_APP_API_BASE_URL ||
+      'https://c-back-seven.vercel.app',
+  );
 
 const CryptoBreakingBanner: React.FC = () => {
   const navigate = useNavigate();
@@ -83,10 +79,10 @@ const CryptoBreakingBanner: React.FC = () => {
 
     const fetchBreaking = async () => {
       const paths = ['/fetch-all-rss?limit=10', '/fetch-another-rss?limit=10', '/fetch-coindesk-rss?limit=10'];
-      for (const base of getApiBases()) {
+      for (const base of rssApiBases()) {
         for (const path of paths) {
           try {
-            const res = await fetch(`${base}${path}`);
+            const res = await fetch(joinBackendPath(base, path));
             if (!res.ok) continue;
             const json = await res.json();
             const list = Array.isArray(json?.data) ? json.data : Array.isArray(json?.items) ? json.items : [];

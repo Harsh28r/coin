@@ -21,6 +21,7 @@ import {
 import { Helmet } from 'react-helmet-async';
 import { resolveImageSrc, isFakeImageUrl, handleImageError } from '../utils/cryptoImages';
 import { summarize } from '../utils/summarize';
+import { defaultPublicBackend } from '../utils/rssBackendBases';
 import './NewsDetail.css';
 
 interface NewsItem {
@@ -106,7 +107,7 @@ const NewsDetail: React.FC = () => {
   const [bgEnriching, setBgEnriching] = useState<boolean>(false);
 
   const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://c-back-2.onrender.com';
-  const CAMIFY = 'https://camify.fun.coinsclarity.com';
+  const CAMIFY = defaultPublicBackend();
 
   const contentRef = useRef<HTMLDivElement | null>(null);
   const [progress, setProgress] = useState(0);

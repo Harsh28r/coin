@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { resolveImageSrc, handleImageError } from '../utils/cryptoImages';
 import NoIndex from './NoIndex';
+import { defaultPublicBackend } from '../utils/rssBackendBases';
 
 interface NewsItem {
   article_id?: string;
@@ -44,7 +45,7 @@ const AllNews: React.FC = () => {
   useEffect(() => {
     const fetchNews = async () => {
       try {
-        const CAMIFY = 'https://camify.fun.coinsclarity.com';
+        const CAMIFY = defaultPublicBackend();
         let response = await fetch(`${CAMIFY}/fetch-all-rss?limit=50`, { signal: AbortSignal.timeout(10000) }).catch(() => null);
         if (!response || !response.ok) response = await fetch(`${API_BASE_URL}/fetch-all-rss?limit=50`, { signal: AbortSignal.timeout(10000) });
         const data = await response!.json();

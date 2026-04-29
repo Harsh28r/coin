@@ -10,6 +10,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { useNewsTranslation } from '../hooks/useNewsTranslation';
 import { getCryptoFallbackImage, handleImageError, resolveImageSrc } from '../utils/cryptoImages';
 import { Helmet } from 'react-helmet-async';
+import { buildRssBackendBases } from '../utils/rssBackendBases';
 
 interface PressReleaseItem {
   article_id?: string;
@@ -46,16 +47,9 @@ const PressRelease: React.FC = () => {
   const API_BASE_URL =
     (process.env.REACT_APP_API_BASE_URL as string) ||
     ((import.meta as any)?.env?.VITE_API_URL as string) ||
-    'https://camify.fun.coinsclarity.com';
+    'https://c-back-seven.vercel.app';
   const MOCK_API_BASE_URL = process.env.REACT_APP_USE_LOCAL_DB === 'true' ? 'http://localhost:5000' : '';
-  const getApiBases = (): string[] => {
-    const apiBase = API_BASE_URL.replace(/\/$/, '');
-    return [
-      'https://camify.fun.coinsclarity.com',
-      apiBase,
-      'https://c-back-2.onrender.com',
-    ];
-  };
+  const getApiBases = (): string[] => buildRssBackendBases(API_BASE_URL);
 
   const formatMDY = (input: string | Date) => {
     try {

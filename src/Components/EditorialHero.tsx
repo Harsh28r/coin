@@ -6,6 +6,7 @@ import Skeleton from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
 import { BRAND_DISPLAY_NAME, stripAppearedFirstOn } from '../utils/branding';
 import { resolveImageSrc, handleImageError } from '../utils/cryptoImages';
+import { defaultPublicBackend } from '../utils/rssBackendBases';
 import './EditorialHero.css';
 
 interface HeroItem {
@@ -108,7 +109,7 @@ const EditorialHero: React.FC = () => {
   const [items, setItems] = useState<HeroItem[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const CAMIFY = 'https://camify.fun.coinsclarity.com';
+  const CAMIFY = defaultPublicBackend();
   const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://c-back-2.onrender.com';
 
   useEffect(() => {

@@ -1,14 +1,12 @@
 import React, { useMemo, useState } from 'react';
+import { buildRssBackendBases, joinBackendPath } from '../utils/rssBackendBases';
 
-const getApiBases = (): string[] => {
-  const envUrl = (process.env.REACT_APP_API_URL as string) || '';
-  const envBase = (process.env.REACT_APP_API_BASE_URL as string) || '';
-  const sameOrigin = typeof window !== 'undefined' ? `${window.location.origin}/api` : '';
-  const camify = 'https://camify.fun.coinsclarity.com/api';
-  const host = typeof window !== 'undefined' ? window.location.hostname : '';
-  const local = /localhost|127\.0\.0\.1/i.test(host) ? 'http://localhost:5000' : '';
-  return Array.from(new Set([sameOrigin, envUrl, envBase, camify, local].filter(Boolean)));
-};
+const rssApiBases = (): string[] =>
+  buildRssBackendBases(
+    (process.env.REACT_APP_API_URL as string) ||
+      process.env.REACT_APP_API_BASE_URL ||
+      'https://c-back-seven.vercel.app',
+  );
 
 const AIQuickAsk: React.FC = () => {
   const [question, setQuestion] = useState('Summarize BTC market trend in 3 bullets.');
@@ -26,9 +24,15 @@ const AIQuickAsk: React.FC = () => {
 
     let lastError = 'AI request failed';
 
-    for (const base of getApiBases()) {
-      const cleanBase = String(base).replace(/\/$/, '');
-      const paths = [`${cleanBase}/ai/chat`, `${cleanBase}/chat`, `${cleanBase}/ai`];
+    for (const base of rssApiBases()) {
+      const paths = [
+        joinBackendPath(base, '/ai/chat'),
+        joinBackendPath(base, '/api/ai/chat'),
+        joinBackendPath(base, '/chat'),
+        joinBackendPath(base, '/api/chat'),
+        joinBackendPath(base, '/ai'),
+        joinBackendPath(base, '/api/ai'),
+      ];
       for (const endpoint of paths) {
         try {
           const res = await fetch(endpoint, {

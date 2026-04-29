@@ -6,6 +6,7 @@ import CoinsNavbar from '../../Components/navbar';
 import Footer from '../../Components/footer';
 import AffiliateButtons from '../../Components/AffiliateButtons';
 import './tools.css';
+import { coingeckoV3Url } from '../../utils/coingeckoUrl';
 
 interface CoinSearchHit {
   id: string;
@@ -93,7 +94,9 @@ const fetchJson = async (url: string, ttl = 5 * 60 * 1000): Promise<any> => {
 
 const fetchCoin = async (id: string): Promise<CoinFull | null> => {
   const j = await fetchJson(
-    `https://api.coingecko.com/api/v3/coins/${id}?localization=false&tickers=false&community_data=false&developer_data=false&sparkline=false`,
+    coingeckoV3Url(
+      `coins/${id}?localization=false&tickers=false&community_data=false&developer_data=false&sparkline=false`,
+    ),
   );
   if (!j) return null;
   const m = j.market_data || {};
@@ -126,7 +129,7 @@ const fetchCoin = async (id: string): Promise<CoinFull | null> => {
 // Search for a coin by name/symbol — used by autocomplete pickers.
 const searchCoins = async (q: string): Promise<CoinSearchHit[]> => {
   if (!q || q.length < 2) return [];
-  const j = await fetchJson(`https://api.coingecko.com/api/v3/search?query=${encodeURIComponent(q)}`, 60_000);
+  const j = await fetchJson(coingeckoV3Url(`search?query=${encodeURIComponent(q)}`), 60_000);
   return (j?.coins || []).slice(0, 8);
 };
 

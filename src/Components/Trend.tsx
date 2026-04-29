@@ -8,6 +8,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { useNewsTranslation } from '../hooks/useNewsTranslation';
 import { computeImpactLevel } from '../utils/impact';
 import { resolveImageSrc, handleImageError } from '../utils/cryptoImages';
+import { defaultPublicBackend } from '../utils/rssBackendBases';
 
 interface NewsItem {
   article_id?: string;
@@ -41,7 +42,7 @@ const Exn: React.FC = () => {
   useEffect(() => {
     const fetchNews = async () => {
       try {
-        const CAMIFY = 'https://camify.fun.coinsclarity.com';
+        const CAMIFY = defaultPublicBackend();
         let response = await fetch(`${CAMIFY}/fetch-all-rss?limit=8`, { signal: AbortSignal.timeout(8000) }).catch(() => null);
         if (!response || !response.ok) response = await fetch(`${API_BASE_URL}/fetch-all-rss?limit=8`, { signal: AbortSignal.timeout(8000) });
         const data = await response!.json();

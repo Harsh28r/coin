@@ -5,6 +5,7 @@ import { ArrowLeft, RefreshCcw, AlertTriangle } from 'lucide-react';
 import CoinsNavbar from '../../Components/navbar';
 import Footer from '../../Components/footer';
 import './tools.css';
+import { coingeckoV3Url } from '../../utils/coingeckoUrl';
 
 interface ChainConfig {
   id: string;
@@ -83,7 +84,7 @@ const fetchGasPrice = async (chain: ChainConfig): Promise<number> => {
 
 const fetchNativePrices = async (ids: string[]): Promise<Record<string, number>> => {
   try {
-    const url = `https://api.coingecko.com/api/v3/simple/price?ids=${ids.join(',')}&vs_currencies=usd`;
+    const url = coingeckoV3Url(`simple/price?ids=${ids.join(',')}&vs_currencies=usd`);
     const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
     const data = await res.json();
     const out: Record<string, number> = {};

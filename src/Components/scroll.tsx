@@ -6,6 +6,7 @@ import { Nav, NavDropdown } from 'react-bootstrap';
 import React from 'react';
 import 'font-awesome/css/font-awesome.min.css';
 import axios from 'axios';
+import { coingeckoV3Url } from '../utils/coingeckoUrl';
 import Skeleton from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css'; // Import skeleton CSS
 import { useLanguage } from '../context/LanguageContext';
@@ -14,6 +15,7 @@ import SubscriptionManagement from './SubscriptionManagement';
 // Import Firebase
 import { initializeApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, getAdditionalUserInfo, User } from 'firebase/auth';
+import { buildRssBackendBases, joinBackendPath } from '../utils/rssBackendBases';
 
 // Initialize Firebase using environment variables
 const firebaseConfig = {
@@ -70,34 +72,31 @@ export const ScrollingStats = () => {
   const didInitRef = useRef(false);
   const { currentLanguage, setLanguage } = useLanguage();
   const [isMobile, setIsMobile] = useState(false);
-  const getApiBases = (): string[] => {
-    const env = (process.env.REACT_APP_API_URL as string) || '';
-    const hostname = typeof window !== 'undefined' ? window.location.hostname : '';
-    const isProd = typeof window !== 'undefined' && !/localhost|127\.0\.0\.1/i.test(hostname);
-    const rel = (typeof window !== 'undefined' && isProd) ? `${window.location.origin}/api` : '';
-    const camify = 'https://camify.fun.coinsclarity.com/api';
-    const local = isProd ? '' : 'http://localhost:5000';
-    const coinsclarityHost = /(^|\.)coinsclarity\.com$/i.test(hostname);
-    const bases = coinsclarityHost
-      ? [camify, env, rel].filter(Boolean)
-      : [env, rel, camify, local].filter(Boolean);
-    return Array.from(new Set(bases));
-  };
+  const getApiBases = (): string[] =>
+    buildRssBackendBases(
+      (process.env.REACT_APP_API_URL as string) ||
+        process.env.REACT_APP_API_BASE_URL ||
+        'https://c-back-seven.vercel.app',
+    );
 
   const notifyAdminUserRegistered = async (u: User, type: 'user_registered' | 'user_login') => {
     const payload = { uid: u.uid, email: u.email, name: u.displayName, type };
     for (const base of getApiBases()) {
-      try {
-        const res = await fetch(`${base}/analytics/event`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-        if (res.ok) {
-          try { (window as any).__apiOkBase = base; } catch {}
-          return;
-        }
-      } catch {}
+      for (const path of ['/analytics/event', '/api/analytics/event']) {
+        try {
+          const res = await fetch(joinBackendPath(base, path), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+          });
+          if (res.ok) {
+            try {
+              (window as any).__apiOkBase = base;
+            } catch {}
+            return;
+          }
+        } catch {}
+      }
     }
     console.warn('Failed to send analytics event to any API base');
   };
@@ -117,15 +116,11 @@ export const ScrollingStats = () => {
     setLoading(true);
     try {
       // Fetch directly from CoinGecko for real-time rates
-      const response = await axios.get('https://api.coingecko.com/api/v3/coins/markets', {
-        params: {
-          vs_currency: 'usd',
-          order: 'market_cap_desc',
-          per_page: 20,
-          page: 1,
-          price_change_percentage: '24h'
-        }
-      });
+      const response = await axios.get(
+        coingeckoV3Url(
+          'coins/markets?vs_currency=usd&order=market_cap_desc&per_page=20&page=1&price_change_percentage=24h',
+        ),
+      );
       if (Array.isArray(response.data)) {
         const data: CryptoData[] = response.data.map((item: any) => ({
           symbol: String(item.symbol || '').toUpperCase(),
@@ -185,17 +180,21 @@ export const ScrollingStats = () => {
       };
       (async () => {
         for (const base of getApiBases()) {
-          try {
-            const res = await fetch(`${base}/analytics/event`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(payload),
-            });
-            if (res.ok) {
-              try { (window as any).__apiOkBase = base; } catch {}
-              break;
-            }
-          } catch {}
+          for (const path of ['/analytics/event', '/api/analytics/event']) {
+            try {
+              const res = await fetch(joinBackendPath(base, path), {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload),
+              });
+              if (res.ok) {
+                try {
+                  (window as any).__apiOkBase = base;
+                } catch {}
+                return;
+              }
+            } catch {}
+          }
         }
       })();
     } catch {}

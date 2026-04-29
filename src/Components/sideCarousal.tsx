@@ -10,6 +10,7 @@ import { useNewsTranslation } from '../hooks/useNewsTranslation';
 import { extractListingNews } from '../utils/listings';
 import { BRAND_DISPLAY_NAME, stripAppearedFirstOn } from '../utils/branding';
 import { resolveImageSrc, handleImageError } from '../utils/cryptoImages';
+import { defaultPublicBackend } from '../utils/rssBackendBases';
 
 interface TrendingNewsItem {
   article_id?: string;
@@ -158,7 +159,7 @@ const FeaturedCarousel: React.FC = () => {
     }
   }, [isTranslating, currentLanguage]);
   
-  const CAMIFY_BASE = 'https://camify.fun.coinsclarity.com';
+  const CAMIFY_BASE = defaultPublicBackend();
   const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://c-back-2.onrender.com';
   const USE_API_FALLBACK = API_BASE_URL && !API_BASE_URL.includes('localhost');
   const MOCK_API_BASE_URL = process.env.REACT_APP_USE_LOCAL_DB === 'true' ? 'http://localhost:5000' : '';

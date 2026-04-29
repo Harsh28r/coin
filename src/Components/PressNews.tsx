@@ -7,6 +7,7 @@ import { useNewsTranslation } from '../hooks/useNewsTranslation';
 import { useNavigate } from 'react-router-dom';
 import { resolveImageSrc, handleImageError } from '../utils/cryptoImages';
 import NoIndex from './NoIndex';
+import { defaultPublicBackend } from '../utils/rssBackendBases';
 
 interface NewsItem {
   article_id?: string;
@@ -68,7 +69,7 @@ const PresNews: React.FC = () => {
 
   useEffect(() => {
     const fetchNews = async () => {
-      const CAMIFY = 'https://camify.fun.coinsclarity.com';
+      const CAMIFY = defaultPublicBackend();
       const sources = [
         `${CAMIFY}/fetch-cryptobriefing-rss?limit=12`,
         `${CAMIFY}/fetch-dailyhodl-rss?limit=12`,

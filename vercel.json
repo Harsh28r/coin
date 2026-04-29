@@ -1,6 +1,10 @@
 {
   "rewrites": [
     { "source": "/news/:id", "destination": "/api/news/:id" },
+    {
+      "source": "/backend/:path*",
+      "destination": "https://camify.fun.coinsclarity.com/:path*"
+    },
     { "source": "/(.*)", "destination": "/index.html" }
   ],
   "functions": {

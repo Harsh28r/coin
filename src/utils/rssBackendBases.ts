@@ -1,9 +1,24 @@
 /**
- * RSS / crypto API hosts. Vercel + Render mirrors are tried before camify because
- * camify.fun.coinsclarity.com often returns 502 from nginx — the browser then shows
- * "CORS" even though the real failure is Bad Gateway (error pages have no ACAO).
+ * RSS / crypto API hosts.
+ *
+ * On *.coinsclarity.com the SPA is same-origin with `/backend/*`; Vercel rewrites that
+ * to camify, so the browser never cross-origin calls camify (no CORS / nginx 502 HTML).
+ * Mirrors + camify remain as fallbacks for local dev and non-coinsclarity deploys.
  */
 const CAMIFY = 'https://camify.fun.coinsclarity.com';
+
+/** e.g. https://www.coinsclarity.com/backend — proxied to camify by vercel.json */
+export function sameOriginBackendProxyBase(): string | null {
+  if (typeof window === 'undefined') return null;
+  const { hostname, origin } = window.location;
+  if (!/(^|\.)coinsclarity\.com$/i.test(hostname)) return null;
+  return `${origin.replace(/\/$/, '')}/backend`;
+}
+
+/** Use in components (runtime). Never `const x = ...` at module scope — window is undefined at bundle init. */
+export function defaultPublicBackend(): string {
+  return sameOriginBackendProxyBase() || CAMIFY;
+}
 
 const MIRRORS = [
   'https://c-back-seven.vercel.app',
@@ -42,8 +57,11 @@ export function buildRssBackendBases(envBase?: string): string[] {
     out.push(s);
   };
 
+  const same = sameOriginBackendProxyBase();
+  if (same) push(same);
   MIRRORS.forEach(push);
   if (env && !env.includes('camify.fun.coinsclarity.com')) push(env);
-  push(CAMIFY);
+  // Avoid browser → camify CORS when /backend proxy is active (Vercel/Netlify rewrite).
+  if (!same) push(CAMIFY);
   return out;
 }

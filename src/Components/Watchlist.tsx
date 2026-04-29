@@ -3,6 +3,7 @@ import { Container, Row, Col, Card, Button, Badge } from 'react-bootstrap';
 import { Star, Trash2, TrendingUp, TrendingDown, RefreshCw } from 'lucide-react';
 import { useWatchlist } from '../context/WatchlistContext';
 import { useNavigate } from 'react-router-dom';
+import { coingeckoV3Url } from '../utils/coingeckoUrl';
 
 interface CoinPrice {
   id: string;
@@ -29,7 +30,9 @@ const Watchlist: React.FC = () => {
     try {
       const ids = watchlist.map(c => c.id).join(',');
       const response = await fetch(
-        `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=${ids}&order=market_cap_desc&sparkline=false&price_change_percentage=24h`
+        coingeckoV3Url(
+          `coins/markets?vs_currency=usd&ids=${ids}&order=market_cap_desc&sparkline=false&price_change_percentage=24h`,
+        ),
       );
       const data = await response.json();
 

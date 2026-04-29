@@ -7,6 +7,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { useNewsTranslation } from '../hooks/useNewsTranslation';
 import { getCryptoFallbackImage, handleImageError, resolveImageSrc } from '../utils/cryptoImages';
 import NoIndex from './NoIndex';
+import { defaultPublicBackend } from '../utils/rssBackendBases';
 
 // Add CSS animations
 const styles = `
@@ -115,7 +116,7 @@ const Exn: React.FC = () => {
     const fetchNews = async () => {
       try {
         // Fetch from Camify + Render in parallel for max coverage
-        const CAMIFY = 'https://camify.fun.coinsclarity.com';
+        const CAMIFY = defaultPublicBackend();
         const endpoints = [
           `${CAMIFY}/fetch-cointelegraph-rss?limit=24`,
           `${CAMIFY}/fetch-coindesk-rss?limit=24`,

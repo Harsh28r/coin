@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { coingeckoV3Url } from '../utils/coingeckoUrl';
 import { Container, Row, Col, Card, Badge } from 'react-bootstrap';
 import { TrendingUp, TrendingDown, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -23,14 +24,19 @@ const TrendingCoins: React.FC = () => {
       try {
         setLoading(true);
         // Try multiple API endpoints
-        const endpoints = [
-          'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=price_change_percentage_24h_desc&per_page=10&page=1&sparkline=false',
-          'https://api.coingecko.com/api/v3/search/trending',
+        const endpoints: { kind: 'markets' | 'trending'; url: string }[] = [
+          {
+            kind: 'markets',
+            url: coingeckoV3Url(
+              'coins/markets?vs_currency=usd&order=price_change_percentage_24h_desc&per_page=10&page=1&sparkline=false',
+            ),
+          },
+          { kind: 'trending', url: coingeckoV3Url('search/trending') },
         ];
 
         for (const endpoint of endpoints) {
           try {
-            const response = await fetch(endpoint, {
+            const response = await fetch(endpoint.url, {
               headers: { 'Accept': 'application/json' },
             });
             
@@ -38,7 +44,7 @@ const TrendingCoins: React.FC = () => {
             
             const data = await response.json();
             
-            if (endpoint.includes('markets')) {
+            if (endpoint.kind === 'markets') {
               // Direct markets endpoint
               if (Array.isArray(data) && data.length > 0) {
                 const formatted = data.slice(0, 8).map((coin: any) => ({
@@ -54,7 +60,7 @@ const TrendingCoins: React.FC = () => {
                 setLoading(false);
                 return;
               }
-            } else if (data.coins) {
+            } else if (endpoint.kind === 'trending' && data.coins) {
               // Trending endpoint
               const coins = data.coins.slice(0, 8).map((item: any) => ({
                 id: item.item.id,

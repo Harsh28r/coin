@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Container, Row, Col, Card, Badge } from 'react-bootstrap';
 import { extractEvents, EventItem } from '../utils/events';
+import { defaultPublicBackend } from '../utils/rssBackendBases';
 
 const EventRadar: React.FC = () => {
   const [events, setEvents] = useState<EventItem[]>([]);
@@ -11,7 +12,7 @@ const EventRadar: React.FC = () => {
     const run = async () => {
       setLoading(true);
       try {
-        const CAMIFY = 'https://camify.fun.coinsclarity.com';
+        const CAMIFY = defaultPublicBackend();
         const sources = [
           `${CAMIFY}/fetch-dailycoin-rss?limit=40`,
           `${CAMIFY}/fetch-cryptobriefing-rss?limit=40`,

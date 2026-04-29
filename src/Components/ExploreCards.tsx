@@ -8,6 +8,7 @@ import './ExploreCards.css';
 import { useLanguage } from '../context/LanguageContext';
 import { useNavigate } from 'react-router-dom';
 import { useNewsTranslation } from '../hooks/useNewsTranslation';
+import { defaultPublicBackend } from '../utils/rssBackendBases';
 
 interface TrendingNewsItem {
   article_id?: string;
@@ -273,7 +274,7 @@ const ExploreSection: React.FC = () => {
       
       try {
         // Fetch from Camify + Render in parallel for diverse content
-        const CAMIFY = 'https://camify.fun.coinsclarity.com';
+        const CAMIFY = defaultPublicBackend();
         const feedUrls = [
           `${CAMIFY}/fetch-cryptoslate-rss?limit=10`,
           `${CAMIFY}/fetch-cointelegraph-rss?limit=10`,

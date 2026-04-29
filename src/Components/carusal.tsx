@@ -8,6 +8,7 @@ import { useNavigate } from 'react-router-dom'
 import { useLanguage } from '../context/LanguageContext'
 import { useNewsTranslation } from '../hooks/useNewsTranslation'
 import { generateArticleId } from '../utils/articleId'
+import { defaultPublicBackend } from '../utils/rssBackendBases'
 
 interface NewsItem {
   article_id?: string
@@ -88,7 +89,7 @@ export default function NewsCarousel() {
 
   // Fetch news
   useEffect(() => {
-    const CAMIFY = 'https://camify.fun.coinsclarity.com'
+    const CAMIFY = defaultPublicBackend()
     const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://c-back-2.onrender.com'
 
     const tryFetch = async (url: string): Promise<NewsItem[]> => {

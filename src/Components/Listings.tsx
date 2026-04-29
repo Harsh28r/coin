@@ -7,6 +7,7 @@ import Skeleton from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
 import { useNewsTranslation } from '../hooks/useNewsTranslation';
 import { Helmet } from 'react-helmet-async';
+import { defaultPublicBackend } from '../utils/rssBackendBases';
 
 const Listings: React.FC = () => {
   const navigate = useNavigate();
@@ -67,7 +68,7 @@ const Listings: React.FC = () => {
     const run = async () => {
       setLoading(true);
       try {
-        const CAMIFY = 'https://camify.fun.coinsclarity.com';
+        const CAMIFY = defaultPublicBackend();
         const sources = [
           `${CAMIFY}/fetch-cryptobriefing-rss?limit=60`,
           `${CAMIFY}/fetch-dailyhodl-rss?limit=60`,

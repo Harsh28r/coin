@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, Card } from 'react-bootstrap';
 import { TrendingUp, TrendingDown, DollarSign, Activity, Users, Globe } from 'lucide-react';
+import { coingeckoV3Url } from '../utils/coingeckoUrl';
 
 interface MarketStats {
   total_market_cap: number;
@@ -27,7 +28,7 @@ const MarketStats: React.FC = () => {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const response = await fetch('https://api.coingecko.com/api/v3/global');
+        const response = await fetch(coingeckoV3Url('global'));
         if (response.ok) {
           const data = await response.json();
           const global = data.data;

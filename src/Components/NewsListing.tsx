@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Container, Row, Col, Card, Badge, Button } from 'react-bootstrap';
 import { extractListingNews, ListingItem } from '../utils/listings';
 import { useNavigate } from 'react-router-dom';
+import { defaultPublicBackend } from '../utils/rssBackendBases';
 
 const NewsListing: React.FC = () => {
   const navigate = useNavigate();
@@ -13,7 +14,7 @@ const NewsListing: React.FC = () => {
     const run = async () => {
       setLoading(true);
       try {
-        const CAMIFY = 'https://camify.fun.coinsclarity.com';
+        const CAMIFY = defaultPublicBackend();
         const sources = [
           `${CAMIFY}/fetch-cryptobriefing-rss?limit=60`,
           `${CAMIFY}/fetch-beincrypto-rss?limit=60`,

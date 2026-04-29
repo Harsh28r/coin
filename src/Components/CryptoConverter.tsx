@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, Card, Form, InputGroup } from 'react-bootstrap';
 import { ArrowLeftRight, Calculator, TrendingUp } from 'lucide-react';
+import { coingeckoV3Url } from '../utils/coingeckoUrl';
 
 interface Coin {
   id: string;
@@ -44,7 +45,7 @@ const CryptoConverter: React.FC = () => {
     const fetchCoins = async () => {
       try {
         const response = await fetch(
-          'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=20&page=1&sparkline=false'
+          coingeckoV3Url('coins/markets?vs_currency=usd&order=market_cap_desc&per_page=20&page=1&sparkline=false'),
         );
         if (response.ok) {
           const data = await response.json();

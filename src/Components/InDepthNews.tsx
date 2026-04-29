@@ -7,6 +7,7 @@ import Skeleton from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
 import { useNewsTranslation } from '../hooks/useNewsTranslation';
 import { resolveImageSrc, handleImageError } from '../utils/cryptoImages';
+import { defaultPublicBackend } from '../utils/rssBackendBases';
 
 interface InDepthItem {
 	article_id: string;
@@ -54,7 +55,7 @@ const InDepthNews: React.FC = () => {
 			setLoading(true);
 			setError(null);
 			try {
-				const CAMIFY = 'https://camify.fun.coinsclarity.com';
+				const CAMIFY = defaultPublicBackend();
 				const endpoints = [
 					`${CAMIFY}/fetch-beincrypto-rss?limit=8`,
 					`${CAMIFY}/fetch-coindesk-rss?limit=8`,

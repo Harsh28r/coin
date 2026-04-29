@@ -5,6 +5,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import _ from 'lodash';
 import { CircleDollarSign, Landmark, Newspaper, Layers, Image as ImageIcon } from 'lucide-react';
 import { resolveImageSrc, handleImageError } from '../utils/cryptoImages';
+import { coingeckoV3Url } from '../utils/coingeckoUrl';
 
 interface SearchResult {
   type: 'news' | 'coins' | 'exchanges' | 'nfts';
@@ -30,7 +31,6 @@ const SearchPage: React.FC = () => {
   const navigate = useNavigate();
   const query = new URLSearchParams(location.search).get('query') || '';
 
-  const COINGECKO_API_BASE_URL = 'https://api.coingecko.com/api/v3';
   const OPENSEA_API_BASE_URL = 'https://api.opensea.io/api/v2';
   const POLYGON_API_BASE_URL = 'https://api.polygon.io/v2';
   const MOCK_API_BASE_URL = 'http://localhost:5000';
@@ -92,7 +92,7 @@ const SearchPage: React.FC = () => {
     const endpoints = [
       {
         type: 'coins' as const,
-        url: `${COINGECKO_API_BASE_URL}/search`,
+        url: '__cg__',
         params: { query },
         process: async (data: any) =>
           data.coins?.map((item: any) => ({
@@ -106,7 +106,7 @@ const SearchPage: React.FC = () => {
       },
       {
         type: 'exchanges' as const,
-        url: `${COINGECKO_API_BASE_URL}/exchanges`,
+        url: '__cg__',
         params: {},
         process: async (data: any) =>
           data
@@ -208,7 +208,13 @@ const SearchPage: React.FC = () => {
             const validParams = Object.fromEntries(
               Object.entries(params).filter(([_, value]) => value !== undefined) as [string, string][]
             );
-            const response = await fetch(`${url}?${new URLSearchParams(validParams).toString()}`, {
+            const fetchUrl =
+              type === 'coins'
+                ? coingeckoV3Url(`search?query=${encodeURIComponent(query)}`)
+                : type === 'exchanges'
+                  ? coingeckoV3Url('exchanges')
+                  : `${url}?${new URLSearchParams(validParams).toString()}`;
+            const response = await fetch(fetchUrl, {
               method: 'GET',
               headers: {
                 'Content-Type': 'application/json',

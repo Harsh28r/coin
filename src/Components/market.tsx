@@ -3,6 +3,7 @@ import { Helmet } from 'react-helmet-async';
 import { Container, Row, Col, Table, Card, Button, Modal, ButtonGroup, Alert } from 'react-bootstrap';
 import { ExternalLink } from 'lucide-react';
 import { tradeLinks, exchangeLogos } from '../utils/tradeLinks';
+import { coingeckoV3Url } from '../utils/coingeckoUrl';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { Line } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
@@ -176,16 +177,9 @@ const MarketPriceAndNews: React.FC = () => {
   const fetchWithRetry = async (url: string, retries = 3, delay = 2000) => {
     for (let i = 0; i < retries; i++) {
       try {
-        // Use CORS proxy to avoid CORS issues
-        const corsProxy = 'https://c-back-seven.vercel.app';
-        const proxyUrl = `${corsProxy}${url}`;
-        
-        const response = await fetch(proxyUrl, {
+        const response = await fetch(url, {
           method: 'GET',
-          headers: {
-            'Origin': 'http://localhost:3000',
-            'X-Requested-With': 'XMLHttpRequest'
-          }
+          headers: { Accept: 'application/json' },
         });
         
         if (!response.ok) {
@@ -472,28 +466,21 @@ const MarketPriceAndNews: React.FC = () => {
       }
     ];
 
-    // Fetch crypto market data
+    // Fetch crypto market data (same-origin /backend → camify on coinsclarity.com)
     const fetchCryptoData = async () => {
       setCryptoLoading(true);
       try {
-        // For now, use mock data to avoid CORS issues
-        // In production, you would use the actual API
-        console.log('Using mock crypto data to avoid CORS issues');
-        setCryptoData(mockCryptoData);
-        
-        // Uncomment the following code when you have a backend proxy or CORS is resolved
-        /*
         const cachedCryptoData = getCachedData('cryptoData');
         if (cachedCryptoData) {
-          console.log('Using cached crypto data:', cachedCryptoData);
           setCryptoData(cachedCryptoData);
-          setCryptoLoading(false);
           return;
         }
         const data = await fetchWithRetry(
-          'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=1&sparkline=false'
+          coingeckoV3Url(
+            'coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=1&sparkline=false',
+          ),
         );
-        console.log('Crypto API Response:', data);
+        if (!Array.isArray(data)) throw new Error('Invalid markets response');
         const formattedData: CryptoData[] = data.map((coin: any) => ({
           id: coin.id,
           rank: coin.market_cap_rank,
@@ -507,13 +494,10 @@ const MarketPriceAndNews: React.FC = () => {
           change_percent_24h: coin.price_change_percentage_24h,
           image: coin.image,
         }));
-        console.log('Formatted Crypto Data:', formattedData);
         setCryptoData(formattedData);
-        cacheData('cryptoData', formattedData, 1000 * 60 * 5); // Cache for 5 minutes
-        */
+        cacheData('cryptoData', formattedData, 1000 * 60 * 5);
       } catch (error: any) {
-        console.error('Error fetching crypto data:', error);
-        // Fallback to mock data if API fails
+        console.warn('Crypto markets unavailable, using mock:', error?.message);
         setCryptoData(mockCryptoData);
         setError(`Using mock data due to API issues: ${error.message}`);
       } finally {
@@ -526,62 +510,45 @@ const MarketPriceAndNews: React.FC = () => {
 
   const fetchHistoricalData = async (crypto: CryptoData, days: number) => {
     setIsLoading(true);
-    try {
-      // For now, use mock historical data to avoid CORS issues
-      // In production, you would use the actual API
-      console.log(`Using mock historical data for ${crypto.name} (${days} days)`);
-      
-      // Generate mock historical data
-      const mockLabels = [];
-      const mockPrices = [];
+    const buildMockHistorical = () => {
+      const mockLabels: string[] = [];
+      const mockPrices: number[] = [];
       const basePrice = crypto.price_usd;
-      
       if (days === 1) {
-        // 24 hours with hourly data
         for (let i = 23; i >= 0; i--) {
           const time = new Date();
           time.setHours(time.getHours() - i);
           mockLabels.push(time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }));
-          mockPrices.push(basePrice * (1 + (Math.random() - 0.5) * 0.1)); // ±5% variation
+          mockPrices.push(basePrice * (1 + (Math.random() - 0.5) * 0.1));
         }
       } else if (days === 7) {
-        // 7 days with daily data
         for (let i = 6; i >= 0; i--) {
           const date = new Date();
           date.setDate(date.getDate() - i);
           mockLabels.push(date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
-          mockPrices.push(basePrice * (1 + (Math.random() - 0.5) * 0.2)); // ±10% variation
+          mockPrices.push(basePrice * (1 + (Math.random() - 0.5) * 0.2));
         }
       } else {
-        // 30 days with daily data
         for (let i = 29; i >= 0; i--) {
           const date = new Date();
           date.setDate(date.getDate() - i);
           mockLabels.push(date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
-          mockPrices.push(basePrice * (1 + (Math.random() - 0.5) * 0.3)); // ±15% variation
+          mockPrices.push(basePrice * (1 + (Math.random() - 0.5) * 0.3));
         }
       }
-      
-      const mockHistoricalData = { labels: mockLabels, prices: mockPrices };
-      setHistoricalData(mockHistoricalData);
-      
-      // Uncomment the following code when you have a backend proxy or CORS is resolved
-      /*
-      // Check cache first
+      return { labels: mockLabels, prices: mockPrices };
+    };
+
+    try {
       const cacheKey = `historical_${crypto.id}_${days}`;
       const cachedHistoricalData = getCachedData(cacheKey);
       if (cachedHistoricalData) {
-        console.log(`Using cached historical data for ${crypto.name} (${days} days)`);
         setHistoricalData(cachedHistoricalData);
-        setIsLoading(false);
         return;
       }
 
-      // Fetch historical data without interval parameter to let CoinGecko handle granularity
-      const url = `https://api.coingecko.com/api/v3/coins/${crypto.id}/market_chart?vs_currency=usd&days=${days}`;
-      console.log(`Fetching historical data for ${crypto.name} with URL: ${url}`);
+      const url = coingeckoV3Url(`coins/${crypto.id}/market_chart?vs_currency=usd&days=${days}`);
       const data = await fetchWithRetry(url);
-      console.log(`Historical Data Response for ${crypto.name} (${days} days):`, data);
 
       if (!data.prices || data.prices.length === 0) {
         throw new Error('No price data available from API');
@@ -591,7 +558,7 @@ const MarketPriceAndNews: React.FC = () => {
       const labels = data.prices.map((item: [number, number]) =>
         days === 1
           ? new Date(item[0]).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })
-          : new Date(item[0]).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+          : new Date(item[0]).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
       );
 
       if (prices.length < 2) {
@@ -600,12 +567,11 @@ const MarketPriceAndNews: React.FC = () => {
 
       const historicalData = { labels, prices };
       setHistoricalData(historicalData);
-      cacheData(cacheKey, historicalData, 1000 * 60 * 5); // Cache for 5 minutes
-      */
+      cacheData(cacheKey, historicalData, 1000 * 60 * 5);
     } catch (error: any) {
-      console.error(`Error fetching ${days}-day historical data for ${crypto.name}:`, error);
-      setHistoricalData(null);
-      setError(`Failed to load historical data for ${crypto.name}: ${error.message}`);
+      console.warn(`Historical API failed for ${crypto.name}, using mock:`, error?.message);
+      setHistoricalData(buildMockHistorical());
+      setError(`Chart using approximate data: ${error.message}`);
     } finally {
       setIsLoading(false);
     }

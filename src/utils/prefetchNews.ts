@@ -2,7 +2,8 @@
 // news-card link to warm the article cache before the user clicks. Failures
 // are swallowed silently so this is always safe to call.
 
-const CAMIFY = 'https://camify.fun.coinsclarity.com';
+import { defaultPublicBackend } from './rssBackendBases';
+
 const inflight = new Set<string>();
 const PER_SOURCE_RSS = [
   'coindesk', 'cryptoslate', 'cointelegraph', 'decrypt', 'blockworks',
@@ -50,12 +51,13 @@ export const prefetchNews = (articleId: string): void => {
   // Fastest endpoint first, others as fallback. We don't await — fire & forget.
   (async () => {
     try {
-      if (await matchAndCache(`${CAMIFY}/article/${encodeURIComponent(articleId)}`, articleId)) return;
+      const root = defaultPublicBackend();
+      if (await matchAndCache(`${root}/article/${encodeURIComponent(articleId)}`, articleId)) return;
       for (const src of PER_SOURCE_RSS) {
         if (hasCached(articleId)) return;
-        if (await matchAndCache(`${CAMIFY}/fetch-${src}-rss?limit=50`, articleId)) return;
+        if (await matchAndCache(`${root}/fetch-${src}-rss?limit=50`, articleId)) return;
       }
-      await matchAndCache(`${CAMIFY}/fetch-all-rss?limit=100`, articleId);
+      await matchAndCache(`${root}/fetch-all-rss?limit=100`, articleId);
     } finally {
       inflight.delete(articleId);
     }
