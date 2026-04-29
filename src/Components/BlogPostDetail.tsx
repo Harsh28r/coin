@@ -165,7 +165,7 @@ const BlogPostDetail: React.FC = () => {
         <meta property="og:url" content={`https://coinsclarity.com${getBlogUrl(post)}`} />
         <meta property="og:type" content="article" />
         <meta property="article:author" content={post.author} />
-        {post.tags?.slice(0, 6).map((t) => (
+        {post.tags?.slice(0, 6).map((t: string) => (
           <meta key={t} property="article:tag" content={t} />
         ))}
         <meta name="twitter:card" content="summary_large_image" />

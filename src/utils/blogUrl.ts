@@ -1,10 +1,13 @@
-import { BlogPost } from '../types/blog';
-
-// Prefer the SEO-friendly slug, fall back to the Mongo id.
-// Used everywhere we render <Link to={...}> for a blog post so the URL
-// shape is consistent across the app and search engines see clean paths.
-export const getBlogUrl = (post: Pick<BlogPost, 'id' | 'slug'>): string => {
-  const key = (post.slug && post.slug.trim()) || post.id;
+/** Accepts `BlogPost`, translated `NewsItem`, or any row with `slug` / `id` / `_id`. */
+export const getBlogUrl = (post: unknown): string => {
+  const p = post as Record<string, unknown>;
+  const slug = typeof p.slug === 'string' ? p.slug.trim() : '';
+  const id =
+    (typeof p.id === 'string' && p.id.trim()) ||
+    (p._id != null && String(p._id).trim()) ||
+    '';
+  const key = slug || id;
+  if (!key) return '/blog';
   return `/blog/${key}`;
 };
 
