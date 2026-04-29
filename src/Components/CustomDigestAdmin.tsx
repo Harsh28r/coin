@@ -18,6 +18,8 @@ const CustomDigestAdmin: React.FC<Props> = ({ fetchJson }) => {
   const [pendingMeta, setPendingMeta] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
+  const [bulkRaw, setBulkRaw] = useState('');
+  const [bulkWelcome, setBulkWelcome] = useState(false);
 
   useEffect(() => {
     try {
@@ -157,12 +159,42 @@ const CustomDigestAdmin: React.FC<Props> = ({ fetchJson }) => {
     }
   };
 
+  const onBulkImport = async () => {
+    persistSecret();
+    if (!secret.trim()) {
+      setMsg({ type: 'err', text: 'Set admin secret first.' });
+      return;
+    }
+    if (!bulkRaw.trim()) {
+      setMsg({ type: 'err', text: 'Paste at least one email.' });
+      return;
+    }
+    setLoading(true);
+    setMsg(null);
+    try {
+      const data = await fetchJson('/api/newsletter/admin/bulk-import', {
+        method: 'POST',
+        headers: headers(),
+        body: JSON.stringify({ raw: bulkRaw, sendWelcome: bulkWelcome }),
+      });
+      setMsg({
+        type: 'ok',
+        text: `Imported ${data?.imported ?? 0} addresses (${data?.invalid ?? 0} invalid). They will receive custom digest / 8am sends like other subscribers.`,
+      });
+      setBulkRaw('');
+    } catch (e: any) {
+      setMsg({ type: 'err', text: e?.message || 'Bulk import failed' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <Card className="mb-4 border-primary">
       <Card.Header>
         <strong>Daily digest — custom HTML</strong>
         <div className="small text-muted mt-1">
-          Same list as the 8am UTC digest (<code>NewsletterSubscriber</code>). Use <code>{'{EMAIL}'}</code> in links if you need per-recipient unsubscribe encoding; otherwise a footer is appended automatically.
+          Sends to everyone in <code>NewsletterSubscriber</code> (site signups + addresses you bulk-import below). Use <code>{'{EMAIL}'}</code> in links if you need per-recipient unsubscribe encoding; otherwise a footer is appended automatically.
         </div>
       </Card.Header>
       <Card.Body>
@@ -231,6 +263,33 @@ const CustomDigestAdmin: React.FC<Props> = ({ fetchJson }) => {
             </Button>
           </div>
         </Form>
+
+        <hr className="my-4" />
+        <h6 className="mb-2">Bulk-add newsletter recipients</h6>
+        <p className="small text-muted">
+          One email per line (or comma-separated). They are merged into the same list as the daily digest — then use <strong>Send now</strong> or <strong>Save for next cron</strong> above. Only import opted-in addresses.
+        </p>
+        <Form.Group className="mb-2">
+          <Form.Label>Email list</Form.Label>
+          <Form.Control
+            as="textarea"
+            rows={6}
+            value={bulkRaw}
+            onChange={(e) => setBulkRaw(e.target.value)}
+            placeholder={'a@x.com\nb@y.com'}
+          />
+        </Form.Group>
+        <Form.Check
+          type="checkbox"
+          id="bulk-welcome"
+          className="mb-3"
+          checked={bulkWelcome}
+          onChange={(e) => setBulkWelcome(e.target.checked)}
+          label="Send welcome email to each new address (off recommended for large lists)"
+        />
+        <Button type="button" variant="outline-primary" disabled={loading} onClick={onBulkImport}>
+          Import into subscriber list
+        </Button>
       </Card.Body>
     </Card>
   );
