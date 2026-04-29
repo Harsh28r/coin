@@ -216,9 +216,13 @@ export const BlogProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     );
   }, [posts]);
 
-  // Get post by ID
-  const getPostById = useCallback((id: string): BlogPost | undefined => {
-    return posts.find(post => post.id === id);
+  // Get post by id OR slug — slug takes precedence when both could match
+  const getPostById = useCallback((key: string): BlogPost | undefined => {
+    if (!key) return undefined;
+    return (
+      posts.find(post => post.slug && post.slug === key) ||
+      posts.find(post => post.id === key)
+    );
   }, [posts]);
 
   // Computed properties

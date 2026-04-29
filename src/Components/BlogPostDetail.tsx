@@ -5,6 +5,7 @@ import { Helmet } from 'react-helmet-async';
 import { useBlog } from '../context/BlogContext';
 import { format } from 'date-fns';
 import { resolveImageSrc, handleImageError } from '../utils/cryptoImages';
+import { getBlogUrl } from '../utils/blogUrl';
 import './BlogPostDetail.css';
 
 const stripTags = (html?: string): string => {
@@ -33,12 +34,46 @@ const BlogPostDetail: React.FC = () => {
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [actionMessage, setActionMessage] = useState<string | null>(null);
 
+  // First pass: serve from in-memory context (instant if list already loaded).
   useEffect(() => {
     if (id && posts.length > 0) {
       const found = getPostById(id);
       if (found) setPost(found);
     }
   }, [id, posts, getPostById]);
+
+  // Second pass: if context didn't have it (deep-link, cache miss, fresh tab),
+  // fetch the single post directly by slug-or-id from the backend so we don't
+  // need to wait for the full list. Multiple bases for resilience.
+  useEffect(() => {
+    if (post || !id) return;
+    let cancelled = false;
+    const bases = [
+      (process.env.REACT_APP_API_BASE_URL as string) || 'http://localhost:5000',
+      'https://c-back-seven.vercel.app',
+    ];
+    (async () => {
+      for (const base of bases) {
+        for (const path of [`/posts/${id}`, `/api/posts/${id}`]) {
+          try {
+            const r = await fetch(`${base.replace(/\/$/, '')}${path}`);
+            if (!r.ok) continue;
+            const j = await r.json();
+            const raw = j?.data || j;
+            if (cancelled || !raw) return;
+            setPost({
+              ...raw,
+              id: raw._id || raw.id,
+            });
+            return;
+          } catch {
+            /* try next */
+          }
+        }
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [id, post]);
 
   const flash = (msg: string, ms = 2000) => {
     setActionMessage(msg);
@@ -122,11 +157,41 @@ const BlogPostDetail: React.FC = () => {
     <div className="bd-shell">
       <Helmet>
         <title>{post.title} | CoinsClarity</title>
-        <meta name="description" content={stripTags(post.content).slice(0, 160)} />
+        <meta name="description" content={(post.excerpt || stripTags(post.content)).slice(0, 160)} />
+        <link rel="canonical" href={`https://coinsclarity.com${getBlogUrl(post)}`} />
         <meta property="og:title" content={post.title} />
-        <meta property="og:description" content={stripTags(post.content).slice(0, 200)} />
+        <meta property="og:description" content={(post.excerpt || stripTags(post.content)).slice(0, 200)} />
         <meta property="og:image" content={resolveImageSrc(post.imageUrl, post.title, 'blog')} />
+        <meta property="og:url" content={`https://coinsclarity.com${getBlogUrl(post)}`} />
         <meta property="og:type" content="article" />
+        <meta property="article:author" content={post.author} />
+        {post.tags?.slice(0, 6).map((t) => (
+          <meta key={t} property="article:tag" content={t} />
+        ))}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={post.title} />
+        <meta name="twitter:description" content={(post.excerpt || stripTags(post.content)).slice(0, 200)} />
+        <meta name="twitter:image" content={resolveImageSrc(post.imageUrl, post.title, 'blog')} />
+        {/* Schema.org Article JSON-LD for richer Google snippets */}
+        <script type="application/ld+json">
+          {JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'NewsArticle',
+            headline: post.title,
+            description: (post.excerpt || stripTags(post.content)).slice(0, 200),
+            image: [resolveImageSrc(post.imageUrl, post.title, 'blog')],
+            datePublished: new Date(post.date).toISOString(),
+            dateModified: new Date(post.date).toISOString(),
+            author: { '@type': 'Person', name: post.author },
+            publisher: {
+              '@type': 'Organization',
+              name: 'CoinsClarity',
+              logo: { '@type': 'ImageObject', url: 'https://coinsclarity.com/logo192.png' },
+            },
+            mainEntityOfPage: `https://coinsclarity.com${getBlogUrl(post)}`,
+            keywords: (post.tags || []).join(', '),
+          })}
+        </script>
       </Helmet>
 
       <div className="bd-container">
@@ -191,7 +256,7 @@ const BlogPostDetail: React.FC = () => {
             <h3 className="bd-related__head">More from the blog</h3>
             <div className="bd-related__grid">
               {related.map((p) => (
-                <Link key={p.id} to={`/blog/${p.id}`} className="bd-related__card">
+                <Link key={p.id} to={getBlogUrl(p)} className="bd-related__card">
                   <div className="bd-related__media">
                     <img
                       src={resolveImageSrc(p.imageUrl, p.title, 'blog')}

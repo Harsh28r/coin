@@ -20,3 +20,4 @@ User-agent: Mediapartners-Google
 Allow: /
 
 Sitemap: https://coinsclarity.com/sitemap.xml
+Sitemap: https://c-back-seven.vercel.app/sitemap-blog.xml

@@ -15,10 +15,14 @@ type AnyRecord = Record<string, any>;
 const mapPost = (raw: AnyRecord): BlogPost => {
   return {
     id: (raw.id as string) || (raw._id as string),
+    _id: raw._id as string | undefined,
+    slug: raw.slug || undefined,
     title: raw.title || '',
     content: raw.content || '',
     author: raw.author || '',
     imageUrl: raw.imageUrl || raw.image || '',
+    tags: Array.isArray(raw.tags) ? raw.tags : [],
+    excerpt: raw.excerpt || '',
     date: raw.date || new Date().toISOString()
   } as BlogPost;
 };

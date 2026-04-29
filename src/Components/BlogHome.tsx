@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useBlog } from '../context/BlogContext';
 import { resolveImageSrc, handleImageError } from '../utils/cryptoImages';
+import { getBlogUrl } from '../utils/blogUrl';
 import './BlogHome.css';
 
 const formatDate = (input?: string | Date): string => {
@@ -87,7 +88,7 @@ const BlogHome: React.FC = () => {
         </header>
 
         {hero && (
-          <Link to={`/blog/${hero.id}`} className="bh-hero" aria-label={hero.title}>
+          <Link to={getBlogUrl(hero)} className="bh-hero" aria-label={hero.title}>
             <div className="bh-hero__media">
               <img
                 src={resolveImageSrc(hero.imageUrl, hero.title, 'blog')}
@@ -119,7 +120,7 @@ const BlogHome: React.FC = () => {
             </div>
             <div className="bh-grid">
               {rest.map((post) => (
-                <Link key={post.id} to={`/blog/${post.id}`} className="bh-card" aria-label={post.title}>
+                <Link key={post.id} to={getBlogUrl(post)} className="bh-card" aria-label={post.title}>
                   <div className="bh-card__media">
                     <img
                       src={resolveImageSrc(post.imageUrl, post.title, 'blog')}

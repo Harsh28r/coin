@@ -9,9 +9,11 @@ import { useNewsTranslation } from '../hooks/useNewsTranslation';
 import Skeleton from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
 import { getCryptoFallbackImage, handleImageError, resolveImageSrc } from '../utils/cryptoImages';
+import { getBlogUrl } from '../utils/blogUrl';
 
 interface BlogPost {
   id: string;
+  slug?: string;
   title: string;
   description: string;
   author: string;
@@ -74,8 +76,9 @@ const BlogSection: React.FC = () => {
 
         const formattedPosts = posts.map((post: any) => ({
           id: post._id || post.id || `post-${Math.random()}`,
+          slug: post.slug || undefined,
           title: post.title || 'Untitled',
-          description: post.description || post.content || 'No description available',
+          description: post.excerpt || post.description || post.content || 'No description available',
           author: post.author || 'Unknown',
           date: post.date
             ? new Date(post.date).toLocaleDateString()
@@ -175,7 +178,7 @@ const BlogSection: React.FC = () => {
         <Row xs={1} md={2} lg={3} className="g-4">
         {(showAll ? displayPosts : displayPosts.slice(currentIndex, currentIndex + postsPerPage)).map((post) => (
           <Col key={post.id}>
-            <Link to={`/blog/${post.id}`} className="text-decoration-none">
+            <Link to={getBlogUrl(post)} className="text-decoration-none">
               <Card 
                 className="h-100 border-0 shadow-sm hover-effect rounded-4 overflow-hidden"
                 style={{

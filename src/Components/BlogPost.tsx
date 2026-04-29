@@ -16,6 +16,7 @@ import {
 import { BlogPost as BlogPostType } from '../types/blog';
 import PropTypes from 'prop-types';
 import { resolveImageSrc, handleImageError } from '../utils/cryptoImages';
+import { getBlogUrl } from '../utils/blogUrl';
 
 interface BlogPostProps {
   post: BlogPostType;
@@ -113,7 +114,7 @@ const BlogPost: React.FC<BlogPostProps> = ({
   };
 
   const handleReadFullArticle = () => {
-    navigate(`/blog/${post.id}`);
+    navigate(getBlogUrl(post));
   };
 
   // Get category color
