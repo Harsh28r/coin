@@ -218,7 +218,8 @@ export const getOpportunities = async (limit: number = 20): Promise<ArbitrageOpp
     const responseData = await axiosGetFirst<ApiResponse<ArbitrageOpportunity[]>>(
       `/arbitrage/opportunities?limit=${Math.max(limit * 3, 30)}`,
     );
-    const raw = Array.isArray(responseData?.data) ? responseData.data : [];
+    const oppList = responseData?.data;
+    const raw = Array.isArray(oppList) ? oppList : [];
 
     // Defensive: dedupe by symbol (keep highest netProfitPercent), drop unrealistic
     // spreads — guards against bogus delisted-token data or stale records.
@@ -318,7 +319,8 @@ export const getTriangularOpportunities = async (limit: number = 20): Promise<Tr
     const responseData = await axiosGetFirst<ApiResponse<TriangularOpportunity[]>>(
       `/triangular/opportunities?limit=${limit}`,
     );
-    return Array.isArray(responseData?.data) ? responseData.data : [];
+    const tri = responseData?.data;
+    return Array.isArray(tri) ? tri : [];
   } catch (error) {
     console.error('Error fetching triangular opportunities:', error);
     return [];
@@ -331,11 +333,12 @@ export const getTriangularOpportunities = async (limit: number = 20): Promise<Tr
  */
 export const getTriangularOpportunitiesLive = async (limit: number = 20): Promise<TriangularOpportunity[]> => {
   try {
-    const responseData = await axiosGetFirst<ApiResponse<TriangularOpportunity[]> & { data?: { source?: string } }>(
+    const responseData = await axiosGetFirst<ApiResponse<TriangularOpportunity[]>>(
       `/triangular/live?limit=${limit}`,
       8000,
     );
-    const list = Array.isArray(responseData?.data) ? responseData.data : [];
+    const live = responseData?.data;
+    const list = Array.isArray(live) ? live : [];
     if (list.length > 0) return list;
   } catch (_) {
     // Backend failed or no data; fall through to client-side
