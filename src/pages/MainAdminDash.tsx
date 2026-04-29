@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import {
   Container, Row, Col, Nav, Navbar, Card, Button, Form, ListGroup, Badge,
-  ProgressBar, Dropdown, Modal, Pagination
+  ProgressBar, Dropdown, Modal, Pagination, InputGroup
 } from 'react-bootstrap';
-import { BarChart2, Users, FileText, Settings, Bell, User, Search, Plus, BookOpen, Mail, Send } from 'lucide-react';
+import { BarChart2, Users, FileText, Settings, Bell, User, Search, Plus, BookOpen, Mail, Send, PanelLeft } from 'lucide-react';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import './MainAdminDash.css';
 import BlogPost from '../Components/BlogPost';
 import { useBlog } from '../context/BlogContext';
 import { BlogPost as BlogPostType } from '../types/blog';
@@ -806,107 +807,103 @@ const MainDashboard: React.FC = () => {
   };
 
   return (
-    <div className="d-flex">
-      {/* Sidebar */}
-      <Nav className={`flex-column bg-dark text-white p-3 ${sidebarOpen ? 'sidebar-open' : 'sidebar-closed'}`} style={{minHeight: '100vh', width: sidebarOpen ? '250px' : '60px'}}>
-        <h3 className="mb-4 text-center">CMS Admin</h3>
-        <Nav.Link 
-          className={`text-white mb-2 d-flex align-items-center ${activeSection === 'dashboard' ? 'active' : ''}`}
+    <div className="d-flex cms-admin">
+      <Nav
+        className={`flex-column cms-admin__sidebar ${sidebarOpen ? '' : 'cms-admin__sidebar--collapsed'}`}
+        role="navigation"
+        aria-label="CMS sections"
+      >
+        <div className="cms-admin__sidebar-brand">
+          <span className="cms-admin__brand-mark" aria-hidden="true">
+            CC
+          </span>
+          <span className="cms-admin__brand-full">CoinsClarity</span>
+          <small className="cms-admin__brand-sub">CMS</small>
+        </div>
+        <Nav.Link
+          className={`cms-admin__nav-link ${activeSection === 'dashboard' ? 'active' : ''}`}
           onClick={() => setActiveSection('dashboard')}
         >
-          <BarChart2 size={20} className="me-2" /> <span>Dashboard</span>
+          <BarChart2 size={20} aria-hidden /> <span className="cms-admin__nav-label">Dashboard</span>
         </Nav.Link>
-        <Nav.Link 
-          className={`text-white mb-2 d-flex align-items-center ${activeSection === 'users' ? 'active' : ''}`}
+        <Nav.Link
+          className={`cms-admin__nav-link ${activeSection === 'users' ? 'active' : ''}`}
           onClick={() => setActiveSection('users')}
         >
-          <Users size={20} className="me-2" /> <span>Users</span>
+          <Users size={20} aria-hidden /> <span className="cms-admin__nav-label">Users</span>
         </Nav.Link>
-        <Nav.Link 
-          className={`text-white mb-2 d-flex align-items-center ${activeSection === 'content' ? 'active' : ''}`}
+        <Nav.Link
+          className={`cms-admin__nav-link ${activeSection === 'content' ? 'active' : ''}`}
           onClick={() => setActiveSection('content')}
         >
-          <FileText size={20} className="me-2" /> <span>Content</span>
+          <FileText size={20} aria-hidden /> <span className="cms-admin__nav-label">Content</span>
         </Nav.Link>
-        <Nav.Link 
-          className={`text-white mb-2 d-flex align-items-center ${activeSection === 'blog' ? 'active' : ''}`}
+        <Nav.Link
+          className={`cms-admin__nav-link ${activeSection === 'blog' ? 'active' : ''}`}
           onClick={() => setActiveSection('blog')}
         >
-          <BookOpen size={20} className="me-2" /> <span>Blog</span>
+          <BookOpen size={20} aria-hidden /> <span className="cms-admin__nav-label">Blog</span>
         </Nav.Link>
-        <Nav.Link 
-          className={`text-white mb-2 d-flex align-items-center ${activeSection === 'newsletter' ? 'active' : ''}`}
+        <Nav.Link
+          className={`cms-admin__nav-link ${activeSection === 'newsletter' ? 'active' : ''}`}
           onClick={() => setActiveSection('newsletter')}
         >
-          <Mail size={20} className="me-2" /> <span>Newsletter</span>
+          <Mail size={20} aria-hidden /> <span className="cms-admin__nav-label">Newsletter</span>
         </Nav.Link>
-        <Nav.Link 
-          className={`text-white mb-2 d-flex align-items-center ${activeSection === 'social' ? 'active' : ''}`}
+        <Nav.Link
+          className={`cms-admin__nav-link ${activeSection === 'social' ? 'active' : ''}`}
           onClick={() => setActiveSection('social')}
         >
-          <Send size={20} className="me-2" /> <span>Social</span>
+          <Send size={20} aria-hidden /> <span className="cms-admin__nav-label">Social</span>
         </Nav.Link>
-        <Nav.Link 
-          className={`text-white mb-2 d-flex align-items-center ${activeSection === 'settings' ? 'active' : ''}`}
+        <Nav.Link
+          className={`cms-admin__nav-link ${activeSection === 'settings' ? 'active' : ''}`}
           onClick={() => setActiveSection('settings')}
         >
-          <Settings size={20} className="me-2" /> <span>Settings</span>
+          <Settings size={20} aria-hidden /> <span className="cms-admin__nav-label">Settings</span>
         </Nav.Link>
       </Nav>
 
-      {/* Main content */}
-      <div className="flex-grow-1 bg-light">
-        {/* Header */}
-        <Navbar bg="white" className="mb-4 shadow-sm">
-          <Container fluid>
-            <Button variant="outline-dark" onClick={toggleSidebar}>
-              ☰
+      <div className="cms-admin__main d-flex flex-column flex-grow-1">
+        <Navbar expand={false} className="cms-admin__header mb-0">
+          <Container fluid className="d-flex flex-wrap align-items-center gap-2 py-1">
+            <Button
+              type="button"
+              variant="outline-secondary"
+              className="cms-admin__menu-btn"
+              onClick={toggleSidebar}
+              aria-label={sidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}
+            >
+              <PanelLeft size={20} />
             </Button>
-            <Form className="d-flex mx-auto">
-              <Form.Control
-                type="search"
-                placeholder="Search"
-                className="me-2"
-                aria-label="Search"
-              />
-              <Button variant="outline-success"><Search /></Button>
+            <Form className="cms-admin__search flex-grow-1 mx-md-auto my-2 my-md-0">
+              <InputGroup>
+                <Form.Control type="search" placeholder="Search…" aria-label="Search" />
+                <Button variant="outline-secondary" type="button" aria-label="Submit search">
+                  <Search size={18} />
+                </Button>
+              </InputGroup>
             </Form>
-            <AdminNotifications />
-            <Dropdown align="end">
-              <Dropdown.Toggle variant="light" id="dropdown-basic">
-                <User size={20} />
-              </Dropdown.Toggle>
-              <Dropdown.Menu>
-                <Dropdown.Item href="#/action-1">Profile</Dropdown.Item>
-                <Dropdown.Item href="#/action-2">Settings</Dropdown.Item>
-                <Dropdown.Item href="#/action-3">Logout</Dropdown.Item>
-              </Dropdown.Menu>
-            </Dropdown>
+            <div className="d-flex align-items-center gap-1 ms-md-auto">
+              <AdminNotifications />
+              <Dropdown align="end">
+                <Dropdown.Toggle variant="light" id="dropdown-basic">
+                  <User size={20} />
+                </Dropdown.Toggle>
+                <Dropdown.Menu>
+                  <Dropdown.Item href="#/action-1">Profile</Dropdown.Item>
+                  <Dropdown.Item href="#/action-2">Settings</Dropdown.Item>
+                  <Dropdown.Item href="#/action-3">Logout</Dropdown.Item>
+                </Dropdown.Menu>
+              </Dropdown>
+            </div>
           </Container>
         </Navbar>
 
-        {/* Dashboard content */}
-        <Container fluid>
+        <Container fluid className="cms-admin__body flex-grow-1 px-3 px-lg-4 pt-4">
           {renderContent()}
         </Container>
       </div>
-{/* 
-      <style jsx>{`
-        .sidebar-open {
-          transition: width 0.3s ease-in-out;
-        }
-        .sidebar-closed {
-          transition: width 0.3s ease-in-out;
-          overflow: hidden;
-        }
-        .sidebar-closed span {
-          display: none;
-        }
-        .nav-link.active {
-          background-color: rgba(255, 255, 255, 0.1);
-          border-radius: 5px;
-        }
-      `}</style> */}
     </div>
   );
 };

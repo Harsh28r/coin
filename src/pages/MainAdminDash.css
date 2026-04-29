@@ -1,0 +1,159 @@
+/* CoinsClarity CMS shell */
+.cms-admin {
+  min-height: 100vh;
+  --cms-accent: #e85d2c;
+  --cms-sidebar-bg: linear-gradient(168deg, #12151c 0%, #1a2230 42%, #0d0f14 100%);
+  --cms-surface: #eef0f4;
+}
+
+.cms-admin__sidebar {
+  min-height: 100vh;
+  width: 252px;
+  flex-shrink: 0;
+  padding: 1.1rem 0.75rem;
+  background: var(--cms-sidebar-bg);
+  color: #e4e6ec;
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 6px 0 32px rgba(8, 10, 14, 0.18);
+  transition: width 0.2s ease, padding 0.2s ease;
+}
+
+.cms-admin__sidebar--collapsed {
+  width: 72px;
+  padding-left: 0.45rem;
+  padding-right: 0.45rem;
+}
+
+.cms-admin__sidebar-brand {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: #fff;
+  text-align: center;
+  margin-bottom: 0.25rem;
+  padding: 0.35rem 0.25rem 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  line-height: 1.25;
+}
+
+.cms-admin__brand-sub {
+  display: block;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--cms-accent);
+  margin-top: 0.35rem;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+.cms-admin__brand-mark {
+  display: none;
+  font-family: system-ui, -apple-system, sans-serif;
+  font-weight: 800;
+  font-size: 0.85rem;
+  color: var(--cms-accent);
+}
+
+.cms-admin__sidebar--collapsed .cms-admin__brand-full,
+.cms-admin__sidebar--collapsed .cms-admin__brand-sub {
+  display: none;
+}
+
+.cms-admin__sidebar--collapsed .cms-admin__brand-mark {
+  display: block;
+}
+
+.cms-admin__nav-link {
+  color: rgba(255, 255, 255, 0.78) !important;
+  border-radius: 10px;
+  margin-bottom: 0.3rem;
+  padding: 0.62rem 0.7rem !important;
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  border: 1px solid transparent;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.cms-admin__nav-link:hover {
+  color: #fff !important;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.cms-admin__nav-link.active {
+  color: #fff !important;
+  background: rgba(232, 93, 44, 0.2);
+  border-color: rgba(232, 93, 44, 0.4);
+}
+
+.cms-admin__sidebar--collapsed .cms-admin__nav-label {
+  display: none;
+}
+
+.cms-admin__sidebar--collapsed .cms-admin__nav-link {
+  justify-content: center;
+  padding-left: 0.45rem !important;
+  padding-right: 0.45rem !important;
+}
+
+.cms-admin__main {
+  flex: 1;
+  min-width: 0;
+  background: var(--cms-surface);
+  background-image: radial-gradient(ellipse 100% 60% at 50% -15%, rgba(232, 93, 44, 0.07), transparent 50%);
+}
+
+.cms-admin__header.navbar {
+  background: #fff !important;
+  border-bottom: 1px solid rgba(20, 24, 36, 0.07);
+  padding-top: 0.55rem;
+  padding-bottom: 0.55rem;
+  box-shadow: 0 1px 0 rgba(20, 24, 36, 0.04);
+}
+
+.cms-admin__menu-btn {
+  border-radius: 10px !important;
+  width: 40px;
+  height: 40px;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  padding: 0 !important;
+  border-color: rgba(20, 24, 36, 0.12) !important;
+}
+
+.cms-admin__search {
+  max-width: 420px;
+  width: 100%;
+}
+
+.cms-admin__search .input-group .form-control {
+  border-color: rgba(20, 24, 36, 0.1);
+  border-radius: 10px 0 0 10px;
+}
+
+.cms-admin__search .input-group .btn {
+  border-color: rgba(20, 24, 36, 0.1);
+  border-radius: 0 10px 10px 0;
+}
+
+.cms-admin__body {
+  padding-bottom: 2.5rem;
+  max-width: 1440px;
+  margin: 0 auto;
+}
+
+.cms-admin__body .card {
+  border: 1px solid rgba(20, 24, 36, 0.06);
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(20, 24, 36, 0.04);
+}
+
+.cms-admin__body .card-header {
+  border-bottom-color: rgba(20, 24, 36, 0.06);
+  font-weight: 600;
+}

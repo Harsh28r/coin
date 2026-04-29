@@ -15,6 +15,7 @@ const CustomDigestAdmin: React.FC<Props> = ({ fetchJson }) => {
   const [telegramMessage, setTelegramMessage] = useState('');
   const [blogTitle, setBlogTitle] = useState('');
   const [blogHtml, setBlogHtml] = useState('');
+  const [useDigestTemplate, setUseDigestTemplate] = useState(true);
   const [pendingMeta, setPendingMeta] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
@@ -53,6 +54,7 @@ const CustomDigestAdmin: React.FC<Props> = ({ fetchJson }) => {
         setTelegramMessage(data.pending.telegramMessage || '');
         setBlogTitle(data.pending.blogTitle || '');
         setBlogHtml(data.pending.blogHtml || '');
+        setUseDigestTemplate(data.pending.useDigestTemplate !== false);
         setPendingMeta(data.pending.updatedAt ? `Updated ${new Date(data.pending.updatedAt).toLocaleString()}` : 'Queued');
       } else {
         setPendingMeta(null);
@@ -93,6 +95,7 @@ const CustomDigestAdmin: React.FC<Props> = ({ fetchJson }) => {
           telegramMessage,
           blogTitle,
           blogHtml,
+          useDigestTemplate,
         }),
       });
       setMsg({ type: 'ok', text: data?.message || 'Saved for next scheduled digest.' });
@@ -129,6 +132,7 @@ const CustomDigestAdmin: React.FC<Props> = ({ fetchJson }) => {
           blogTitle,
           blogHtml,
           clearPending: false,
+          useDigestTemplate,
         }),
       });
       const n = data?.newsletter;
@@ -231,6 +235,14 @@ const CustomDigestAdmin: React.FC<Props> = ({ fetchJson }) => {
             <Form.Label>HTML body</Form.Label>
             <Form.Control as="textarea" rows={10} value={html} onChange={(e) => setHtml(e.target.value)} required />
           </Form.Group>
+          <Form.Check
+            type="checkbox"
+            id="use-digest-template"
+            className="mb-3"
+            checked={useDigestTemplate}
+            onChange={(e) => setUseDigestTemplate(e.target.checked)}
+            label="Wrap in Daily digest email template (CoinsClarity header, date, tools strip, unsubscribe — matches auto digest look)"
+          />
           <Form.Group className="mb-2">
             <Form.Label>Plain text (optional)</Form.Label>
             <Form.Control as="textarea" rows={3} value={text} onChange={(e) => setText(e.target.value)} />
