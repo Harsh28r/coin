@@ -1,14 +1,10 @@
 import axios from 'axios';
 import { BlogPost } from '../types/blog';
+import { buildRssBackendBases, joinBackendPath } from '../utils/rssBackendBases';
 
-const API_BASE: string = (process.env.REACT_APP_API_BASE_URL as string) || 'https://c-back-seven.vercel.app';
-const FALLBACK_BASES: string[] = Array.from(new Set([
-  API_BASE,
-  API_BASE.endsWith('/api') ? API_BASE.replace(/\/api$/, '') : `${API_BASE}/api`,
-  'https://c-back-seven.vercel.app',
-  'https://c-back-1.onrender.com',
-  'https://c-back-2.onrender.com'
-]));
+const FALLBACK_BASES: string[] = buildRssBackendBases(
+  (process.env.REACT_APP_API_BASE_URL as string) || 'https://c-back-seven.vercel.app',
+);
 
 type AnyRecord = Record<string, any>;
 
@@ -28,13 +24,12 @@ const mapPost = (raw: AnyRecord): BlogPost => {
 };
 
 export const fetchPosts = async (): Promise<BlogPost[]> => {
-  // Try multiple bases and path patterns
   const paths = ['/posts', '/api/posts'];
   let lastErr: any;
   for (const base of FALLBACK_BASES) {
     for (const path of paths) {
       try {
-        const res = await axios.get(`${base.replace(/\/$/, '')}${path}`);
+        const res = await axios.get(joinBackendPath(base, path));
         const data = res.data as any;
         const list = Array.isArray(data)
           ? data
@@ -56,7 +51,7 @@ export const createPost = async (post: Omit<BlogPost, 'id'>): Promise<BlogPost> 
   for (const base of FALLBACK_BASES) {
     for (const path of paths) {
       try {
-        const res = await axios.post(`${base.replace(/\/$/, '')}${path}`, post, { headers: { 'Content-Type': 'application/json' } });
+        const res = await axios.post(joinBackendPath(base, path), post, { headers: { 'Content-Type': 'application/json' } });
         const data = res.data as any;
         const item = (data && data.success && data.data) ? data.data : data;
         return mapPost(item || {});
@@ -75,7 +70,7 @@ export const updatePost = async (post: BlogPost): Promise<BlogPost> => {
   for (const base of FALLBACK_BASES) {
     for (const path of paths) {
       try {
-        const res = await axios.put(`${base.replace(/\/$/, '')}${path}`, post, { headers: { 'Content-Type': 'application/json' } });
+        const res = await axios.put(joinBackendPath(base, path), post, { headers: { 'Content-Type': 'application/json' } });
         const data = res.data as any;
         const item = (data && data.success && data.data) ? data.data : data;
         return mapPost(item || {});
@@ -93,7 +88,7 @@ export const deletePost = async (id: string): Promise<void> => {
   for (const base of FALLBACK_BASES) {
     for (const path of paths) {
       try {
-        await axios.delete(`${base.replace(/\/$/, '')}${path}`);
+        await axios.delete(joinBackendPath(base, path));
         return;
       } catch (e) {
         lastErr = e;

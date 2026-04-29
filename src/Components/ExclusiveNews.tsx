@@ -10,6 +10,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { Helmet } from 'react-helmet-async';
 import { useNewsTranslation } from '../hooks/useNewsTranslation';
 import { getCryptoFallbackImage, handleImageError, isFakeImageUrl, resolveImageSrc } from '../utils/cryptoImages';
+import { buildRssBackendBases } from '../utils/rssBackendBases';
 
 interface NewsItem {
   article_id?: string;
@@ -39,7 +40,7 @@ const ExclusiveNews: React.FC = () => {
   // Use the translation hook
   const { displayItems, isTranslating, currentLanguage } = useNewsTranslation(newsItems);
 
-  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://c-back-2.onrender.com';
+  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://c-back-seven.vercel.app';
   const MOCK_API_BASE_URL = process.env.REACT_APP_USE_LOCAL_DB === 'true' ? 'http://localhost:5000' : '';
 
   // Helpers to improve excerpts
@@ -78,32 +79,56 @@ const ExclusiveNews: React.FC = () => {
       setIsLoading(true);
       setError(null);
       try {
-        // Fetch from Camify (fast) + Render fallback in parallel
-        const CAMIFY = 'https://camify.fun.coinsclarity.com';
-        const endpoints = [
-          `${CAMIFY}/fetch-cointelegraph-rss?limit=24`,
-          `${CAMIFY}/fetch-coindesk-rss?limit=24`,
-          `${CAMIFY}/fetch-decrypt-rss?limit=24`,
-          `${CAMIFY}/fetch-cryptoslate-rss?limit=24`,
-          `${CAMIFY}/fetch-cryptobriefing-rss?limit=24`,
-          `${CAMIFY}/fetch-beincrypto-rss?limit=24`,
-          `${CAMIFY}/fetch-blockworks-rss?limit=24`,
-          `${CAMIFY}/fetch-finbold-rss?limit=24`,
-          `${CAMIFY}/fetch-protos-rss?limit=24`,
-          `${CAMIFY}/fetch-unchained-rss?limit=24`,
-          `${CAMIFY}/fetch-thecryptobasic-rss?limit=24`,
-          `${CAMIFY}/fetch-blockonomi-rss?limit=24`,
-          `${API_BASE_URL}/fetch-all-rss?limit=50`,
+        const bases = buildRssBackendBases(API_BASE_URL);
+
+        const fetchJson = async (url: string) => {
+          const res = await fetch(url, {
+            credentials: 'omit',
+            mode: 'cors',
+            signal: AbortSignal.timeout(12000),
+          });
+          if (!res.ok) return null;
+          return res.json();
+        };
+
+        const fetchFromBase = async (base: string, pathWithQuery: string) => {
+          const q = pathWithQuery.replace(/^\//, '');
+          const b = base.replace(/\/$/, '');
+          for (const url of [`${b}/${q}`, `${b}/api/${q}`]) {
+            const j = await fetchJson(url);
+            if (j) return j;
+          }
+          return null;
+        };
+
+        const pathSpecs = [
+          { path: 'fetch-cointelegraph-rss?limit=24', source: 'Cointelegraph' },
+          { path: 'fetch-coindesk-rss?limit=24', source: 'CoinDesk' },
+          { path: 'fetch-decrypt-rss?limit=24', source: 'Decrypt' },
+          { path: 'fetch-cryptoslate-rss?limit=24', source: 'CryptoSlate' },
+          { path: 'fetch-cryptobriefing-rss?limit=24', source: 'Crypto Briefing' },
+          { path: 'fetch-beincrypto-rss?limit=24', source: 'BeInCrypto' },
+          { path: 'fetch-blockworks-rss?limit=24', source: 'Blockworks' },
+          { path: 'fetch-finbold-rss?limit=24', source: 'Finbold' },
+          { path: 'fetch-protos-rss?limit=24', source: 'Protos' },
+          { path: 'fetch-unchained-rss?limit=24', source: 'Unchained' },
+          { path: 'fetch-thecryptobasic-rss?limit=24', source: 'The Crypto Basic' },
+          { path: 'fetch-blockonomi-rss?limit=24', source: 'Blockonomi' },
+          { path: 'fetch-all-rss?limit=50', source: 'All' },
         ];
 
-        const results = await Promise.allSettled(
-          endpoints.map(url => fetch(url, { signal: AbortSignal.timeout(10000) }).then(r => r.json()).catch(() => null))
-        );
         let items: any[] = [];
-        for (const r of results) {
-          if ((r as any)?.status === 'fulfilled' && (r as any).value?.success) {
-            const arr = Array.isArray((r as any).value.data) ? (r as any).value.data : Array.isArray((r as any).value.items) ? (r as any).value.items : [];
-            items = items.concat(arr);
+
+        for (const { path } of pathSpecs) {
+          for (const base of bases) {
+            const value = await fetchFromBase(base, path);
+            if (value?.success) {
+              const arr = Array.isArray(value.data) ? value.data : Array.isArray(value.items) ? value.items : [];
+              if (arr.length) {
+                items = items.concat(arr);
+                break;
+              }
+            }
           }
         }
 
@@ -149,7 +174,7 @@ const ExclusiveNews: React.FC = () => {
     };
 
     fetchNews();
-  }, []);
+  }, [API_BASE_URL]);
 
   // Crypto-related fallback images using our crypto utility
   const getFallbackImage = (index: number, title?: string): string => {

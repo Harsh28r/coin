@@ -15,6 +15,19 @@ function stripBase(u: string): string {
   return u.replace(/\/$/, '').replace(/\/api$/i, '');
 }
 
+/**
+ * Join API base with a path. If `path` starts with `/api/`, strips a trailing
+ * `/api` from base first — prevents `https://host/api` + `/api/posts` → `/api/api/posts`.
+ */
+export function joinBackendPath(base: string, path: string): string {
+  let b = String(base || '').trim().replace(/\/+$/, '');
+  const p = path.startsWith('/') ? path : `/${path}`;
+  if (p.toLowerCase().startsWith('/api/')) {
+    b = b.replace(/\/api$/i, '');
+  }
+  return `${b}${p}`;
+}
+
 /** Mirrors first, optional env host (if not localhost / not camify), camify always last. */
 export function buildRssBackendBases(envBase?: string): string[] {
   const env = stripBase((envBase || process.env.REACT_APP_API_BASE_URL || '').trim());

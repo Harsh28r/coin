@@ -1,11 +1,30 @@
 import axios from 'axios';
+import { buildRssBackendBases, joinBackendPath } from '../utils/rssBackendBases';
 
-// Dedicated base for arbitrage APIs so it doesn't get overridden by the news/RSS host
-// Priority: explicit ARBITRAGE base → generic API base → deployed arbitrage backend
-const ARB_API_BASE =
-  process.env.REACT_APP_ARBITRAGE_API_BASE_URL ||
-  process.env.REACT_APP_API_BASE_URL ||
-  'https://c-back-seven.vercel.app';
+const arbBases = (): string[] =>
+  buildRssBackendBases(
+    process.env.REACT_APP_ARBITRAGE_API_BASE_URL ||
+      process.env.REACT_APP_API_BASE_URL ||
+      'https://c-back-seven.vercel.app',
+  );
+
+async function axiosGetFirst<T = any>(
+  pathWithQuery: string,
+  timeout = 10000,
+  headers?: Record<string, string>,
+): Promise<T | null> {
+  const p = pathWithQuery.startsWith('/') ? pathWithQuery : `/${pathWithQuery}`;
+  for (const base of arbBases()) {
+    try {
+      const url = joinBackendPath(base, p);
+      const response = await axios.get<T>(url, { timeout, headers });
+      return response.data;
+    } catch {
+      /* try next mirror */
+    }
+  }
+  return null;
+}
 
 const BINANCE_TICKER_URL = 'https://api.binance.com/api/v3/ticker/price';
 
@@ -196,10 +215,10 @@ interface ApiResponse<T> {
  */
 export const getOpportunities = async (limit: number = 20): Promise<ArbitrageOpportunity[]> => {
   try {
-    const response = await axios.get<ApiResponse<ArbitrageOpportunity[]>>(
-      `${ARB_API_BASE}/arbitrage/opportunities?limit=${Math.max(limit * 3, 30)}`
+    const responseData = await axiosGetFirst<ApiResponse<ArbitrageOpportunity[]>>(
+      `/arbitrage/opportunities?limit=${Math.max(limit * 3, 30)}`,
     );
-    const raw = Array.isArray(response.data?.data) ? response.data.data : [];
+    const raw = Array.isArray(responseData?.data) ? responseData.data : [];
 
     // Defensive: dedupe by symbol (keep highest netProfitPercent), drop unrealistic
     // spreads — guards against bogus delisted-token data or stale records.
@@ -235,10 +254,8 @@ const defaultCrossStats: ArbitrageStats = {
  */
 export const getStats = async (days: number = 7): Promise<ArbitrageStats> => {
   try {
-    const response = await axios.get<ApiResponse<ArbitrageStats>>(
-      `${ARB_API_BASE}/arbitrage/stats?days=${days}`
-    );
-    const data = response.data?.data;
+    const responseData = await axiosGetFirst<ApiResponse<ArbitrageStats>>(`/arbitrage/stats?days=${days}`);
+    const data = responseData?.data;
     return data != null ? { ...defaultCrossStats, ...data } : defaultCrossStats;
   } catch (error) {
     console.error('Error fetching stats:', error);
@@ -251,10 +268,11 @@ export const getStats = async (days: number = 7): Promise<ArbitrageStats> => {
  */
 export const getHistory = async (days: number = 7, limit: number = 100): Promise<ArbitrageOpportunity[]> => {
   try {
-    const response = await axios.get<ApiResponse<ArbitrageOpportunity[]>>(
-      `${ARB_API_BASE}/arbitrage/history?days=${days}&limit=${limit}`
+    const responseData = await axiosGetFirst<ApiResponse<ArbitrageOpportunity[]>>(
+      `/arbitrage/history?days=${days}&limit=${limit}`,
     );
-    return response.data.data || [];
+    if (!responseData) throw new Error('No arbitrage backend reachable');
+    return responseData.data || [];
   } catch (error) {
     console.error('Error fetching history:', error);
     throw error;
@@ -266,10 +284,9 @@ export const getHistory = async (days: number = 7, limit: number = 100): Promise
  */
 export const getOpportunityById = async (id: string): Promise<ArbitrageOpportunity> => {
   try {
-    const response = await axios.get<ApiResponse<ArbitrageOpportunity>>(
-      `${ARB_API_BASE}/arbitrage/opportunity/${id}`
-    );
-    return response.data.data;
+    const responseData = await axiosGetFirst<ApiResponse<ArbitrageOpportunity>>(`/arbitrage/opportunity/${id}`);
+    if (!responseData?.data) throw new Error('Opportunity not found');
+    return responseData.data;
   } catch (error) {
     console.error('Error fetching opportunity:', error);
     throw error;
@@ -281,15 +298,12 @@ export const getOpportunityById = async (id: string): Promise<ArbitrageOpportuni
  */
 export const triggerScan = async (token: string): Promise<ArbitrageOpportunity[]> => {
   try {
-    const response = await axios.get<ApiResponse<ArbitrageOpportunity[]>>(
-      `${ARB_API_BASE}/arbitrage/scan`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
+    const responseData = await axiosGetFirst<ApiResponse<ArbitrageOpportunity[]>>(
+      `/arbitrage/scan`,
+      10000,
+      { Authorization: `Bearer ${token}` },
     );
-    return response.data.data || [];
+    return responseData?.data || [];
   } catch (error) {
     console.error('Error triggering scan:', error);
     throw error;
@@ -301,10 +315,10 @@ export const triggerScan = async (token: string): Promise<ArbitrageOpportunity[]
  */
 export const getTriangularOpportunities = async (limit: number = 20): Promise<TriangularOpportunity[]> => {
   try {
-    const response = await axios.get<ApiResponse<TriangularOpportunity[]>>(
-      `${ARB_API_BASE}/triangular/opportunities?limit=${limit}`
+    const responseData = await axiosGetFirst<ApiResponse<TriangularOpportunity[]>>(
+      `/triangular/opportunities?limit=${limit}`,
     );
-    return Array.isArray(response.data?.data) ? response.data.data : [];
+    return Array.isArray(responseData?.data) ? responseData.data : [];
   } catch (error) {
     console.error('Error fetching triangular opportunities:', error);
     return [];
@@ -317,11 +331,11 @@ export const getTriangularOpportunities = async (limit: number = 20): Promise<Tr
  */
 export const getTriangularOpportunitiesLive = async (limit: number = 20): Promise<TriangularOpportunity[]> => {
   try {
-    const response = await axios.get<ApiResponse<TriangularOpportunity[]> & { data?: { source?: string } }>(
-      `${ARB_API_BASE}/triangular/live?limit=${limit}`,
-      { timeout: 8000 }
+    const responseData = await axiosGetFirst<ApiResponse<TriangularOpportunity[]> & { data?: { source?: string } }>(
+      `/triangular/live?limit=${limit}`,
+      8000,
     );
-    const list = Array.isArray(response.data?.data) ? response.data.data : [];
+    const list = Array.isArray(responseData?.data) ? responseData.data : [];
     if (list.length > 0) return list;
   } catch (_) {
     // Backend failed or no data; fall through to client-side
@@ -342,10 +356,8 @@ const defaultTriangularStats: TriangularStats = {
  */
 export const getTriangularStats = async (days: number = 7): Promise<TriangularStats> => {
   try {
-    const response = await axios.get<ApiResponse<TriangularStats>>(
-      `${ARB_API_BASE}/triangular/stats?days=${days}`
-    );
-    const data = response.data?.data;
+    const responseData = await axiosGetFirst<ApiResponse<TriangularStats>>(`/triangular/stats?days=${days}`);
+    const data = responseData?.data;
     return data != null ? { ...defaultTriangularStats, ...data } : defaultTriangularStats;
   } catch (error) {
     console.error('Error fetching triangular stats:', error);
@@ -358,15 +370,12 @@ export const getTriangularStats = async (days: number = 7): Promise<TriangularSt
  */
 export const triggerTriangularScan = async (token: string): Promise<TriangularOpportunity[]> => {
   try {
-    const response = await axios.get<ApiResponse<TriangularOpportunity[]>>(
-      `${ARB_API_BASE}/triangular/scan`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
+    const responseData = await axiosGetFirst<ApiResponse<TriangularOpportunity[]>>(
+      `/triangular/scan`,
+      10000,
+      { Authorization: `Bearer ${token}` },
     );
-    return response.data.data || [];
+    return responseData?.data || [];
   } catch (error) {
     console.error('Error triggering triangular scan:', error);
     throw error;

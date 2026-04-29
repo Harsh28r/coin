@@ -10,6 +10,7 @@ import Skeleton from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
 import { getCryptoFallbackImage, handleImageError, resolveImageSrc } from '../utils/cryptoImages';
 import { getBlogUrl } from '../utils/blogUrl';
+import { fetchPosts } from '../services/api';
 
 interface BlogPost {
   id: string;
@@ -33,58 +34,28 @@ const BlogSection: React.FC = () => {
   
   // Use the translation hook
   const { displayItems: displayPosts, isTranslating, currentLanguage } = useNewsTranslation(blogPosts);
-  
-  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5000';
-
-  // Handle sliding left
-  const handlePrev = () => {
-    setCurrentIndex((prevIndex) => Math.max(prevIndex - postsPerPage, 0));
-  };
-
-  // Handle sliding right
-  const handleNext = () => {
-    setCurrentIndex((prevIndex) =>
-      Math.min(prevIndex + postsPerPage, displayPosts.length - postsPerPage)
-    );
-  };
 
   useEffect(() => {
     const fetchBlogPosts = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`${API_BASE_URL}/posts`, {
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-          },
-        });
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-        const result = await response.json();
-        console.log('Raw API response:', result);
-
-        let posts: any[] = [];
-        if (result.success && Array.isArray(result.data)) {
-          posts = result.data;
-        } else if (Array.isArray(result)) {
-          posts = result;
-        } else {
-          console.error('Unexpected API response format:', result);
-          return;
-        }
-
-        const formattedPosts = posts.map((post: any) => ({
-          id: post._id || post.id || `post-${Math.random()}`,
+        const data = await fetchPosts();
+        const formattedPosts = data.map((post: any) => ({
+          id: post.id || post._id || `post-${Math.random()}`,
           slug: post.slug || undefined,
           title: post.title || 'Untitled',
-          description: post.excerpt || post.description || post.content || 'No description available',
+          description:
+            post.excerpt ||
+            (typeof post.content === 'string'
+              ? post.content.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 220)
+              : '') ||
+            'No description available',
           author: post.author || 'Unknown',
           date: post.date
-            ? new Date(post.date).toLocaleDateString()
+            ? new Date(post.date as string | Date).toLocaleDateString()
             : 'Unknown date',
-          image: post.image || post.imageUrl || getCryptoFallbackImage(post.title, 'blog'),
-          imageUrl: post.imageUrl || post.image || getCryptoFallbackImage(post.title, 'blog'),
+          image: post.imageUrl || getCryptoFallbackImage(post.title, 'blog'),
+          imageUrl: post.imageUrl || getCryptoFallbackImage(post.title, 'blog'),
           content: post.content || 'No content available',
         }));
         setBlogPosts(formattedPosts);
@@ -96,7 +67,17 @@ const BlogSection: React.FC = () => {
     };
 
     fetchBlogPosts();
-  }, [API_BASE_URL]);
+  }, []);
+
+  const handlePrev = () => {
+    setCurrentIndex((prevIndex) => Math.max(prevIndex - postsPerPage, 0));
+  };
+
+  const handleNext = () => {
+    setCurrentIndex((prevIndex) =>
+      Math.min(prevIndex + postsPerPage, displayPosts.length - postsPerPage)
+    );
+  };
 
   return (
     <Container fluid className="mt-5 mb-5" style={{ width: '92%', fontFamily: 'Inter, sans-serif', color: 'var(--text)' }}>
