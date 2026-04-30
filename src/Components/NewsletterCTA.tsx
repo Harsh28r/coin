@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Container, Row, Col, Form, Button, Alert, InputGroup } from 'react-bootstrap';
 import { Mail, ArrowRight } from 'lucide-react';
 import { postNewsletterSubscribe } from '../utils/newsletterSubscribe';
+//jckj
 
 const NewsletterCTA: React.FC = () => {
   const [email, setEmail] = useState('');
