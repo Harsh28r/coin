@@ -109,6 +109,10 @@ const About: React.FC = () => {
                    style={{ padding: '10px 20px', backgroundColor: '#1f2937', color: '#fff', borderRadius: '8px', textDecoration: 'none' }}>
                   Instagram
                 </a>
+                <a href="https://www.facebook.com/profile.php?id=61587166360306" target="_blank" rel="noopener noreferrer"
+                   style={{ padding: '10px 20px', backgroundColor: '#1f2937', color: '#fff', borderRadius: '8px', textDecoration: 'none' }}>
+                  Facebook
+                </a>
                 <a href="https://t.me/coinsclarity" target="_blank" rel="noopener noreferrer"
                    style={{ padding: '10px 20px', backgroundColor: '#1f2937', color: '#fff', borderRadius: '8px', textDecoration: 'none' }}>
                   Telegram
