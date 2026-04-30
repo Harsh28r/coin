@@ -3,7 +3,7 @@ export function getNewsletterApiBase(): string {
   return (process.env.REACT_APP_API_BASE_URL || 'https://c-back-2.onrender.com').replace(/\/$/, '');
 }
 
-/** Saves to NewsletterSubscriber — included in 8am UTC daily digest + welcome email. */
+/** Saves to NewsletterSubscriber — included in daily digest (~11:35 AM IST) + welcome email. */
 export async function postNewsletterSubscribe(
   email: string,
   source?: string,
@@ -26,7 +26,7 @@ export async function postNewsletterSubscribe(
       return {
         ok: true,
         message:
-          "You're in! Check your inbox — daily 3-story digest hits around 8am UTC (unsubscribe link in every email).",
+          "You're in! Check your inbox — daily 3-story digest ~11:35 AM IST (unsubscribe link in every email).",
       };
     }
     return {

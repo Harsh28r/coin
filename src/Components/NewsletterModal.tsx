@@ -125,7 +125,7 @@ const NewsletterModal: React.FC = () => {
           <div className="nl-done">
             <div className="nl-done__icon"><Check size={32} /></div>
             <h2>You're in.</h2>
-            <p>We'll send you the day's 3 most important crypto stories every morning. No spam, unsubscribe anytime.</p>
+            <p>We&apos;ll send you the day&apos;s 3 most important crypto stories every day at 11:35 AM IST. No spam, unsubscribe anytime.</p>
           </div>
         ) : (
           <>
@@ -134,7 +134,7 @@ const NewsletterModal: React.FC = () => {
             </div>
             <h2 id="nl-title" className="nl-title">The 3-bullet crypto digest.</h2>
             <p className="nl-sub">
-              Every morning at 8am UTC, we send the day's three most important crypto stories — distilled, no fluff. Read in
+              Every day at 11:35 AM IST, we send the day's three most important crypto stories — distilled, no fluff. Read in
               60 seconds. Unsubscribe anytime.
             </p>
 
