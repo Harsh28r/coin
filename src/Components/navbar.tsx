@@ -220,8 +220,7 @@ const CoinsNavbar: React.FC = () => {
                 as={NavLink}
                 to="/advertise"
                 onClick={handleNavItemClick}
-                className="cc-navbar__cta p-0 d-inline-flex align-items-center"
-                style={{ display: 'inline-flex' }}
+                className="cc-navbar__cta d-inline-flex align-items-center justify-content-center"
               >
                 Advertise
               </Nav.Link>

@@ -227,22 +227,46 @@
 
 .cc-navbar__cta {
   font-family: var(--font-body);
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 700;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  padding: 8px 16px;
-  background: var(--text-primary);
-  color: var(--bg-elevated);
-  border: 1px solid var(--text-primary);
+  padding: 9px 18px !important;
   border-radius: 999px;
-  transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+  text-decoration: none !important;
+  border: 1px solid rgba(234, 88, 12, 0.45) !important;
+  background: linear-gradient(145deg, #fb923c 0%, #f97316 45%, #ea580c 100%) !important;
+  color: #fff !important;
+  box-shadow: 0 2px 10px rgba(249, 115, 22, 0.28);
+  transition: background 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
 }
-.cc-navbar__cta:hover {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: #fff;
+
+/* CTA is still a .nav-link — global nav rules use !important; beat them here */
+.cc-navbar__actions .cc-navbar__cta.nav-link,
+.cc-navbar__actions a.cc-navbar__cta {
+  color: #fff !important;
+  background: linear-gradient(145deg, #fb923c 0%, #f97316 45%, #ea580c 100%) !important;
+}
+
+.cc-navbar__actions .cc-navbar__cta.nav-link::after,
+.cc-navbar__actions a.cc-navbar__cta::after {
+  display: none !important;
+}
+
+.cc-navbar__actions .cc-navbar__cta.nav-link:hover,
+.cc-navbar__actions a.cc-navbar__cta:hover {
+  color: #fff !important;
+  background: linear-gradient(145deg, #f97316 0%, #ea580c 55%, #c2410c 100%) !important;
+  border-color: rgba(194, 65, 12, 0.75) !important;
+  box-shadow: 0 4px 16px rgba(249, 115, 22, 0.4);
   transform: translateY(-1px);
+}
+
+.cc-navbar__actions .cc-navbar__cta.nav-link.active,
+.cc-navbar__actions a.cc-navbar__cta.active {
+  color: #fff !important;
+  background: linear-gradient(145deg, #ea580c 0%, #c2410c 100%) !important;
+  border-color: #c2410c !important;
 }
 
 .cc-navbar__icon-btn {
@@ -304,6 +328,12 @@
   .cc-navbar .nav-link::after { display: none; }
   .cc-navbar__search { width: 100%; margin: 12px 0; }
   .cc-navbar__actions { width: 100%; padding: 8px 0 16px; }
+  .cc-navbar__actions .cc-navbar__cta.nav-link {
+    border-bottom: none !important;
+    width: 100%;
+    max-width: 220px;
+    margin: 4px auto 0;
+  }
   .cc-navbar .dropdown-menu {
     border: none;
     box-shadow: none;
