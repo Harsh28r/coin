@@ -22,6 +22,7 @@ import CryptoBreakingBanner from '../Components/CryptoBreakingBanner';
 import NewsletterCTA from '../Components/NewsletterCTA';
 import DailyNewsSection from '../Components/DailyNewsSection';
 import AirdropSection from '../Components/AirdropSection';
+import LandingToolsShowcase from '../Components/LandingToolsShowcase';
 
 /* AdSense-compliant placeholder - clearly marked as ad space, not fake content */
 const AdSpot: React.FC<{ variant?: 'leaderboard' | 'rectangle' | 'native'; label?: string; className?: string }> = ({ variant = 'leaderboard', label, className = '' }) => {
@@ -152,6 +153,9 @@ const LandingPage: React.FC = () => {
 
         {/* Crypto Converter Tool */}
         <CryptoConverter />
+
+        {/* Free tools — bento strip */}
+        <LandingToolsShowcase />
 
         {/* AI News */}
         <AINews />
