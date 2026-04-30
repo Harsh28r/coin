@@ -7,6 +7,8 @@ import 'react-loading-skeleton/dist/skeleton.css';
 import './ExploreCards.css';
 import { useLanguage } from '../context/LanguageContext';
 import { useNavigate } from 'react-router-dom';
+import { useNewsTranslation } from '../hooks/useNewsTranslation';
+import { defaultPublicBackend } from '../utils/rssBackendBases';
 import { postNewsletterSubscribe } from '../utils/newsletterSubscribe';
 
 interface TrendingNewsItem {
