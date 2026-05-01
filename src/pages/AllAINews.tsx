@@ -9,7 +9,7 @@ import { Helmet } from 'react-helmet-async';
 import { useLanguage } from '../context/LanguageContext';
 import { useNewsTranslation } from '../hooks/useNewsTranslation';
 import { getCryptoFallbackImage, handleImageError, resolveImageSrc } from '../utils/cryptoImages';
-import { buildRssBackendBases } from '../utils/rssBackendBases';
+import { buildRssBackendBasesFromEnv } from '../utils/rssBackendBases';
 
 interface NewsItem {
   article_id?: string;
@@ -39,8 +39,6 @@ const AllAINews: React.FC = () => {
 
   // Use the translation hook
   const { displayItems, isTranslating, currentLanguage } = useNewsTranslation(newsItems);
-
-  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://c-back-seven.vercel.app';
 
   const isValidImageUrl = (url?: string): boolean => {
     if (!url) return false;
@@ -75,7 +73,7 @@ const AllAINews: React.FC = () => {
       setIsLoading(true);
       setError(null);
       try {
-        const bases = buildRssBackendBases(API_BASE_URL);
+        const bases = buildRssBackendBasesFromEnv();
 
         const fetchJson = async (url: string) => {
           const res = await fetch(url, {
@@ -175,7 +173,7 @@ const AllAINews: React.FC = () => {
     };
 
     fetchNews();
-  }, [API_BASE_URL]);
+  }, []);
 
   // Fallback images
   const getFallbackImage = (index: number, title?: string): string => {

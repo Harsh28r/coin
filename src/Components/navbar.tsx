@@ -7,6 +7,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import _ from 'lodash';
 import '../styles/CoinsNavbar.css';
 import { coingeckoV3Url } from '../utils/coingeckoUrl';
+import { buildRssBackendBasesFromEnv, joinBackendPath } from '../utils/rssBackendBases';
 
 interface SearchSuggestion {
   type: 'coins' | 'exchanges';
@@ -48,7 +49,6 @@ const CoinsNavbar: React.FC = () => {
     window.dispatchEvent(new CustomEvent('cc-theme-change', { detail: theme }));
   }, [theme]);
 
-  const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
   const mockSuggestions: SearchSuggestion[] = [
     { type: 'coins', name: 'Bitcoin', id: 'bitcoin' },
     { type: 'coins', name: 'BNB', id: 'bnb' },
@@ -61,20 +61,30 @@ const CoinsNavbar: React.FC = () => {
     setError(null);
 
     try {
-      const backendUrl = `${API_BASE_URL}/search-suggestions?query=${encodeURIComponent(query)}`;
-      try {
-        const resp = await fetch(backendUrl, { headers: { 'Content-Type': 'application/json' } });
-        if (resp.ok) {
-          const data = await resp.json();
-          const list = (data?.coins || []).slice(0, 10).map((item: any) => ({
-            type: 'coins' as const,
-            name: item.name,
-            id: item.id,
-          }));
-          setSuggestions(list.length ? list : mockSuggestions.filter((s) => s.name.toLowerCase().includes(query.toLowerCase())));
-          return;
+      const bases = buildRssBackendBasesFromEnv();
+      for (const base of bases) {
+        const backendUrl = joinBackendPath(
+          base,
+          `/search-suggestions?query=${encodeURIComponent(query)}`,
+        );
+        try {
+          const resp = await fetch(backendUrl, { headers: { 'Content-Type': 'application/json' } });
+          if (resp.ok) {
+            const data = await resp.json();
+            const list = (data?.coins || []).slice(0, 10).map((item: any) => ({
+              type: 'coins' as const,
+              name: item.name,
+              id: item.id,
+            }));
+            setSuggestions(
+              list.length ? list : mockSuggestions.filter((s) => s.name.toLowerCase().includes(query.toLowerCase())),
+            );
+            return;
+          }
+        } catch (_) {
+          /* try next base */
         }
-      } catch (_) { /* fall through */ }
+      }
 
       const response = await fetch(coingeckoV3Url(`search?query=${encodeURIComponent(query)}`), {
         method: 'GET',

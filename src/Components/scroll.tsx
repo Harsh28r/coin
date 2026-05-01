@@ -15,7 +15,7 @@ import SubscriptionManagement from './SubscriptionManagement';
 // Import Firebase
 import { initializeApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, getAdditionalUserInfo, User } from 'firebase/auth';
-import { buildRssBackendBases, joinBackendPath } from '../utils/rssBackendBases';
+import { buildRssBackendBasesFromEnv, joinBackendPath } from '../utils/rssBackendBases';
 
 // Initialize Firebase using environment variables
 const firebaseConfig = {
@@ -72,12 +72,7 @@ export const ScrollingStats = () => {
   const didInitRef = useRef(false);
   const { currentLanguage, setLanguage } = useLanguage();
   const [isMobile, setIsMobile] = useState(false);
-  const getApiBases = (): string[] =>
-    buildRssBackendBases(
-      (process.env.REACT_APP_API_URL as string) ||
-        process.env.REACT_APP_API_BASE_URL ||
-        'https://c-back-seven.vercel.app',
-    );
+  const getApiBases = (): string[] => buildRssBackendBasesFromEnv();
 
   const notifyAdminUserRegistered = async (u: User, type: 'user_registered' | 'user_login') => {
     const payload = { uid: u.uid, email: u.email, name: u.displayName, type };

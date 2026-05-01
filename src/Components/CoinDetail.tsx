@@ -323,7 +323,6 @@ const CoinDetail: React.FC = () => {
       proxied,
       direct,
       `https://corsproxy.io/?${encodeURIComponent(direct)}`,
-      `https://c-back-seven.vercel.app${direct}`,
     ];
     let lastErr: any = null;
     for (const url of candidates) {

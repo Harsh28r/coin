@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { buildRssBackendBases, joinBackendPath } from '../utils/rssBackendBases';
+import { buildRssBackendBasesFromEnv, joinBackendPath } from '../utils/rssBackendBases';
 
 type RawItem = {
   article_id?: string;
@@ -61,12 +61,7 @@ const normalizeItem = (item: RawItem, idx: number): BreakingItem => {
   return { id, title, description, author, pubDate, image_url, link, isBreaking };
 };
 
-const rssApiBases = (): string[] =>
-  buildRssBackendBases(
-    (process.env.REACT_APP_API_URL as string) ||
-      process.env.REACT_APP_API_BASE_URL ||
-      'https://c-back-seven.vercel.app',
-  );
+const rssApiBases = (): string[] => buildRssBackendBasesFromEnv();
 
 const CryptoBreakingBanner: React.FC = () => {
   const navigate = useNavigate();

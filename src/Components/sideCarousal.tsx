@@ -10,7 +10,7 @@ import { useNewsTranslation } from '../hooks/useNewsTranslation';
 import { extractListingNews } from '../utils/listings';
 import { BRAND_DISPLAY_NAME, stripAppearedFirstOn } from '../utils/branding';
 import { resolveImageSrc, handleImageError } from '../utils/cryptoImages';
-import { buildRssBackendBases } from '../utils/rssBackendBases';
+import { buildRssBackendBasesFromEnv } from '../utils/rssBackendBases';
 
 interface TrendingNewsItem {
   article_id?: string;
@@ -182,7 +182,7 @@ const FeaturedCarousel: React.FC = () => {
   };
 
   useEffect(() => {
-    const bases = buildRssBackendBases(process.env.REACT_APP_API_BASE_URL);
+    const bases = buildRssBackendBasesFromEnv();
 
     const fetchJson = async (url: string, timeoutMs = 6000) => {
       const controller = new AbortController();

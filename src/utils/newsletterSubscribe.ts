@@ -1,9 +1,9 @@
-import { buildRssBackendBases } from './rssBackendBases';
+import { buildRssBackendBasesFromEnv, defaultPublicBackend } from './rssBackendBases';
 
 /** First healthy base in camify → Render chain (or override). */
 export function getNewsletterApiBase(): string {
-  const bases = buildRssBackendBases(process.env.REACT_APP_API_BASE_URL);
-  return (bases[0] || 'https://camify.fun.coinsclarity.com').replace(/\/$/, '');
+  const bases = buildRssBackendBasesFromEnv();
+  return (bases[0] || defaultPublicBackend()).replace(/\/$/, '');
 }
 
 /** Saves to NewsletterSubscriber — included in daily digest (~11:35 AM IST) + welcome email. */
@@ -15,7 +15,7 @@ export async function postNewsletterSubscribe(
   const cleaned = email.trim().toLowerCase();
   const bases = apiBase
     ? [apiBase.replace(/\/$/, '')]
-    : buildRssBackendBases(process.env.REACT_APP_API_BASE_URL);
+    : buildRssBackendBasesFromEnv();
 
   let lastMessage = 'Network error. Try again later.';
   for (const raw of bases) {

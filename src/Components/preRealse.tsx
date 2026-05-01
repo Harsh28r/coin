@@ -10,7 +10,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { useNewsTranslation } from '../hooks/useNewsTranslation';
 import { getCryptoFallbackImage, handleImageError, resolveImageSrc } from '../utils/cryptoImages';
 import { Helmet } from 'react-helmet-async';
-import { buildRssBackendBases } from '../utils/rssBackendBases';
+import { buildRssBackendBasesFromEnv } from '../utils/rssBackendBases';
 
 interface PressReleaseItem {
   article_id?: string;
@@ -44,12 +44,8 @@ const PressRelease: React.FC = () => {
     return byTitle || effectiveReleases[effectiveReleases.length - 1] || null;
   }, [effectiveReleases, mainArticle]);
   
-  const API_BASE_URL =
-    (process.env.REACT_APP_API_BASE_URL as string) ||
-    ((import.meta as any)?.env?.VITE_API_URL as string) ||
-    'https://c-back-seven.vercel.app';
   const MOCK_API_BASE_URL = process.env.REACT_APP_USE_LOCAL_DB === 'true' ? 'http://localhost:5000' : '';
-  const getApiBases = (): string[] => buildRssBackendBases(API_BASE_URL);
+  const getApiBases = (): string[] => buildRssBackendBasesFromEnv();
 
   const formatMDY = (input: string | Date) => {
     try {

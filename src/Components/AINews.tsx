@@ -9,7 +9,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { useNewsTranslation } from '../hooks/useNewsTranslation';
 import { getCryptoFallbackImage, handleImageError, resolveImageSrc } from '../utils/cryptoImages';
 import { BRAND_DISPLAY_NAME } from '../utils/branding';
-import { buildRssBackendBases } from '../utils/rssBackendBases';
+import { buildRssBackendBasesFromEnv } from '../utils/rssBackendBases';
 
 interface NewsItem {
   article_id?: string;
@@ -40,8 +40,6 @@ const AINews: React.FC = () => {
   // Use the translation hook
   const { displayItems, isTranslating, currentLanguage } = useNewsTranslation(newsItems);
 
-  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://c-back-seven.vercel.app';
-
   const isValidImageUrl = (url?: string): boolean => {
     if (!url) return false;
     if (!/^https?:\/\//i.test(url)) return false;
@@ -71,8 +69,7 @@ const AINews: React.FC = () => {
   };
 
   useEffect(() => {
-    /** Vercel/Render first — if REACT_APP_API_BASE_URL is camify, we still try mirrors before it. */
-    const bases = buildRssBackendBases(API_BASE_URL);
+    const bases = buildRssBackendBasesFromEnv();
 
     const fetchJson = async (url: string, timeoutMs = 12000) => {
       const ctrl = new AbortController();
@@ -202,7 +199,7 @@ const AINews: React.FC = () => {
     };
 
     fetchNews();
-  }, [API_BASE_URL]);
+  }, []);
 
   // AI-themed fallback images
   const getFallbackImage = (index: number, title?: string): string => {

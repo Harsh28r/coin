@@ -1,13 +1,8 @@
 import React, { useMemo, useState } from 'react';
 import { Bot, X } from 'lucide-react';
-import { buildRssBackendBases, joinBackendPath } from '../utils/rssBackendBases';
+import { buildRssBackendBasesFromEnv, joinBackendPath } from '../utils/rssBackendBases';
 
-const rssApiBases = (): string[] =>
-  buildRssBackendBases(
-    (process.env.REACT_APP_API_URL as string) ||
-      process.env.REACT_APP_API_BASE_URL ||
-      'https://c-back-seven.vercel.app',
-  );
+const rssApiBases = (): string[] => buildRssBackendBasesFromEnv();
 
 const FloatingAIChat: React.FC = () => {
   const [open, setOpen] = useState(false);

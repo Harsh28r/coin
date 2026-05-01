@@ -6,11 +6,19 @@
  */
 export const CAMIFY_PRIMARY = 'https://camify.fun.coinsclarity.com';
 
-/** e.g. https://www.coinsclarity.com/backend — proxied to camify by vercel.json */
+/** Apex + any subdomain: www.coinsclarity.com, camify.fun.coinsclarity.com, etc. */
+export function isCoinsclarityHost(hostname: string): boolean {
+  const h = hostname.toLowerCase();
+  return h === 'coinsclarity.com' || h.endsWith('.coinsclarity.com');
+}
+
+/**
+ * e.g. https://www.coinsclarity.com/backend — proxied to camify by vercel.json (same-origin, no CORS).
+ */
 export function sameOriginBackendProxyBase(): string | null {
   if (typeof window === 'undefined') return null;
   const { hostname, origin } = window.location;
-  if (!/(^|\.)coinsclarity\.com$/i.test(hostname)) return null;
+  if (!isCoinsclarityHost(hostname)) return null;
   return `${origin.replace(/\/$/, '')}/backend`;
 }
 
@@ -64,10 +72,20 @@ export function buildRssBackendBases(envBase?: string): string[] {
   const same = sameOriginBackendProxyBase();
   if (same) push(same);
 
-  push(CAMIFY_PRIMARY);
+  // Direct camify from www.coinsclarity.com is cross-origin and often blocked by CORS when camify 502s;
+  // /backend proxy is the supported path on *.coinsclarity.com.
+  if (!same) push(CAMIFY_PRIMARY);
   RENDER_FALLBACKS.forEach(push);
   TERTIARY_MIRRORS.forEach(push);
 
   if (env && !env.includes('camify.fun.coinsclarity.com')) push(env);
   return out;
+}
+
+/** CRA env only — no hardcoded mirror; order is still /backend → camify → Render → Vercel. */
+export function buildRssBackendBasesFromEnv(): string[] {
+  return buildRssBackendBases(
+    (process.env.REACT_APP_API_URL as string | undefined) ||
+      (process.env.REACT_APP_API_BASE_URL as string | undefined),
+  );
 }

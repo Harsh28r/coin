@@ -10,7 +10,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { Helmet } from 'react-helmet-async';
 import { useNewsTranslation } from '../hooks/useNewsTranslation';
 import { getCryptoFallbackImage, handleImageError, isFakeImageUrl, resolveImageSrc } from '../utils/cryptoImages';
-import { buildRssBackendBases } from '../utils/rssBackendBases';
+import { buildRssBackendBasesFromEnv } from '../utils/rssBackendBases';
 
 interface NewsItem {
   article_id?: string;
@@ -40,7 +40,6 @@ const ExclusiveNews: React.FC = () => {
   // Use the translation hook
   const { displayItems, isTranslating, currentLanguage } = useNewsTranslation(newsItems);
 
-  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://c-back-seven.vercel.app';
   const MOCK_API_BASE_URL = process.env.REACT_APP_USE_LOCAL_DB === 'true' ? 'http://localhost:5000' : '';
 
   // Helpers to improve excerpts
@@ -79,7 +78,7 @@ const ExclusiveNews: React.FC = () => {
       setIsLoading(true);
       setError(null);
       try {
-        const bases = buildRssBackendBases(API_BASE_URL);
+        const bases = buildRssBackendBasesFromEnv();
 
         const fetchJson = async (url: string) => {
           const res = await fetch(url, {
@@ -183,7 +182,7 @@ const ExclusiveNews: React.FC = () => {
     };
 
     fetchNews();
-  }, [API_BASE_URL]);
+  }, []);
 
   // Crypto-related fallback images using our crypto utility
   const getFallbackImage = (index: number, title?: string): string => {
