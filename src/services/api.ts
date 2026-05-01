@@ -4,9 +4,7 @@ import { buildRssBackendBases, joinBackendPath } from '../utils/rssBackendBases'
 
 /** Must be called at request time so `sameOriginBackendProxyBase()` sees `window`. */
 function getFallbackBases(): string[] {
-  return buildRssBackendBases(
-    (process.env.REACT_APP_API_BASE_URL as string) || 'https://c-back-seven.vercel.app',
-  );
+  return buildRssBackendBases(process.env.REACT_APP_API_BASE_URL as string | undefined);
 }
 
 type AnyRecord = Record<string, any>;
