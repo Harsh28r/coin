@@ -8,6 +8,7 @@ import { resolveImageSrc, handleImageError } from '../utils/cryptoImages';
 import { getBlogUrl } from '../utils/blogUrl';
 import { splitAfterFirstClosingPTag } from '../utils/splitHtmlAfterFirstPTag';
 import AdSenseSlot from './AdSenseSlot';
+import NewsArticleComments from './NewsArticleComments';
 import './BlogPostDetail.css';
 
 const stripTags = (html?: string): string => {
@@ -279,6 +280,8 @@ const BlogPostDetail: React.FC = () => {
             {actionMessage && <div className="bd-toast">{actionMessage}</div>}
           </article>
         </div>
+
+        {post?.id && <NewsArticleComments targetKind="blog" targetKey={String(post.id)} />}
 
         {related.length > 0 && (
           <section className="bd-related">

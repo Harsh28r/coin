@@ -23,6 +23,7 @@ import { resolveImageSrc, isFakeImageUrl, handleImageError } from '../utils/cryp
 import { summarize } from '../utils/summarize';
 import { defaultPublicBackend } from '../utils/rssBackendBases';
 import { postNewsletterSubscribe } from '../utils/newsletterSubscribe';
+import NewsArticleComments from './NewsArticleComments';
 import './NewsDetail.css';
 
 interface NewsItem {
@@ -1214,6 +1215,8 @@ const NewsDetail: React.FC = () => {
                 </div>
               )}
             </div>
+
+            <NewsArticleComments targetKind="news" targetKey={newsItem.article_id} />
 
             {/* Newsletter */}
             <div className="ns-newsletter">
