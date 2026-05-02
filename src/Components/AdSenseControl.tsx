@@ -7,7 +7,7 @@
 import React, { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 
-const ADSENSE_CLIENT = 'ca-pub-8105894285796694';
+export const ADSENSE_CLIENT = 'ca-pub-8105894285796694';
 const ADSENSE_SRC = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT}`;
 
 // Pages that contain aggregated/external content — NEVER load AdSense here.

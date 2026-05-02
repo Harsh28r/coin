@@ -1,0 +1,57 @@
+/* Reserved-height ad regions — reduces CLS when AdSense fills. */
+
+.ad-slot {
+  margin: 1.25rem auto;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.ad-slot--leaderboard {
+  min-height: 100px;
+  max-width: 728px;
+}
+
+.ad-slot--in-article {
+  min-height: 260px;
+  max-width: 780px;
+}
+
+.ad-slot--tools {
+  min-height: 110px;
+  max-width: 900px;
+}
+
+.ad-slot__label {
+  display: block;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted, #94a3b8);
+  margin-bottom: 6px;
+  text-align: center;
+}
+
+.ad-slot__inner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: inherit;
+  background: rgba(15, 23, 42, 0.03);
+  border: 1px dashed rgba(148, 163, 184, 0.5);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.ad-slot__inner ins.adsbygoogle {
+  display: block !important;
+  width: 100%;
+  min-height: 50px;
+}
+
+.ad-slot--placeholder .ad-slot__inner {
+  color: #94a3b8;
+  font-size: 12px;
+  padding: 12px;
+  text-align: center;
+}
