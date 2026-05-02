@@ -124,8 +124,6 @@ const LandingPage: React.FC = () => {
         {/* Hero — editorial magazine layout */}
         <EditorialHero />
 
-        <LandingEditorialStrip />
-
         {/* Advertisement Space */}
         <div style={{ maxWidth: 1280, margin: '0 auto', padding: '0 20px' }}>
           <AdSpot variant="leaderboard" />
@@ -179,6 +177,8 @@ const LandingPage: React.FC = () => {
 
         {/* New Airdrops (RSS: Airdrop Alert) */}
         <AirdropSection />
+
+        <LandingEditorialStrip />
 
         {/* Newsletter CTA */}
         <NewsletterCTA />
