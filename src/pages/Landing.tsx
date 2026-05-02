@@ -21,76 +21,7 @@ import NewsletterCTA from '../Components/NewsletterCTA';
 import AirdropSection from '../Components/AirdropSection';
 import LandingToolsShowcase from '../Components/LandingToolsShowcase';
 import LandingEditorialStrip from '../Components/LandingEditorialStrip';
-
-/* AdSense-compliant placeholder - clearly marked as ad space, not fake content */
-const AdSpot: React.FC<{ variant?: 'leaderboard' | 'rectangle' | 'native'; label?: string; className?: string }> = ({ variant = 'leaderboard', label, className = '' }) => {
-  if (variant === 'leaderboard') {
-    return (
-      <div 
-        className={`cc-ad-spot ${variant} ${className}`} 
-        style={{ 
-          background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
-          border: '2px dashed #cbd5e1',
-          borderRadius: '12px',
-          padding: '24px',
-          minHeight: '90px',
-          margin: '1.5rem 0',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          position: 'relative',
-          transition: 'all 0.2s ease'
-        }}
-      >
-        {/* AdSense-ready container - replace with actual AdSense code when approved */}
-        <div style={{ 
-          display: 'flex', 
-          flexDirection: 'column', 
-          alignItems: 'center', 
-          gap: '8px',
-          color: '#64748b'
-        }}>
-          <div style={{ 
-            fontSize: '14px', 
-            fontWeight: 600, 
-            letterSpacing: '0.5px',
-            textTransform: 'uppercase',
-            color: '#94a3b8'
-          }}>
-            Advertisement
-          </div>
-          <div style={{ 
-            fontSize: '11px', 
-            color: '#cbd5e1',
-            textAlign: 'center'
-          }}>
-            Ad space available
-          </div>
-        </div>
-        
-        {/* Optional: Add real AdSense here when approved */}
-        {/* 
-        <ins className="adsbygoogle"
-          style={{ display: 'block' }}
-          data-ad-client="ca-pub-8105894285796694"
-          data-ad-slot="YOUR_AD_SLOT_ID"
-          data-ad-format="auto"
-          data-full-width-responsive="true"></ins>
-        <script>
-          (adsbygoogle = window.adsbygoogle || []).push({});
-        </script>
-        */}
-      </div>
-    );
-  }
-  
-  return (
-    <div className={`cc-ad-spot ${variant} ${className}`} data-ad-slot={variant}>
-      {label || `Ad · ${variant}`}
-    </div>
-  );
-};
+import AdSenseSlot from '../Components/AdSenseSlot';
 
 const LandingPage: React.FC = () => {
   return (
@@ -126,7 +57,7 @@ const LandingPage: React.FC = () => {
 
         {/* Advertisement Space */}
         <div style={{ maxWidth: 1280, margin: '0 auto', padding: '0 20px' }}>
-          <AdSpot variant="leaderboard" />
+          <AdSenseSlot placement="landing-a" size="leaderboard" lazy />
         </div>
 
         {/* Exclusive News */}
@@ -140,7 +71,7 @@ const LandingPage: React.FC = () => {
 
         {/* Advertisement Space */}
         <div style={{ maxWidth: 1280, margin: '0 auto', padding: '0 20px' }}>
-          <AdSpot variant="leaderboard" />
+          <AdSenseSlot placement="landing-b" size="leaderboard" lazy />
         </div>
 
         {/* Crypto Converter Tool */}
@@ -160,7 +91,7 @@ const LandingPage: React.FC = () => {
 
         {/* Advertisement Space */}
         <div style={{ maxWidth: 1280, margin: '0 auto', padding: '0 20px' }}>
-          <AdSpot variant="leaderboard" />
+          <AdSenseSlot placement="landing-c" size="leaderboard" lazy />
         </div>
 
         {/* In-depth News */}

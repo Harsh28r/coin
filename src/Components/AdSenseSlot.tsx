@@ -3,6 +3,9 @@ import { ADSENSE_CLIENT, useShouldShowAds } from './AdSenseControl';
 import './AdSenseSlot.css';
 
 export type AdSensePlacement =
+  | 'landing-a'
+  | 'landing-b'
+  | 'landing-c'
   | 'blog-atf'
   | 'blog-mid'
   | 'blog-btf'
@@ -26,6 +29,9 @@ function resolveSlotId(placement: AdSensePlacement): string {
   const env = process.env;
   const display = env.REACT_APP_ADSENSE_SLOT_DISPLAY || '';
   const map: Record<AdSensePlacement, string | undefined> = {
+    'landing-a': env.REACT_APP_ADSENSE_SLOT_LANDING_A || env.REACT_APP_ADSENSE_SLOT_LANDING,
+    'landing-b': env.REACT_APP_ADSENSE_SLOT_LANDING_B || env.REACT_APP_ADSENSE_SLOT_LANDING,
+    'landing-c': env.REACT_APP_ADSENSE_SLOT_LANDING_C || env.REACT_APP_ADSENSE_SLOT_LANDING,
     'blog-atf': env.REACT_APP_ADSENSE_SLOT_BLOG_ATF,
     'blog-mid': env.REACT_APP_ADSENSE_SLOT_BLOG_MID,
     'blog-btf': env.REACT_APP_ADSENSE_SLOT_BLOG_BTF,

@@ -136,6 +136,11 @@ const BlogPostDetail: React.FC = () => {
   const html = useMemo(() => normalizeContent(post?.content), [post?.content]);
   const proseSplit = useMemo(() => splitAfterFirstClosingPTag(html), [html]);
   const showMidAd = useMemo(() => wordCount(post?.content) >= 350, [post?.content]);
+  const isAutoStream = useMemo(() => {
+    const t = post?.tags;
+    if (!Array.isArray(t)) return false;
+    return t.some((x: string) => x === 'daily-digest' || x === 'trending-desk');
+  }, [post?.tags]);
 
   if (!post) {
     return (
@@ -250,17 +255,26 @@ const BlogPostDetail: React.FC = () => {
                 onError={(e) => handleImageError(e, post.title, 'blog')}
               />
             </figure>
-            <AdSenseSlot placement="blog-atf" size="in-article" lazy={false} className="bd-ad-slot" />
-            {proseSplit && showMidAd ? (
+            {isAutoStream ? (
               <>
-                <div className="bd-prose" dangerouslySetInnerHTML={{ __html: proseSplit.head }} />
-                <AdSenseSlot placement="blog-mid" size="in-article" lazy className="bd-ad-slot" />
-                <div className="bd-prose" dangerouslySetInnerHTML={{ __html: proseSplit.tail }} />
+                <div className="bd-prose" dangerouslySetInnerHTML={{ __html: html }} />
+                <AdSenseSlot placement="blog-btf" size="in-article" lazy className="bd-ad-slot" />
               </>
             ) : (
-              <div className="bd-prose" dangerouslySetInnerHTML={{ __html: html }} />
+              <>
+                <AdSenseSlot placement="blog-atf" size="in-article" lazy={false} className="bd-ad-slot" />
+                {proseSplit && showMidAd ? (
+                  <>
+                    <div className="bd-prose" dangerouslySetInnerHTML={{ __html: proseSplit.head }} />
+                    <AdSenseSlot placement="blog-mid" size="in-article" lazy className="bd-ad-slot" />
+                    <div className="bd-prose" dangerouslySetInnerHTML={{ __html: proseSplit.tail }} />
+                  </>
+                ) : (
+                  <div className="bd-prose" dangerouslySetInnerHTML={{ __html: html }} />
+                )}
+                <AdSenseSlot placement="blog-btf" size="in-article" lazy className="bd-ad-slot" />
+              </>
             )}
-            <AdSenseSlot placement="blog-btf" size="in-article" lazy className="bd-ad-slot" />
 
             {actionMessage && <div className="bd-toast">{actionMessage}</div>}
           </article>
