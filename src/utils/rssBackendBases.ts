@@ -99,8 +99,8 @@ export function buildRssBackendBasesFromEnv(): string[] {
 export function buildNewsletterBackendBases(envBase?: string): string[] {
   const chain = buildRssBackendBases(
     envBase ??
-      (process.env.REACT_APP_API_URL as string | undefined) ||
-      (process.env.REACT_APP_API_BASE_URL as string | undefined),
+      ((process.env.REACT_APP_API_URL as string | undefined) ||
+        (process.env.REACT_APP_API_BASE_URL as string | undefined)),
   );
   const seen = new Set<string>();
   const out: string[] = [];
