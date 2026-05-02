@@ -62,6 +62,13 @@ const LandingEditorialStrip: React.FC = () => {
   return (
     <section className="les" aria-label="Daily digest and trending desk">
       <div className="les-inner">
+        <header className="les-head">
+          <h2 className="les-title">On the desk today</h2>
+          <p className="les-sub">
+            Brief at noon IST, then a deeper read on what&apos;s trending half an hour later.
+          </p>
+        </header>
+
         {loading && <p className="les-muted">Loading…</p>}
 
         {!loading && (
