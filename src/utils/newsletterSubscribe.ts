@@ -9,7 +9,7 @@ export function getNewsletterApiBase(): string {
   return (bases[0] || defaultPublicBackend()).replace(/\/$/, '');
 }
 
-/** Saves to NewsletterSubscriber — included in daily digest (~11:35 AM IST) + welcome email. */
+/** Saves to NewsletterSubscriber — included in daily digest (~11:45 AM IST) + welcome email. */
 export async function postNewsletterSubscribe(
   email: string,
   source?: string,
@@ -42,7 +42,7 @@ export async function postNewsletterSubscribe(
         return {
           ok: true,
           message:
-            "You're in! Check your inbox — daily 3-story digest ~11:35 AM IST (unsubscribe link in every email).",
+            "You're in! Check your inbox — daily 3-story digest ~11:45 AM IST (unsubscribe link in every email).",
         };
       }
       lastMessage =

@@ -183,7 +183,7 @@ const CustomDigestAdmin: React.FC<Props> = ({ fetchJson }) => {
       });
       setMsg({
         type: 'ok',
-        text: `Imported ${data?.imported ?? 0} addresses (${data?.invalid ?? 0} invalid). They will receive custom digest / daily ~11:35 AM IST sends like other subscribers.`,
+        text: `Imported ${data?.imported ?? 0} addresses (${data?.invalid ?? 0} invalid). They will receive custom digest / daily ~11:45 AM IST sends like other subscribers.`,
       });
       setBulkRaw('');
     } catch (e: any) {
