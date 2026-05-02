@@ -1,8 +1,11 @@
-import { buildRssBackendBasesFromEnv, defaultPublicBackend } from './rssBackendBases';
+import {
+  buildNewsletterBackendBasesFromEnv,
+  defaultPublicBackend,
+} from './rssBackendBases';
 
-/** First healthy base in camify → Render chain (or override). */
+/** Primary URL for newsletter (direct AWS first — same order as subscribe failover). */
 export function getNewsletterApiBase(): string {
-  const bases = buildRssBackendBasesFromEnv();
+  const bases = buildNewsletterBackendBasesFromEnv();
   return (bases[0] || defaultPublicBackend()).replace(/\/$/, '');
 }
 
@@ -15,7 +18,7 @@ export async function postNewsletterSubscribe(
   const cleaned = email.trim().toLowerCase();
   const bases = apiBase
     ? [apiBase.replace(/\/$/, '')]
-    : buildRssBackendBasesFromEnv();
+    : buildNewsletterBackendBasesFromEnv();
 
   let lastMessage = 'Network error. Try again later.';
   for (const raw of bases) {
@@ -26,19 +29,26 @@ export async function postNewsletterSubscribe(
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: cleaned, source: source || 'site' }),
       });
-      const data = (await res.json().catch(() => ({}))) as {
+      const ct = (res.headers.get('content-type') || '').toLowerCase();
+      const data = (ct.includes('json') ? await res.json().catch(() => ({})) : {}) as {
         success?: boolean;
         error?: string;
         message?: string;
+        id?: string;
       };
-      if (res.ok && data.success) {
+      const looksSuccess =
+        data.success === true || (res.ok && Boolean(data.id) && !data.error);
+      if (res.ok && looksSuccess) {
         return {
           ok: true,
           message:
             "You're in! Check your inbox — daily 3-story digest ~11:35 AM IST (unsubscribe link in every email).",
         };
       }
-      lastMessage = data.error || data.message || 'Could not subscribe. Try again.';
+      lastMessage =
+        data.error ||
+        data.message ||
+        (!res.ok ? `Server returned ${res.status}. Try again in a moment.` : 'Could not subscribe. Try again.');
     } catch {
       continue;
     }

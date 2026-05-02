@@ -90,3 +90,31 @@ export function buildRssBackendBasesFromEnv(): string[] {
       (process.env.REACT_APP_API_BASE_URL as string | undefined),
   );
 }
+
+/**
+ * Bases for POST /api/newsletter/subscribe (JSON body).
+ * Puts **camify direct first** — Vercel `rewrites` to an external origin can break POST through
+ * `/backend/*` while GET RSS works; browser → camify is CORS-allowed for coinsclarity origins.
+ */
+export function buildNewsletterBackendBases(envBase?: string): string[] {
+  const chain = buildRssBackendBases(
+    envBase ??
+      (process.env.REACT_APP_API_URL as string | undefined) ||
+      (process.env.REACT_APP_API_BASE_URL as string | undefined),
+  );
+  const seen = new Set<string>();
+  const out: string[] = [];
+  const push = (raw: string) => {
+    const s = stripBase(raw);
+    if (!s || s.includes('localhost') || seen.has(s)) return;
+    seen.add(s);
+    out.push(s);
+  };
+  push(CAMIFY_PRIMARY);
+  for (const b of chain) push(b);
+  return out;
+}
+
+export function buildNewsletterBackendBasesFromEnv(): string[] {
+  return buildNewsletterBackendBases();
+}
