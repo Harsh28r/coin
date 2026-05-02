@@ -183,6 +183,9 @@ const CoinsNavbar: React.FC = () => {
               <Nav.Link as={NavLink} to="/daily-digest" onClick={handleNavItemClick}>
                 Daily digest
               </Nav.Link>
+              <Nav.Link as={NavLink} to="/trending-desk" onClick={handleNavItemClick}>
+                Trending desk
+              </Nav.Link>
             </Nav>
 
             <Form className="cc-navbar__search" onSubmit={handleSearch}>

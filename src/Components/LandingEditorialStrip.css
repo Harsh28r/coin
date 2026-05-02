@@ -1,0 +1,156 @@
+.les {
+  padding: 2.5rem 1.25rem 2rem;
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.04) 0%, transparent 100%);
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+.les-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.les-head {
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.les-title {
+  margin: 0 0 0.35rem;
+  font-size: clamp(1.35rem, 2.5vw, 1.65rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--text, #0f172a);
+}
+
+.les-sub {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--muted, #64748b);
+  max-width: 36rem;
+  margin-inline: auto;
+  line-height: 1.45;
+}
+
+.les-muted {
+  text-align: center;
+  color: var(--muted, #64748b);
+  margin: 0;
+}
+
+.les-grid {
+  display: grid;
+  gap: 1.25rem;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 768px) {
+  .les-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+  }
+}
+
+.les-card {
+  background: var(--surface, #fff);
+  border-radius: 14px;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  padding: 1.1rem 1.1rem 1rem;
+  box-shadow: 0 8px 28px rgba(15, 23, 42, 0.06);
+}
+
+.les-kicker {
+  display: inline-block;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 0.65rem;
+  padding: 0.28rem 0.55rem;
+  border-radius: 6px;
+}
+
+.les-kicker--digest {
+  color: #0c4a6e;
+  background: rgba(14, 165, 233, 0.15);
+}
+
+.les-kicker--trend {
+  color: #7c2d12;
+  background: rgba(249, 115, 22, 0.18);
+}
+
+.les-card__link {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+
+.les-card__link:hover .les-card__title {
+  color: #0284c7;
+}
+
+.les-card:nth-child(2) .les-card__link:hover .les-card__title {
+  color: #ea580c;
+}
+
+.les-card__img {
+  border-radius: 10px;
+  overflow: hidden;
+  aspect-ratio: 16 / 9;
+  margin-bottom: 0.65rem;
+  background: #f1f5f9;
+}
+
+.les-card__img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.les-date {
+  font-size: 0.78rem;
+  color: var(--muted, #64748b);
+  display: block;
+  margin-bottom: 0.35rem;
+}
+
+.les-card__title {
+  margin: 0 0 0.45rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: -0.02em;
+  transition: color 0.15s ease;
+}
+
+.les-dek {
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.5;
+  color: var(--muted, #64748b);
+}
+
+.les-archive {
+  display: inline-block;
+  margin-top: 0.85rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #0369a1;
+  text-decoration: none;
+}
+
+.les-card:nth-child(2) .les-archive {
+  color: #c2410c;
+}
+
+.les-archive:hover {
+  text-decoration: underline;
+}
+
+.les-empty {
+  margin: 0.5rem 0 0;
+  font-size: 0.9rem;
+  color: var(--muted, #64748b);
+  line-height: 1.45;
+}

@@ -77,7 +77,11 @@ const BlogHome: React.FC = () => {
             <p className="bh-tagline">
               Long-form analysis, market commentary, and operator notes from the crypto frontier.{' '}
               <Link to="/daily-digest" className="bh-digest-link">
-                Daily 3-story digests →
+                Daily digest →
+              </Link>
+              {' · '}
+              <Link to="/trending-desk" className="bh-digest-link">
+                Trending desk →
               </Link>
             </p>
           </div>

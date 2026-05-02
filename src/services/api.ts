@@ -12,7 +12,7 @@ type AnyRecord = Record<string, any>;
 export type FetchPostsOpts = {
   /** Only posts whose `tags` array contains this value (e.g. `daily-digest`) */
   tag?: string;
-  /** Exclude posts that have this tag in `tags` (e.g. hide auto digest from main blog list) */
+  /** Exclude posts that have any of these tags (comma-separated, e.g. `daily-digest,trending-desk`) */
   excludeTag?: string;
   limit?: number;
 };

@@ -20,6 +20,7 @@ import CryptoBreakingBanner from '../Components/CryptoBreakingBanner';
 import NewsletterCTA from '../Components/NewsletterCTA';
 import AirdropSection from '../Components/AirdropSection';
 import LandingToolsShowcase from '../Components/LandingToolsShowcase';
+import LandingEditorialStrip from '../Components/LandingEditorialStrip';
 
 /* AdSense-compliant placeholder - clearly marked as ad space, not fake content */
 const AdSpot: React.FC<{ variant?: 'leaderboard' | 'rectangle' | 'native'; label?: string; className?: string }> = ({ variant = 'leaderboard', label, className = '' }) => {
@@ -122,6 +123,8 @@ const LandingPage: React.FC = () => {
 
         {/* Hero — editorial magazine layout */}
         <EditorialHero />
+
+        <LandingEditorialStrip />
 
         {/* Advertisement Space */}
         <div style={{ maxWidth: 1280, margin: '0 auto', padding: '0 20px' }}>
