@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Card, Form, Button, Alert, Spinner } from 'react-bootstrap';
+import { DEFAULT_ADMIN_SECRET } from '../config/adminDefaults';
 
 const SECRET_KEY = 'cc_digest_admin_secret';
 
@@ -8,7 +9,13 @@ type FetchJson = (path: string, init?: RequestInit) => Promise<any>;
 type Props = { fetchJson: FetchJson };
 
 const CustomDigestAdmin: React.FC<Props> = ({ fetchJson }) => {
-  const [secret, setSecret] = useState('');
+  const [secret, setSecret] = useState(() => {
+    try {
+      return sessionStorage.getItem(SECRET_KEY) || DEFAULT_ADMIN_SECRET;
+    } catch {
+      return DEFAULT_ADMIN_SECRET;
+    }
+  });
   const [subject, setSubject] = useState('');
   const [html, setHtml] = useState('');
   const [text, setText] = useState('');
@@ -21,13 +28,6 @@ const CustomDigestAdmin: React.FC<Props> = ({ fetchJson }) => {
   const [msg, setMsg] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
   const [bulkRaw, setBulkRaw] = useState('');
   const [bulkWelcome, setBulkWelcome] = useState(false);
-
-  useEffect(() => {
-    try {
-      const s = sessionStorage.getItem(SECRET_KEY);
-      if (s) setSecret(s);
-    } catch {}
-  }, []);
 
   const persistSecret = () => {
     try {
