@@ -190,7 +190,7 @@
   top: 96px;
   align-self: start;
   display: flex;
-  flex-direction: column;
+    flex-direction: column;
   gap: 6px;
   padding: 8px 0;
 }
@@ -662,11 +662,11 @@
 /* ── Mobile sticky bar ─────────────────────────────────────── */
 .ns-mobilebar {
   display: none;
-  position: fixed;
+    position: fixed;
   bottom: 0;
-  left: 0;
-  right: 0;
-  z-index: 1030;
+    left: 0;
+    right: 0;
+    z-index: 1030;
   padding: 10px;
   gap: 8px;
   background: rgba(255, 255, 255, 0.96);
@@ -751,7 +751,7 @@
 .ns-error__actions {
   display: flex;
   gap: 10px;
-  justify-content: center;
+    justify-content: center;
   flex-wrap: wrap;
 }
 

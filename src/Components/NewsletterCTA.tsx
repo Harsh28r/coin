@@ -8,7 +8,6 @@ const NewsletterCTA: React.FC = () => {
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [message, setMessage] = useState('');
-  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://c-back-2.onrender.com';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

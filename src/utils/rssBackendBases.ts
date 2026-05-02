@@ -1,8 +1,11 @@
 /**
  * RSS / crypto API hosts.
  *
- * Order: same-origin `/backend/*` (Vercel → camify) → camify direct → Render → Vercel mirror.
- * On *.coinsclarity.com the SPA is same-origin with `/backend/*`; rewrites hit camify first.
+ * Order on *.coinsclarity.com: same-origin `/backend/*` (Vercel → camify) → **camify direct**
+ * → Render → Vercel mirror → optional REACT_APP_* (if not already listed).
+ *
+ * Camify direct must stay in the chain even when `/backend` exists: if the Vercel rewrite
+ * misbehaves while EC2 is healthy, the browser can still hit camify (CORS allows www origin).
  */
 export const CAMIFY_PRIMARY = 'https://camify.fun.coinsclarity.com';
 
@@ -53,8 +56,8 @@ export function joinBackendPath(base: string, path: string): string {
 }
 
 /**
- * Failover chain: same-origin /backend → camify → Render → Vercel → optional REACT_APP_API_BASE_URL
- * (unless that env is localhost or already in the list).
+ * Failover chain: same-origin /backend → camify direct → Render → Vercel → optional REACT_APP_* URL
+ * (unless localhost or duplicate).
  */
 export function buildRssBackendBases(envBase?: string): string[] {
   const env = stripBase((envBase ?? process.env.REACT_APP_API_BASE_URL ?? '').trim());
@@ -71,10 +74,8 @@ export function buildRssBackendBases(envBase?: string): string[] {
 
   const same = sameOriginBackendProxyBase();
   if (same) push(same);
-
-  // Direct camify from www.coinsclarity.com is cross-origin and often blocked by CORS when camify 502s;
-  // /backend proxy is the supported path on *.coinsclarity.com.
-  if (!same) push(CAMIFY_PRIMARY);
+  // Always offer direct camify after /backend so AWS is tried before Render when proxy fails.
+  push(CAMIFY_PRIMARY);
   RENDER_FALLBACKS.forEach(push);
   TERTIARY_MIRRORS.forEach(push);
 
@@ -82,7 +83,7 @@ export function buildRssBackendBases(envBase?: string): string[] {
   return out;
 }
 
-/** CRA env only — no hardcoded mirror; order is still /backend → camify → Render → Vercel. */
+/** CRA env — chain is /backend → camify → Render → Vercel → env (deduped). */
 export function buildRssBackendBasesFromEnv(): string[] {
   return buildRssBackendBases(
     (process.env.REACT_APP_API_URL as string | undefined) ||
