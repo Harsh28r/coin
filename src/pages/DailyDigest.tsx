@@ -12,14 +12,7 @@ import './DailyDigest.css';
 const stripTags = (html?: string): string =>
   (html || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
 
-const formatDate = (input?: string | Date): string => {
-  if (!input) return '';
-  const d = new Date(input);
-  if (isNaN(d.getTime())) return '';
-  return d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
-};
-
-/** Auto daily digest posts carry tag `daily-digest` (see backend dailyDigest.js). */
+/** Posts tagged `daily-digest` (see backend dailyDigest.js). */
 const DailyDigestArchive: React.FC = () => {
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
@@ -60,14 +53,13 @@ const DailyDigestArchive: React.FC = () => {
         <title>Daily digest archive — CoinsClarity</title>
         <meta
           name="description"
-          content="Past automated crypto daily digests: three top stories, one place. Separate from long-form blog."
+          content="Past crypto daily digests: three top stories, one place. Separate from long-form blog."
         />
         <link rel="canonical" href={`${window.location.origin}/daily-digest`} />
       </Helmet>
       <CoinsNavbar />
       <main className="dd-main">
         <header className="dd-header">
-          <p className="dd-kicker">Automated · ~12:00 PM IST</p>
           <h1 className="dd-title">Daily digest</h1>
           <p className="dd-lead">
             The three-story morning brief lives here. Long-form editorials stay on{' '}
@@ -78,7 +70,7 @@ const DailyDigestArchive: React.FC = () => {
         {loading && <p className="dd-muted">Loading…</p>}
         {err && <p className="dd-error">{err}</p>}
         {!loading && !err && sorted.length === 0 && (
-          <p className="dd-muted">No digest editions yet — they appear after the first scheduled run.</p>
+          <p className="dd-muted">No digest editions yet.</p>
         )}
 
         <ul className="dd-grid">
@@ -94,7 +86,6 @@ const DailyDigestArchive: React.FC = () => {
                   />
                 </div>
                 <div className="dd-card__body">
-                  <time className="dd-card__date">{formatDate(p.date as string)}</time>
                   <h2 className="dd-card__title">{p.title}</h2>
                   <p className="dd-card__excerpt">
                     {(p.excerpt || stripTags(p.content)).slice(0, 160)}

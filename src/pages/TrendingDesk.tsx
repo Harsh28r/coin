@@ -12,14 +12,7 @@ import './DailyDigest.css';
 const stripTags = (html?: string): string =>
   (html || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
 
-const formatDate = (input?: string | Date): string => {
-  if (!input) return '';
-  const d = new Date(input);
-  if (isNaN(d.getTime())) return '';
-  return d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
-};
-
-/** Auto trending-desk posts carry tag `trending-desk` (see backend trendingDeskArticle.js). */
+/** Posts tagged `trending-desk` (see backend trendingDeskArticle.js). */
 const TrendingDeskArchive: React.FC = () => {
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
@@ -60,14 +53,13 @@ const TrendingDeskArchive: React.FC = () => {
         <title>Trending desk archive — CoinsClarity</title>
         <meta
           name="description"
-          content="Daily long-form market columns keyed off CoinGecko trending plus wire context. Separate from the three-story digest."
+          content="Long-form market columns on what's trending, with wire context. Separate from the three-story digest."
         />
         <link rel="canonical" href={`${window.location.origin}/trending-desk`} />
       </Helmet>
       <CoinsNavbar />
       <main className="dd-main">
         <header className="dd-header">
-          <p className="dd-kicker">Automated · ~12:30 PM IST</p>
           <h1 className="dd-title">Trending desk</h1>
           <p className="dd-lead">
             One quality read on what&apos;s moving on the trending screen, grounded in wires and market
@@ -80,7 +72,7 @@ const TrendingDeskArchive: React.FC = () => {
         {loading && <p className="dd-muted">Loading…</p>}
         {err && <p className="dd-error">{err}</p>}
         {!loading && !err && sorted.length === 0 && (
-          <p className="dd-muted">No editions yet — they appear after the first scheduled run.</p>
+          <p className="dd-muted">No editions yet.</p>
         )}
 
         <ul className="dd-grid">
@@ -96,7 +88,6 @@ const TrendingDeskArchive: React.FC = () => {
                   />
                 </div>
                 <div className="dd-card__body">
-                  <time className="dd-card__date">{formatDate(p.date as string)}</time>
                   <h2 className="dd-card__title">{p.title}</h2>
                   <p className="dd-card__excerpt">
                     {(p.excerpt || stripTags(p.content)).slice(0, 160)}
