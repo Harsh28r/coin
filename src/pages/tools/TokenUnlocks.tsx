@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft, RefreshCcw, AlertTriangle, CalendarClock, ExternalLink, Search } from 'lucide-react';
 import CoinsNavbar from '../../Components/navbar';
 import Footer from '../../Components/footer';
+import AdSenseSlot from '../../Components/AdSenseSlot';
 import './tools.css';
 
 interface UnlockEvent {
@@ -199,6 +200,8 @@ const TokenUnlocksPage: React.FC = () => {
             </div>
           </div>
 
+          <AdSenseSlot placement="tools-atf" size="tools" lazy={false} />
+
           {/* ── Filter row ── */}
           <div className="ul-filters">
             <div className="ul-search">
@@ -287,6 +290,8 @@ const TokenUnlocksPage: React.FC = () => {
             Source: <a href="https://defillama.com/unlocks" target="_blank" rel="noopener noreferrer">DefiLlama Unlocks <ExternalLink size={11} /></a> ·
             Cross-reference with the project's own vesting docs before trading.
           </p>
+
+          <AdSenseSlot placement="tools-mid" size="in-article" lazy />
 
           {/* ── Long-form prose for SEO + AdSense ── */}
           <section className="tool-prose">

@@ -5,6 +5,7 @@ import { ArrowLeft, ArrowLeftRight } from 'lucide-react';
 import CoinsNavbar from '../../Components/navbar';
 import Footer from '../../Components/footer';
 import AffiliateButtons from '../../Components/AffiliateButtons';
+import AdSenseSlot from '../../Components/AdSenseSlot';
 import './tools.css';
 import { coingeckoV3Url } from '../../utils/coingeckoUrl';
 
@@ -343,6 +344,10 @@ const CompareCoinsPage: React.FC = () => {
           )}
 
           {!loading && coinA && coinB && (
+            <AdSenseSlot placement="compare-mid" size="in-article" lazy />
+          )}
+
+          {!loading && coinA && coinB && (
             <>
               <AffiliateButtons symbol={coinA.symbol} coinName={`${coinA.name} or ${coinB.name}`} />
             </>
@@ -399,6 +404,10 @@ const CompareCoinsPage: React.FC = () => {
                 <em>This page is informational only. Nothing on it is financial advice. Always do your own research.</em>
               </p>
             </section>
+          )}
+
+          {!loading && coinA && coinB && (
+            <AdSenseSlot placement="compare-btf" size="tools" lazy />
           )}
 
           <section className="tool-cross">

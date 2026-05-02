@@ -16,6 +16,7 @@ import { useCurrency } from '../context/CurrencyContext';
 import WatchlistButton from './WatchlistButton';
 import { resolveImageSrc, handleImageError } from '../utils/cryptoImages';
 import AffiliateButtons from './AffiliateButtons';
+import AdSenseSlot from './AdSenseSlot';
 import { coingeckoV3Url } from '../utils/coingeckoUrl';
 import './CoinDetail.css';
 
@@ -702,6 +703,8 @@ const CoinDetail: React.FC = () => {
           </div>
         </section>
 
+        <AdSenseSlot placement="coin-mid" size="tools" lazy className="cd-ad-slot" />
+
         {/* WHERE TO BUY (affiliate revenue) */}
         <AffiliateButtons symbol={coin.symbol} coinName={coin.name} />
 
@@ -763,6 +766,8 @@ const CoinDetail: React.FC = () => {
             </ul>
           </aside>
         </section>
+
+        <AdSenseSlot placement="coin-btf" size="tools" lazy className="cd-ad-slot" />
       </div>
     </div>
   );

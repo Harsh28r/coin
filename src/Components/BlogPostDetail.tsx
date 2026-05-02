@@ -6,6 +6,8 @@ import { useBlog } from '../context/BlogContext';
 import { format } from 'date-fns';
 import { resolveImageSrc, handleImageError } from '../utils/cryptoImages';
 import { getBlogUrl } from '../utils/blogUrl';
+import { splitAfterFirstClosingPTag } from '../utils/splitHtmlAfterFirstPTag';
+import AdSenseSlot from './AdSenseSlot';
 import './BlogPostDetail.css';
 
 const stripTags = (html?: string): string => {
@@ -131,6 +133,10 @@ const BlogPostDetail: React.FC = () => {
     return posts.filter((p) => p.id !== post.id).slice(0, 3);
   }, [post, posts]);
 
+  const html = useMemo(() => normalizeContent(post?.content), [post?.content]);
+  const proseSplit = useMemo(() => splitAfterFirstClosingPTag(html), [html]);
+  const showMidAd = useMemo(() => wordCount(post?.content) >= 350, [post?.content]);
+
   if (!post) {
     return (
       <div className="bd-shell">
@@ -151,7 +157,6 @@ const BlogPostDetail: React.FC = () => {
     try { return format(new Date(post.date), 'MMMM d, yyyy'); } catch { return ''; }
   })();
   const minutes = readMinutes(post.content);
-  const html = normalizeContent(post.content);
 
   return (
     <div className="bd-shell">
@@ -245,7 +250,17 @@ const BlogPostDetail: React.FC = () => {
                 onError={(e) => handleImageError(e, post.title, 'blog')}
               />
             </figure>
-            <div className="bd-prose" dangerouslySetInnerHTML={{ __html: html }} />
+            <AdSenseSlot placement="blog-atf" size="in-article" lazy={false} className="bd-ad-slot" />
+            {proseSplit && showMidAd ? (
+              <>
+                <div className="bd-prose" dangerouslySetInnerHTML={{ __html: proseSplit.head }} />
+                <AdSenseSlot placement="blog-mid" size="in-article" lazy className="bd-ad-slot" />
+                <div className="bd-prose" dangerouslySetInnerHTML={{ __html: proseSplit.tail }} />
+              </>
+            ) : (
+              <div className="bd-prose" dangerouslySetInnerHTML={{ __html: html }} />
+            )}
+            <AdSenseSlot placement="blog-btf" size="in-article" lazy className="bd-ad-slot" />
 
             {actionMessage && <div className="bd-toast">{actionMessage}</div>}
           </article>

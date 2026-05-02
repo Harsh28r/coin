@@ -538,3 +538,8 @@
 [data-theme='dark'] .cd-back:hover { background: rgba(255, 255, 255, 0.06); }
 [data-theme='dark'] .cd-skel > div { background: #1f2937; }
 [data-theme='dark'] .cd-links a:hover { background: rgba(249, 115, 22, 0.08); }
+
+.cd-ad-slot {
+  margin-top: 8px;
+  margin-bottom: 8px;
+}

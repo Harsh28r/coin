@@ -59,7 +59,7 @@ const AdSenseSlot: React.FC<AdSenseSlotProps> = ({
   const shouldShow = useShouldShowAds();
   const slotId = useMemo(() => resolveSlotId(placement), [placement]);
   const wrapRef = useRef<HTMLDivElement>(null);
-  const insRef = useRef<HTMLElement>(null);
+  const insRef = useRef<HTMLModElement>(null);
   const pushedRef = useRef(false);
 
   useEffect(() => {
@@ -140,7 +140,7 @@ const AdSenseSlot: React.FC<AdSenseSlotProps> = ({
       <span className="ad-slot__label">Advertisement</span>
       <div className="ad-slot__inner">
         <ins
-          ref={insRef as React.RefObject<HTMLModElement>}
+          ref={insRef}
           className="adsbygoogle"
           style={{ display: 'block' }}
           data-ad-client={ADSENSE_CLIENT}
