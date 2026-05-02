@@ -14,13 +14,10 @@ import Footer from '../Components/footer'
 import { Helmet } from 'react-helmet-async';
 import { ScrollingStats } from '../Components/scroll'
 import NewsListing from '../Components/Listings';
-import SubscriptionPopup from '../Components/SubscriptionPopup';
-import { useSubscriptionPopup } from '../hooks/useSubscriptionPopup';
 import AINews from '../Components/AINews';
 import ArbitrageDashboard from './ArbitrageDashboard';
 import CryptoBreakingBanner from '../Components/CryptoBreakingBanner';
 import NewsletterCTA from '../Components/NewsletterCTA';
-import DailyNewsSection from '../Components/DailyNewsSection';
 import AirdropSection from '../Components/AirdropSection';
 import LandingToolsShowcase from '../Components/LandingToolsShowcase';
 
@@ -95,12 +92,6 @@ const AdSpot: React.FC<{ variant?: 'leaderboard' | 'rectangle' | 'native'; label
 };
 
 const LandingPage: React.FC = () => {
-  const { showPopup, setShowPopup } = useSubscriptionPopup();
-
-  const handleSubscribe = () => {
-    localStorage.setItem('user-subscribed', 'true');
-  };
-
   return (
     <div className="LandingPage">
       <div className="content-wrapper" style={{ background: 'var(--bg)' }}>
@@ -266,13 +257,6 @@ const LandingPage: React.FC = () => {
         {/* Footer */}
         <Footer />
       </div>
-
-      {showPopup && (
-        <SubscriptionPopup
-          onClose={() => setShowPopup(false)}
-          onSubscribe={handleSubscribe}
-        />
-      )}
     </div>
   );
 };
