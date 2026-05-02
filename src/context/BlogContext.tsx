@@ -54,7 +54,7 @@ export const BlogProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setLoading(true);
       setError(null);
       
-      const data = await api.fetchPosts();
+      const data = await api.fetchPosts({ excludeTag: 'daily-digest' });
       
       // Validate data structure
       if (!Array.isArray(data)) {

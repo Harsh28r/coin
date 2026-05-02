@@ -9,6 +9,23 @@ function getFallbackBases(): string[] {
 
 type AnyRecord = Record<string, any>;
 
+export type FetchPostsOpts = {
+  /** Only posts whose `tags` array contains this value (e.g. `daily-digest`) */
+  tag?: string;
+  /** Exclude posts that have this tag in `tags` (e.g. hide auto digest from main blog list) */
+  excludeTag?: string;
+  limit?: number;
+};
+
+function postsQueryString(opts?: FetchPostsOpts): string {
+  const p = new URLSearchParams();
+  if (opts?.tag) p.set('tag', opts.tag);
+  if (opts?.excludeTag) p.set('excludeTag', opts.excludeTag);
+  if (opts?.limit != null) p.set('limit', String(Math.min(Math.max(1, opts.limit), 100)));
+  const s = p.toString();
+  return s ? `?${s}` : '';
+}
+
 const mapPost = (raw: AnyRecord): BlogPost => {
   return {
     id: (raw.id as string) || (raw._id as string),
@@ -24,13 +41,14 @@ const mapPost = (raw: AnyRecord): BlogPost => {
   } as BlogPost;
 };
 
-export const fetchPosts = async (): Promise<BlogPost[]> => {
+export const fetchPosts = async (opts?: FetchPostsOpts): Promise<BlogPost[]> => {
+  const qs = postsQueryString(opts);
   const paths = ['/posts', '/api/posts'];
   let lastErr: any;
   for (const base of getFallbackBases()) {
     for (const path of paths) {
       try {
-        const res = await axios.get(joinBackendPath(base, path));
+        const res = await axios.get(`${joinBackendPath(base, path)}${qs}`);
         const data = res.data as any;
         const list = Array.isArray(data)
           ? data

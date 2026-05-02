@@ -74,7 +74,12 @@ const BlogHome: React.FC = () => {
           <div>
             <p className="bh-kicker">CoinsClarity Editorial</p>
             <h1 className="bh-title">The Blog</h1>
-            <p className="bh-tagline">Long-form analysis, market commentary, and operator notes from the crypto frontier.</p>
+            <p className="bh-tagline">
+              Long-form analysis, market commentary, and operator notes from the crypto frontier.{' '}
+              <Link to="/daily-digest" className="bh-digest-link">
+                Daily 3-story digests →
+              </Link>
+            </p>
           </div>
           <div className="bh-search">
             <input

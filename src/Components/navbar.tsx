@@ -180,6 +180,9 @@ const CoinsNavbar: React.FC = () => {
                 <NavDropdown.Item as={NavLink} to="/watchlist" onClick={handleNavItemClick}>Watchlist</NavDropdown.Item>
               </NavDropdown>
               <Nav.Link as={NavLink} to="/blog" onClick={handleNavItemClick}>Blog</Nav.Link>
+              <Nav.Link as={NavLink} to="/daily-digest" onClick={handleNavItemClick}>
+                Daily digest
+              </Nav.Link>
             </Nav>
 
             <Form className="cc-navbar__search" onSubmit={handleSearch}>

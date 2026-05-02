@@ -52,6 +52,7 @@ import ScamCheckPage from './pages/tools/ScamCheck';
 import CompareCoinsPage from './pages/tools/CompareCoins';
 import TokenUnlocksPage from './pages/tools/TokenUnlocks';
 import NewsletterModal from './Components/NewsletterModal';
+import DailyDigestArchive from './pages/DailyDigest';
 
 
 const ScrollToTop: React.FC = () => {
@@ -87,6 +88,7 @@ function App() {
                 <NewsletterModal />
                 <Routes>
                   <Route path="/" element={<LandingPage />} />
+                  <Route path="/daily-digest" element={<DailyDigestArchive />} />
                   <Route path="/blog/:id" element={<BlogPostDetail />} />
                   <Route path="/blog" element={<BlogHome />} />
                   <Route path="/learn" element={<Learn />} />

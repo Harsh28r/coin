@@ -39,7 +39,7 @@ const BlogSection: React.FC = () => {
     const fetchBlogPosts = async () => {
       try {
         setLoading(true);
-        const data = await fetchPosts();
+        const data = await fetchPosts({ excludeTag: 'daily-digest' });
         const formattedPosts = data.map((post: any) => ({
           id: post.id || post._id || `post-${Math.random()}`,
           slug: post.slug || undefined,
