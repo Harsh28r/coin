@@ -1,0 +1,24 @@
+.pcrn-ad-slot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 0.75rem auto 1.25rem;
+  max-width: 100%;
+}
+
+.pcrn-ad-slot__label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted, #64748b);
+  margin-bottom: 6px;
+}
+
+.pcrn-ad-slot__target {
+  min-height: 1px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}

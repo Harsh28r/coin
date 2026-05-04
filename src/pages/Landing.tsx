@@ -22,6 +22,8 @@ import AirdropSection from '../Components/AirdropSection';
 import LandingToolsShowcase from '../Components/LandingToolsShowcase';
 import LandingEditorialStrip from '../Components/LandingEditorialStrip';
 import AdSenseSlot from '../Components/AdSenseSlot';
+import HighPerformanceFormatSlot from '../Components/HighPerformanceFormatSlot';
+import ProfitableCpmNetworkSlot from '../Components/ProfitableCpmNetworkSlot';
 
 const LandingPage: React.FC = () => {
   return (
@@ -72,6 +74,16 @@ const LandingPage: React.FC = () => {
         {/* Advertisement Space */}
         <div style={{ maxWidth: 1280, margin: '0 auto', padding: '0 20px' }}>
           <AdSenseSlot placement="landing-b" size="leaderboard" lazy />
+        </div>
+
+        {/* HighPerformanceFormat 160×300 (env: REACT_APP_HPF_ZONE_KEY, REACT_APP_HPF_ADS=0 to disable) */}
+        <div style={{ maxWidth: 1280, margin: '0 auto', padding: '0 20px', display: 'flex', justifyContent: 'center' }}>
+          <HighPerformanceFormatSlot lazy />
+        </div>
+
+        {/* ProfitableCPMRateNetwork (REACT_APP_PCRN_ADS=0 to disable; REACT_APP_PCRN_SCRIPT_URL to swap .js URL) */}
+        <div style={{ maxWidth: 1280, margin: '0 auto', padding: '0 20px', display: 'flex', justifyContent: 'center' }}>
+          <ProfitableCpmNetworkSlot lazy />
         </div>
 
         {/* Crypto Converter Tool */}

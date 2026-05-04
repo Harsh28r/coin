@@ -416,6 +416,7 @@ const CoinDetail: React.FC = () => {
     const fetchChart = async () => {
       setChartLoading(true);
       setChartError(null);
+      setChartData([]);
       const days = TF_TO_DAYS[timeframe];
       const ttl = timeframe === '1D' ? 60_000 : timeframe === '7D' ? 5 * 60_000 : 15 * 60_000;
 
@@ -448,37 +449,34 @@ const CoinDetail: React.FC = () => {
       }
 
       if (!cancelled && !points.length) {
-        const spot =
-          coin?.market_data?.current_price?.[cur] ?? coin?.market_data?.current_price?.usd;
-        if (typeof spot === 'number' && Number.isFinite(spot) && spot > 0) {
-          const now = Math.floor(Date.now() / 1000);
-          points = [
-            { time: now - 86400, value: spot },
-            { time: now, value: spot },
-          ];
-          setChartData(points);
-          setChartError('Live chart unavailable — showing flat reference from latest price.');
-          setChartLoading(false);
-          return;
-        }
+        setChartError('Could not load chart data.');
+        setChartData([]);
+      } else if (!cancelled) {
+        setChartData(points);
+        setChartError(null);
       }
-
-      if (!cancelled) {
-        if (points.length) {
-          setChartData(points);
-          setChartError(null);
-        } else {
-          console.error('chart fetch failed', new Error('empty series'));
-          setChartError('Could not load chart data.');
-          setChartData([]);
-        }
-        setChartLoading(false);
-      }
+      if (!cancelled) setChartLoading(false);
     };
 
     fetchChart();
     return () => { cancelled = true; };
-  }, [coinId, cur, timeframe, fetchJsonResilient, Boolean(coin?.market_data?.current_price)]);
+  }, [coinId, cur, timeframe, fetchJsonResilient]);
+
+  // Flat reference line when market_chart is empty but we already have spot from /coins/{id}
+  useEffect(() => {
+    if (!coinId || chartLoading) return;
+    if (!coin || coin.id !== coinId) return;
+    if (chartData.length > 0) return;
+    const spot =
+      coin?.market_data?.current_price?.[cur] ?? coin?.market_data?.current_price?.usd;
+    if (typeof spot !== 'number' || !Number.isFinite(spot) || spot <= 0) return;
+    const now = Math.floor(Date.now() / 1000);
+    setChartData([
+      { time: now - 86400, value: spot },
+      { time: now, value: spot },
+    ]);
+    setChartError('Live chart unavailable — flat line uses latest price.');
+  }, [coin, coinId, cur, chartLoading, chartData.length]);
 
   // ── Track chart container size ──────────────────────────────────
   useEffect(() => {
