@@ -1,0 +1,26 @@
+.adsterra-banner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 1rem auto;
+  max-width: 100%;
+}
+
+.adsterra-banner__label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted, #64748b);
+  margin-bottom: 6px;
+}
+
+.adsterra-banner__frame-wrap {
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+.adsterra-banner__shim {
+  background: rgba(15, 23, 42, 0.04);
+  border-radius: 8px;
+}

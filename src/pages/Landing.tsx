@@ -22,6 +22,7 @@ import AirdropSection from '../Components/AirdropSection';
 import LandingToolsShowcase from '../Components/LandingToolsShowcase';
 import LandingEditorialStrip from '../Components/LandingEditorialStrip';
 import AdSenseSlot from '../Components/AdSenseSlot';
+import AdsterraBannerSlot from '../Components/AdsterraBannerSlot';
 
 const LandingPage: React.FC = () => {
   return (
@@ -72,6 +73,11 @@ const LandingPage: React.FC = () => {
         {/* Advertisement Space */}
         <div style={{ maxWidth: 1280, margin: '0 auto', padding: '0 20px' }}>
           <AdSenseSlot placement="landing-b" size="leaderboard" lazy />
+        </div>
+
+        {/* Adsterra: set REACT_APP_ADSTERRA_BANNER_IFRAME_URL = iframe src from dashboard (no invoke.js) */}
+        <div style={{ maxWidth: 1280, margin: '0 auto', padding: '0 20px', display: 'flex', justifyContent: 'center' }}>
+          <AdsterraBannerSlot lazy width={300} height={250} />
         </div>
 
         {/* Crypto Converter Tool */}
