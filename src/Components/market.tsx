@@ -25,6 +25,33 @@ interface CryptoData {
   image: string;
 }
 
+function coalesceNumber(v: unknown, fallback = 0): number {
+  if (typeof v === 'number' && Number.isFinite(v)) return v;
+  if (typeof v === 'string' && v.trim() !== '') {
+    const n = Number(v);
+    if (Number.isFinite(n)) return n;
+  }
+  return fallback;
+}
+
+/** CoinGecko (and cache) often send null for some numeric fields — never pass those raw to toFixed / toLocaleString. */
+function normalizeCryptoRow(coin: Partial<CryptoData> & Record<string, unknown>): CryptoData {
+  return {
+    id: String(coin.id ?? ''),
+    rank: coalesceNumber(coin.rank, 999),
+    symbol: String(coin.symbol ?? '').toLowerCase(),
+    name: String(coin.name ?? ''),
+    supply: coalesceNumber(coin.supply),
+    max_supply:
+      coin.max_supply === null || coin.max_supply === undefined ? null : coalesceNumber(coin.max_supply),
+    market_cap_usd: coalesceNumber(coin.market_cap_usd),
+    volume_usd_24h: coalesceNumber(coin.volume_usd_24h),
+    price_usd: coalesceNumber(coin.price_usd),
+    change_percent_24h: coalesceNumber(coin.change_percent_24h),
+    image: String(coin.image ?? ''),
+  };
+}
+
 interface IChart {
   data: { labels: string[]; prices: number[] };
   title: string;
@@ -473,26 +500,30 @@ const MarketPriceAndNews: React.FC = () => {
 
     const CG_MARKETS = 'coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=1&sparkline=false';
     const parseCoinGeckoMarkets = (data: any[]): CryptoData[] =>
-      data.map((coin: any) => ({
-        id: coin.id,
-        rank: coin.market_cap_rank,
-        symbol: coin.symbol,
-        name: coin.name,
-        supply: coin.circulating_supply,
-        max_supply: coin.max_supply,
-        market_cap_usd: coin.market_cap,
-        volume_usd_24h: coin.total_volume,
-        price_usd: coin.current_price,
-        change_percent_24h: coin.price_change_percentage_24h,
-        image: coin.image,
-      }));
+      data.map((coin: any) =>
+        normalizeCryptoRow({
+          id: coin.id,
+          rank: coin.market_cap_rank,
+          symbol: coin.symbol,
+          name: coin.name,
+          supply: coin.circulating_supply,
+          max_supply: coin.max_supply,
+          market_cap_usd: coin.market_cap,
+          volume_usd_24h: coin.total_volume,
+          price_usd: coin.current_price,
+          change_percent_24h: coin.price_change_percentage_24h,
+          image: coin.image,
+        }),
+      );
 
     const fetchCryptoData = async () => {
       setCryptoLoading(true);
       try {
         const cachedCryptoData = getCachedData('cryptoData');
         if (cachedCryptoData) {
-          setCryptoData(cachedCryptoData);
+          setCryptoData(
+            (Array.isArray(cachedCryptoData) ? cachedCryptoData : []).map((c: any) => normalizeCryptoRow(c)),
+          );
           return;
         }
 
@@ -533,7 +564,7 @@ const MarketPriceAndNews: React.FC = () => {
     const buildMockHistorical = () => {
       const mockLabels: string[] = [];
       const mockPrices: number[] = [];
-      const basePrice = crypto.price_usd;
+      const basePrice = coalesceNumber(crypto.price_usd, 1);
       if (days === 1) {
         for (let i = 23; i >= 0; i--) {
           const time = new Date();
