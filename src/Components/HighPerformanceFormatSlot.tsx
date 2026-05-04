@@ -27,6 +27,8 @@ function safeZoneKey(raw: string): string {
 /**
  * HighPerformanceFormat (atOptions + invoke.js). Zone: env `REACT_APP_HPF_ZONE_KEY` or default.
  * Disable: `REACT_APP_HPF_ADS=0`.
+ * Opt-in on pages: set `REACT_APP_HPF_ENABLED=1` — invoke often loads iframes that fail (gray “broken” tile)
+ * when the buyer’s host refuses the connection; that is not fixable from this app.
  */
 const HighPerformanceFormatSlot: React.FC<Props> = ({
   zoneKey: zoneKeyProp,

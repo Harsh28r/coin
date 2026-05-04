@@ -128,6 +128,8 @@ const AdSenseSlot: React.FC<AdSenseSlotProps> = ({
     size === 'in-article' ? 'ad-slot--in-article' : size === 'tools' ? 'ad-slot--tools' : 'ad-slot--leaderboard';
 
   if (!slotId) {
+    /* Don’t ship the dashed “set env” box on prod — it reads as a broken ad */
+    if (process.env.NODE_ENV === 'production') return null;
     return (
       <div
         ref={wrapRef}

@@ -781,7 +781,9 @@ const CoinDetail: React.FC = () => {
 
         <div className="cd-ad-slot" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
           <AdsterraBannerSlot lazy width={300} height={250} />
-          <HighPerformanceFormatSlot lazy width={300} height={250} />
+          {process.env.REACT_APP_HPF_ENABLED === '1' ? (
+            <HighPerformanceFormatSlot lazy width={300} height={250} />
+          ) : null}
         </div>
 
         {/* WHERE TO BUY (affiliate revenue) */}
