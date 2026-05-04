@@ -1,0 +1,26 @@
+.hpf-ad-slot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 1rem auto;
+  box-sizing: border-box;
+}
+
+.hpf-ad-slot__label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted, #64748b);
+  margin-bottom: 6px;
+}
+
+.hpf-ad-slot__target {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.hpf-ad-slot__target iframe {
+  max-width: 100%;
+}

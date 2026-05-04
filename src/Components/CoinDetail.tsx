@@ -18,6 +18,7 @@ import { resolveImageSrc, handleImageError } from '../utils/cryptoImages';
 import AffiliateButtons from './AffiliateButtons';
 import AdSenseSlot from './AdSenseSlot';
 import AdsterraBannerSlot from './AdsterraBannerSlot';
+import HighPerformanceFormatSlot from './HighPerformanceFormatSlot';
 import { coingeckoV3Url } from '../utils/coingeckoUrl';
 import './CoinDetail.css';
 
@@ -778,8 +779,9 @@ const CoinDetail: React.FC = () => {
 
         <AdSenseSlot placement="coin-mid" size="tools" lazy className="cd-ad-slot" />
 
-        <div className="cd-ad-slot" style={{ display: 'flex', justifyContent: 'center' }}>
+        <div className="cd-ad-slot" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
           <AdsterraBannerSlot lazy width={300} height={250} />
+          <HighPerformanceFormatSlot lazy width={300} height={250} />
         </div>
 
         {/* WHERE TO BUY (affiliate revenue) */}
