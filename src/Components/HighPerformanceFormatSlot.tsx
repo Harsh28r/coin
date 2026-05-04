@@ -79,22 +79,25 @@ const HighPerformanceFormatSlot: React.FC<Props> = ({
       };
     }
 
-    const node = wrapRef.current;
-    if (!node) return;
-
-    const io = new IntersectionObserver(
-      (entries) => {
-        if (cancelled || !entries[0]?.isIntersecting) return;
-        inject();
-        io.disconnect();
-      },
-      { rootMargin: '160px 0px', threshold: 0.01 },
-    );
-    io.observe(node);
+    let io: IntersectionObserver | undefined;
+    const timer = window.setTimeout(() => {
+      const node = wrapRef.current;
+      if (cancelled || !node) return;
+      io = new IntersectionObserver(
+        (entries) => {
+          if (cancelled || !entries[0]?.isIntersecting) return;
+          inject();
+          io?.disconnect();
+        },
+        { rootMargin: '400px 0px', threshold: 0 },
+      );
+      io.observe(node);
+    }, 0);
 
     return () => {
       cancelled = true;
-      io.disconnect();
+      window.clearTimeout(timer);
+      io?.disconnect();
       mountedRef.current = false;
       if (wrapRef.current) wrapRef.current.innerHTML = '';
     };
