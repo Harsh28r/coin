@@ -76,12 +76,9 @@ const LandingPage: React.FC = () => {
           <AdSenseSlot placement="landing-b" size="leaderboard" lazy />
         </div>
 
-        {/* Adsterra iframe: REACT_APP_ADSTERRA_BANNER_IFRAME_URL. Invoke (gray broken tile if buyer URL fails): REACT_APP_HPF_ENABLED=1 */}
         <div style={{ maxWidth: 1280, margin: '0 auto', padding: '0 20px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
           <AdsterraBannerSlot lazy width={300} height={250} />
-          {process.env.REACT_APP_HPF_ENABLED === '1' ? (
-            <HighPerformanceFormatSlot lazy width={300} height={250} />
-          ) : null}
+          <HighPerformanceFormatSlot lazy width={300} height={250} />
         </div>
 
         {/* Crypto Converter Tool */}
