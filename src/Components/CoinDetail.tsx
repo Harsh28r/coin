@@ -64,6 +64,31 @@ interface ChartPoint {
   value: number;
 }
 
+function extractPriceSeries(data: unknown): [number, number][] {
+  if (!data || typeof data !== 'object') return [];
+  const d = data as Record<string, unknown>;
+  const raw = d.prices ?? (d.data as Record<string, unknown> | undefined)?.prices;
+  return Array.isArray(raw) ? (raw as [number, number][]) : [];
+}
+
+function toChartPoints(prices: [number, number][]): ChartPoint[] {
+  const seen = new Set<number>();
+  const points: ChartPoint[] = [];
+  for (const pair of prices) {
+    if (!Array.isArray(pair) || pair.length < 2) continue;
+    const ms = Number(pair[0]);
+    const rawV = pair[1];
+    const v = typeof rawV === 'number' ? rawV : parseFloat(String(rawV));
+    if (!Number.isFinite(ms) || !Number.isFinite(v)) continue;
+    const t = Math.floor(ms / 1000);
+    if (seen.has(t)) continue;
+    seen.add(t);
+    points.push({ time: t, value: v });
+  }
+  points.sort((a, b) => a.time - b.time);
+  return points;
+}
+
 const TF_TO_DAYS: Record<Timeframe, number | 'max'> = {
   '1D': 1,
   '7D': 7,
@@ -312,7 +337,11 @@ const CoinDetail: React.FC = () => {
       if (raw) {
         const cached = JSON.parse(raw);
         if (cached && cached.t && Date.now() - cached.t < ttlMs && cached.d) {
-          return cached.d;
+          if (path.includes('market_chart') && !extractPriceSeries(cached.d).length) {
+            try { sessionStorage.removeItem(cacheKey); } catch { /* ignore */ }
+          } else {
+            return cached.d;
+          }
         }
       }
     } catch { /* ignore */ }
@@ -331,6 +360,13 @@ const CoinDetail: React.FC = () => {
         const res = await fetch(url, { headers: { Accept: 'application/json' } });
         if (!res.ok) { lastErr = new Error(`HTTP ${res.status}`); continue; }
         const json = await res.json();
+        if (path.includes('market_chart')) {
+          const series = extractPriceSeries(json);
+          if (!series.length) {
+            lastErr = new Error('empty series');
+            continue;
+          }
+        }
         try { sessionStorage.setItem(cacheKey, JSON.stringify({ t: Date.now(), d: json })); } catch { /* ignore */ }
         return json;
       } catch (e) { lastErr = e; }
@@ -370,44 +406,79 @@ const CoinDetail: React.FC = () => {
     if (!coinId) return;
     let cancelled = false;
 
+    const marketChartPath = (vs: string, d: number | 'max', hourly: boolean) => {
+      const dStr = d === 'max' ? 'max' : String(d);
+      let p = `/api/v3/coins/${coinId}/market_chart?vs_currency=${encodeURIComponent(vs)}&days=${dStr}`;
+      if (d === 1 && hourly) p += '&interval=hourly';
+      return p;
+    };
+
     const fetchChart = async () => {
       setChartLoading(true);
       setChartError(null);
-      try {
-        const days = TF_TO_DAYS[timeframe];
-        const interval = timeframe === '1D' ? 'hourly' : 'daily';
-        const path = `/api/v3/coins/${coinId}/market_chart?vs_currency=${cur}&days=${days}${days === 1 ? `&interval=${interval}` : ''}`;
-        const ttl = timeframe === '1D' ? 60_000 : timeframe === '7D' ? 5 * 60_000 : 15 * 60_000;
-        const data = await fetchJsonResilient(path, ttl);
-        const prices: [number, number][] = data?.prices || [];
-        if (!prices.length) throw new Error('empty series');
-        // Dedupe timestamps (lightweight-charts requires monotonic, unique time)
-        const seen = new Set<number>();
-        const points: ChartPoint[] = [];
-        for (const [ms, v] of prices) {
-          const t = Math.floor(ms / 1000);
-          if (seen.has(t)) continue;
-          seen.add(t);
-          if (typeof v === 'number' && isFinite(v)) {
-            points.push({ time: t, value: v });
-          }
+      const days = TF_TO_DAYS[timeframe];
+      const ttl = timeframe === '1D' ? 60_000 : timeframe === '7D' ? 5 * 60_000 : 15 * 60_000;
+
+      const pathAttempts: string[] = [];
+      if (days === 1) {
+        pathAttempts.push(marketChartPath(cur, 1, true));
+        pathAttempts.push(marketChartPath(cur, 1, false));
+      } else {
+        pathAttempts.push(marketChartPath(cur, days, false));
+      }
+      if (cur !== 'usd') {
+        if (days === 1) {
+          pathAttempts.push(marketChartPath('usd', 1, true));
+          pathAttempts.push(marketChartPath('usd', 1, false));
+        } else {
+          pathAttempts.push(marketChartPath('usd', days, false));
         }
-        points.sort((a, b) => a.time - b.time);
-        if (!cancelled) setChartData(points);
-      } catch (err: any) {
-        if (!cancelled) {
-          console.error('chart fetch failed', err);
+      }
+
+      let points: ChartPoint[] = [];
+      for (const path of pathAttempts) {
+        if (cancelled) return;
+        try {
+          const data = await fetchJsonResilient(path, ttl);
+          points = toChartPoints(extractPriceSeries(data));
+          if (points.length) break;
+        } catch {
+          /* try next path */
+        }
+      }
+
+      if (!cancelled && !points.length) {
+        const spot =
+          coin?.market_data?.current_price?.[cur] ?? coin?.market_data?.current_price?.usd;
+        if (typeof spot === 'number' && Number.isFinite(spot) && spot > 0) {
+          const now = Math.floor(Date.now() / 1000);
+          points = [
+            { time: now - 86400, value: spot },
+            { time: now, value: spot },
+          ];
+          setChartData(points);
+          setChartError('Live chart unavailable — showing flat reference from latest price.');
+          setChartLoading(false);
+          return;
+        }
+      }
+
+      if (!cancelled) {
+        if (points.length) {
+          setChartData(points);
+          setChartError(null);
+        } else {
+          console.error('chart fetch failed', new Error('empty series'));
           setChartError('Could not load chart data.');
           setChartData([]);
         }
-      } finally {
-        if (!cancelled) setChartLoading(false);
+        setChartLoading(false);
       }
     };
 
     fetchChart();
     return () => { cancelled = true; };
-  }, [coinId, cur, timeframe, fetchJsonResilient]);
+  }, [coinId, cur, timeframe, fetchJsonResilient, Boolean(coin?.market_data?.current_price)]);
 
   // ── Track chart container size ──────────────────────────────────
   useEffect(() => {
@@ -512,8 +583,11 @@ const CoinDetail: React.FC = () => {
   return (
     <div className="cd-shell">
       <Helmet>
-        <title>{coin.name} ({coin.symbol?.toUpperCase()}) Price, Chart & Market Cap | CoinsClarity</title>
-        <meta name="description" content={`Live ${coin.name} (${coin.symbol?.toUpperCase()}) price, chart and market data.`} />
+        <title>{`${String(coin.name || coinId || 'Asset')} (${String(coin.symbol || '').toUpperCase()}) Price, Chart & Market Cap | CoinsClarity`}</title>
+        <meta
+          name="description"
+          content={`Live ${String(coin.name || coinId || 'crypto')} (${String(coin.symbol || '').toUpperCase()}) price, chart and market data on CoinsClarity.`}
+        />
       </Helmet>
 
       <div className="cd-topbar">
