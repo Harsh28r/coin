@@ -12,6 +12,22 @@ import { BlogPost as BlogPostType } from '../types/blog';
 import BlogForm from '../Components/BlogForm';
 import NewsletterAdmin from '../Components/NewsletterAdmin';
 import CustomDigestAdmin from '../Components/CustomDigestAdmin';
+import { DEFAULT_ADMIN_SECRET } from '../config/adminDefaults';
+
+/** Same key as CustomDigestAdmin — paste secret there or set REACT_APP_ADMIN_SECRET at build time. */
+const DIGEST_ADMIN_SECRET_KEY = 'cc_digest_admin_secret';
+
+function getDigestAdminSecret(): string {
+  try {
+    return (
+      (sessionStorage.getItem(DIGEST_ADMIN_SECRET_KEY) || process.env.REACT_APP_ADMIN_SECRET || '').trim() ||
+      DEFAULT_ADMIN_SECRET
+    );
+  } catch {
+    return (process.env.REACT_APP_ADMIN_SECRET || '').trim() || DEFAULT_ADMIN_SECRET;
+  }
+}
+
 // Single API base (admin side) with multi-base fallback
 const API_BASE_URL: string = (process.env.REACT_APP_API_BASE_URL) || 'https://c-back-seven.vercel.app';
 const getAdminApiBases = (): string[] => {
@@ -640,7 +656,6 @@ const MainDashboard: React.FC = () => {
     const [publishing, setPublishing] = React.useState(false);
     const [result, setResult] = React.useState<any>(null);
     const [error, setError] = React.useState<string | null>(null);
-    const adminSecret = (process.env.REACT_APP_ADMIN_SECRET || '').trim();
 
     const fetchStatus = async () => {
       setLoadingStatus(true);
@@ -665,7 +680,7 @@ const MainDashboard: React.FC = () => {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              'x-admin-secret': adminSecret,
+              'x-admin-secret': getDigestAdminSecret(),
             },
           }
         );
@@ -744,7 +759,9 @@ const MainDashboard: React.FC = () => {
         </Button>
         <div className="text-muted small mt-2">
           Calls <code>POST /api/digest/admin/publish-ai-desk-now</code> — generates a long-form desk post from today's RSS stories using HuggingFace.
-          Requires <code>REACT_APP_ADMIN_SECRET</code> env var to match the backend's <code>ADMIN_SECRET</code>.
+          Uses the same secret as Custom Digest: session key <code>{DIGEST_ADMIN_SECRET_KEY}</code>, or{' '}
+          <code>REACT_APP_ADMIN_SECRET</code> at build time, or default from <code>adminDefaults</code> — must match backend{' '}
+          <code>ADMIN_SECRET</code>.
         </div>
 
         {lastRun && (
