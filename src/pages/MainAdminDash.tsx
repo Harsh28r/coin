@@ -3,7 +3,7 @@ import {
   Container, Row, Col, Nav, Navbar, Card, Button, Form, ListGroup, Badge,
   ProgressBar, Dropdown, Modal, Pagination, InputGroup
 } from 'react-bootstrap';
-import { BarChart2, Users, FileText, Settings, Bell, User, Search, Plus, BookOpen, Mail, Send, PanelLeft } from 'lucide-react';
+import { BarChart2, Users, FileText, Settings, Bell, User, Search, Plus, BookOpen, Mail, Send, PanelLeft, Bot } from 'lucide-react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './MainAdminDash.css';
 import BlogPost from '../Components/BlogPost';
@@ -634,8 +634,137 @@ const MainDashboard: React.FC = () => {
       </div>
     );
   };
+  const AiBloggerSection: React.FC = () => {
+    const [status, setStatus] = React.useState<any>(null);
+    const [loadingStatus, setLoadingStatus] = React.useState(false);
+    const [publishing, setPublishing] = React.useState(false);
+    const [result, setResult] = React.useState<any>(null);
+    const [error, setError] = React.useState<string | null>(null);
+    const adminSecret = (process.env.REACT_APP_ADMIN_SECRET || '').trim();
+
+    const fetchStatus = async () => {
+      setLoadingStatus(true);
+      try {
+        const data = await fetchJson('/api/digest/status');
+        setStatus(data);
+      } catch (e: any) {
+        setError(e.message || 'Failed to fetch status');
+      } finally {
+        setLoadingStatus(false);
+      }
+    };
+
+    const publishNow = async () => {
+      setError(null);
+      setResult(null);
+      setPublishing(true);
+      try {
+        const res = await fetch(
+          `${(API_BASE_URL || '').replace(/\/$/, '')}/api/digest/admin/publish-ai-desk-now`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-admin-secret': adminSecret,
+            },
+          }
+        );
+        const data = await res.json();
+        if (!res.ok) throw new Error(data?.error || `HTTP ${res.status}`);
+        setResult(data);
+        await fetchStatus();
+      } catch (e: any) {
+        setError(e.message || 'Failed to publish');
+      } finally {
+        setPublishing(false);
+      }
+    };
+
+    React.useEffect(() => { fetchStatus(); }, []);
+
+    const lastRun = status?.lastRun;
+
+    return (
+      <div className="p-3">
+        <div className="d-flex align-items-center justify-content-between mb-3">
+          <h4 className="mb-0">AI Blogger</h4>
+          <Button variant="outline-secondary" size="sm" onClick={fetchStatus} disabled={loadingStatus}>
+            {loadingStatus ? <span className="spinner-border spinner-border-sm" /> : 'Refresh'}
+          </Button>
+        </div>
+
+        {/* Schedule info */}
+        <div className="card mb-3">
+          <div className="card-body">
+            <div className="row g-3">
+              <div className="col-sm-4">
+                <div className="text-muted small">Daily Schedule</div>
+                <div className="fw-semibold">{status?.scheduled || '0 12 * * *'} ({status?.timezone || 'Asia/Kolkata'})</div>
+              </div>
+              <div className="col-sm-4">
+                <div className="text-muted small">Last AI Desk Post</div>
+                <div className="fw-semibold">
+                  {lastRun?.aiDeskBlogPostId
+                    ? <span className="text-success">Published ✓ ({lastRun.aiDeskBlogPostId.slice(-6)})</span>
+                    : lastRun
+                      ? <span className="text-danger">Not published last run</span>
+                      : <span className="text-muted">No run recorded</span>}
+                </div>
+              </div>
+              <div className="col-sm-4">
+                <div className="text-muted small">Last Run At</div>
+                <div className="fw-semibold">
+                  {lastRun?.startedAt ? new Date(lastRun.startedAt).toLocaleString() : '—'}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {error && <div className="alert alert-danger">{error}</div>}
+
+        {result && (
+          <div className="alert alert-success">
+            <strong>{result.skipped ? 'Skipped (post already exists for today)' : 'AI post published!'}</strong>
+            {result.aiDeskBlogPostId && <div className="small mt-1">Post ID: {result.aiDeskBlogPostId}</div>}
+            {result.stories?.length > 0 && (
+              <ul className="mb-0 mt-2">
+                {result.stories.map((s: any, i: number) => (
+                  <li key={i} className="small">{s.title}</li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
+
+        <Button variant="primary" onClick={publishNow} disabled={publishing}>
+          {publishing
+            ? <><span className="spinner-border spinner-border-sm me-2" />Generating AI post…</>
+            : <><Bot size={16} className="me-2" />Publish AI Post Now</>}
+        </Button>
+        <div className="text-muted small mt-2">
+          Calls <code>POST /api/digest/admin/publish-ai-desk-now</code> — generates a long-form desk post from today's RSS stories using HuggingFace.
+          Requires <code>REACT_APP_ADMIN_SECRET</code> env var to match the backend's <code>ADMIN_SECRET</code>.
+        </div>
+
+        {lastRun && (
+          <div className="card mt-4">
+            <div className="card-header small fw-semibold">Last run details</div>
+            <div className="card-body p-0">
+              <pre className="p-3 mb-0 small" style={{ overflowX: 'auto', background: '#f8f9fa', maxHeight: 280 }}>
+                {JSON.stringify(lastRun, null, 2)}
+              </pre>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   const renderContent = () => {
     switch (activeSection) {
+      case 'ai-blogger':
+        return <AiBloggerSection />;
       case 'social':
         return <SocialSection />;
       case 'users':
@@ -843,6 +972,12 @@ const MainDashboard: React.FC = () => {
           onClick={() => setActiveSection('blog')}
         >
           <BookOpen size={20} aria-hidden /> <span className="cms-admin__nav-label">Blog</span>
+        </Nav.Link>
+        <Nav.Link
+          className={`cms-admin__nav-link ${activeSection === 'ai-blogger' ? 'active' : ''}`}
+          onClick={() => setActiveSection('ai-blogger')}
+        >
+          <Bot size={20} aria-hidden /> <span className="cms-admin__nav-label">AI Blogger</span>
         </Nav.Link>
         <Nav.Link
           className={`cms-admin__nav-link ${activeSection === 'newsletter' ? 'active' : ''}`}
