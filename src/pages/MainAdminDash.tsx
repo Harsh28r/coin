@@ -654,6 +654,7 @@ const MainDashboard: React.FC = () => {
     const [status, setStatus] = React.useState<any>(null);
     const [loadingStatus, setLoadingStatus] = React.useState(false);
     const [publishing, setPublishing] = React.useState(false);
+    const [forceOverwriteDesk, setForceOverwriteDesk] = React.useState(false);
     const [result, setResult] = React.useState<any>(null);
     const [error, setError] = React.useState<string | null>(null);
 
@@ -682,6 +683,7 @@ const MainDashboard: React.FC = () => {
               'Content-Type': 'application/json',
               'x-admin-secret': getDigestAdminSecret(),
             },
+            body: JSON.stringify({ force: forceOverwriteDesk }),
           }
         );
         const data = await res.json();
@@ -740,7 +742,14 @@ const MainDashboard: React.FC = () => {
 
         {result && (
           <div className="alert alert-success">
-            <strong>{result.skipped ? 'Skipped (post already exists for today)' : 'AI post published!'}</strong>
+            <strong>
+              {result.skipped
+                ? result.aiDeskBlogPostId
+                  ? `Existing post (no changes): ${result.slug || 'desk-ai-…'} — enable “Force overwrite” to regenerate.`
+                  : `Nothing new written for ${result.slug || 'desk-ai-…'}. Check HF token / server logs, or use “Force overwrite” if the slug already exists.`
+                : 'AI desk post published!'}
+            </strong>
+            {result.slug && <div className="small mt-1">Slug: <code>{result.slug}</code> (RSS desk — not the same as Trending Desk <code>trending-desk-YYYY-MM-DD</code>)</div>}
             {result.aiDeskBlogPostId && <div className="small mt-1">Post ID: {result.aiDeskBlogPostId}</div>}
             {result.stories?.length > 0 && (
               <ul className="mb-0 mt-2">
@@ -752,13 +761,21 @@ const MainDashboard: React.FC = () => {
           </div>
         )}
 
+        <Form.Check
+          type="checkbox"
+          id="force-desk-ai"
+          className="mb-2"
+          label="Force overwrite today’s desk-ai post (deletes existing slug for today, then regenerates)"
+          checked={forceOverwriteDesk}
+          onChange={(e) => setForceOverwriteDesk(e.target.checked)}
+        />
         <Button variant="primary" onClick={publishNow} disabled={publishing}>
           {publishing
             ? <><span className="spinner-border spinner-border-sm me-2" />Generating AI post…</>
             : <><Bot size={16} className="me-2" />Publish AI Post Now</>}
         </Button>
         <div className="text-muted small mt-2">
-          Calls <code>POST /api/digest/admin/publish-ai-desk-now</code> — generates a long-form desk post from today's RSS stories using HuggingFace.
+          Creates <code>desk-ai-YYYY-MM-DD</code> from RSS + HF — not <code>trending-desk-*</code> (use Trending Desk below).
           Uses the same secret as Custom Digest: session key <code>{DIGEST_ADMIN_SECRET_KEY}</code>, or{' '}
           <code>REACT_APP_ADMIN_SECRET</code> at build time, or default from <code>adminDefaults</code> — must match backend{' '}
           <code>ADMIN_SECRET</code>.
@@ -778,10 +795,113 @@ const MainDashboard: React.FC = () => {
     );
   };
 
+  const TrendingDeskSection: React.FC = () => {
+    const [tdStatus, setTdStatus] = React.useState<any>(null);
+    const [tdDate, setTdDate] = React.useState(() => new Date().toISOString().slice(0, 10));
+    const [tdForce, setTdForce] = React.useState(false);
+    const [tdLoading, setTdLoading] = React.useState(false);
+    const [tdRes, setTdRes] = React.useState<any>(null);
+    const [tdErr, setTdErr] = React.useState<string | null>(null);
+
+    const refreshTd = async () => {
+      try {
+        const d = await fetchJson('/api/trending-desk/status');
+        setTdStatus(d);
+      } catch (e: any) {
+        setTdErr(e.message || 'status failed');
+      }
+    };
+
+    React.useEffect(() => {
+      refreshTd();
+    }, []);
+
+    const runTd = async () => {
+      setTdErr(null);
+      setTdRes(null);
+      setTdLoading(true);
+      try {
+        const res = await fetch(
+          `${(API_BASE_URL || '').replace(/\/$/, '')}/api/trending-desk/run-now`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-admin-secret': getDigestAdminSecret(),
+            },
+            body: JSON.stringify({ date: tdDate, force: tdForce }),
+          }
+        );
+        const data = await res.json();
+        if (!res.ok) throw new Error(data?.error || `HTTP ${res.status}`);
+        if (data.success === false && !data.skipped) {
+          throw new Error(data.error || 'Trending desk run failed');
+        }
+        setTdRes(data);
+      } catch (e: any) {
+        setTdErr(e.message || 'failed');
+      } finally {
+        setTdLoading(false);
+      }
+    };
+
+    return (
+      <div className="p-3 border-top mt-4">
+        <h4 className="mb-3">Trending Desk</h4>
+        <p className="text-muted small mb-2">
+          Publishes <code>trending-desk-YYYY-MM-DD</code> (CoinGecko trending + RSS + HF). Example:{' '}
+          <a href="https://www.coinsclarity.com/blog/trending-desk-2026-05-09" target="_blank" rel="noopener noreferrer">
+            trending-desk-2026-05-09
+          </a>
+        </p>
+        {tdStatus && (
+          <div className="small text-muted mb-2">
+            Cron: <code>{tdStatus.scheduled}</code> ({tdStatus.timezone}) — HF: {tdStatus.enabled ? 'on' : 'off'}
+          </div>
+        )}
+        {tdErr && <div className="alert alert-danger py-2">{tdErr}</div>}
+        {tdRes && (
+          <div className={`alert ${tdRes.skipped ? 'alert-warning' : 'alert-success'} py-2`}>
+            <strong>{tdRes.skipped ? 'Skipped (slug already exists for that date)' : 'Done'}</strong>
+            {tdRes.slug && (
+              <div className="small mt-1">
+                Slug: <code>{tdRes.slug}</code>
+              </div>
+            )}
+            {tdRes.postId && <div className="small">postId: {tdRes.postId}</div>}
+            {tdRes.error && <div className="small text-danger">{tdRes.error}</div>}
+          </div>
+        )}
+        <Form.Group className="mb-2">
+          <Form.Label className="small">Article date (UTC day in slug)</Form.Label>
+          <Form.Control type="date" value={tdDate} onChange={(e) => setTdDate(e.target.value)} />
+        </Form.Group>
+        <Form.Check
+          type="checkbox"
+          className="mb-2"
+          checked={tdForce}
+          onChange={(e) => setTdForce(e.target.checked)}
+          label="Force: delete existing post for that slug, then regenerate"
+        />
+        <Button variant="dark" size="sm" onClick={runTd} disabled={tdLoading}>
+          {tdLoading ? 'Running…' : 'Run Trending Desk'}
+        </Button>
+        <Button variant="outline-secondary" size="sm" className="ms-2" onClick={refreshTd}>
+          Refresh status
+        </Button>
+      </div>
+    );
+  };
+
   const renderContent = () => {
     switch (activeSection) {
       case 'ai-blogger':
-        return <AiBloggerSection />;
+        return (
+          <>
+            <AiBloggerSection />
+            <TrendingDeskSection />
+          </>
+        );
       case 'social':
         return <SocialSection />;
       case 'users':
