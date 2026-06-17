@@ -1,4 +1,4 @@
-const { SITE, xmlSitemapIndex } = require('./_seo');
+const { SITE, BACKEND, xmlSitemapIndex } = require('../lib/seo');
 
 /** Sitemap index → static pages, coins, blog posts */
 module.exports = async function handler(req, res) {
@@ -7,9 +7,9 @@ module.exports = async function handler(req, res) {
     : `${req.headers['x-forwarded-proto'] || 'https'}://${req.headers.host}`;
 
   const xml = xmlSitemapIndex([
-    `${host}/api/sitemap-static.xml`,
-    `${host}/api/sitemap-coins.xml`,
-    `${process.env.SEO_BACKEND_URL || 'https://camify.fun.coinsclarity.com'}/sitemap-blog.xml`,
+    `${host}/sitemap-static.xml`,
+    `${host}/sitemap-coins.xml`,
+    `${BACKEND}/sitemap-blog.xml`,
   ]);
 
   res.setHeader('Content-Type', 'application/xml; charset=utf-8');

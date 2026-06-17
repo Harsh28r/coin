@@ -1,4 +1,4 @@
-const { SITE, BACKEND, escape, isCrawler, serveSpaShell } = require('../_seo');
+const { SITE, BACKEND, escape, isCrawler, serveSpaShell } = require('../../lib/seo');
 
 module.exports = async function handler(req, res) {
   const { id } = req.query;

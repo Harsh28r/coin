@@ -1,4 +1,4 @@
-const { SITE, fetchTopCoinIds, xmlUrl, xmlSitemap } = require('./_seo');
+const { SITE, fetchTopCoinIds, xmlUrl, xmlSitemap } = require('../lib/seo');
 
 module.exports = async function handler(req, res) {
   const today = new Date().toISOString().slice(0, 10);

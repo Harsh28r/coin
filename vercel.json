@@ -1,43 +1,24 @@
 {
-
+  "buildCommand": "npm run build",
+  "outputDirectory": "build",
+  "framework": "create-react-app",
   "rewrites": [
-
     { "source": "/sitemap.xml", "destination": "/api/sitemap.xml" },
-
     { "source": "/sitemap-static.xml", "destination": "/api/sitemap-static.xml" },
-
     { "source": "/sitemap-coins.xml", "destination": "/api/sitemap-coins.xml" },
-
     { "source": "/blog/:id", "destination": "/api/blog/:id" },
-
     { "source": "/news/:id", "destination": "/api/news/:id" },
-
     { "source": "/coin/:id", "destination": "/api/coin/:id" },
-
     {
-
       "source": "/backend/:path*",
-
       "destination": "https://camify.fun.coinsclarity.com/:path*"
-
     },
-
     { "source": "/(.*)", "destination": "/index.html" }
-
   ],
-
   "functions": {
-
     "api/**/*.js": {
-
       "memory": 128,
-
       "maxDuration": 10
-
     }
-
   }
-
 }
-
-

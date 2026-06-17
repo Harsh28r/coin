@@ -1,4 +1,4 @@
-const { SITE, STATIC_ROUTES, COMPARE_SLUGS, xmlUrl, xmlSitemap } = require('./_seo');
+const { SITE, STATIC_ROUTES, COMPARE_SLUGS, xmlUrl, xmlSitemap } = require('../lib/seo');
 
 module.exports = async function handler(req, res) {
   const today = new Date().toISOString().slice(0, 10);
