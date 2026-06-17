@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Container } from 'react-bootstrap';
 import { ChevronDown, ChevronUp, HelpCircle } from 'lucide-react';
 import { Helmet } from 'react-helmet-async';
+import JsonLd from '../Components/JsonLd';
+import { faqPage } from '../utils/jsonLd';
 import Navbar from '../Components/navbar';
 import Footer from '../Components/footer';
 
@@ -135,19 +137,8 @@ const FAQ: React.FC = () => {
         <meta property="og:url" content={`${window.location.origin}/faq`} />
         <meta name="keywords" content="FAQ, frequently asked questions, crypto news help, CoinsClarity help" />
         <meta name="robots" content="index, follow" />
-        <script type="application/ld+json">{JSON.stringify({
-          "@context": "https://schema.org",
-          "@type": "FAQPage",
-          "mainEntity": faqData.slice(0, 5).map(item => ({
-            "@type": "Question",
-            "name": item.question,
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": item.answer
-            }
-          }))
-        })}</script>
       </Helmet>
+      <JsonLd data={faqPage(faqData)} />
       <Navbar />
       <div className="faq-page" style={{ backgroundColor: '#111827', minHeight: '100vh', paddingTop: '100px', color: '#ffffff' }}>
         <Container style={{ maxWidth: '900px', padding: '40px 20px', color: '#ffffff' }}>

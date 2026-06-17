@@ -3,6 +3,8 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { Container, Button } from 'react-bootstrap';
 import { ArrowLeft, Calendar, Gift } from 'lucide-react';
 import { Helmet } from 'react-helmet-async';
+import JsonLd from '../Components/JsonLd';
+import { breadcrumbList, webPage, SITE_URL } from '../utils/jsonLd';
 import CoinsNavbar from '../Components/navbar';
 import Footer from '../Components/footer';
 import type { AirdropItem } from '../Components/AirdropSection';
@@ -144,12 +146,28 @@ const AirdropDetail: React.FC = () => {
       <Helmet>
         <title>{displayItem.title} | Airdrop | CoinsClarity</title>
         <meta name="description" content={(displayItem.description || displayItem.title).slice(0, 160)} />
-        <link rel="canonical" href={window.location.href} />
+        <link rel="canonical" href={`${SITE_URL}/airdrop/${encodeURIComponent(displayItem.guid)}`} />
         <meta property="og:title" content={`${displayItem.title} | CoinsClarity`} />
         <meta property="og:description" content={displayItem.description?.slice(0, 200) || displayItem.title} />
         <meta property="og:image" content={imageUrl} />
-        <meta property="og:url" content={window.location.href} />
+        <meta property="og:url" content={`${SITE_URL}/airdrop/${encodeURIComponent(displayItem.guid)}`} />
+        <meta property="og:type" content="article" />
       </Helmet>
+      <JsonLd
+        data={[
+          webPage({
+            name: displayItem.title,
+            description: (displayItem.description || displayItem.title).slice(0, 200),
+            url: `${SITE_URL}/airdrop/${encodeURIComponent(displayItem.guid)}`,
+            type: 'Article',
+          }),
+          breadcrumbList([
+            { name: 'Home', url: SITE_URL },
+            { name: 'Airdrops', url: `${SITE_URL}/` },
+            { name: displayItem.title, url: `${SITE_URL}/airdrop/${encodeURIComponent(displayItem.guid)}` },
+          ]),
+        ]}
+      />
       <Container className="py-4">
         <button
           type="button"

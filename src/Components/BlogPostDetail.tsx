@@ -2,6 +2,8 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { ArrowLeft, Calendar, Clock, Heart, Bookmark, Share2, Twitter, Send, Copy } from 'lucide-react';
 import { Helmet } from 'react-helmet-async';
+import JsonLd from './JsonLd';
+import { blogPosting, breadcrumbList, SITE_URL } from '../utils/jsonLd';
 import { useBlog } from '../context/BlogContext';
 import { format } from 'date-fns';
 import { resolveImageSrc, handleImageError } from '../utils/cryptoImages';
@@ -169,6 +171,7 @@ const BlogPostDetail: React.FC = () => {
       <Helmet>
         <title>{post.title} | CoinsClarity</title>
         <meta name="description" content={(post.excerpt || stripTags(post.content)).slice(0, 160)} />
+        <meta name="robots" content="index, follow, max-image-preview:large" />
         <link rel="canonical" href={`https://coinsclarity.com${getBlogUrl(post)}`} />
         <meta property="og:title" content={post.title} />
         <meta property="og:description" content={(post.excerpt || stripTags(post.content)).slice(0, 200)} />
@@ -183,27 +186,25 @@ const BlogPostDetail: React.FC = () => {
         <meta name="twitter:title" content={post.title} />
         <meta name="twitter:description" content={(post.excerpt || stripTags(post.content)).slice(0, 200)} />
         <meta name="twitter:image" content={resolveImageSrc(post.imageUrl, post.title, 'blog')} />
-        {/* Schema.org Article JSON-LD for richer Google snippets */}
-        <script type="application/ld+json">
-          {JSON.stringify({
-            '@context': 'https://schema.org',
-            '@type': 'NewsArticle',
+      </Helmet>
+      <JsonLd
+        data={[
+          blogPosting({
             headline: post.title,
             description: (post.excerpt || stripTags(post.content)).slice(0, 200),
-            image: [resolveImageSrc(post.imageUrl, post.title, 'blog')],
+            url: `${SITE_URL}${getBlogUrl(post)}`,
+            image: resolveImageSrc(post.imageUrl, post.title, 'blog'),
             datePublished: new Date(post.date).toISOString(),
-            dateModified: new Date(post.date).toISOString(),
-            author: { '@type': 'Person', name: post.author },
-            publisher: {
-              '@type': 'Organization',
-              name: 'CoinsClarity',
-              logo: { '@type': 'ImageObject', url: 'https://coinsclarity.com/logo192.png' },
-            },
-            mainEntityOfPage: `https://coinsclarity.com${getBlogUrl(post)}`,
+            author: post.author,
             keywords: (post.tags || []).join(', '),
-          })}
-        </script>
-      </Helmet>
+          }),
+          breadcrumbList([
+            { name: 'Home', url: SITE_URL },
+            { name: 'Blog', url: `${SITE_URL}/blog` },
+            { name: post.title, url: `${SITE_URL}${getBlogUrl(post)}` },
+          ]),
+        ]}
+      />
 
       <div className="bd-container">
         <button className="bd-back" onClick={() => navigate('/blog')}>

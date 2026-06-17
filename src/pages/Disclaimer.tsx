@@ -28,26 +28,6 @@ const Disclaimer: React.FC = () => {
         {/* Additional SEO */}
         <meta name="keywords" content="crypto disclaimer, cryptocurrency disclaimer, not financial advice, DYOR, crypto risk warning, investment disclaimer" />
         <meta name="robots" content="index, follow" />
-        
-        {/* Structured Data */}
-        <script type="application/ld+json">{JSON.stringify({
-          "@context": "https://schema.org",
-          "@type": "WebPage",
-          "name": "Disclaimer - CoinsClarity",
-          "description": "Legal disclaimer for CoinsClarity cryptocurrency news and information platform. Important information about content usage, financial advice, and investment risks.",
-          "url": `${window.location.origin}/disclaimer`,
-          "datePublished": "2024-12-17",
-          "dateModified": "2024-12-17",
-          "publisher": {
-            "@type": "Organization",
-            "name": "CoinsClarity",
-            "url": "https://coinsclarity.com",
-            "logo": {
-              "@type": "ImageObject",
-              "url": "https://coinsclarity.com/logo3.png"
-            }
-          }
-        })}</script>
       </Helmet>
       <Navbar />
       <div style={{ backgroundColor: '#ffffff', minHeight: '100vh', paddingTop: '100px', color: '#1f2937' }}>

@@ -67,26 +67,6 @@ const ArbitrageCheckerPage: React.FC = () => {
         {/* Additional SEO */}
         <meta name="keywords" content="triangular arbitrage, crypto arbitrage calculator, bitcoin arbitrage, ethereum arbitrage, crypto trading tool, arbitrage opportunity finder, defi arbitrage" />
         <meta name="robots" content="index, follow" />
-        
-        {/* Structured Data */}
-        <script type="application/ld+json">{JSON.stringify({
-          "@context": "https://schema.org",
-          "@type": "WebApplication",
-          "name": "Triangular Arbitrage Calculator",
-          "description": "Free triangular arbitrage calculator for cryptocurrency trading. Find profit opportunities across BTC, ETH, USDT and more token pairs.",
-          "url": `${window.location.origin}/arbitrage`,
-          "applicationCategory": "FinanceApplication",
-          "operatingSystem": "Web Browser",
-          "offers": {
-            "@type": "Offer",
-            "price": "0",
-            "priceCurrency": "USD"
-          },
-          "publisher": {
-            "@type": "Organization",
-            "name": "CoinsClarity"
-          }
-        })}</script>
       </Helmet>
       <CoinsNavbar />
       <div style={{ backgroundColor: '#111827', minHeight: '100vh', paddingTop: '100px', paddingBottom: '60px' }}>

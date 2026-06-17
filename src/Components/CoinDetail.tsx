@@ -12,6 +12,8 @@ import {
   MessageCircle,
 } from 'lucide-react';
 import { Helmet } from 'react-helmet-async';
+import JsonLd from './JsonLd';
+import { breadcrumbList, financialProduct, SITE_URL } from '../utils/jsonLd';
 import { useCurrency } from '../context/CurrencyContext';
 import WatchlistButton from './WatchlistButton';
 import { resolveImageSrc, handleImageError } from '../utils/cryptoImages';
@@ -588,7 +590,26 @@ const CoinDetail: React.FC = () => {
           name="description"
           content={`Live ${String(coin.name || coinId || 'crypto')} (${String(coin.symbol || '').toUpperCase()}) price, chart and market data on CoinsClarity.`}
         />
+        <link rel="canonical" href={`${SITE_URL}/coin/${coinId}`} />
+        <meta name="robots" content="index, follow, max-image-preview:large" />
       </Helmet>
+      <JsonLd
+        data={[
+          financialProduct({
+            name: String(coin.name || coinId),
+            symbol: String(coin.symbol || '').toUpperCase(),
+            url: `${SITE_URL}/coin/${coinId}`,
+            description: `Live ${coin.name} (${String(coin.symbol || '').toUpperCase()}) price, market cap, chart, and trading data.`,
+            price: price,
+            priceCurrency: cur.toUpperCase(),
+          }),
+          breadcrumbList([
+            { name: 'Home', url: SITE_URL },
+            { name: 'Markets', url: `${SITE_URL}/` },
+            { name: String(coin.name), url: `${SITE_URL}/coin/${coinId}` },
+          ]),
+        ]}
+      />
 
       <div className="cd-topbar">
         <div className="cd-container cd-topbar__inner">

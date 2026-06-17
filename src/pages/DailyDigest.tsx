@@ -55,6 +55,7 @@ const DailyDigestArchive: React.FC = () => {
           name="description"
           content="Past crypto daily digests: three top stories, one place. Separate from long-form blog."
         />
+        <meta name="robots" content="index, follow" />
         <link rel="canonical" href={`${window.location.origin}/daily-digest`} />
       </Helmet>
       <CoinsNavbar />

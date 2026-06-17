@@ -34,19 +34,6 @@ const Contact: React.FC = () => {
         <meta property="og:url" content={`${window.location.origin}/contact`} />
         <meta name="keywords" content="contact CoinsClarity, crypto news contact, advertising crypto, press release submission" />
         <meta name="robots" content="index, follow" />
-        <script type="application/ld+json">{JSON.stringify({
-          "@context": "https://schema.org",
-          "@type": "ContactPage",
-          "name": "Contact CoinsClarity",
-          "url": `${window.location.origin}/contact`,
-          "description": "Contact information for CoinsClarity cryptocurrency news platform",
-          "mainEntity": {
-            "@type": "Organization",
-            "name": "CoinsClarity",
-            "email": "harshgupta0028@gmail.com",
-            "url": "https://coinsclarity.com"
-          }
-        })}</script>
       </Helmet>
       <Navbar />
       <div style={{ backgroundColor: '#111827', minHeight: '100vh', paddingTop: '100px', color: '#ffffff' }}>

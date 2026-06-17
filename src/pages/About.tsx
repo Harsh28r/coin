@@ -18,18 +18,6 @@ const About: React.FC = () => {
         <meta property="og:url" content={`${window.location.origin}/about`} />
         <meta name="keywords" content="about CoinsClarity, crypto news platform, cryptocurrency journalism, blockchain news" />
         <meta name="robots" content="index, follow" />
-        <script type="application/ld+json">{JSON.stringify({
-          "@context": "https://schema.org",
-          "@type": "AboutPage",
-          "name": "About CoinsClarity",
-          "description": "CoinsClarity is a comprehensive cryptocurrency news and information platform committed to bringing clarity to the crypto world.",
-          "url": `${window.location.origin}/about`,
-          "publisher": {
-            "@type": "Organization",
-            "name": "CoinsClarity",
-            "url": "https://coinsclarity.com"
-          }
-        })}</script>
       </Helmet>
       <Navbar />
       <div style={{ backgroundColor: '#111827', minHeight: '100vh', paddingTop: '100px', color: '#ffffff' }}>

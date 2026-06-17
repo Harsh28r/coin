@@ -147,16 +147,6 @@ const Listings: React.FC = () => {
         <link rel="alternate" hrefLang="ja" href={`${window.location.origin}/listings`} />
         <link rel="alternate" hrefLang="ko" href={`${window.location.origin}/listings`} />
         <link rel="alternate" hrefLang="ar" href={`${window.location.origin}/listings`} />
-        {/* Structured data: CollectionPage */}
-        <script type="application/ld+json">
-          {JSON.stringify({
-            '@context': 'https://schema.org',
-            '@type': 'CollectionPage',
-            name: 'Crypto Exchange Listings & New Token Pairs',
-            url: `${window.location.origin}/listings`,
-            description: 'Latest crypto exchange listings and new token pairs updated daily.'
-          })}
-        </script>
       </Helmet>
       <h1 className="mb-4 text-center" style={{ 
         fontSize: '2.5rem', 

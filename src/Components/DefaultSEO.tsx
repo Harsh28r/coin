@@ -1,6 +1,8 @@
 import React, { useMemo } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useLocation } from 'react-router-dom';
+import JsonLd from './JsonLd';
+import { getJsonLdForRoute } from '../utils/routeJsonLd';
 
 const DefaultSEO: React.FC = () => {
   const location = useLocation();
@@ -74,8 +76,11 @@ const DefaultSEO: React.FC = () => {
   }, [location.pathname]);
 
   const GA_ID = process.env.REACT_APP_GA_ID;
+  const jsonLd = useMemo(() => getJsonLdForRoute(location.pathname), [location.pathname]);
 
   return (
+    <>
+    {jsonLd.length > 0 && <JsonLd data={jsonLd} />}
     <Helmet>
       <title>{title}</title>
       <meta name="description" content={description} />
@@ -105,6 +110,7 @@ const DefaultSEO: React.FC = () => {
         </>
       )}
     </Helmet>
+    </>
   );
 };
 

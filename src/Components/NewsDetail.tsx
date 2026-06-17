@@ -19,6 +19,8 @@ import {
   AArrowUp,
 } from 'lucide-react';
 import { Helmet } from 'react-helmet-async';
+import JsonLd from './JsonLd';
+import { newsArticle, breadcrumbList } from '../utils/jsonLd';
 import { resolveImageSrc, isFakeImageUrl, handleImageError } from '../utils/cryptoImages';
 import { summarize } from '../utils/summarize';
 import { defaultPublicBackend } from '../utils/rssBackendBases';
@@ -954,27 +956,33 @@ const NewsDetail: React.FC = () => {
         <meta name="twitter:title" content={newsItem.title} />
         <meta name="twitter:description" content={cleanDesc || newsItem.title} />
         <meta name="twitter:image" content={newsItem.image_url} />
-        <script type="application/ld+json">{JSON.stringify({
-          '@context': 'https://schema.org',
-          '@type': 'NewsArticle',
-          headline: newsItem.title,
-          description: newsItem.description || newsItem.title,
-          image: [newsItem.image_url || `${window.location.origin}/logo3.png`].filter(Boolean),
-          author: { '@type': 'Organization', name: BRAND_DISPLAY_NAME },
-          datePublished: newsItem.pubDate || new Date().toISOString(),
-          dateModified: newsItem.pubDate || new Date().toISOString(),
-          mainEntityOfPage: { '@type': 'WebPage', '@id': window.location.href },
-          publisher: {
-            '@type': 'Organization', name: 'CoinsClarity',
-            logo: { '@type': 'ImageObject', url: `${window.location.origin}/logo3.png`, width: 512, height: 512 },
-            url: 'https://coinsclarity.com',
-          },
-          articleSection: (Array.isArray(newsItem.category) ? newsItem.category[0] : newsItem.category) || 'Cryptocurrency',
-          keywords: (Array.isArray(newsItem.keywords) ? newsItem.keywords.join(', ') : newsItem.keywords) || 'cryptocurrency, bitcoin, ethereum, crypto news',
-          articleBody: newsItem.content || newsItem.description || '',
-          wordCount: newsItem.content ? newsItem.content.split(/\s+/).length : 0,
-        })}</script>
       </Helmet>
+      <JsonLd
+        data={[
+          newsArticle({
+            headline: newsItem.title,
+            description: cleanDesc || newsItem.title,
+            url: newsItem.link || window.location.href,
+            image: newsItem.image_url,
+            datePublished: newsItem.pubDate || undefined,
+            dateModified: newsItem.pubDate || undefined,
+            section:
+              (Array.isArray(newsItem.category) ? newsItem.category[0] : newsItem.category) ||
+              'Cryptocurrency',
+            keywords:
+              (Array.isArray(newsItem.keywords)
+                ? newsItem.keywords.join(', ')
+                : newsItem.keywords) || 'cryptocurrency, bitcoin, ethereum, crypto news',
+            articleBody: newsItem.content || newsItem.description || '',
+            wordCount: newsItem.content ? newsItem.content.split(/\s+/).length : 0,
+          }),
+          breadcrumbList([
+            { name: 'Home', url: 'https://coinsclarity.com' },
+            { name: 'News', url: 'https://coinsclarity.com/All-Trending-news' },
+            { name: newsItem.title, url: window.location.href },
+          ]),
+        ]}
+      />
 
       <div className="ns-progress"><div className="ns-progress__bar" style={{ width: `${progress}%` }} /></div>
 

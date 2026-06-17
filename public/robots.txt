@@ -1,23 +1,29 @@
 User-agent: *
 Allow: /
+Allow: /blog
+Allow: /blog/*
+Allow: /daily-digest
+Allow: /trending-desk
+Allow: /coin/
+Allow: /coin/*
 Allow: /tools
-Allow: /tools/fear-greed
-Allow: /tools/gas
-Allow: /tools/scam-check
-Allow: /tools/unlocks
+Allow: /tools/*
 Allow: /compare
 Allow: /compare/*
 Disallow: /news/
 Disallow: /ai-news
 Disallow: /exclusive-news
-Disallow: /press-releases
+Disallow: /All-exclusive-news
+Disallow: /All-Trending-news
+Disallow: /press-news
 Disallow: /search
 Disallow: /admin
+Disallow: /main-dashboard
 Disallow: /api/
 
-# Allow Google AdSense crawler everywhere so it can serve ads on permitted pages
 User-agent: Mediapartners-Google
 Allow: /
 
 Sitemap: https://coinsclarity.com/sitemap.xml
-Sitemap: https://c-back-seven.vercel.app/sitemap-blog.xml
+Sitemap: https://coinsclarity.com/sitemap-coins.xml
+Sitemap: https://camify.fun.coinsclarity.com/sitemap-blog.xml

@@ -55,6 +55,7 @@ const TrendingDeskArchive: React.FC = () => {
           name="description"
           content="Long-form market columns on what's trending, with wire context. Separate from the three-story digest."
         />
+        <meta name="robots" content="index, follow" />
         <link rel="canonical" href={`${window.location.origin}/trending-desk`} />
       </Helmet>
       <CoinsNavbar />
