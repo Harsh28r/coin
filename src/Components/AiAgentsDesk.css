@@ -1,0 +1,159 @@
+.aad {
+  padding: 2.75rem 1.25rem 2.5rem;
+  background: linear-gradient(180deg, rgba(232, 93, 44, 0.05) 0%, transparent 55%);
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+.aad-inner {
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+.aad-head {
+  text-align: center;
+  margin-bottom: 1.75rem;
+}
+
+.aad-title {
+  margin: 0 0 0.4rem;
+  font-size: clamp(1.4rem, 2.6vw, 1.75rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--text, #0f172a);
+}
+
+.aad-sub {
+  margin: 0 auto 0.75rem;
+  max-width: 38rem;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: var(--muted, #64748b);
+}
+
+.aad-all {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #e85d2c;
+  text-decoration: none;
+}
+
+.aad-all:hover {
+  text-decoration: underline;
+}
+
+.aad-muted {
+  text-align: center;
+  color: #64748b;
+}
+
+.aad-grid {
+  display: grid;
+  gap: 1.15rem;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 720px) {
+  .aad-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (min-width: 1100px) {
+  .aad-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.aad-card {
+  background: var(--surface, #fff);
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  border-radius: 14px;
+  padding: 1rem;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
+.aad-desk {
+  display: inline-block;
+  align-self: flex-start;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  padding: 0.25rem 0.5rem;
+  border-radius: 5px;
+  margin-bottom: 0.35rem;
+}
+
+.aad-card--markets .aad-desk {
+  color: #0c4a6e;
+  background: rgba(14, 165, 233, 0.15);
+}
+
+.aad-card--geopolitics .aad-desk {
+  color: #7f1d1d;
+  background: rgba(239, 68, 68, 0.14);
+}
+
+.aad-card--india .aad-desk {
+  color: #854d0e;
+  background: rgba(234, 179, 8, 0.18);
+}
+
+.aad-card--onchain .aad-desk {
+  color: #14532d;
+  background: rgba(34, 197, 94, 0.15);
+}
+
+.aad-byline {
+  font-size: 0.75rem;
+  color: #64748b;
+  margin-bottom: 0.65rem;
+}
+
+.aad-link {
+  text-decoration: none;
+  color: inherit;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.aad-img {
+  aspect-ratio: 16 / 10;
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 0.7rem;
+  background: #e2e8f0;
+}
+
+.aad-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.aad-card-title {
+  margin: 0 0 0.4rem;
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: -0.02em;
+  color: #0f172a;
+}
+
+.aad-dek {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.45;
+  color: #64748b;
+}
+
+.aad-empty {
+  margin: 0.5rem 0 0;
+  font-size: 0.85rem;
+  color: #94a3b8;
+  line-height: 1.4;
+}

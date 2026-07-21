@@ -65,7 +65,8 @@ const LandingEditorialStrip: React.FC = () => {
         <header className="les-head">
           <h2 className="les-title">On the desk today</h2>
           <p className="les-sub">
-            Brief at noon IST, then a deeper read on what&apos;s trending half an hour later.
+            Brief at noon IST, trending desk half an hour later, plus{' '}
+            <Link to="/ai-agents">AI Agents</Link> filing every 3 hours off trending keywords.
           </p>
         </header>
 

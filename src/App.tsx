@@ -54,6 +54,7 @@ import TokenUnlocksPage from './pages/tools/TokenUnlocks';
 import NewsletterModal from './Components/NewsletterModal';
 import DailyDigestArchive from './pages/DailyDigest';
 import TrendingDeskArchive from './pages/TrendingDesk';
+import AiAgentsArchive from './pages/AiAgents';
 
 
 const ScrollToTop: React.FC = () => {
@@ -91,6 +92,7 @@ function App() {
                   <Route path="/" element={<LandingPage />} />
                   <Route path="/daily-digest" element={<DailyDigestArchive />} />
                   <Route path="/trending-desk" element={<TrendingDeskArchive />} />
+                  <Route path="/ai-agents" element={<AiAgentsArchive />} />
                   <Route path="/blog/:id" element={<BlogPostDetail />} />
                   <Route path="/blog" element={<BlogHome />} />
                   <Route path="/learn" element={<Learn />} />

@@ -91,11 +91,12 @@
   display: block;
 }
 
-.dd-card__body {
-  padding: 1rem 1.1rem 1.25rem;
-  display: flex;
-  flex-direction: column;
-  flex: 1;
+.dd-card__meta {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #64748b;
+  margin-bottom: 0.35rem;
+  letter-spacing: 0.02em;
 }
 
 .dd-card__title {

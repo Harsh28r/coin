@@ -2,6 +2,7 @@ import React from 'react';
 import { Newspaper } from 'lucide-react';
 import CoinsNavbar from '../Components/navbar'
 import EditorialHero from '../Components/EditorialHero'
+import AiAgentsCarousel from '../Components/AiAgentsCarousel'
 import ExclusiveNews from '../Components/ExclusiveNews'
 import MarketPriceAndNews from '../Components/market'
 import TrendingCoins from '../Components/TrendingCoins'
@@ -15,6 +16,7 @@ import { Helmet } from 'react-helmet-async';
 import { ScrollingStats } from '../Components/scroll'
 import NewsListing from '../Components/Listings';
 import AINews from '../Components/AINews';
+import AiAgentsDesk from '../Components/AiAgentsDesk';
 import ArbitrageDashboard from './ArbitrageDashboard';
 import CryptoBreakingBanner from '../Components/CryptoBreakingBanner';
 import NewsletterCTA from '../Components/NewsletterCTA';
@@ -57,6 +59,9 @@ const LandingPage: React.FC = () => {
         {/* Hero — editorial magazine layout */}
         <EditorialHero />
 
+        {/* AI agents carousel — trending keyword filings */}
+        <AiAgentsCarousel />
+
         {/* Advertisement Space */}
         <div style={{ maxWidth: 1280, margin: '0 auto', padding: '0 20px' }}>
           <AdSenseSlot placement="landing-a" size="leaderboard" lazy />
@@ -87,7 +92,10 @@ const LandingPage: React.FC = () => {
         {/* Free tools — bento strip */}
         <LandingToolsShowcase />
 
-        {/* AI News */}
+        {/* AI Agents desks (middle) */}
+        <AiAgentsDesk />
+
+        {/* AI News (RSS / MIT AI feeds) */}
         <AINews />
 
         {/* Trending Coins */}
