@@ -85,7 +85,6 @@ const buildSvg = (title: string, type: ImageType, w: number, h: number): string 
   <g transform="translate(${w - 96} ${h - 96})" opacity="0.18" fill="none" stroke="${accent}" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
     <path d="${glyph}"/>
   </g>
-  <text x="32" y="40" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif" font-size="13" font-weight="700" letter-spacing="2" fill="${accent}">COINSCLARITY</text>
   ${lines
     .map(
       (line, i) =>
