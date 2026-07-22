@@ -83,7 +83,7 @@ export async function listPriceOutlooks(limit = 40): Promise<PriceOutlookPost[]>
           params: { tag: 'price-outlook', limit },
           timeout: 20000,
         });
-        const payload = res.data;
+        const payload: any = res.data;
         const list = Array.isArray(payload)
           ? payload
           : Array.isArray(payload?.data)
