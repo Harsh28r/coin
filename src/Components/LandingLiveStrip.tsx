@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Radio } from 'lucide-react';
 import { listLiveThreads, type LiveThread } from '../services/liveApi';
 import './LandingLiveStrip.css';
 
