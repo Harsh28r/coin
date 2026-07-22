@@ -55,7 +55,14 @@ const CoinpediaPartner: React.FC<{ limit?: number; compact?: boolean }> = ({
           const b = base.replace(/\/$/, '');
           const q = `fetch-coinpedia-rss?limit=${limit}`;
           for (const url of [`${b}/${q}`, `${b}/api/${q}`, joinBackendPath(base, `/${q}`)]) {
-            const r = await fetch(url, { credentials: 'omit', mode: 'cors' });
+            const ctrl = new AbortController();
+            const t = setTimeout(() => ctrl.abort(), 6000);
+            let r: Response;
+            try {
+              r = await fetch(url, { credentials: 'omit', mode: 'cors', signal: ctrl.signal });
+            } finally {
+              clearTimeout(t);
+            }
             if (!r.ok) continue;
             const j = await r.json();
             const list = Array.isArray(j?.data) ? j.data : [];
@@ -78,7 +85,14 @@ const CoinpediaPartner: React.FC<{ limit?: number; compact?: boolean }> = ({
 
   const openArticle = (item: PartnerItem) => {
     const targetId = item.article_id || encodeURIComponent(item.title);
-    // Same shape NewsDetail expects from ExclusiveNews
+    const body = item.content || item.description || '';
+    const bodyHtml = body.includes('<')
+      ? body
+      : body
+          .split(/\n{2,}/)
+          .map((p) => `<p>${p.trim()}</p>`)
+          .filter((p) => p !== '<p></p>')
+          .join('') || `<p>${body}</p>`;
     navigate(`/news/${targetId}`, {
       state: {
         item: {
@@ -86,6 +100,10 @@ const CoinpediaPartner: React.FC<{ limit?: number; compact?: boolean }> = ({
           source_name: 'Coinpedia',
           creator: item.creator?.length ? item.creator : ['Coinpedia'],
           partner: 'coinpedia',
+          content: body,
+          fullContent: bodyHtml,
+          contentHtml: bodyHtml,
+          description: item.description || body,
         },
       },
     });

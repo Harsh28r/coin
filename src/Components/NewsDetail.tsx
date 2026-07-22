@@ -23,7 +23,7 @@ import JsonLd from './JsonLd';
 import { newsArticle, breadcrumbList } from '../utils/jsonLd';
 import { resolveImageSrc, isFakeImageUrl, handleImageError } from '../utils/cryptoImages';
 import { summarize } from '../utils/summarize';
-import { defaultPublicBackend } from '../utils/rssBackendBases';
+import { buildRssBackendBases, defaultPublicBackend } from '../utils/rssBackendBases';
 import { postNewsletterSubscribe } from '../utils/newsletterSubscribe';
 import NewsArticleComments from './NewsArticleComments';
 import './NewsDetail.css';
@@ -39,6 +39,7 @@ interface NewsItem {
   content: string;
   fullContent?: string;
   contentHtml?: string;
+  fullContentFetched?: boolean;
   source_name: string;
   keywords?: string[];
   category?: string[];
@@ -267,25 +268,41 @@ const NewsDetail: React.FC = () => {
     if (!articleUrl || articleUrl === '#') return null;
     const tryBackend = async (base: string) => {
       try {
-        const r = await fetch(`${base}/fetch-full-article?url=${encodeURIComponent(articleUrl)}`, {
-          signal: AbortSignal.timeout(12000),
-        });
-        if (!r.ok) return null;
-        const d = await r.json();
-        if (d.success && d.data) {
-          const txt = d.data.content || '';
-          const htm = d.data.contentHtml || txt;
-          if (txt.length > 300 || htm.length > 300) return { content: txt, contentHtml: htm };
+        const paths = [
+          `${base.replace(/\/$/, '')}/fetch-full-article?url=${encodeURIComponent(articleUrl)}`,
+          `${base.replace(/\/$/, '')}/api/fetch-full-article?url=${encodeURIComponent(articleUrl)}`,
+        ];
+        for (const u of paths) {
+          try {
+            const r = await fetch(u, { signal: AbortSignal.timeout(10000) });
+            if (!r.ok) continue;
+            const d = await r.json();
+            if (d.success && d.data) {
+              const txt = d.data.content || '';
+              const htm = d.data.contentHtml || txt;
+              if (txt.length > 300 || htm.length > 300) return { content: txt, contentHtml: htm };
+            }
+          } catch {
+            /* next path */
+          }
         }
       } catch {}
       return null;
     };
     const rejectIfEmpty = (p: Promise<{ content: string; contentHtml: string } | null>) =>
-      p.then(r => (r && (r.content.length > 300 || r.contentHtml.length > 300) ? r : Promise.reject('empty')));
+      p.then(r =>
+        r &&
+        (r.content.length > 300 || r.contentHtml.length > 300) &&
+        !looksLikeTruncatedExcerpt(r.content || r.contentHtml)
+          ? r
+          : Promise.reject('empty-or-truncated'),
+      );
     try {
+      const backendAttempts = buildRssBackendBases(API_BASE_URL).map(base =>
+        rejectIfEmpty(tryBackend(base)),
+      );
       return await Promise.any([
-        rejectIfEmpty(tryBackend(API_BASE_URL)),
-        rejectIfEmpty(tryBackend(CAMIFY)),
+        ...backendAttempts,
         rejectIfEmpty(extractArticleClientSide(articleUrl).then(r => (r ? r : Promise.reject('empty')))),
       ]);
     } catch {
@@ -391,16 +408,38 @@ const NewsDetail: React.FC = () => {
       .length;
   };
 
-  // Only do the slow scrape if RSS content is genuinely thin.
-  // Most RSS feeds give 600–1500 chars which is readable; we skip the round-trip then.
+  const plainText = (html?: string): string =>
+    (html || '')
+      .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+      .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+      .replace(/<[^>]+>/g, ' ')
+      .replace(/&nbsp;/gi, ' ')
+      .replace(/&hellip;/gi, '…')
+      .replace(/&amp;/gi, '&')
+      .replace(/\s+/g, ' ')
+      .trim();
+
+  const looksLikeTruncatedExcerpt = (html?: string): boolean => {
+    const text = plainText(html);
+    return (
+      /(?:\.{3,}|…)\s*$/.test(text) ||
+      /\b(?:continue reading|read (?:the )?full (?:article|story)|read more)\s*\.?\s*$/i.test(text)
+    );
+  };
+
+  const stripFeedPreamble = (value?: string): string =>
+    (value || '')
+      .replace(
+        /^\s*The post[\s\S]{0,400}?\s+appeared first on\s+Coinpedia(?:\s+Fintech News)?[\s:–—-]*/i,
+        '',
+      )
+      .trim();
+
+  // RSS feeds can truncate at any length, so verify every source article once.
   const needsFullFetch = (item: NewsItem | null): boolean => {
     if (!item || !item.link || item.link === '#') return false;
-    const haveText = Math.max(
-      textLength(item.contentHtml),
-      textLength(item.fullContent),
-      textLength(item.content),
-    );
-    return haveText < 900;
+    const body = item.contentHtml || item.fullContent || item.content || item.description || '';
+    return !item.fullContentFetched || looksLikeTruncatedExcerpt(body);
   };
 
   const mergeFullContent = (
@@ -409,20 +448,19 @@ const NewsDetail: React.FC = () => {
   ) => {
     setNewsItem(prev => {
       if (!prev) return prev;
-      // Don't downgrade — only swap if the fetched body is meaningfully bigger.
-      const existingText = Math.max(
-        textLength(prev.contentHtml),
-        textLength(prev.fullContent),
-        textLength(prev.content),
-      );
       const newText = Math.max(textLength(full.contentHtml), full.content.length);
-      if (newText < existingText * 1.4) return prev;
+      const currentBody = prev.contentHtml || prev.fullContent || prev.content || prev.description || '';
+      const currentText = textLength(currentBody);
+      if (
+        newText < 200 ||
+        looksLikeTruncatedExcerpt(full.content || full.contentHtml) ||
+        (!looksLikeTruncatedExcerpt(currentBody) && newText <= currentText)
+      ) return prev;
       const updated = { ...prev };
-      if (full.content.length > (updated.content?.length || 0)) {
-        updated.content = full.content;
-      }
+      updated.content = full.content;
       updated.fullContent = full.contentHtml;
       updated.contentHtml = full.contentHtml;
+      updated.fullContentFetched = true;
       writeCache(cacheKey, updated);
       return updated;
     });
@@ -435,13 +473,20 @@ const NewsDetail: React.FC = () => {
     const backgroundEnrich = (item: NewsItem) => {
       if (!needsFullFetch(item)) return;
       if (!cancelled) setBgEnriching(true);
+      // Hard cap — never leave "Loading full article…" forever if scrape hangs/404s
+      const hardStop = window.setTimeout(() => {
+        if (!cancelled) setBgEnriching(false);
+      }, 10000);
       fetchFullContent(item.link)
         .then(full => {
           if (!full || cancelled || !id) return;
           mergeFullContent(id, full);
         })
         .catch(() => {})
-        .finally(() => { if (!cancelled) setBgEnriching(false); });
+        .finally(() => {
+          window.clearTimeout(hardStop);
+          if (!cancelled) setBgEnriching(false);
+        });
     };
 
     const run = async () => {
@@ -852,7 +897,7 @@ const NewsDetail: React.FC = () => {
   }, [newsItem?.image_url, newsItem?.contentHtml, newsItem?.fullContent, newsItem?.content]);
 
   const getNormalizedContentHtml = (htmlOrText?: string): string => {
-    const raw = stripAppearedFirstOn((htmlOrText || '').trim());
+    const raw = stripFeedPreamble(stripAppearedFirstOn((htmlOrText || '').trim()));
     if (!raw) return '';
     const looksLikeHtml = /<[^>]+>/.test(raw);
     // Always pass the *resolved* hero (including the one we promoted from body)
@@ -1111,8 +1156,9 @@ const NewsDetail: React.FC = () => {
             </figure>
 
             {(() => {
-              const bodyForSummary =
-                newsItem.contentHtml || newsItem.fullContent || newsItem.content || newsItem.description || '';
+              const bodyForSummary = stripFeedPreamble(
+                newsItem.contentHtml || newsItem.fullContent || newsItem.content || newsItem.description || '',
+              );
               if (textLength(bodyForSummary) < 300) return null;
               const { bullets } = summarize(bodyForSummary, {
                 maxBullets: 3,
@@ -1136,7 +1182,8 @@ const NewsDetail: React.FC = () => {
               const bodyHtml =
                 newsItem.contentHtml || newsItem.fullContent || newsItem.content || newsItem.description || '';
               const haveText = textLength(bodyHtml);
-              const showBodyShimmer = bgEnriching && haveText < 600;
+              // Only shimmer when we have almost nothing — never block a readable RSS excerpt
+              const showBodyShimmer = bgEnriching && haveText < 180;
               return (
                 <>
                   {haveText > 0 && (

@@ -1,66 +1,71 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Route, Routes, useLocation } from 'react-router-dom';
 import './App.css';
 import './styles/animations.css';
-import LandingPage from './pages/Landing';
-import LoginPage from './pages/LoginPage'
-// import AdminDashboard from './pages/AdminDashboard'
-import AllNews from './Components/Exnews';
-import PresNews from './Components/PressNews';
-import Exn from './Components/Exn';
-import Advertise from './Components/advertise';
-import Trend from './Components/Trend';
-import MainDashboard from './pages/MainAdminDash';
 
+// Infra / providers / always-mounted UI — kept eager (tiny, needed on every route)
 import { AuthProvider } from './context/AuthContext';
 import { BlogProvider } from './context/BlogContext';
 import { LanguageProvider } from './context/LanguageContext';
 import { CurrencyProvider } from './context/CurrencyContext';
 import { WatchlistProvider } from './context/WatchlistContext';
-import Watchlist from './Components/Watchlist';
-import SearchPage from './Components/SearchPage';
-import NewsDetail from './Components/NewsDetail';
-import BlogHome from './Components/BlogHome';
-import BlogPostDetail from './Components/BlogPostDetail';
-import Learn from './Components/Learn';
-import InDepthNewsPage from './pages/InDepthNewsPage';
-import EventRadar from './Components/EventRadar';
-import Listing from './Components/Listings';
 import DefaultSEO from './Components/DefaultSEO';
 import AdminGate from './Components/AdminGate';
-import CoinDetail from './Components/CoinDetail';
-import NotFound from './pages/NotFound';
-import AllAINews from './pages/AllAINews';
-import PrivacyPolicy from './pages/PrivacyPolicy';
-import FAQ from './pages/FAQ';
-import About from './pages/About';
-import Contact from './pages/Contact';
-import Terms from './pages/Terms';
-import Disclaimer from './pages/Disclaimer';
 import BackToTop from './Components/BackToTop';
 import ScrollProgress from './Components/ScrollProgress';
 import { Analytics } from '@vercel/analytics/react';
 import useAdSenseControl from './Components/AdSenseControl';
-import ArbitrageChecker from './Components/ArbitrageChecker';
-import CryptoTools from './Components/CryptoTools';
-import ArbitrageDashboard from './pages/ArbitrageDashboard';
-import AirdropDetail from './pages/AirdropDetail';
 import FloatingAIChat from './Components/FloatingAIChat';
-import FearGreedPage from './pages/tools/FearGreed';
-import GasTrackerPage from './pages/tools/GasTracker';
-import ScamCheckPage from './pages/tools/ScamCheck';
-import CompareCoinsPage from './pages/tools/CompareCoins';
-import TokenUnlocksPage from './pages/tools/TokenUnlocks';
 import NewsletterModal from './Components/NewsletterModal';
-import DailyDigestArchive from './pages/DailyDigest';
-import TrendingDeskArchive from './pages/TrendingDesk';
-import AiAgentsArchive from './pages/AiAgents';
-import PredictionsHub from './pages/Predictions';
-import PredictionDetail from './pages/PredictionDetail';
-import LiveHub from './pages/Live';
-import LiveDetail from './pages/LiveDetail';
-import AuthorPage, { AuthorIndex } from './pages/AuthorPage';
-import CoinpediaPartnerPage from './pages/CoinpediaPartnerPage';
+
+// Route components — lazy loaded so each page ships in its own chunk
+const LandingPage = lazy(() => import('./pages/Landing'));
+const LoginPage = lazy(() => import('./pages/LoginPage'));
+const AllNews = lazy(() => import('./Components/Exnews'));
+const PresNews = lazy(() => import('./Components/PressNews'));
+const Exn = lazy(() => import('./Components/Exn'));
+const Advertise = lazy(() => import('./Components/advertise'));
+const Trend = lazy(() => import('./Components/Trend'));
+const MainDashboard = lazy(() => import('./pages/MainAdminDash'));
+const Watchlist = lazy(() => import('./Components/Watchlist'));
+const SearchPage = lazy(() => import('./Components/SearchPage'));
+const NewsDetail = lazy(() => import('./Components/NewsDetail'));
+const BlogHome = lazy(() => import('./Components/BlogHome'));
+const BlogPostDetail = lazy(() => import('./Components/BlogPostDetail'));
+const Learn = lazy(() => import('./Components/Learn'));
+const InDepthNewsPage = lazy(() => import('./pages/InDepthNewsPage'));
+const EventRadar = lazy(() => import('./Components/EventRadar'));
+const Listing = lazy(() => import('./Components/Listings'));
+const CoinDetail = lazy(() => import('./Components/CoinDetail'));
+const NotFound = lazy(() => import('./pages/NotFound'));
+const AllAINews = lazy(() => import('./pages/AllAINews'));
+const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'));
+const FAQ = lazy(() => import('./pages/FAQ'));
+const About = lazy(() => import('./pages/About'));
+const Contact = lazy(() => import('./pages/Contact'));
+const Terms = lazy(() => import('./pages/Terms'));
+const Disclaimer = lazy(() => import('./pages/Disclaimer'));
+const ArbitrageChecker = lazy(() => import('./Components/ArbitrageChecker'));
+const CryptoTools = lazy(() => import('./Components/CryptoTools'));
+const ArbitrageDashboard = lazy(() => import('./pages/ArbitrageDashboard'));
+const AirdropDetail = lazy(() => import('./pages/AirdropDetail'));
+const FearGreedPage = lazy(() => import('./pages/tools/FearGreed'));
+const GasTrackerPage = lazy(() => import('./pages/tools/GasTracker'));
+const ScamCheckPage = lazy(() => import('./pages/tools/ScamCheck'));
+const CompareCoinsPage = lazy(() => import('./pages/tools/CompareCoins'));
+const TokenUnlocksPage = lazy(() => import('./pages/tools/TokenUnlocks'));
+const DailyDigestArchive = lazy(() => import('./pages/DailyDigest'));
+const TrendingDeskArchive = lazy(() => import('./pages/TrendingDesk'));
+const AiAgentsArchive = lazy(() => import('./pages/AiAgents'));
+const PredictionsHub = lazy(() => import('./pages/Predictions'));
+const PredictionDetail = lazy(() => import('./pages/PredictionDetail'));
+const LiveHub = lazy(() => import('./pages/Live'));
+const LiveDetail = lazy(() => import('./pages/LiveDetail'));
+const AuthorPage = lazy(() => import('./pages/AuthorPage'));
+const AuthorIndex = lazy(() =>
+  import('./pages/AuthorPage').then((m) => ({ default: m.AuthorIndex }))
+);
+const CoinpediaPartnerPage = lazy(() => import('./pages/CoinpediaPartnerPage'));
 
 
 const ScrollToTop: React.FC = () => {
@@ -94,6 +99,7 @@ function App() {
                 <BackToTop />
                 <FloatingAIChat />
                 <NewsletterModal />
+                <Suspense fallback={<div className="route-loading" style={{ minHeight: '60vh' }} />}>
                 <Routes>
                   <Route path="/" element={<LandingPage />} />
                   <Route path="/daily-digest" element={<DailyDigestArchive />} />
@@ -144,6 +150,7 @@ function App() {
                   <Route path="/compare/:slug" element={<CompareCoinsPage />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
+                </Suspense>
               </div>
             </Router>
             </WatchlistProvider>
