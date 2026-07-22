@@ -21,6 +21,7 @@ const BLOCKED_PREFIXES = [
   '/press-news',
   '/press-releases',
   '/beyond-the-headlines',
+  '/partners/coinpedia',
   '/search',
   '/admin',
 ];

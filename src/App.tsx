@@ -60,6 +60,7 @@ import PredictionDetail from './pages/PredictionDetail';
 import LiveHub from './pages/Live';
 import LiveDetail from './pages/LiveDetail';
 import AuthorPage, { AuthorIndex } from './pages/AuthorPage';
+import CoinpediaPartnerPage from './pages/CoinpediaPartnerPage';
 
 
 const ScrollToTop: React.FC = () => {
@@ -104,6 +105,7 @@ function App() {
                   <Route path="/live/:slug" element={<LiveDetail />} />
                   <Route path="/authors" element={<AuthorIndex />} />
                   <Route path="/author/:slug" element={<AuthorPage />} />
+                  <Route path="/partners/coinpedia" element={<CoinpediaPartnerPage />} />
                   <Route path="/blog/:id" element={<BlogPostDetail />} />
                   <Route path="/blog" element={<BlogHome />} />
                   <Route path="/learn" element={<Learn />} />

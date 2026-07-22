@@ -169,6 +169,7 @@ const CoinsNavbar: React.FC = () => {
                 <NavDropdown.Item as={NavLink} to="/beyond-the-headlines" onClick={handleNavItemClick}>Beyond the Headlines</NavDropdown.Item>
                 <NavDropdown.Item as={NavLink} to="/predictions" onClick={handleNavItemClick}>Price Predictions</NavDropdown.Item>
                 <NavDropdown.Item as={NavLink} to="/live" onClick={handleNavItemClick}>LIVE Coverage</NavDropdown.Item>
+                <NavDropdown.Item as={NavLink} to="/partners/coinpedia" onClick={handleNavItemClick}>Partner: Coinpedia</NavDropdown.Item>
                 <NavDropdown.Divider />
                 <NavDropdown.Item as="a" href="https://daily.coinsclarity.com" target="_blank" rel="noreferrer" onClick={handleNavItemClick} style={{ color: 'var(--accent)', fontWeight: 700 }}>
                   Daily — India News
