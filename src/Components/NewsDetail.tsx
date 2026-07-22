@@ -1011,7 +1011,17 @@ const NewsDetail: React.FC = () => {
 
           <div className="ns-meta">
             <span className="ns-meta__by">
-              By <strong>{BRAND_DISPLAY_NAME}</strong>
+              {String(newsItem.source_name || '').toLowerCase().includes('coinpedia') ||
+              (newsItem as any).partner === 'coinpedia' ? (
+                <>
+                  Via partner <strong>Coinpedia</strong>
+                  {newsItem.creator?.[0] ? <> · {newsItem.creator[0]}</> : null}
+                </>
+              ) : (
+                <>
+                  By <strong>{BRAND_DISPLAY_NAME}</strong>
+                </>
+              )}
             </span>
             <span className="ns-dot">·</span>
             <span className="ns-meta__item"><Calendar size={14} /> {formattedDate}</span>
@@ -1154,7 +1164,12 @@ const NewsDetail: React.FC = () => {
               );
             })()}
 
-            <p className="ns-attribution">— {BRAND_DISPLAY_NAME}</p>
+            <p className="ns-attribution">
+              {String(newsItem.source_name || '').toLowerCase().includes('coinpedia') ||
+              (newsItem as any).partner === 'coinpedia'
+                ? '— Coinpedia · shown on CoinsClarity under partnership'
+                : `— ${BRAND_DISPLAY_NAME}`}
+            </p>
 
             {/* Tags */}
             {Array.isArray(newsItem.keywords) && newsItem.keywords.length > 0 && (
@@ -1167,8 +1182,23 @@ const NewsDetail: React.FC = () => {
 
             {/* Disclaimer */}
             <div className="ns-note">
-              <strong>Editorial note.</strong> {BRAND_DISPLAY_NAME} aggregates and analyses crypto headlines.
-              Our commentary is for informational purposes only and is not financial advice.
+              {String(newsItem.source_name || '').toLowerCase().includes('coinpedia') ||
+              (newsItem as any).partner === 'coinpedia' ? (
+                <>
+                  <strong>Partner content.</strong> Original reporting by Coinpedia. Displayed on{' '}
+                  {BRAND_DISPLAY_NAME} under our media partnership. Not financial advice.{' '}
+                  {newsItem.link && newsItem.link !== '#' && (
+                    <a href={newsItem.link} target="_blank" rel="noopener noreferrer sponsored">
+                      View on Coinpedia
+                    </a>
+                  )}
+                </>
+              ) : (
+                <>
+                  <strong>Editorial note.</strong> {BRAND_DISPLAY_NAME} aggregates and analyses crypto headlines.
+                  Our commentary is for informational purposes only and is not financial advice.
+                </>
+              )}
             </div>
 
             {/* Slim reactions */}

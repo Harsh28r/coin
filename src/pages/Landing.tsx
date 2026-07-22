@@ -24,6 +24,7 @@ import AirdropSection from '../Components/AirdropSection';
 import LandingToolsShowcase from '../Components/LandingToolsShowcase';
 import LandingEditorialStrip from '../Components/LandingEditorialStrip';
 import CoinpediaPartner from '../Components/CoinpediaPartner';
+import LandingLiveStrip from '../Components/LandingLiveStrip';
 import AdSenseSlot from '../Components/AdSenseSlot';
 import AdsterraBannerSlot from '../Components/AdsterraBannerSlot';
 import HighPerformanceFormatSlot from '../Components/HighPerformanceFormatSlot';
@@ -71,6 +72,12 @@ const LandingPage: React.FC = () => {
         {/* Exclusive News */}
         <ExclusiveNews />
 
+        {/* Official partner — Coinpedia (mid-page, full articles on-platform) */}
+        <CoinpediaPartner limit={6} />
+
+        {/* LIVE desk threads */}
+        <LandingLiveStrip />
+
         {/* Market prices + charts */}
         <MarketPriceAndNews />
 
@@ -104,9 +111,6 @@ const LandingPage: React.FC = () => {
 
         {/* Press Releases */}
         <PressRelease />
-
-        {/* Official partner — Coinpedia RSS (attributed, links out) */}
-        <CoinpediaPartner limit={6} />
 
         {/* Advertisement Space */}
         <div style={{ maxWidth: 1280, margin: '0 auto', padding: '0 20px' }}>

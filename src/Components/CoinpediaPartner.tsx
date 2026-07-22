@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { ExternalLink, Handshake } from 'lucide-react';
 import { buildRssBackendBasesFromEnv, joinBackendPath } from '../utils/rssBackendBases';
 import { resolveImageSrc, handleImageError } from '../utils/cryptoImages';
@@ -9,6 +9,7 @@ type PartnerItem = {
   article_id?: string;
   title: string;
   description?: string;
+  content?: string;
   link: string;
   image_url?: string;
   pubDate?: string;
@@ -35,11 +36,12 @@ const strip = (s?: string) =>
     .replace(/\s+/g, ' ')
     .trim();
 
-/** Labeled Coinpedia partner wire — links out, never claimed as CoinsClarity original. */
+/** Coinpedia partner wire — full articles open on CoinsClarity (/news/:id). */
 const CoinpediaPartner: React.FC<{ limit?: number; compact?: boolean }> = ({
   limit = 6,
   compact = false,
 }) => {
+  const navigate = useNavigate();
   const [items, setItems] = useState<PartnerItem[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -74,6 +76,21 @@ const CoinpediaPartner: React.FC<{ limit?: number; compact?: boolean }> = ({
     };
   }, [limit]);
 
+  const openArticle = (item: PartnerItem) => {
+    const targetId = item.article_id || encodeURIComponent(item.title);
+    // Same shape NewsDetail expects from ExclusiveNews
+    navigate(`/news/${targetId}`, {
+      state: {
+        item: {
+          ...item,
+          source_name: 'Coinpedia',
+          creator: item.creator?.length ? item.creator : ['Coinpedia'],
+          partner: 'coinpedia',
+        },
+      },
+    });
+  };
+
   if (!loading && items.length === 0) return null;
 
   return (
@@ -88,8 +105,7 @@ const CoinpediaPartner: React.FC<{ limit?: number; compact?: boolean }> = ({
               From <span>Coinpedia</span>
             </h2>
             <p className="cp-partner__dek">
-              Fintech &amp; crypto coverage via our media partnership. Stories open on Coinpedia —
-              attributed, not rewritten.
+              Full articles on CoinsClarity via our media partnership — attributed to Coinpedia.
             </p>
           </div>
           <div className="cp-partner__actions">
@@ -112,11 +128,10 @@ const CoinpediaPartner: React.FC<{ limit?: number; compact?: boolean }> = ({
         <ul className="cp-partner__grid">
           {items.map((item) => (
             <li key={item.article_id || item.link}>
-              <a
-                href={item.link}
-                target="_blank"
-                rel="noopener noreferrer sponsored"
+              <button
+                type="button"
                 className="cp-partner__card"
+                onClick={() => openArticle(item)}
               >
                 <div className="cp-partner__img">
                   <img
@@ -131,18 +146,19 @@ const CoinpediaPartner: React.FC<{ limit?: number; compact?: boolean }> = ({
                     Coinpedia · {formatDate(item.pubDate)}
                   </span>
                   <h3>{item.title}</h3>
-                  <p>{strip(item.description).slice(0, 120)}{strip(item.description).length > 120 ? '…' : ''}</p>
-                  <span className="cp-partner__out">
-                    Read on Coinpedia <ExternalLink size={12} />
-                  </span>
+                  <p>
+                    {strip(item.description).slice(0, 120)}
+                    {strip(item.description).length > 120 ? '…' : ''}
+                  </p>
+                  <span className="cp-partner__out">Read full article →</span>
                 </div>
-              </a>
+              </button>
             </li>
           ))}
         </ul>
 
         <p className="cp-partner__legal">
-          Content © Coinpedia. Displayed on CoinsClarity under partnership. We do not claim authorship.
+          Content © Coinpedia. Published on CoinsClarity under partnership with source attribution.
         </p>
       </div>
     </section>

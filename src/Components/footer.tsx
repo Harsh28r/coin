@@ -75,7 +75,6 @@ const Footer: React.FC = () => {
             <a href="/advertise" className="cc-footer__link">Advertise</a>
             <a href="/blog" className="cc-footer__link">Blog</a>
             <a href="/predictions" className="cc-footer__link">Price Predictions</a>
-            <a href="/live" className="cc-footer__link">LIVE Coverage</a>
             <a href="/partners/coinpedia" className="cc-footer__link">Partner: Coinpedia</a>
             <a href="/authors" className="cc-footer__link">Our Desk</a>
             <a href="https://daily.coinsclarity.com" target="_blank" rel="noreferrer" className="cc-footer__link cc-footer__link--accent">

@@ -1,0 +1,119 @@
+.lls {
+  margin: 2rem 0;
+  padding: 1.75rem 0;
+  background: linear-gradient(180deg, rgba(220, 38, 38, 0.04), transparent 70%);
+  border-top: 1px solid rgba(220, 38, 38, 0.12);
+  border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+}
+
+.lls-inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.lls-head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-end;
+  margin-bottom: 1rem;
+}
+
+.lls-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: #b91c1c;
+  margin-bottom: 0.35rem;
+}
+
+.lls-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #dc2626;
+  box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.5);
+  animation: lls-pulse 1.4s ease-out infinite;
+}
+
+@keyframes lls-pulse {
+  70% { box-shadow: 0 0 0 10px rgba(220, 38, 38, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); }
+}
+
+.lls-title {
+  margin: 0 0 0.25rem;
+  font-size: 1.45rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.lls-dek {
+  margin: 0;
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+.lls-all {
+  font-weight: 700;
+  font-size: 0.88rem;
+  color: #b91c1c;
+  text-decoration: none;
+}
+
+.lls-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+@media (min-width: 720px) {
+  .lls-grid { grid-template-columns: repeat(3, 1fr); }
+}
+
+.lls-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 1rem 1.05rem;
+  background: #fff;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 12px;
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 0.15s ease, transform 0.15s ease;
+}
+
+.lls-card:hover {
+  border-color: rgba(220, 38, 38, 0.4);
+  transform: translateY(-2px);
+}
+
+.lls-status {
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #64748b;
+}
+
+.lls-status.is-live { color: #b91c1c; }
+
+.lls-card strong {
+  font-size: 0.95rem;
+  letter-spacing: -0.02em;
+  line-height: 1.3;
+}
+
+.lls-meta {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  font-weight: 600;
+}
