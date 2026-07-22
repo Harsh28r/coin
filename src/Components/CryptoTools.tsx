@@ -202,6 +202,7 @@ const CryptoTools: React.FC = () => {
                 { to: '/tools/gas',         emoji: '⛽', title: 'Multi-chain Gas Tracker', dek: 'Live gas across ETH, Polygon, Arbitrum, Base, Optimism, BNB.' },
                 { to: '/tools/scam-check',  emoji: '🛡️', title: 'Scam & Honeypot Checker', dek: 'Paste any token contract — get a 10-point security audit.' },
                 { to: '/tools/unlocks',     emoji: '🗓️', title: 'Token Unlock Calendar', dek: 'Upcoming cliffs across 200+ projects.' },
+                { to: '/predictions',       emoji: '🔭', title: 'Price Predictions', dek: 'Markets Desk scenario maps — catalysts, risks, multi-year ranges.' },
                 { to: '/compare',           emoji: '⚖️', title: 'Compare Coins',  dek: 'Side-by-side fundamentals for any two cryptos.' },
               ].map(t => (
                 <div key={t.to} className="col-6 col-md-4 col-lg-3 col-xl">

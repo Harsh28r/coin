@@ -9,6 +9,7 @@ import { format } from 'date-fns';
 import { resolveImageSrc, handleImageError } from '../utils/cryptoImages';
 import { getBlogUrl } from '../utils/blogUrl';
 import { splitAfterFirstClosingPTag } from '../utils/splitHtmlAfterFirstPTag';
+import { resolveAuthorFromPost, authorPath } from '../config/authors';
 import AdSenseSlot from './AdSenseSlot';
 import NewsArticleComments from './NewsArticleComments';
 import './BlogPostDetail.css';
@@ -145,6 +146,43 @@ const BlogPostDetail: React.FC = () => {
     return t.some((x: string) => x === 'daily-digest' || x === 'trending-desk');
   }, [post?.tags]);
 
+  const outlookCoinId = useMemo(() => {
+    if (!post) return null;
+    if (post.outlook?.coinId) return String(post.outlook.coinId);
+    const slug = String(post.slug || '');
+    if (slug.startsWith('price-outlook-')) return slug.replace(/^price-outlook-/, '');
+    const tag = (post.tags || []).find((t: string) => String(t).startsWith('coin:'));
+    if (tag) return String(tag).slice(5);
+    return null;
+  }, [post]);
+
+  const deskAuthor = useMemo(() => (post ? resolveAuthorFromPost(post) : undefined), [post]);
+
+  const isPriceOutlook = useMemo(() => {
+    if (!post) return false;
+    if (post.outlook?.coinId) return true;
+    const t = post.tags;
+    return Array.isArray(t) && t.includes('price-outlook');
+  }, [post]);
+
+  // Canonical UX: price outlooks live on /prediction/:coinId (editorial layout).
+  useEffect(() => {
+    if (isPriceOutlook && outlookCoinId) {
+      navigate(`/prediction/${outlookCoinId}`, { replace: true });
+    }
+  }, [isPriceOutlook, outlookCoinId, navigate]);
+
+  if (isPriceOutlook && outlookCoinId) {
+    return (
+      <div className="bd-shell">
+        <div className="bd-container bd-loading">
+          <div className="bd-skel-eyebrow" />
+          <div className="bd-skel-title" />
+        </div>
+      </div>
+    );
+  }
+
   if (!post) {
     return (
       <div className="bd-shell">
@@ -217,7 +255,18 @@ const BlogPostDetail: React.FC = () => {
           <div className="bd-meta">
             <div className="bd-author">
               <div className="bd-avatar">{(post.author || '?').charAt(0).toUpperCase()}</div>
-              <span><strong>{post.author}</strong></span>
+              <span>
+                {deskAuthor ? (
+                  <Link to={authorPath(deskAuthor.slug)} style={{ color: 'inherit', textDecoration: 'none' }}>
+                    <strong>{deskAuthor.name}</strong>
+                    <span style={{ display: 'block', fontSize: '0.75rem', fontWeight: 500, color: '#64748b' }}>
+                      {deskAuthor.desk}
+                    </span>
+                  </Link>
+                ) : (
+                  <strong>{post.author}</strong>
+                )}
+              </span>
             </div>
             <span className="bd-dot" aria-hidden>·</span>
             <span className="bd-meta__item"><Calendar size={14} /> {formattedDate}</span>

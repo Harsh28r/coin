@@ -4,13 +4,14 @@ import { fetchPosts } from '../services/api';
 import type { BlogPost } from '../types/blog';
 import { getBlogUrl } from '../utils/blogUrl';
 import { resolveImageSrc, handleImageError } from '../utils/cryptoImages';
+import { authorPath } from '../config/authors';
 import './AiAgentsDesk.css';
 
 const DESKS = [
-  { id: 'markets', label: 'Markets', tag: 'agent-markets', byline: 'Elena Vasquez' },
-  { id: 'geopolitics', label: 'Geopolitics', tag: 'agent-geopolitics', byline: 'James Okonkwo' },
-  { id: 'india', label: 'India Policy', tag: 'agent-india', byline: 'Maya Rao' },
-  { id: 'onchain', label: 'On-chain', tag: 'agent-onchain', byline: 'Kenji Tanaka' },
+  { id: 'markets', label: 'Markets', tag: 'agent-markets', byline: 'Elena Vasquez', authorSlug: 'elena-vasquez' },
+  { id: 'geopolitics', label: 'Geopolitics', tag: 'agent-geopolitics', byline: 'James Okonkwo', authorSlug: 'james-okonkwo' },
+  { id: 'india', label: 'India Policy', tag: 'agent-india', byline: 'Maya Rao', authorSlug: 'maya-rao' },
+  { id: 'onchain', label: 'On-chain', tag: 'agent-onchain', byline: 'Kenji Tanaka', authorSlug: 'kenji-tanaka' },
 ] as const;
 
 const stripTags = (html?: string): string =>
@@ -85,7 +86,9 @@ const AiAgentsDesk: React.FC = () => {
               return (
                 <article key={desk.id} className={`aad-card aad-card--${desk.id}`}>
                   <span className="aad-desk">{desk.label}</span>
-                  <span className="aad-byline">{desk.byline}</span>
+                  <Link to={authorPath(desk.authorSlug)} className="aad-byline" style={{ textDecoration: 'none' }}>
+                    {desk.byline}
+                  </Link>
                   {post ? (
                     <Link to={getBlogUrl(post)} className="aad-link">
                       <div className="aad-img">

@@ -74,6 +74,9 @@ const Footer: React.FC = () => {
             <a href="/contact" className="cc-footer__link">Contact</a>
             <a href="/advertise" className="cc-footer__link">Advertise</a>
             <a href="/blog" className="cc-footer__link">Blog</a>
+            <a href="/predictions" className="cc-footer__link">Price Predictions</a>
+            <a href="/live" className="cc-footer__link">LIVE Coverage</a>
+            <a href="/authors" className="cc-footer__link">Our Desk</a>
             <a href="https://daily.coinsclarity.com" target="_blank" rel="noreferrer" className="cc-footer__link cc-footer__link--accent">
               Daily — India News
             </a>
@@ -87,6 +90,8 @@ const Footer: React.FC = () => {
             <a href="/ai-news" className="cc-footer__link">AI News</a>
             <a href="/listings" className="cc-footer__link">Listings</a>
             <a href="/beyond-the-headlines" className="cc-footer__link">Beyond the Headlines</a>
+            <a href="/predictions" className="cc-footer__link">Price Predictions</a>
+            <a href="/live" className="cc-footer__link">LIVE Coverage</a>
           </Col>
 
           <Col lg={2} md={3} sm={6}>

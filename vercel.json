@@ -7,6 +7,7 @@
     { "source": "/sitemap-static.xml", "destination": "/api/sitemap-static.xml" },
     { "source": "/sitemap-coins.xml", "destination": "/api/sitemap-coins.xml" },
     { "source": "/blog/:id", "destination": "/api/blog/:id" },
+    { "source": "/prediction/:id", "destination": "/api/prediction/:id" },
     { "source": "/news/:id", "destination": "/api/news/:id" },
     { "source": "/coin/:id", "destination": "/api/coin/:id" },
     {

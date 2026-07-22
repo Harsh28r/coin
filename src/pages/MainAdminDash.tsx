@@ -12,6 +12,7 @@ import { BlogPost as BlogPostType } from '../types/blog';
 import BlogForm from '../Components/BlogForm';
 import NewsletterAdmin from '../Components/NewsletterAdmin';
 import CustomDigestAdmin from '../Components/CustomDigestAdmin';
+import LiveDeskAdmin from '../Components/LiveDeskAdmin';
 import { DEFAULT_ADMIN_SECRET } from '../config/adminDefaults';
 
 /** Same key as CustomDigestAdmin — paste secret there or set REACT_APP_ADMIN_SECRET at build time. */
@@ -900,6 +901,9 @@ const MainDashboard: React.FC = () => {
           <>
             <AiBloggerSection />
             <TrendingDeskSection />
+            <div className="mt-4">
+              <LiveDeskAdmin />
+            </div>
           </>
         );
       case 'social':

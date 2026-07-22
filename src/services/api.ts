@@ -37,7 +37,8 @@ const mapPost = (raw: AnyRecord): BlogPost => {
     imageUrl: raw.imageUrl || raw.image || '',
     tags: Array.isArray(raw.tags) ? raw.tags : [],
     excerpt: raw.excerpt || '',
-    date: raw.date || new Date().toISOString()
+    date: raw.date || new Date().toISOString(),
+    outlook: raw.outlook || undefined,
   } as BlogPost;
 };
 

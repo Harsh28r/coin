@@ -10,6 +10,7 @@ import {
   Github,
   Twitter,
   MessageCircle,
+  LineChart,
 } from 'lucide-react';
 import { Helmet } from 'react-helmet-async';
 import JsonLd from './JsonLd';
@@ -678,8 +679,21 @@ const CoinDetail: React.FC = () => {
               }}
               variant="button"
             />
+            <Link to={`/prediction/${coin.id}`} className="cd-btn cd-btn--outlook">
+              <LineChart size={16} /> Desk outlook
+            </Link>
           </div>
         </header>
+
+        {/* DESK OUTLOOK TEASER */}
+        <Link to={`/prediction/${coin.id}`} className="cd-outlook-teaser">
+          <div className="cd-outlook-teaser__text">
+            <span className="cd-outlook-teaser__eyebrow">Markets Desk</span>
+            <strong>{coin.name} price outlook</strong>
+            <span>Scenario map · catalysts · risks — original analysis, not scraped wire</span>
+          </div>
+          <span className="cd-outlook-teaser__cta">Read prediction →</span>
+        </Link>
 
         {/* PERFORMANCE STRIP */}
         <section className="cd-perf">
