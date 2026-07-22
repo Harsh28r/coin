@@ -125,7 +125,7 @@ export async function fetchPriceOutlook(
 export async function generatePriceOutlook(
   coinId: string,
   opts?: { force?: boolean },
-): Promise<{ data: PriceOutlookPost | null; stale?: boolean; error?: string }> {
+): Promise<{ data: PriceOutlookPost | null; stale?: boolean; missing?: boolean; error?: string }> {
   const id = String(coinId || '').toLowerCase().trim();
   const params: Record<string, string> = { generate: '1' };
   if (opts?.force) params.force = '1';
@@ -134,11 +134,17 @@ export async function generatePriceOutlook(
       success?: boolean;
       data?: any;
       stale?: boolean;
+      missing?: boolean;
       error?: string;
     }>(`/api/price-outlook/${encodeURIComponent(id)}`, { params, timeout: 120000 });
     if (data?.data) return { data: mapPost(data.data), stale: data.stale };
-    return { data: null, error: data?.error || 'generation_failed' };
+    return { data: null, missing: !!data?.missing, error: data?.error || 'generation_failed' };
   } catch (e: any) {
-    return { data: null, error: e?.response?.data?.error || e?.message || 'generation_failed' };
+    const status = e?.response?.status;
+    return {
+      data: null,
+      missing: status === 404,
+      error: e?.response?.data?.error || e?.message || 'generation_failed',
+    };
   }
 }
