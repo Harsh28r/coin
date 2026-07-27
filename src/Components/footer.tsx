@@ -63,7 +63,8 @@ const Footer: React.FC = () => {
               <a href="https://www.facebook.com/profile.php?id=61587166360306" target="_blank" rel="noreferrer" aria-label="Facebook" className="cc-footer__social"><Facebook size={16} /></a>
               <a href="https://youtube.com" target="_blank" rel="noreferrer" aria-label="YouTube" className="cc-footer__social"><Youtube size={16} /></a>
               <a href="https://discord.gg/V2YY8nXjr5" target="_blank" rel="noreferrer" aria-label="Discord" className="cc-footer__social"><Discord size={16} /></a>
-              <a href="https://t.me/CoinsClarityBot" target="_blank" rel="noreferrer" aria-label="Telegram bot" className="cc-footer__social"><Send size={16} /></a>
+              <a href="https://t.me/coinsclarity" target="_blank" rel="noreferrer" aria-label="Telegram channel" title="Telegram channel" className="cc-footer__social"><Send size={16} /></a>
+              <a href="https://t.me/Coinsclarity_bot" target="_blank" rel="noreferrer" aria-label="Telegram bot" title="Open bot — /start for digests" className="cc-footer__social" style={{ opacity: 0.85 }}>Bot</a>
             </div>
           </Col>
 
