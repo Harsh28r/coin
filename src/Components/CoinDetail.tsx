@@ -842,6 +842,21 @@ const CoinDetail: React.FC = () => {
           <aside className="cd-card cd-links">
             <h3>Links</h3>
             <ul>
+              <li>
+                <Link to={`/coin/${coinId}/news`}>
+                  <LineChart size={16} /> <span>{coin.symbol?.toUpperCase()} news hub</span>
+                </Link>
+              </li>
+              <li>
+                <Link to={`/today/why-is-${coinId}-up`}>
+                  <TrendingUp size={16} /> <span>Why is {coin.symbol?.toUpperCase()} up?</span>
+                </Link>
+              </li>
+              <li>
+                <Link to={`/prediction/${coinId}`}>
+                  <LineChart size={16} /> <span>Price outlook</span>
+                </Link>
+              </li>
               {homepage && (
                 <li>
                   <a href={homepage} target="_blank" rel="noopener noreferrer">

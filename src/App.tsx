@@ -66,6 +66,9 @@ const AuthorIndex = lazy(() =>
   import('./pages/AuthorPage').then((m) => ({ default: m.AuthorIndex }))
 );
 const CoinpediaPartnerPage = lazy(() => import('./pages/CoinpediaPartnerPage'));
+const CoinNewsHub = lazy(() => import('./pages/CoinNewsHub'));
+const WhyCoinToday = lazy(() => import('./pages/WhyCoinToday'));
+const EventKindHub = lazy(() => import('./pages/EventKindHub'));
 
 
 const ScrollToTop: React.FC = () => {
@@ -124,9 +127,13 @@ function App() {
                   <Route path="/All-Trending-news" element={<  Trend />} /> 
                   <Route path="/beyond-the-headlines" element={<InDepthNewsPage />} />
                   <Route path="/listings" element={<Listing />} />
+                  <Route path="/events/:kind" element={<EventKindHub />} />
                   <Route path="/events" element={<EventRadar />} />
                   <Route path="/ai-news" element={<AllAINews />} />
                   <Route path="/news/:id" element={<NewsDetail />} />
+                  <Route path="/coin/:coinId/news" element={<CoinNewsHub />} />
+                  <Route path="/today/why-is-:coinId-up" element={<WhyCoinToday />} />
+                  <Route path="/today/why-is-:coinId-down" element={<WhyCoinToday />} />
                   <Route path="/coin/:coinId" element={<CoinDetail />} />
                   <Route path="/main-dashboard" element={<AdminGate><   MainDashboard/></AdminGate>} /> 
                   {/* <Route path="/press-release-detail" element={<PressReleaseDetail />} /> */}

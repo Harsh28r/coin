@@ -9,6 +9,8 @@ module.exports = async function handler(req, res) {
   const xml = xmlSitemapIndex([
     `${host}/sitemap-static.xml`,
     `${host}/sitemap-coins.xml`,
+    `${host}/sitemap-programmatic.xml`,
+    `${host}/sitemap-news.xml`,
     `${BACKEND}/sitemap-blog.xml`,
   ]);
 

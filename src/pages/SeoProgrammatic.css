@@ -1,0 +1,252 @@
+.seo-page {
+  min-height: 100vh;
+  background:
+    radial-gradient(1100px 420px at 8% -8%, rgba(234, 88, 12, 0.07), transparent 58%),
+    radial-gradient(900px 380px at 92% 0%, rgba(15, 23, 42, 0.04), transparent 55%),
+    #f7f5f2;
+  color: #0f172a;
+}
+
+.seo-main {
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 1.5rem 1.25rem 4rem;
+}
+
+.seo-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 1.25rem;
+}
+
+.seo-back,
+.seo-coin-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #64748b;
+  text-decoration: none;
+}
+
+.seo-back:hover,
+.seo-coin-link:hover {
+  color: #ea580c;
+}
+
+.seo-hero__eyebrow {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #c2410c;
+  margin-bottom: 0.65rem;
+}
+
+.seo-hero__title {
+  margin: 0 0 0.75rem;
+  font-size: clamp(1.85rem, 4.5vw, 2.45rem);
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  line-height: 1.15;
+}
+
+.seo-hero__standfirst {
+  margin: 0 0 1.25rem;
+  font-size: 1.06rem;
+  line-height: 1.55;
+  color: #475569;
+  max-width: 42rem;
+}
+
+.seo-answer {
+  margin: 0 0 1.75rem;
+  padding: 1rem 1.15rem;
+  border-left: 4px solid #ea580c;
+  background: rgba(255, 255, 255, 0.72);
+  border-radius: 0 10px 10px 0;
+}
+
+.seo-answer__label {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #c2410c;
+  margin-bottom: 0.35rem;
+}
+
+.seo-answer p {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.55;
+  color: #1e293b;
+}
+
+.seo-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 10px;
+  margin-bottom: 1.75rem;
+}
+
+.seo-stat {
+  padding: 0.85rem 1rem;
+  background: #fff;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 10px;
+}
+
+.seo-stat__label {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #94a3b8;
+  margin-bottom: 0.25rem;
+}
+
+.seo-stat__value {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.seo-stat__value.is-up {
+  color: #15803d;
+}
+
+.seo-stat__value.is-down {
+  color: #b91c1c;
+}
+
+.seo-section {
+  margin-bottom: 2rem;
+}
+
+.seo-section h2 {
+  margin: 0 0 0.85rem;
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.seo-news-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.seo-news-item {
+  padding: 0.9rem 1rem;
+  background: #fff;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 10px;
+}
+
+.seo-news-item a {
+  color: #0f172a;
+  font-weight: 700;
+  text-decoration: none;
+  line-height: 1.35;
+}
+
+.seo-news-item a:hover {
+  color: #ea580c;
+}
+
+.seo-news-item p {
+  margin: 0.35rem 0 0;
+  font-size: 0.88rem;
+  color: #64748b;
+  line-height: 1.45;
+}
+
+.seo-news-item time {
+  display: block;
+  margin-top: 0.35rem;
+  font-size: 0.75rem;
+  color: #94a3b8;
+}
+
+.cc-related {
+  margin-top: 2rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+.cc-related__title {
+  margin: 0 0 0.75rem;
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.cc-related__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.cc-related__list a {
+  display: inline-block;
+  padding: 0.35rem 0.65rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #c2410c;
+  background: rgba(234, 88, 12, 0.08);
+  border-radius: 6px;
+  text-decoration: none;
+}
+
+.cc-related__list a:hover {
+  background: rgba(234, 88, 12, 0.15);
+}
+
+.seo-loading,
+.seo-error {
+  padding: 3rem 1rem;
+  text-align: center;
+  color: #64748b;
+}
+
+.seo-hub-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 10px;
+}
+
+.seo-hub-card {
+  display: block;
+  padding: 1rem;
+  background: #fff;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 10px;
+  text-decoration: none;
+  color: inherit;
+}
+
+.seo-hub-card:hover {
+  border-color: rgba(234, 88, 12, 0.35);
+}
+
+.seo-hub-card strong {
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.seo-hub-card span {
+  font-size: 0.82rem;
+  color: #64748b;
+}

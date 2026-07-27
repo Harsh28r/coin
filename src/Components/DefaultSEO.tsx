@@ -65,6 +65,26 @@ const DefaultSEO: React.FC = () => {
         description:
           'Latest AI and machine learning developments in cryptocurrency. Track AI crypto projects, research, and innovations.',
       },
+      '/predictions': {
+        title: 'Crypto Price Outlooks & Market Predictions | CoinsClarity',
+        description:
+          'Desk-written price outlooks for Bitcoin, Ethereum, Solana and top altcoins. Catalysts, levels, and risk — not wire copy.',
+      },
+      '/live': {
+        title: 'Live Crypto News Desk | CoinsClarity',
+        description:
+          'Breaking crypto stories with live updates, timestamps, and market context from the CoinsClarity news desk.',
+      },
+      '/daily-digest': {
+        title: 'Daily Crypto Digest — Curated Headlines | CoinsClarity',
+        description:
+          'One daily read: top crypto stories, market moves, and what matters for traders. Original CoinsClarity editorial.',
+      },
+      '/trending-desk': {
+        title: 'Trending Crypto Desk — Stories Moving Markets | CoinsClarity',
+        description:
+          'AI-curated trending crypto stories with desk analysis. Updated throughout the day.',
+      },
     };
     return (
       map[location.pathname] || {

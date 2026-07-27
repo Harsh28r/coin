@@ -10,6 +10,8 @@ import { resolveImageSrc, handleImageError } from '../utils/cryptoImages';
 import { getBlogUrl } from '../utils/blogUrl';
 import { splitAfterFirstClosingPTag } from '../utils/splitHtmlAfterFirstPTag';
 import { resolveAuthorFromPost, authorPath } from '../config/authors';
+import { applyInternalLinks, buildInternalLinks } from '../utils/internalLinks';
+import InternalLinksBlock from './InternalLinksBlock';
 import AdSenseSlot from './AdSenseSlot';
 import NewsArticleComments from './NewsArticleComments';
 import './BlogPostDetail.css';
@@ -138,7 +140,8 @@ const BlogPostDetail: React.FC = () => {
   }, [post, posts]);
 
   const html = useMemo(() => normalizeContent(post?.content), [post?.content]);
-  const proseSplit = useMemo(() => splitAfterFirstClosingPTag(html), [html]);
+  const linkedHtml = useMemo(() => applyInternalLinks(html, { maxLinks: 10 }), [html]);
+  const proseSplit = useMemo(() => splitAfterFirstClosingPTag(linkedHtml), [linkedHtml]);
   const showMidAd = useMemo(() => wordCount(post?.content) >= 350, [post?.content]);
   const isAutoStream = useMemo(() => {
     const t = post?.tags;
@@ -157,6 +160,18 @@ const BlogPostDetail: React.FC = () => {
   }, [post]);
 
   const deskAuthor = useMemo(() => (post ? resolveAuthorFromPost(post) : undefined), [post]);
+
+  const seoInternalLinks = useMemo(
+    () =>
+      post
+        ? buildInternalLinks({
+            text: stripTags(post.content),
+            coinIds: outlookCoinId ? [outlookCoinId] : undefined,
+            limit: 10,
+          })
+        : [],
+    [post, outlookCoinId],
+  );
 
   const isPriceOutlook = useMemo(() => {
     if (!post) return false;
@@ -308,7 +323,7 @@ const BlogPostDetail: React.FC = () => {
             </figure>
             {isAutoStream ? (
               <>
-                <div className="bd-prose" dangerouslySetInnerHTML={{ __html: html }} />
+                <div className="bd-prose" dangerouslySetInnerHTML={{ __html: linkedHtml }} />
                 <AdSenseSlot placement="blog-btf" size="in-article" lazy className="bd-ad-slot" />
               </>
             ) : (
@@ -321,11 +336,13 @@ const BlogPostDetail: React.FC = () => {
                     <div className="bd-prose" dangerouslySetInnerHTML={{ __html: proseSplit.tail }} />
                   </>
                 ) : (
-                  <div className="bd-prose" dangerouslySetInnerHTML={{ __html: html }} />
+                  <div className="bd-prose" dangerouslySetInnerHTML={{ __html: linkedHtml }} />
                 )}
                 <AdSenseSlot placement="blog-btf" size="in-article" lazy className="bd-ad-slot" />
               </>
             )}
+
+            <InternalLinksBlock links={seoInternalLinks} />
 
             {actionMessage && <div className="bd-toast">{actionMessage}</div>}
           </article>

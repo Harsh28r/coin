@@ -11,7 +11,7 @@ import {
 } from './jsonLd';
 
 /** Dynamic routes — page components inject detailed JSON-LD */
-const DYNAMIC_PREFIXES = ['/news/', '/blog/', '/coin/', '/airdrop/'];
+const DYNAMIC_PREFIXES = ['/news/', '/blog/', '/coin/', '/airdrop/', '/today/', '/events/', '/prediction/', '/live/'];
 
 function isDynamicRoute(pathname: string): boolean {
   if (pathname === '/blog') return false;

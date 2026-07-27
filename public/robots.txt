@@ -4,8 +4,16 @@ Allow: /blog
 Allow: /blog/*
 Allow: /daily-digest
 Allow: /trending-desk
+Allow: /predictions
+Allow: /prediction/*
+Allow: /live
+Allow: /live/*
 Allow: /coin/
 Allow: /coin/*
+Allow: /today/
+Allow: /today/*
+Allow: /events/
+Allow: /events/*
 Allow: /tools
 Allow: /tools/*
 Allow: /compare
@@ -26,4 +34,6 @@ Allow: /
 
 Sitemap: https://coinsclarity.com/sitemap.xml
 Sitemap: https://coinsclarity.com/sitemap-coins.xml
+Sitemap: https://coinsclarity.com/sitemap-programmatic.xml
+Sitemap: https://coinsclarity.com/sitemap-news.xml
 Sitemap: https://camify.fun.coinsclarity.com/sitemap-blog.xml
