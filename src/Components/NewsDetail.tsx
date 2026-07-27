@@ -26,6 +26,8 @@ import { summarize } from '../utils/summarize';
 import { buildRssBackendBases, defaultPublicBackend } from '../utils/rssBackendBases';
 import { postNewsletterSubscribe } from '../utils/newsletterSubscribe';
 import NewsArticleComments from './NewsArticleComments';
+import DeskAuthorCard from './DeskAuthorCard';
+import { getAuthorBySlug, resolveAuthorFromPost } from '../config/authors';
 import './NewsDetail.css';
 
 interface NewsItem {
@@ -980,6 +982,17 @@ const NewsDetail: React.FC = () => {
   const eyebrow = validCategory || impact.affectedCoins[0] || 'Crypto News';
   const readTime = getReadingTime(newsItem.content || newsItem.contentHtml);
   const cleanDesc = stripAppearedFirstOn(newsItem.description || '');
+  const isCoinpedia =
+    String(newsItem.source_name || '').toLowerCase().includes('coinpedia') ||
+    (newsItem as any).partner === 'coinpedia';
+  const deskAuthor =
+    resolveAuthorFromPost({
+      author: newsItem.creator?.[0] || (isCoinpedia ? '' : BRAND_DISPLAY_NAME),
+      tags: categoryList,
+    }) || getAuthorBySlug('editorial')!;
+  const bylineName = isCoinpedia
+    ? newsItem.creator?.[0] || 'Coinpedia'
+    : deskAuthor.name;
 
   return (
     <div className="ns-shell">
@@ -1011,6 +1024,7 @@ const NewsDetail: React.FC = () => {
             image: newsItem.image_url,
             datePublished: newsItem.pubDate || undefined,
             dateModified: newsItem.pubDate || undefined,
+            author: bylineName,
             section:
               (Array.isArray(newsItem.category) ? newsItem.category[0] : newsItem.category) ||
               'Cryptocurrency',
@@ -1056,15 +1070,15 @@ const NewsDetail: React.FC = () => {
 
           <div className="ns-meta">
             <span className="ns-meta__by">
-              {String(newsItem.source_name || '').toLowerCase().includes('coinpedia') ||
-              (newsItem as any).partner === 'coinpedia' ? (
+              {isCoinpedia ? (
                 <>
                   Via partner <strong>Coinpedia</strong>
                   {newsItem.creator?.[0] ? <> · {newsItem.creator[0]}</> : null}
                 </>
               ) : (
                 <>
-                  By <strong>{BRAND_DISPLAY_NAME}</strong>
+                  By <strong>{deskAuthor.name}</strong>
+                  <span style={{ opacity: 0.7 }}> · {deskAuthor.desk}</span>
                 </>
               )}
             </span>
@@ -1212,11 +1226,12 @@ const NewsDetail: React.FC = () => {
             })()}
 
             <p className="ns-attribution">
-              {String(newsItem.source_name || '').toLowerCase().includes('coinpedia') ||
-              (newsItem as any).partner === 'coinpedia'
+              {isCoinpedia
                 ? '— Coinpedia · shown on CoinsClarity under partnership'
-                : `— ${BRAND_DISPLAY_NAME}`}
+                : `— ${deskAuthor.name} · ${deskAuthor.desk}`}
             </p>
+
+            {!isCoinpedia ? <DeskAuthorCard author={deskAuthor} /> : null}
 
             {/* Tags */}
             {Array.isArray(newsItem.keywords) && newsItem.keywords.length > 0 && (
