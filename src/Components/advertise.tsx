@@ -1,81 +1,165 @@
 import React from 'react';
-import { Container, Row, Col, Card, Button, Badge } from 'react-bootstrap';
-import { Mail, Megaphone, MessageSquare } from 'lucide-react';
+import { Helmet } from 'react-helmet-async';
+import { Mail, Megaphone, Layout, Newspaper, Sparkles } from 'lucide-react';
+import Navbar from './navbar';
+import Footer from './footer';
+import './advertise.css';
 
 const Advertise: React.FC = () => {
   return (
-    <Container className="py-5">
-      <Row className="justify-content-center mb-4">
-        <Col md={10} lg={8} className="text-center">
-          <h1 className="fw-bold mb-2" style={{ letterSpacing: '0.2px' }}>Get in touch</h1>
-          <p className="text-muted mb-0">We’d love to hear from you. Whether you have a question, feedback, or want to advertise, reach out any time.</p>
-        </Col>
-      </Row>
+    <>
+      <Helmet>
+        <title>Advertise with CoinsClarity | Crypto Media Partnerships</title>
+        <meta
+          name="description"
+          content="Reach high-intent crypto readers on CoinsClarity. Sponsored content, display, newsletter, and homepage placements. Contact advertise@coinsclarity.com."
+        />
+        <link rel="canonical" href={`${window.location.origin}/advertise`} />
+        <meta property="og:type" content="website" />
+        <meta property="og:title" content="Advertise with CoinsClarity" />
+        <meta
+          property="og:description"
+          content="Partner with CoinsClarity — editorial crypto media for traders and builders."
+        />
+        <meta property="og:url" content={`${window.location.origin}/advertise`} />
+        <meta name="robots" content="index, follow" />
+      </Helmet>
 
-      <Row className="justify-content-center">
-        <Col md={10} lg={8}>
-          <Card className="shadow-sm border-0 mb-4">
-            <Card.Body className="p-4">
-              <Row className="g-4">
-                <Col md={12}>
-                  <div className="d-flex align-items-start gap-3">
-                    <div className="rounded-circle d-flex align-items-center justify-content-center" style={{ width: 44, height: 44, background: '#f1f5f9' }}>
-                      <MessageSquare size={20} color="#0d6efd" />
-                    </div>
-                    <div>
-                      <h5 className="mb-1">General inquiries</h5>
-                      <p className="text-muted mb-2" style={{ maxWidth: 680 }}>Questions, product feedback, or support — we’ll get back to you as soon as possible.</p>
-                      <a href="mailto:hello@coinsclarity.com" className="text-decoration-none">
-                        <Mail size={16} className="me-2" />
-                        <strong>hello@coinsclarity.com</strong>
-                      </a>
-                    </div>
-                  </div>
-                </Col>
+      <Navbar />
 
-                <Col md={12}>
-                  <hr className="my-2" />
-                </Col>
-
-                <Col md={12}>
-                  <div className="d-flex align-items-start gap-3">
-                    <div className="rounded-circle d-flex align-items-center justify-content-center" style={{ width: 44, height: 44, background: '#f1f5f9' }}>
-                      <Megaphone size={20} color="#0d6efd" />
-                    </div>
-                    <div>
-                      <div className="d-flex align-items-center gap-2">
-                        <h5 className="mb-1">Advertising</h5>
-                        <Badge bg="light" text="dark">Sponsorships</Badge>
-                        <Badge bg="light" text="dark">Display</Badge>
-                      </div>
-                      <p className="text-muted mb-2" style={{ maxWidth: 680 }}>Partner with us to reach a high-intent crypto audience across news, pages, and widgets.</p>
-                      <a href="mailto:advertise@coinsclarity.com?subject=Advertising%20Enquiry" className="text-decoration-none">
-                        <Mail size={16} className="me-2" />
-                        <strong>advertise@coinsclarity.com</strong>
-                      </a>
-                    </div>
-                  </div>
-                </Col>
-              </Row>
-            </Card.Body>
-          </Card>
-
-          <Card className="border-0 shadow-sm" style={{ background: 'linear-gradient(135deg, #0d6efd 0%, #4f46e5 100%)' }}>
-            <Card.Body className="text-center text-white p-4">
-              <h4 className="fw-semibold mb-2">Ready to collaborate?</h4>
-              <p className="mb-3" style={{ opacity: 0.9 }}>Tell us about your goals — we’ll tailor options for your campaign.</p>
-              <Button
-                variant="light"
-                href="mailto:advertise@coinsclarity.com?subject=Let’s%20Work%20Together"
-                className="px-4"
+      <main className="cc-ad">
+        <section className="cc-ad__hero">
+          <div className="cc-ad__hero-bg" aria-hidden />
+          <div className="cc-ad__hero-grid" aria-hidden />
+          <div className="cc-ad__hero-inner">
+            <h1 className="cc-ad__brand">
+              Coins<span>Clarity</span>
+            </h1>
+            <p className="cc-ad__headline">Put your brand where crypto readers already decide.</p>
+            <p className="cc-ad__sub">
+              Sponsored stories, display, newsletter, and homepage placements across a high-intent editorial audience.
+            </p>
+            <div className="cc-ad__cta-row">
+              <a
+                className="cc-ad__btn cc-ad__btn--primary"
+                href="mailto:advertise@coinsclarity.com?subject=Advertising%20Enquiry"
               >
-                Email us
-              </Button>
-            </Card.Body>
-          </Card>
-        </Col>
-      </Row>
-    </Container>
+                <Megaphone size={18} />
+                Talk advertising
+              </a>
+              <a className="cc-ad__btn cc-ad__btn--ghost" href="mailto:hello@coinsclarity.com">
+                <Mail size={18} />
+                General inquiry
+              </a>
+            </div>
+          </div>
+        </section>
+
+        <section className="cc-ad__section">
+          <span className="cc-ad__kicker">Audience</span>
+          <h2 className="cc-ad__h2">Built for crypto attention</h2>
+          <p className="cc-ad__lead">
+            Traders, researchers, and builders who come for news, listings, and market tools — not scroll filler.
+          </p>
+          <div className="cc-ad__stats">
+            <div className="cc-ad__stat">
+              <strong>50k+</strong>
+              <span>Monthly readers target growth</span>
+            </div>
+            <div className="cc-ad__stat">
+              <strong>Daily</strong>
+              <span>Editorial desk + market coverage</span>
+            </div>
+            <div className="cc-ad__stat">
+              <strong>Global</strong>
+              <span>EN audience + India daily desk</span>
+            </div>
+            <div className="cc-ad__stat">
+              <strong>Intent</strong>
+              <span>News, tools, predictions, listings</span>
+            </div>
+          </div>
+        </section>
+
+        <section className="cc-ad__section">
+          <span className="cc-ad__kicker">Formats</span>
+          <h2 className="cc-ad__h2">Where your campaign can live</h2>
+          <p className="cc-ad__lead">
+            Pick one placement or a full flight. We’ll match format to your goal — awareness, launches, or conversions.
+          </p>
+          <div className="cc-ad__formats">
+            <article className="cc-ad__format">
+              <div className="cc-ad__format-icon">
+                <Newspaper size={20} />
+              </div>
+              <h3>Sponsored editorial</h3>
+              <p>Native stories that read like our desk — clear disclosure, sharp packaging, lasting SEO value.</p>
+            </article>
+            <article className="cc-ad__format">
+              <div className="cc-ad__format-icon">
+                <Layout size={20} />
+              </div>
+              <h3>Display & homepage</h3>
+              <p>Leaderboard and in-feed units on high-traffic surfaces: home, news, coin pages, tools.</p>
+            </article>
+            <article className="cc-ad__format">
+              <div className="cc-ad__format-icon">
+                <Sparkles size={20} />
+              </div>
+              <h3>Newsletter & social</h3>
+              <p>The Edge daily brief plus Telegram / X amplification for launches and time-bound campaigns.</p>
+            </article>
+          </div>
+        </section>
+
+        <section className="cc-ad__section">
+          <span className="cc-ad__kicker">Process</span>
+          <h2 className="cc-ad__h2">Simple from brief to live</h2>
+          <p className="cc-ad__lead">No agency theater. Fast answers, clear rates, clean creative.</p>
+          <div className="cc-ad__steps">
+            <div className="cc-ad__step">
+              <h3>Tell us the goal</h3>
+              <p>Launch, brand, listings, or product — include budget range and timeline.</p>
+            </div>
+            <div className="cc-ad__step">
+              <h3>We propose a flight</h3>
+              <p>Formats, dates, and creative specs tailored to your audience and KPI.</p>
+            </div>
+            <div className="cc-ad__step">
+              <h3>Ship & report</h3>
+              <p>We go live, monitor delivery, and send a clean wrap with what moved.</p>
+            </div>
+          </div>
+        </section>
+
+        <section className="cc-ad__close">
+          <h2>Ready when you are</h2>
+          <p>
+            Send a short brief — product, markets, dates, budget. We’ll reply with options that fit CoinsClarity’s
+            audience.
+          </p>
+          <div className="cc-ad__cta-row">
+            <a
+              className="cc-ad__btn cc-ad__btn--primary"
+              href="mailto:advertise@coinsclarity.com?subject=Let’s%20Work%20Together"
+            >
+              <Mail size={18} />
+              advertise@coinsclarity.com
+            </a>
+            <a className="cc-ad__btn cc-ad__btn--ghost" href="/contact">
+              Contact page
+            </a>
+          </div>
+          <div className="cc-ad__mails">
+            <a href="mailto:hello@coinsclarity.com">hello@coinsclarity.com</a>
+            <a href="mailto:support@coinsclarity.com">support@coinsclarity.com</a>
+            <a href="mailto:advertise@coinsclarity.com">advertise@coinsclarity.com</a>
+          </div>
+        </section>
+      </main>
+
+      <Footer />
+    </>
   );
 };
 
