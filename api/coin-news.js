@@ -5,13 +5,16 @@ module.exports = async function handler(req, res) {
   const ua = req.headers['user-agent'] || '';
   const coinId = req.query.coinId || req.query.id;
 
-  if (!isCrawler(ua)) return serveSpaShell(req, res);
   if (!coinId) return res.status(400).send('coinId required');
+
+  const forceBotHtml = isCrawler(ua) || /google|bing|yandex|duckduck/i.test(ua);
+  if (!forceBotHtml) return serveSpaShell(req, res);
 
   try {
     const html = await buildCoinNewsCrawlerHtml(String(coinId));
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
-    res.setHeader('Cache-Control', 'public, s-maxage=600, stale-while-revalidate=3600');
+    res.setHeader('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=3600');
+    res.setHeader('X-Robots-Tag', 'index, follow, max-image-preview:large');
     return res.status(200).send(html);
   } catch {
     return serveSpaShell(req, res);
