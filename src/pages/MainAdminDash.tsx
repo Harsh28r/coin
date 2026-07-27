@@ -894,6 +894,166 @@ const MainDashboard: React.FC = () => {
     );
   };
 
+  const KeywordMinerSection: React.FC = () => {
+    const [status, setStatus] = React.useState<any>(null);
+    const [rows, setRows] = React.useState<any[]>([]);
+    const [loading, setLoading] = React.useState(false);
+    const [mining, setMining] = React.useState(false);
+    const [msg, setMsg] = React.useState<string | null>(null);
+    const [err, setErr] = React.useState<string | null>(null);
+    const base = (API_BASE_URL || '').replace(/\/$/, '');
+    const headers = {
+      'Content-Type': 'application/json',
+      'x-admin-secret': getDigestAdminSecret(),
+    };
+
+    const refresh = async () => {
+      setLoading(true);
+      setErr(null);
+      try {
+        const [st, q] = await Promise.all([
+          fetch(`${base}/api/keyword-miner/status`).then((r) => r.json()),
+          fetch(`${base}/api/keyword-miner/queue?status=open&limit=40`, { headers }).then((r) => r.json()),
+        ]);
+        if (st?.success) setStatus(st);
+        if (q?.success) setRows(Array.isArray(q.data) ? q.data : []);
+        else if (q?.error) setErr(q.error);
+      } catch (e: any) {
+        setErr(e.message || 'Failed to load keyword miner');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    React.useEffect(() => {
+      refresh();
+    }, []);
+
+    const mineNow = async () => {
+      setMining(true);
+      setMsg(null);
+      setErr(null);
+      try {
+        const res = await fetch(`${base}/api/keyword-miner/mine-now`, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({ includeSeed: true }),
+        });
+        const data = await res.json();
+        if (!res.ok || !data?.success) throw new Error(data?.error || `HTTP ${res.status}`);
+        setMsg(
+          `Mined GSC rows=${data.gscRows || 0} upserted=${data.upserted || 0} seeded=${data.seeded || 0} open=${data.openQueue || 0}` +
+            (data.gscOk ? '' : ` (GSC: ${data.gscError || 'offline — seeds only'})`)
+        );
+        await refresh();
+      } catch (e: any) {
+        setErr(e.message || 'Mine failed');
+      } finally {
+        setMining(false);
+      }
+    };
+
+    const act = async (id: string, kind: 'approve' | 'reject' | 'junk') => {
+      setErr(null);
+      try {
+        const res = await fetch(`${base}/api/keyword-miner/${kind}/${id}`, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({}),
+        });
+        const data = await res.json();
+        if (!res.ok || data?.success === false) throw new Error(data?.error || `HTTP ${res.status}`);
+        setMsg(
+          kind === 'approve'
+            ? `Live: ${data.publishedPath || data.url || id}`
+            : `${kind} ok`
+        );
+        await refresh();
+      } catch (e: any) {
+        setErr(e.message || `${kind} failed`);
+      }
+    };
+
+    return (
+      <div className="p-3 mt-4 border-top">
+        <div className="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+          <div>
+            <h4 className="mb-0">Keyword Miner (Semrush-lite)</h4>
+            <div className="text-muted small">
+              Pulls GSC queries + seeds why/news hubs → approve → IndexNow / draft blog
+            </div>
+          </div>
+          <div className="d-flex gap-2">
+            <Button variant="outline-secondary" size="sm" onClick={refresh} disabled={loading}>
+              {loading ? '…' : 'Refresh'}
+            </Button>
+            <Button variant="dark" size="sm" onClick={mineNow} disabled={mining}>
+              {mining ? 'Mining…' : 'Mine now'}
+            </Button>
+          </div>
+        </div>
+
+        <div className="card mb-3">
+          <div className="card-body py-2">
+            <div className="row g-2 small">
+              <div className="col-auto">Cron: <strong>{status?.scheduled || '30 7 * * *'}</strong> ({status?.timezone || 'Asia/Kolkata'})</div>
+              <div className="col-auto">Open: <strong>{status?.counts?.open ?? '—'}</strong></div>
+              <div className="col-auto">Live: <strong>{status?.counts?.live ?? '—'}</strong></div>
+              <div className="col-auto">Junk: <strong>{status?.counts?.junk ?? '—'}</strong></div>
+            </div>
+          </div>
+        </div>
+
+        {msg && <div className="alert alert-success py-2 small">{msg}</div>}
+        {err && <div className="alert alert-danger py-2 small">{err}</div>}
+
+        <div className="table-responsive">
+          <table className="table table-sm align-middle">
+            <thead>
+              <tr>
+                <th>Query</th>
+                <th>Action</th>
+                <th>Path</th>
+                <th>Imp</th>
+                <th>Pos</th>
+                <th>Score</th>
+                <th />
+              </tr>
+            </thead>
+            <tbody>
+              {rows.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="text-muted">
+                    Queue empty — hit Mine now (needs GSC SA on EC2 + seeds).
+                  </td>
+                </tr>
+              ) : (
+                rows.map((r) => (
+                  <tr key={r._id}>
+                    <td style={{ maxWidth: 220 }}>
+                      <div className="fw-semibold text-truncate" title={r.query}>{r.query}</div>
+                      <div className="text-muted" style={{ fontSize: 11 }}>{r.source}</div>
+                    </td>
+                    <td><Badge bg={r.action === 'create_blog' ? 'warning' : 'secondary'}>{r.action}</Badge></td>
+                    <td className="small text-truncate" style={{ maxWidth: 160 }}>{r.suggestedPath || '—'}</td>
+                    <td>{r.impressions ?? 0}</td>
+                    <td>{r.position ? Number(r.position).toFixed(1) : '—'}</td>
+                    <td>{r.score ?? 0}</td>
+                    <td className="text-nowrap">
+                      <Button size="sm" variant="success" className="me-1" onClick={() => act(r._id, 'approve')}>Approve</Button>
+                      <Button size="sm" variant="outline-secondary" className="me-1" onClick={() => act(r._id, 'reject')}>Reject</Button>
+                      <Button size="sm" variant="outline-danger" onClick={() => act(r._id, 'junk')}>Junk</Button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    );
+  };
+
   const renderContent = () => {
     switch (activeSection) {
       case 'ai-blogger':
@@ -901,6 +1061,7 @@ const MainDashboard: React.FC = () => {
           <>
             <AiBloggerSection />
             <TrendingDeskSection />
+            <KeywordMinerSection />
             <div className="mt-4">
               <LiveDeskAdmin />
             </div>
