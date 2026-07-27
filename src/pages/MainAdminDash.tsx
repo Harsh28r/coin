@@ -29,18 +29,19 @@ function getDigestAdminSecret(): string {
   }
 }
 
-// Single API base (admin side) with multi-base fallback
-const API_BASE_URL: string = (process.env.REACT_APP_API_BASE_URL) || 'https://c-back-seven.vercel.app';
+// Prefer same-origin /backend → camify (vercel.json rewrite). Avoid stale Vercel c-back.
+const API_BASE_URL: string =
+  (process.env.REACT_APP_API_BASE_URL || '').trim() ||
+  (typeof window !== 'undefined' ? `${window.location.origin}/backend` : 'https://www.coinsclarity.com/backend');
 const getAdminApiBases = (): string[] => {
   const bases: string[] = [];
-  // Prefer configured or fallback API base first
   if (API_BASE_URL) bases.push(API_BASE_URL);
-  const env = (process.env.REACT_APP_API_BASE_URL ) || '';
-  if (env) bases.push(env);
   if (typeof window !== 'undefined') {
+    bases.push(`${window.location.origin}/backend`);
     bases.push(window.location.origin);
-    bases.push(`${window.location.origin}/api`);
   }
+  bases.push('https://camify.fun.coinsclarity.com');
+  bases.push('https://www.coinsclarity.com/backend');
   bases.push('http://localhost:5000');
   return Array.from(new Set(bases.filter(Boolean)));
 };
@@ -901,23 +902,38 @@ const MainDashboard: React.FC = () => {
     const [mining, setMining] = React.useState(false);
     const [msg, setMsg] = React.useState<string | null>(null);
     const [err, setErr] = React.useState<string | null>(null);
-    const base = (API_BASE_URL || '').replace(/\/$/, '');
     const headers = {
       'Content-Type': 'application/json',
       'x-admin-secret': getDigestAdminSecret(),
+    };
+
+    const minerFetch = async (path: string, init?: RequestInit) => {
+      let lastErr: any;
+      for (const b of getAdminApiBases()) {
+        try {
+          const res = await fetch(`${b.replace(/\/$/, '')}${path}`, init);
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok && res.status === 404) {
+            lastErr = new Error(`404 on ${b}`);
+            continue;
+          }
+          return { res, data, base: b };
+        } catch (e) {
+          lastErr = e;
+        }
+      }
+      throw lastErr || new Error('Failed to fetch');
     };
 
     const refresh = async () => {
       setLoading(true);
       setErr(null);
       try {
-        const [st, q] = await Promise.all([
-          fetch(`${base}/api/keyword-miner/status`).then((r) => r.json()),
-          fetch(`${base}/api/keyword-miner/queue?status=open&limit=40`, { headers }).then((r) => r.json()),
-        ]);
-        if (st?.success) setStatus(st);
-        if (q?.success) setRows(Array.isArray(q.data) ? q.data : []);
-        else if (q?.error) setErr(q.error);
+        const st = await minerFetch('/api/keyword-miner/status');
+        if (st.data?.success) setStatus(st.data);
+        const q = await minerFetch('/api/keyword-miner/queue?status=open&limit=40', { headers });
+        if (q.data?.success) setRows(Array.isArray(q.data.data) ? q.data.data : []);
+        else if (q.data?.error) setErr(q.data.error);
       } catch (e: any) {
         setErr(e.message || 'Failed to load keyword miner');
       } finally {
@@ -934,12 +950,11 @@ const MainDashboard: React.FC = () => {
       setMsg(null);
       setErr(null);
       try {
-        const res = await fetch(`${base}/api/keyword-miner/mine-now`, {
+        const { res, data } = await minerFetch('/api/keyword-miner/mine-now', {
           method: 'POST',
           headers,
           body: JSON.stringify({ includeSeed: true }),
         });
-        const data = await res.json();
         if (!res.ok || !data?.success) throw new Error(data?.error || `HTTP ${res.status}`);
         setMsg(
           `Mined GSC rows=${data.gscRows || 0} upserted=${data.upserted || 0} seeded=${data.seeded || 0} open=${data.openQueue || 0}` +
@@ -956,12 +971,11 @@ const MainDashboard: React.FC = () => {
     const act = async (id: string, kind: 'approve' | 'reject' | 'junk') => {
       setErr(null);
       try {
-        const res = await fetch(`${base}/api/keyword-miner/${kind}/${id}`, {
+        const { res, data } = await minerFetch(`/api/keyword-miner/${kind}/${id}`, {
           method: 'POST',
           headers,
           body: JSON.stringify({}),
         });
-        const data = await res.json();
         if (!res.ok || data?.success === false) throw new Error(data?.error || `HTTP ${res.status}`);
         setMsg(
           kind === 'approve'
