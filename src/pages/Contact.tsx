@@ -167,8 +167,14 @@ const Contact: React.FC = () => {
                   <Mail size={24} color="#f97316" style={{ flexShrink: 0, marginTop: '2px' }} />
                   <div>
                     <h3 style={{ color: '#fff', fontSize: '1rem', marginBottom: '5px' }}>Email Us</h3>
-                    <a href="mailto:harshgupta0028@gmail.com" style={{ color: '#ffffff', textDecoration: 'none' }}>
-                      harshgupta0028@gmail.com
+                    <a href="mailto:hello@coinsclarity.com" style={{ color: '#ffffff', textDecoration: 'none', display: 'block' }}>
+                      hello@coinsclarity.com
+                    </a>
+                    <a href="mailto:support@coinsclarity.com" style={{ color: '#ffffff', textDecoration: 'none', display: 'block', marginTop: 4 }}>
+                      support@coinsclarity.com
+                    </a>
+                    <a href="mailto:advertise@coinsclarity.com" style={{ color: '#f97316', textDecoration: 'none', display: 'block', marginTop: 4 }}>
+                      advertise@coinsclarity.com
                     </a>
                     <p style={{ color: '#ffffff', fontSize: '0.85rem', marginTop: '5px', marginBottom: 0 }}>
                       We typically respond within 24-48 hours

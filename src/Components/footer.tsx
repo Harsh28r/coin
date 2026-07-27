@@ -74,6 +74,9 @@ const Footer: React.FC = () => {
             <a href="/about" className="cc-footer__link">About</a>
             <a href="/contact" className="cc-footer__link">Contact</a>
             <a href="/advertise" className="cc-footer__link">Advertise</a>
+            <a href="mailto:hello@coinsclarity.com" className="cc-footer__link">hello@coinsclarity.com</a>
+            <a href="mailto:support@coinsclarity.com" className="cc-footer__link">support@coinsclarity.com</a>
+            <a href="mailto:advertise@coinsclarity.com" className="cc-footer__link">advertise@coinsclarity.com</a>
             <a href="/blog" className="cc-footer__link">Blog</a>
             <a href="/predictions" className="cc-footer__link">Price Predictions</a>
             <a href="/partners/coinpedia" className="cc-footer__link">Partner: Coinpedia</a>

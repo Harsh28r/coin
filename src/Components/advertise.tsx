@@ -25,9 +25,9 @@ const Advertise: React.FC = () => {
                     <div>
                       <h5 className="mb-1">General inquiries</h5>
                       <p className="text-muted mb-2" style={{ maxWidth: 680 }}>Questions, product feedback, or support — we’ll get back to you as soon as possible.</p>
-                      <a href="mailto:harshgupta0028@gmail.com" className="text-decoration-none">
+                      <a href="mailto:hello@coinsclarity.com" className="text-decoration-none">
                         <Mail size={16} className="me-2" />
-                        <strong>harshgupta0028@gmail.com</strong>
+                        <strong>hello@coinsclarity.com</strong>
                       </a>
                     </div>
                   </div>
@@ -49,9 +49,9 @@ const Advertise: React.FC = () => {
                         <Badge bg="light" text="dark">Display</Badge>
                       </div>
                       <p className="text-muted mb-2" style={{ maxWidth: 680 }}>Partner with us to reach a high-intent crypto audience across news, pages, and widgets.</p>
-                      <a href="mailto:harshgupta0028@gmail.com?subject=Advertising%20Enquiry" className="text-decoration-none">
+                      <a href="mailto:advertise@coinsclarity.com?subject=Advertising%20Enquiry" className="text-decoration-none">
                         <Mail size={16} className="me-2" />
-                        <strong>harshgupta0028@gmail.com</strong>
+                        <strong>advertise@coinsclarity.com</strong>
                       </a>
                     </div>
                   </div>
@@ -66,7 +66,7 @@ const Advertise: React.FC = () => {
               <p className="mb-3" style={{ opacity: 0.9 }}>Tell us about your goals — we’ll tailor options for your campaign.</p>
               <Button
                 variant="light"
-                href="mailto:harshgupta0028@gmail.com?subject=Let’s%20Work%20Together"
+                href="mailto:advertise@coinsclarity.com?subject=Let’s%20Work%20Together"
                 className="px-4"
               >
                 Email us
