@@ -192,6 +192,17 @@ export function getJsonLdForRoute(pathname: string): JsonLdObject[] {
       add(crumbs(['Home', '/'], ['Trending Desk', '/trending-desk']));
       break;
 
+    case '/market-movers':
+      add(
+        collectionPage({
+          name: 'Crypto Market Movers This Week',
+          description: 'Weekly crypto market movers: gainers, losers, and desk analysis.',
+          url: abs('/market-movers'),
+        }),
+      );
+      add(crumbs(['Home', '/'], ['Market Movers', '/market-movers']));
+      break;
+
     case '/listings':
       add(
         collectionPage({

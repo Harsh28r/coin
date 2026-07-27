@@ -85,6 +85,11 @@ const DefaultSEO: React.FC = () => {
         description:
           'AI-curated trending crypto stories with desk analysis. Updated throughout the day.',
       },
+      '/market-movers': {
+        title: 'Crypto Market Movers This Week | CoinsClarity',
+        description:
+          'Weekly crypto market movers: top gainers, losers, ETF catalysts, and desk analysis.',
+      },
     };
     return (
       map[location.pathname] || {

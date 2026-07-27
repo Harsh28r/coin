@@ -14,6 +14,8 @@ Allow: /today/
 Allow: /today/*
 Allow: /events/
 Allow: /events/*
+Allow: /market-movers
+Allow: /market-movers/*
 Allow: /tools
 Allow: /tools/*
 Allow: /compare

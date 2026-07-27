@@ -69,6 +69,7 @@ const CoinpediaPartnerPage = lazy(() => import('./pages/CoinpediaPartnerPage'));
 const CoinNewsHub = lazy(() => import('./pages/CoinNewsHub'));
 const WhyCoinToday = lazy(() => import('./pages/WhyCoinToday'));
 const EventKindHub = lazy(() => import('./pages/EventKindHub'));
+const MarketMoversPage = lazy(() => import('./pages/MarketMoversPage'));
 
 
 const ScrollToTop: React.FC = () => {
@@ -127,6 +128,8 @@ function App() {
                   <Route path="/All-Trending-news" element={<  Trend />} /> 
                   <Route path="/beyond-the-headlines" element={<InDepthNewsPage />} />
                   <Route path="/listings" element={<Listing />} />
+                  <Route path="/market-movers" element={<MarketMoversPage />} />
+                  <Route path="/market-movers/:week" element={<MarketMoversPage />} />
                   <Route path="/events/:kind" element={<EventKindHub />} />
                   <Route path="/events" element={<EventRadar />} />
                   <Route path="/ai-news" element={<AllAINews />} />

@@ -23,6 +23,7 @@ import NewsletterCTA from '../Components/NewsletterCTA';
 import AirdropSection from '../Components/AirdropSection';
 import LandingToolsShowcase from '../Components/LandingToolsShowcase';
 import LandingEditorialStrip from '../Components/LandingEditorialStrip';
+import LandingSeoHub from '../Components/LandingSeoHub';
 import CoinpediaPartner from '../Components/CoinpediaPartner';
 import LandingLiveStrip from '../Components/LandingLiveStrip';
 import AdSenseSlot from '../Components/AdSenseSlot';
@@ -60,6 +61,9 @@ const LandingPage: React.FC = () => {
 
         {/* Hero — editorial magazine layout */}
         <EditorialHero />
+
+        {/* SEO hub — ranking entry points */}
+        <LandingSeoHub />
 
         {/* AI agents carousel — trending keyword filings */}
         <AiAgentsCarousel />
