@@ -116,6 +116,27 @@ const About: React.FC = () => {
               </div>
             </section>
 
+            <section style={{ marginBottom: 40 }}>
+              <h2 style={{ color: '#fff', fontSize: '1.5rem', marginBottom: '15px' }}>Advertise with us</h2>
+              <p style={{ color: '#ffffff', marginBottom: 16 }}>
+                Reach traders and builders on CoinsClarity — sponsored editorial, display, and newsletter packages.
+              </p>
+              <a
+                href="/advertise"
+                style={{
+                  display: 'inline-block',
+                  padding: '12px 22px',
+                  backgroundColor: '#f97316',
+                  color: '#111',
+                  borderRadius: '8px',
+                  textDecoration: 'none',
+                  fontWeight: 700,
+                }}
+              >
+                View rate card →
+              </a>
+            </section>
+
             <section>
               <h2 style={{ color: '#fff', fontSize: '1.5rem', marginBottom: '15px' }}>Disclaimer</h2>
               <p style={{ color: '#ffffff', fontSize: '0.9rem' }}>
