@@ -285,7 +285,21 @@
           display: none;
         }
       }
+
+      /* Partner iframes load full SPA — never show site chrome FAB inside embeds */
+      body.embed-mode .telegram-fab {
+        display: none !important;
+      }
     </style>
+    <script>
+      (function () {
+        try {
+          if (location.pathname.indexOf('/embed') === 0) {
+            document.body.classList.add('embed-mode');
+          }
+        } catch (e) {}
+      })();
+    </script>
     <!--
       This HTML file is a template.
       If you open it directly in the browser, you will see an empty page.

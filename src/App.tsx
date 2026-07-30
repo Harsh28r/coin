@@ -90,10 +90,22 @@ const AdSenseController: React.FC = () => {
   return null;
 };
 
-/** Hide site chrome (chat, newsletter, progress) on iframe embeds for partners. */
+/** Hide site chrome (chat, newsletter, progress, telegram FAB) on iframe embeds for partners. */
 const SiteChrome: React.FC = () => {
   const { pathname } = useLocation();
-  if (isEmbedPath(pathname)) return null;
+  const embed = isEmbedPath(pathname);
+
+  useEffect(() => {
+    document.body.classList.toggle('embed-mode', embed);
+    const fab = document.querySelector<HTMLElement>('.telegram-fab');
+    if (fab) fab.style.display = embed ? 'none' : '';
+    return () => {
+      document.body.classList.remove('embed-mode');
+      if (fab) fab.style.display = '';
+    };
+  }, [embed]);
+
+  if (embed) return null;
   return (
     <>
       <ScrollProgress />
