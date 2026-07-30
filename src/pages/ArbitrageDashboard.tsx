@@ -117,7 +117,7 @@ const ArbitrageDashboard: React.FC = () => {
 
   const pathLegs = (path: string): string[] =>
     String(path || '')
-      .split(/[→>]/)
+      .split(/\u2192|>/)
       .map((s) => s.trim())
       .filter(Boolean);
 
