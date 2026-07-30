@@ -39,6 +39,61 @@ const CoinpediaPartnerPage: React.FC = () => {
         </Link>
       </main>
       <CoinpediaPartner limit={18} />
+
+      <section
+        style={{
+          maxWidth: 920,
+          margin: '0 auto 3rem',
+          padding: '0 20px',
+        }}
+      >
+        <h2 style={{ fontSize: '1.15rem', margin: '0 0 0.5rem', letterSpacing: '-0.02em' }}>
+          Embed widgets for Coinpedia
+        </h2>
+        <p style={{ color: '#64748b', fontSize: '0.9rem', margin: '0 0 1rem' }}>
+          Drop either iframe on coinpedia.org sidebars / story pages. Links back to CoinsClarity tools.
+        </p>
+
+        <p style={{ fontSize: '0.8rem', fontWeight: 700, margin: '0 0 0.35rem' }}>Fear & Greed</p>
+        <pre
+          style={{
+            background: '#0f172a',
+            color: '#e2e8f0',
+            padding: '12px 14px',
+            borderRadius: 8,
+            fontSize: 12,
+            overflow: 'auto',
+            marginBottom: '1rem',
+          }}
+        >{`<iframe
+  src="https://www.coinsclarity.com/embed/fear-greed"
+  title="Fear & Greed — CoinsClarity"
+  width="100%"
+  height="220"
+  style="border:0;border-radius:10px;overflow:hidden"
+  loading="lazy"
+></iframe>`}</pre>
+
+        <p style={{ fontSize: '0.8rem', fontWeight: 700, margin: '0 0 0.35rem' }}>Live arbitrage</p>
+        <pre
+          style={{
+            background: '#0f172a',
+            color: '#e2e8f0',
+            padding: '12px 14px',
+            borderRadius: 8,
+            fontSize: 12,
+            overflow: 'auto',
+          }}
+        >{`<iframe
+  src="https://www.coinsclarity.com/embed/arb"
+  title="Arbitrage — CoinsClarity"
+  width="100%"
+  height="320"
+  style="border:0;border-radius:10px;overflow:hidden"
+  loading="lazy"
+></iframe>`}</pre>
+      </section>
+
       <Footer />
     </div>
   );

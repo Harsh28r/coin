@@ -70,6 +70,8 @@ const CoinNewsHub = lazy(() => import('./pages/CoinNewsHub'));
 const WhyCoinToday = lazy(() => import('./pages/WhyCoinToday'));
 const EventKindHub = lazy(() => import('./pages/EventKindHub'));
 const MarketMoversPage = lazy(() => import('./pages/MarketMoversPage'));
+const EmbedFearGreed = lazy(() => import('./pages/embed/EmbedFearGreed'));
+const EmbedArb = lazy(() => import('./pages/embed/EmbedArb'));
 
 
 const ScrollToTop: React.FC = () => {
@@ -80,10 +82,26 @@ const ScrollToTop: React.FC = () => {
   return null;
 };
 
+const isEmbedPath = (pathname: string) => pathname.startsWith('/embed');
+
 // AdSense control - disable ads on aggregated content pages
 const AdSenseController: React.FC = () => {
   useAdSenseControl();
   return null;
+};
+
+/** Hide site chrome (chat, newsletter, progress) on iframe embeds for partners. */
+const SiteChrome: React.FC = () => {
+  const { pathname } = useLocation();
+  if (isEmbedPath(pathname)) return null;
+  return (
+    <>
+      <ScrollProgress />
+      <BackToTop />
+      <FloatingAIChat />
+      <NewsletterModal />
+    </>
+  );
 };
 
 function App() {
@@ -96,15 +114,14 @@ function App() {
             <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
               <ScrollToTop />
               <AdSenseController />
-              <ScrollProgress />
+              <SiteChrome />
               <div className="App">
                 <DefaultSEO />
                 <Analytics />
-                <BackToTop />
-                <FloatingAIChat />
-                <NewsletterModal />
                 <Suspense fallback={<div className="route-loading" style={{ minHeight: '60vh' }} />}>
                 <Routes>
+                  <Route path="/embed/fear-greed" element={<EmbedFearGreed />} />
+                  <Route path="/embed/arb" element={<EmbedArb />} />
                   <Route path="/" element={<LandingPage />} />
                   <Route path="/daily-digest" element={<DailyDigestArchive />} />
                   <Route path="/trending-desk" element={<TrendingDeskArchive />} />
