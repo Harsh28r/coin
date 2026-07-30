@@ -107,7 +107,9 @@ function normalizeTriOpp(raw: any): TriangularOpportunity | null {
     return {
       _id: String(raw._id || raw.id),
       exchange: String(raw.exchange || 'binance').toLowerCase(),
-      baseCurrency: String(raw.baseCurrency || String(raw.path).split(/[→>]/)[0] || 'BTC').trim()),
+      baseCurrency: String(
+        raw.baseCurrency || String(raw.path).split(/\u2192|>/)[0] || 'BTC',
+      ).trim(),
       path: String(raw.path),
       pairs: Array.isArray(raw.pairs) ? raw.pairs : [],
       step1: raw.step1,
@@ -127,7 +129,7 @@ function normalizeTriOpp(raw: any): TriangularOpportunity | null {
 
   // Camify stub: { id, exchange, path: "BTC→ETH→USDT→BTC", profit, volume, timestamp }
   const pathRaw = String(raw.path || '');
-  const legs = pathRaw.split(/[→>]/).map((s) => s.trim()).filter(Boolean);
+  const legs = pathRaw.split(/\u2192|>/).map((s) => s.trim()).filter(Boolean);
   if (legs.length < 3) return null;
 
   const profit = toNum(raw.profit ?? raw.netProfitPercent ?? raw.profitPercent, 0);
