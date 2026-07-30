@@ -36,11 +36,22 @@ const strip = (s?: string) =>
     .replace(/\s+/g, ' ')
     .trim();
 
+type CoinpediaPartnerProps = {
+  limit?: number;
+  compact?: boolean;
+  /** Hide “All partner stories” (already on that page). */
+  pageMode?: boolean;
+  /** Show empty state instead of unmounting when feed fails. */
+  showEmpty?: boolean;
+};
+
 /** Coinpedia partner wire — full articles open on CoinsClarity (/news/:id). */
-const CoinpediaPartner: React.FC<{ limit?: number; compact?: boolean }> = ({
+const CoinpediaPartner = ({
   limit = 6,
   compact = false,
-}) => {
+  pageMode = false,
+  showEmpty = false,
+}: CoinpediaPartnerProps) => {
   const navigate = useNavigate();
   const [items, setItems] = useState<PartnerItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -109,27 +120,42 @@ const CoinpediaPartner: React.FC<{ limit?: number; compact?: boolean }> = ({
     });
   };
 
-  if (!loading && items.length === 0) return null;
+  if (!loading && items.length === 0 && !showEmpty) return null;
 
   return (
-    <section className={`cp-partner ${compact ? 'cp-partner--compact' : ''}`} aria-label="Coinpedia partner feed">
+    <section
+      className={`cp-partner ${compact ? 'cp-partner--compact' : ''} ${pageMode ? 'cp-partner--on-page' : ''}`}
+      aria-label="Coinpedia partner feed"
+    >
       <div className="cp-partner__inner">
         <header className="cp-partner__head">
           <div className="cp-partner__brand">
-            <span className="cp-partner__badge">
-              <Handshake size={14} /> Official partner
-            </span>
+            {!pageMode && (
+              <span className="cp-partner__badge">
+                <Handshake size={14} /> Official partner
+              </span>
+            )}
             <h2 className="cp-partner__title">
-              From <span>Coinpedia</span>
+              {pageMode ? (
+                <>
+                  Latest from <span>Coinpedia</span>
+                </>
+              ) : (
+                <>
+                  From <span>Coinpedia</span>
+                </>
+              )}
             </h2>
             <p className="cp-partner__dek">
               Full articles on CoinsClarity via our media partnership — attributed to Coinpedia.
             </p>
           </div>
           <div className="cp-partner__actions">
-            <Link to="/partners/coinpedia" className="cp-partner__more">
-              All partner stories
-            </Link>
+            {!pageMode && (
+              <Link to="/partners/coinpedia" className="cp-partner__more">
+                All partner stories
+              </Link>
+            )}
             <a
               href="https://coinpedia.org/"
               target="_blank"
@@ -143,37 +169,46 @@ const CoinpediaPartner: React.FC<{ limit?: number; compact?: boolean }> = ({
 
         {loading && <p className="cp-partner__muted">Loading partner wire…</p>}
 
-        <ul className="cp-partner__grid">
-          {items.map((item) => (
-            <li key={item.article_id || item.link}>
-              <button
-                type="button"
-                className="cp-partner__card"
-                onClick={() => openArticle(item)}
-              >
-                <div className="cp-partner__img">
-                  <img
-                    src={resolveImageSrc(item.image_url, item.title, 'news')}
-                    alt=""
-                    loading="lazy"
-                    onError={(e) => handleImageError(e, item.title, 'news')}
-                  />
-                </div>
-                <div className="cp-partner__body">
-                  <span className="cp-partner__meta">
-                    Coinpedia · {formatDate(item.pubDate)}
-                  </span>
-                  <h3>{item.title}</h3>
-                  <p>
-                    {strip(item.description).slice(0, 120)}
-                    {strip(item.description).length > 120 ? '…' : ''}
-                  </p>
-                  <span className="cp-partner__out">Read full article →</span>
-                </div>
-              </button>
-            </li>
-          ))}
-        </ul>
+        {!loading && items.length === 0 && showEmpty && (
+          <div className="cp-partner__empty">
+            <strong>Partner wire is quiet right now</strong>
+            <p>Stories will show here when the Coinpedia feed responds. Check coinpedia.org meanwhile.</p>
+          </div>
+        )}
+
+        {items.length > 0 && (
+          <ul className="cp-partner__grid">
+            {items.map((item) => (
+              <li key={item.article_id || item.link}>
+                <button
+                  type="button"
+                  className="cp-partner__card"
+                  onClick={() => openArticle(item)}
+                >
+                  <div className="cp-partner__img">
+                    <img
+                      src={resolveImageSrc(item.image_url, item.title, 'news')}
+                      alt=""
+                      loading="lazy"
+                      onError={(e) => handleImageError(e, item.title, 'news')}
+                    />
+                  </div>
+                  <div className="cp-partner__body">
+                    <span className="cp-partner__meta">
+                      Coinpedia · {formatDate(item.pubDate)}
+                    </span>
+                    <h3>{item.title}</h3>
+                    <p>
+                      {strip(item.description).slice(0, 120)}
+                      {strip(item.description).length > 120 ? '…' : ''}
+                    </p>
+                    <span className="cp-partner__out">Read full article →</span>
+                  </div>
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
 
         <p className="cp-partner__legal">
           Content © Coinpedia. Published on CoinsClarity under partnership with source attribution.
