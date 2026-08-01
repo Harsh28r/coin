@@ -1036,8 +1036,8 @@ const NewsDetail: React.FC = () => {
             wordCount: newsItem.content ? newsItem.content.split(/\s+/).length : 0,
           }),
           breadcrumbList([
-            { name: 'Home', url: 'https://coinsclarity.com' },
-            { name: 'News', url: 'https://coinsclarity.com/All-Trending-news' },
+            { name: 'Home', url: 'https://www.coinsclarity.com' },
+            { name: 'News', url: 'https://www.coinsclarity.com/All-Trending-news' },
             { name: newsItem.title, url: window.location.href },
           ]),
         ]}

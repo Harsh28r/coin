@@ -198,7 +198,7 @@ const ScamCheckPage: React.FC = () => {
           name="description"
           content="Paste any token contract and get an instant security audit: honeypot detection, mint privileges, hidden owners, blacklist functions and 7 more checks across 7 chains. Free, no signup."
         />
-        <link rel="canonical" href="https://coinsclarity.com/tools/scam-check" />
+        <link rel="canonical" href="https://www.coinsclarity.com/tools/scam-check" />
         <meta property="og:title" content="Crypto Scam &amp; Honeypot Checker" />
         <meta property="og:description" content="Free instant security audit for any ERC-20 / BEP-20 token. 10 risk checks across 7 chains." />
       </Helmet>

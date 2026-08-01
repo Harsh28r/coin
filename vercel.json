@@ -2,6 +2,14 @@
   "buildCommand": "npm run build",
   "outputDirectory": "build",
   "framework": "create-react-app",
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "coinsclarity.com" }],
+      "destination": "https://www.coinsclarity.com/:path*",
+      "permanent": true
+    }
+  ],
   "headers": [
     {
       "source": "/embed/(.*)",

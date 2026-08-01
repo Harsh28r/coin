@@ -1,6 +1,6 @@
 /** Shared Schema.org JSON-LD builders for CoinsClarity */
 
-export const SITE_URL = 'https://coinsclarity.com';
+export const SITE_URL = 'https://www.coinsclarity.com';
 export const SITE_NAME = 'CoinsClarity';
 export const SITE_LOGO = `${SITE_URL}/logo3.png`;
 

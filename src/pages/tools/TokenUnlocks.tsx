@@ -154,7 +154,7 @@ const TokenUnlocksPage: React.FC = () => {
           name="description"
           content="Live token unlock calendar for 200+ crypto projects. See upcoming cliffs, unlock value in USD, percentage of circulating supply, and why it matters for price."
         />
-        <link rel="canonical" href="https://coinsclarity.com/tools/unlocks" />
+        <link rel="canonical" href="https://www.coinsclarity.com/tools/unlocks" />
         <meta property="og:title" content="Crypto Token Unlock Calendar — Live Schedule" />
         <meta property="og:description" content="Upcoming token unlocks across 200+ projects, with USD values and supply impact." />
       </Helmet>

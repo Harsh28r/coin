@@ -210,8 +210,8 @@ const CompareCoinsPage: React.FC = () => {
     : 'Compare any two cryptocurrencies side-by-side. Price, market cap, supply, ATH, 24h-1y returns. Live, free, no signup.';
 
   const canonical = coinA && coinB
-    ? `https://coinsclarity.com/compare/${coinA.id}-vs-${coinB.id}`
-    : 'https://coinsclarity.com/compare';
+    ? `https://www.coinsclarity.com/compare/${coinA.id}-vs-${coinB.id}`
+    : 'https://www.coinsclarity.com/compare';
 
   return (
     <>

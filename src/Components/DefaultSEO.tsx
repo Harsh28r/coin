@@ -3,10 +3,12 @@ import { Helmet } from 'react-helmet-async';
 import { useLocation } from 'react-router-dom';
 import JsonLd from './JsonLd';
 import { getJsonLdForRoute } from '../utils/routeJsonLd';
+import { SITE_URL } from '../utils/jsonLd';
 
 const DefaultSEO: React.FC = () => {
   const location = useLocation();
-  const url = typeof window !== 'undefined' ? `${window.location.origin}${location.pathname}${location.search}` : 'https://www.coinsclarity.com';
+  // Always emit production www canonicals — never preview/localhost/apex variants.
+  const url = `${SITE_URL}${location.pathname}${location.search}`;
 
   const { title, description } = useMemo(() => {
     const map: Record<string, { title: string; description: string }> = {
@@ -117,7 +119,7 @@ const DefaultSEO: React.FC = () => {
       <meta property="og:description" content={description} />
       <meta property="og:type" content="website" />
       <meta property="og:url" content={url} />
-      <meta property="og:image" content="/image.png" />
+      <meta property="og:image" content={`${SITE_URL}/logo3.png`} />
       <meta name="twitter:card" content="summary_large_image" />
 
       {/* Optional Google Analytics via env var */}

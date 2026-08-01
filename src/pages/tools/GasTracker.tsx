@@ -157,7 +157,7 @@ const GasTrackerPage: React.FC = () => {
           name="description"
           content="Live gas prices for Ethereum, Polygon, Arbitrum, Optimism, Base and BNB Chain. Updated every 30 seconds with USD cost estimates for transfers, swaps and NFT mints."
         />
-        <link rel="canonical" href="https://coinsclarity.com/tools/gas" />
+        <link rel="canonical" href="https://www.coinsclarity.com/tools/gas" />
         <meta property="og:title" content="Live Multi-Chain Gas Tracker" />
         <meta property="og:description" content="Real-time ETH, Polygon, Arbitrum, Optimism, Base and BNB gas fees with USD estimates." />
       </Helmet>

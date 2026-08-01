@@ -171,7 +171,7 @@ const Terms: React.FC = () => {
               <ul style={{ paddingLeft: '20px', marginTop: '10px', listStyle: 'none' }}>
                 {/* <li>Email: legal@coinsclarity.com</li> */}
                 <li>Email: <a href="mailto:hello@coinsclarity.com" style={{ color: '#f97316' }}>hello@coinsclarity.com</a></li>
-                <li>Website: <a href="https://coinsclarity.com/contact" style={{ color: '#f97316' }}>coinsclarity.com/contact</a></li>
+                <li>Website: <a href="https://www.coinsclarity.com/contact" style={{ color: '#f97316' }}>www.coinsclarity.com/contact</a></li>
               </ul>
             </section>
 

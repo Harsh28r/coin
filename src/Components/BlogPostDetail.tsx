@@ -225,11 +225,11 @@ const BlogPostDetail: React.FC = () => {
         <title>{post.title} | CoinsClarity</title>
         <meta name="description" content={(post.excerpt || stripTags(post.content)).slice(0, 160)} />
         <meta name="robots" content="index, follow, max-image-preview:large" />
-        <link rel="canonical" href={`https://coinsclarity.com${getBlogUrl(post)}`} />
+        <link rel="canonical" href={`${SITE_URL}${getBlogUrl(post)}`} />
         <meta property="og:title" content={post.title} />
         <meta property="og:description" content={(post.excerpt || stripTags(post.content)).slice(0, 200)} />
         <meta property="og:image" content={resolveImageSrc(post.imageUrl, post.title, 'blog')} />
-        <meta property="og:url" content={`https://coinsclarity.com${getBlogUrl(post)}`} />
+        <meta property="og:url" content={`${SITE_URL}${getBlogUrl(post)}`} />
         <meta property="og:type" content="article" />
         <meta property="article:author" content={post.author} />
         {post.tags?.slice(0, 6).map((t: string) => (

@@ -34,8 +34,8 @@ Disallow: /api/
 User-agent: Mediapartners-Google
 Allow: /
 
-Sitemap: https://coinsclarity.com/sitemap.xml
-Sitemap: https://coinsclarity.com/sitemap-coins.xml
-Sitemap: https://coinsclarity.com/sitemap-programmatic.xml
-Sitemap: https://coinsclarity.com/sitemap-news.xml
+Sitemap: https://www.coinsclarity.com/sitemap.xml
+Sitemap: https://www.coinsclarity.com/sitemap-coins.xml
+Sitemap: https://www.coinsclarity.com/sitemap-programmatic.xml
+Sitemap: https://www.coinsclarity.com/sitemap-news.xml
 Sitemap: https://camify.fun.coinsclarity.com/sitemap-blog.xml

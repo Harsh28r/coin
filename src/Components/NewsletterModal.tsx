@@ -156,11 +156,11 @@ const NewsletterModal: React.FC = () => {
             {status === 'err' && <div className="nl-err">{errMsg}</div>}
 
             <div className="nl-trust">
-              <span>📬 12,000+ subscribers</span>
-              <span>·</span>
               <span>🔓 No spam, ever</span>
               <span>·</span>
               <span>👋 1-click unsubscribe</span>
+              <span>·</span>
+              <span>⏱ Read in 60 seconds</span>
             </div>
           </>
         )}

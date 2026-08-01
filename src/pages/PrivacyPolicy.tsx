@@ -179,7 +179,7 @@ const PrivacyPolicy: React.FC = () => {
               </p>
               <ul style={{ paddingLeft: '20px', marginTop: '10px', listStyle: 'none' }}>
                 <li>Email: <a href="mailto:hello@coinsclarity.com" style={{ color: '#f97316' }}>hello@coinsclarity.com</a></li>
-                <li>Website: <a href="https://coinsclarity.com" style={{ color: '#f97316' }}>coinsclarity.com</a></li>
+                <li>Website: <a href="https://www.coinsclarity.com" style={{ color: '#f97316' }}>www.coinsclarity.com</a></li>
               </ul>
             </section>
 

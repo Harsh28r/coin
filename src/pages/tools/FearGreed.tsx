@@ -87,7 +87,7 @@ const FearGreedPage: React.FC = () => {
           name="description"
           content="Live Bitcoin Fear & Greed Index updated every 5 minutes. Track 30-day market sentiment history, learn how the index works, and use it to time entries and exits."
         />
-        <link rel="canonical" href="https://coinsclarity.com/tools/fear-greed" />
+        <link rel="canonical" href="https://www.coinsclarity.com/tools/fear-greed" />
         <meta property="og:title" content="Crypto Fear & Greed Index — Live Tracker" />
         <meta property="og:description" content="Live sentiment gauge for Bitcoin and crypto markets. Updated every 5 minutes with 30-day history." />
       </Helmet>
