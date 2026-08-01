@@ -184,6 +184,7 @@ function App() {
                   <Route path="/tools/fear-greed" element={<FearGreedPage />} />
                   <Route path="/tools/gas" element={<GasTrackerPage />} />
                   <Route path="/tools/scam-check" element={<ScamCheckPage />} />
+                  <Route path="/tools/scam-check/:chainId/:address" element={<ScamCheckPage />} />
                   <Route path="/tools/unlocks" element={<TokenUnlocksPage />} />
                   <Route path="/compare" element={<CompareCoinsPage />} />
                   <Route path="/compare/:slug" element={<CompareCoinsPage />} />

@@ -52,6 +52,11 @@ const DefaultSEO: React.FC = () => {
         description:
           'Professional crypto trading tools: profit calculator, DCA calculator, RSI scanner, funding rates, arbitrage checker, liquidation calculator, staking APY comparison. 100% free.',
       },
+      '/tools/scam-check': {
+        title: 'Free Crypto Token Scam & Honeypot Checker | CoinsClarity',
+        description:
+          'Free honeypot checker and token scam audit. Paste any contract to detect rugs, honeypots, hidden owners, mint backdoors and blacklist risks across Ethereum, BNB, Polygon and more.',
+      },
       '/arbitrage': {
         title: 'Triangular Arbitrage Calculator | Free Crypto Tool | CoinsClarity',
         description:
