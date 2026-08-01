@@ -1,4 +1,4 @@
-const { SITE, BACKEND, xmlSitemapIndex } = require('../lib/seo');
+const { SITE, xmlSitemapIndex } = require('../lib/seo');
 
 /** Sitemap index → static pages, coins, blog posts */
 module.exports = async function handler(req, res) {
@@ -11,7 +11,7 @@ module.exports = async function handler(req, res) {
     `${host}/sitemap-coins.xml`,
     `${host}/sitemap-programmatic.xml`,
     `${host}/sitemap-news.xml`,
-    `${BACKEND}/sitemap-blog.xml`,
+    `${host}/sitemap-blog.xml`,
   ]);
 
   res.setHeader('Content-Type', 'application/xml; charset=utf-8');

@@ -29,6 +29,7 @@
     { "source": "/sitemap-coins.xml", "destination": "/api/sitemap-coins.xml" },
     { "source": "/sitemap-news.xml", "destination": "/api/sitemap-news.xml" },
     { "source": "/sitemap-programmatic.xml", "destination": "/api/sitemap-programmatic.xml" },
+    { "source": "/sitemap-blog.xml", "destination": "/api/sitemap-blog.xml" },
     { "source": "/coin/:coinId/news", "destination": "/api/coin-news?coinId=:coinId" },
     { "source": "/today/why-is-:coinId-up", "destination": "/api/today-page?coinId=:coinId&direction=up" },
     { "source": "/today/why-is-:coinId-down", "destination": "/api/today-page?coinId=:coinId&direction=down" },
