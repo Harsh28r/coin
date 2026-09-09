@@ -14,7 +14,11 @@ module.exports = async function handler(req, res) {
     let xml = await upstream.text();
     xml = xml
       .replace(/https:\/\/coinsclarity\.com\//g, 'https://www.coinsclarity.com/')
-      .replace(/http:\/\/coinsclarity\.com\//g, 'https://www.coinsclarity.com/');
+      .replace(/http:\/\/coinsclarity\.com\//g, 'https://www.coinsclarity.com/')
+      .replace(
+        /https:\/\/www\.coinsclarity\.com\/blog\/price-outlook-([^<]+)/g,
+        'https://www.coinsclarity.com/prediction/$1',
+      );
 
     res.setHeader('Content-Type', 'application/xml; charset=utf-8');
     res.setHeader('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=86400');

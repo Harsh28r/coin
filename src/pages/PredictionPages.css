@@ -520,6 +520,29 @@
   line-height: 1.55;
 }
 
+.po-faq {
+  margin: 2.25rem 0 0;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+.po-faq h2 {
+  margin: 0 0 1rem;
+  font-size: 1.25rem;
+  letter-spacing: -0.02em;
+}
+
+.po-faq h3 {
+  margin: 1.1rem 0 0.35rem;
+  font-size: 1rem;
+}
+
+.po-faq p {
+  margin: 0;
+  color: #475569;
+  line-height: 1.55;
+}
+
 .po-search {
   display: flex;
   align-items: center;

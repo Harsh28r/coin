@@ -4,6 +4,8 @@ import { Helmet } from 'react-helmet-async';
 import { Compass, Search } from 'lucide-react';
 import CoinsNavbar from '../Components/navbar';
 import Footer from '../Components/footer';
+import JsonLd from '../Components/JsonLd';
+import { breadcrumbList, collectionPage, faqPage, SITE_URL } from '../utils/jsonLd';
 import { listPriceOutlooks, type PriceOutlookPost } from '../services/priceOutlookApi';
 import { resolveImageSrc, handleImageError } from '../utils/cryptoImages';
 import './PredictionPages.css';
@@ -23,6 +25,29 @@ const FEATURED = [
   { id: 'dogecoin', name: 'Dogecoin', symbol: 'DOGE' },
   { id: 'avalanche-2', name: 'Avalanche', symbol: 'AVAX' },
   { id: 'chainlink', name: 'Chainlink', symbol: 'LINK' },
+];
+
+const HUB_FAQ = [
+  {
+    question: 'What is a crypto price prediction on CoinsClarity?',
+    answer:
+      'A Markets Desk outlook with bear, base and bull USD ranges, catalysts, and what would invalidate the base case. Not a price target and not financial advice.',
+  },
+  {
+    question: 'Do you publish a Bitcoin price prediction for 2026?',
+    answer:
+      'Yes. Open the Bitcoin page for the current 2026–2030 scenario map, spot at filing, and the full desk note.',
+  },
+  {
+    question: 'How is this different from a generic crypto outlook?',
+    answer:
+      'Each coin has its own URL, named analyst, live market snapshot, and methodology. We do not scrape wire “price prediction 2030” listicles.',
+  },
+  {
+    question: 'How often are predictions updated?',
+    answer:
+      'The desk refreshes top coins weekly. Stale notes show a refresh control on the coin page.',
+  },
 ];
 
 const PredictionsHub: React.FC = () => {
@@ -62,21 +87,39 @@ const PredictionsHub: React.FC = () => {
     (f) => !posts.some((p) => p.outlook?.coinId === f.id || p.slug === `price-outlook-${f.id}`),
   );
 
+  const seoTitle = 'Crypto Price Predictions 2026 — Bitcoin, Ethereum & Altcoins';
+  const seoDesc =
+    'Bitcoin, Ethereum, Solana and altcoin price predictions with desk scenario ranges, catalysts and risks. Updated 2026–2030 outlooks.';
+
   return (
     <div className="po-page">
       <Helmet>
-        <title>Cryptocurrency Price Predictions — CoinsClarity Markets Desk</title>
-        <meta
-          name="description"
-          content="Original multi-year crypto price outlooks from the CoinsClarity Markets Desk — scenario maps, catalysts, and risks. Not scraped wire copy."
-        />
+        <title>{seoTitle}</title>
+        <meta name="description" content={seoDesc} />
         <meta
           name="keywords"
-          content="crypto price prediction, bitcoin outlook, ethereum forecast, altcoin analysis 2026 2030"
+          content="crypto price predictions, bitcoin price prediction, bitcoin outlook, ethereum price prediction, cryptocurrency predictions, crypto outlook"
         />
-        <link rel="canonical" href={`${window.location.origin}/predictions`} />
+        <link rel="canonical" href={`${SITE_URL}/predictions`} />
         <meta name="robots" content="index, follow" />
+        <meta property="og:title" content={seoTitle} />
+        <meta property="og:description" content={seoDesc} />
+        <meta property="og:url" content={`${SITE_URL}/predictions`} />
       </Helmet>
+      <JsonLd
+        data={[
+          collectionPage({
+            name: seoTitle,
+            description: seoDesc,
+            url: `${SITE_URL}/predictions`,
+          }),
+          faqPage(HUB_FAQ),
+          breadcrumbList([
+            { name: 'Home', url: SITE_URL },
+            { name: 'Price Predictions', url: `${SITE_URL}/predictions` },
+          ]),
+        ]}
+      />
 
       <CoinsNavbar />
 
@@ -85,10 +128,10 @@ const PredictionsHub: React.FC = () => {
           <div className="po-hero__eyebrow">
             <Compass size={14} /> Markets Desk
           </div>
-          <h1 className="po-hub-title">Price predictions</h1>
+          <h1 className="po-hub-title">Crypto Price Predictions</h1>
           <p className="po-hub-lead">
-            Multi-year scenario maps filed by analysts — live market data, named byline, methodology on
-            every page. Open a coin to read the full desk note.
+            Bitcoin, Ethereum and altcoin price predictions with bear / base / bull ranges. Desk-written. Not a
+            target. Not advice.
           </p>
 
           <label className="po-search">
@@ -96,22 +139,22 @@ const PredictionsHub: React.FC = () => {
             <input
               value={q}
               onChange={(e) => setQ(e.target.value)}
-              placeholder="Search filed outlooks…"
-              aria-label="Search predictions"
+              placeholder="Search Bitcoin, ETH, SOL…"
+              aria-label="Search price predictions"
             />
           </label>
         </header>
 
         {missingFeatured.length > 0 && (
           <section className="po-featured">
-            <h2>Request a desk filing</h2>
+            <h2>Open a price prediction</h2>
             <p className="po-section-lead">
-              No note on file yet — open one and the desk will generate an original outlook.
+              No note on file yet — first open files the desk outlook.
             </p>
             <div className="po-featured__grid">
               {missingFeatured.map((f) => (
                 <Link key={f.id} to={`/prediction/${f.id}`} className="po-featured__chip">
-                  <strong>{f.name}</strong>
+                  <strong>{f.name} price prediction</strong>
                   <span>{f.symbol}</span>
                 </Link>
               ))}
@@ -119,13 +162,13 @@ const PredictionsHub: React.FC = () => {
           </section>
         )}
 
-        {loading && <p className="po-muted">Loading desk archive…</p>}
+        {loading && <p className="po-muted">Loading predictions…</p>}
 
         {!loading && filtered.length === 0 && (
           <p className="po-muted">
             No outlooks filed yet. Start with{' '}
-            <Link to="/prediction/bitcoin">Bitcoin</Link> or{' '}
-            <Link to="/prediction/ethereum">Ethereum</Link> — first open triggers the Markets Desk.
+            <Link to="/prediction/bitcoin">Bitcoin price prediction</Link> or{' '}
+            <Link to="/prediction/ethereum">Ethereum price prediction</Link>.
           </p>
         )}
 
@@ -133,29 +176,40 @@ const PredictionsHub: React.FC = () => {
           {filtered.map((p) => {
             const o = p.outlook;
             const id = o?.coinId || (p.slug || '').replace(/^price-outlook-/, '');
+            const name = o?.coinName || id;
             return (
               <li key={p.id || p.slug}>
                 <Link to={`/prediction/${id}`} className="po-hub-card">
                   <div className="po-hub-card__img">
                     <img
-                      src={resolveImageSrc(p.imageUrl, o?.coinName || p.title, 'coin')}
+                      src={resolveImageSrc(p.imageUrl, name, 'coin')}
                       alt=""
                       loading="lazy"
-                      onError={(e) => handleImageError(e, o?.coinName || p.title, 'coin')}
+                      onError={(e) => handleImageError(e, name, 'coin')}
                     />
                   </div>
                   <div className="po-hub-card__body">
                     <span className="po-hub-card__meta">
                       {o?.symbol || '—'} · {o?.stance || 'outlook'} · spot {formatUsd(o?.spotAtWrite)}
                     </span>
-                    <h2>{p.title}</h2>
-                    <p>{(o?.stanceSummary || p.excerpt || '').slice(0, 140)}</p>
+                    <h2>{name} price prediction</h2>
+                    <p>{(o?.stanceSummary || p.excerpt || p.title || '').slice(0, 140)}</p>
                   </div>
                 </Link>
               </li>
             );
           })}
         </ul>
+
+        <section className="po-faq" aria-labelledby="po-hub-faq">
+          <h2 id="po-hub-faq">Price prediction FAQ</h2>
+          {HUB_FAQ.map((f) => (
+            <div key={f.question}>
+              <h3>{f.question}</h3>
+              <p>{f.answer}</p>
+            </div>
+          ))}
+        </section>
       </main>
 
       <Footer />

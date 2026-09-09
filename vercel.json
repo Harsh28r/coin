@@ -4,6 +4,11 @@
   "framework": "create-react-app",
   "redirects": [
     {
+      "source": "/blog/price-outlook-:coinId",
+      "destination": "https://www.coinsclarity.com/prediction/:coinId",
+      "permanent": true
+    },
+    {
       "source": "/:path*",
       "has": [{ "type": "host", "value": "coinsclarity.com" }],
       "destination": "https://www.coinsclarity.com/:path*",

@@ -203,11 +203,11 @@ const CompareCoinsPage: React.FC = () => {
   };
 
   const titleText = coinA && coinB
-    ? `${coinA.name} vs ${coinB.name} — Price, Market Cap & Performance Compared`
-    : 'Compare Crypto Coins Side-by-Side';
+    ? `${coinA.name} vs ${coinB.name} — Price & Market Cap Comparison`
+    : 'Compare Crypto — Market Cap & Price Comparison';
   const descText = coinA && coinB
-    ? `Compare ${coinA.name} (${coinA.symbol}) and ${coinB.name} (${coinB.symbol}) on price, market cap, supply, all-time-high, 24h / 7d / 30d / 1-year performance and more. Live data, updated every 5 minutes.`
-    : 'Compare any two cryptocurrencies side-by-side. Price, market cap, supply, ATH, 24h-1y returns. Live, free, no signup.';
+    ? `Compare ${coinA.name} (${coinA.symbol}) vs ${coinB.name} (${coinB.symbol}): price, market cap, supply, ATH, 24h / 7d / 30d / 1y. Live crypto compare.`
+    : 'Compare cryptocurrencies side-by-side. Crypto market cap comparison, price, supply, ATH. Free, no signup.';
 
   const canonical = coinA && coinB
     ? `https://www.coinsclarity.com/compare/${coinA.id}-vs-${coinB.id}`
@@ -233,7 +233,7 @@ const CompareCoinsPage: React.FC = () => {
             <h1 className="tool-title">
               {coinA && coinB
                 ? <>{coinA.name} <span style={{ color: 'var(--accent, #e85d2c)' }}>vs</span> {coinB.name}</>
-                : 'Compare Crypto Coins'}
+                : 'Compare Cryptocurrencies'}
             </h1>
             <p className="tool-tagline">
               Live, side-by-side fundamentals for any two cryptocurrencies. Pick from 12,000+ assets, get an instant

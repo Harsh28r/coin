@@ -2,6 +2,13 @@ const { SITE, BACKEND, escape, isCrawler, serveSpaShell } = require('../../lib/s
 
 module.exports = async function handler(req, res) {
   const { id } = req.query;
+  const slug = String(id || '');
+  if (slug.startsWith('price-outlook-')) {
+    const coinId = slug.replace(/^price-outlook-/, '');
+    res.setHeader('Location', `${SITE}/prediction/${encodeURIComponent(coinId)}`);
+    res.setHeader('Cache-Control', 'public, s-maxage=86400');
+    return res.status(301).end();
+  }
   const ua = req.headers['user-agent'] || '';
 
   if (!isCrawler(ua)) {

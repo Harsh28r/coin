@@ -227,9 +227,9 @@ const ScamCheckPage: React.FC = () => {
       };
     }
     return {
-      title: 'Free Crypto Token Scam & Honeypot Checker | CoinsClarity',
+      title: 'Honeypot Checker — Free Token Scam Checker (ETH, BSC) | CoinsClarity',
       description:
-        'Free honeypot checker and crypto token scam audit. Paste any contract to detect rugs, honeypots, hidden owners, mint backdoors and blacklist risks across Ethereum, BNB, Polygon, Base and more.',
+        'Free honeypot checker and token scam checker for ETH, BSC, Polygon, Base and more. Paste a contract to detect rugs, hidden owners, mint backdoors and blacklist risks.',
       canonical: `${SITE_URL}/tools/scam-check`,
     };
   }, [verdict, addr, reportUrl]);
@@ -282,7 +282,7 @@ const ScamCheckPage: React.FC = () => {
 
           <header className="tool-head">
             <span className="tool-eyebrow">Risk &amp; Security</span>
-            <h1 className="tool-title">Free Crypto Token Scam &amp; Honeypot Checker</h1>
+            <h1 className="tool-title">Honeypot Checker</h1>
             <p className="tool-tagline">
               Instant honeypot checker and token audit for any ERC-20 / BEP-20 contract. Detect rugs, honeypots, hidden
               owners, mint backdoors and blacklist risks across Ethereum, BNB, Polygon, Arbitrum, Optimism, Base and
@@ -373,6 +373,13 @@ const ScamCheckPage: React.FC = () => {
           )}
 
           <section className="tool-prose">
+            <h2>Honeypot checker for ETH, BSC and more</h2>
+            <p>
+              Paste any 0x contract. This honeypot checker (GoPlus) simulates buy and sell. Works as a token scam checker
+              on Ethereum, BNB Chain, Polygon, Arbitrum, Optimism, Base and Avalanche — same idea as Token Sniffer, no
+              signup.
+            </p>
+
             <h2>How the honeypot &amp; scam audit works</h2>
             <p>
               This free crypto token scam checker runs your contract through GoPlus Security&apos;s token-security API,

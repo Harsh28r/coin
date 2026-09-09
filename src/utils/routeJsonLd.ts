@@ -394,37 +394,89 @@ export function getJsonLdForRoute(pathname: string): JsonLdObject[] {
     case '/tools/gas':
       add(
         webApplication({
-          name: 'Ethereum & L2 Gas Tracker',
-          description: 'Real-time gas fees for Ethereum, Polygon, Arbitrum, Optimism, Base, and BNB.',
+          name: 'ETH Gas Tracker',
+          description: 'Live ETH, Polygon, Arbitrum, Base and BSC gwei with USD estimates.',
           url: abs('/tools/gas'),
-          features: ['Multi-chain gas fees', 'USD estimates'],
+          features: ['ETH gas tracker', 'Polygon gas tracker', 'Arbitrum gas fees', 'Base gas tracker'],
         }),
       );
-      add(crumbs(['Home', '/'], ['Tools', '/tools'], ['Gas Tracker', '/tools/gas']));
+      add(
+        faqPage([
+          {
+            question: 'What is an ETH gas tracker?',
+            answer:
+              'It shows live Ethereum gas in gwei and USD for transfers, swaps and NFT mints. CoinsClarity also tracks Polygon, Arbitrum, Base, Optimism and BSC on the same page.',
+          },
+          {
+            question: 'Where can I find a Polygon gas tracker?',
+            answer:
+              'The Polygon row on /tools/gas reads polygon-rpc every 30 seconds and shows slow, standard and fast gwei plus USD.',
+          },
+          {
+            question: 'Does this include an Arbitrum gas fees tracker and Base gas tracker?',
+            answer:
+              'Yes. Arbitrum One and Base have their own RPC readings on the same gas tracker page.',
+          },
+        ]),
+      );
+      add(crumbs(['Home', '/'], ['Tools', '/tools'], ['ETH Gas Tracker', '/tools/gas']));
       break;
 
     case '/tools/scam-check':
       add(
         webApplication({
-          name: 'Crypto Token Scam Checker',
-          description: 'Free security audit for ERC-20 and BEP-20 tokens.',
+          name: 'Honeypot Checker',
+          description: 'Free honeypot checker and token scam checker for ETH, BSC and more.',
           url: abs('/tools/scam-check'),
-          features: ['Token risk checks', 'Multi-chain support'],
+          features: ['Honeypot checker', 'Token scam checker', 'ETH and BSC'],
         }),
       );
-      add(crumbs(['Home', '/'], ['Tools', '/tools'], ['Scam Check', '/tools/scam-check']));
+      add(
+        faqPage([
+          {
+            question: 'What is a honeypot checker?',
+            answer:
+              'A honeypot checker simulates a buy and a sell. If you can buy but cannot sell, the token is a honeypot.',
+          },
+          {
+            question: 'Does this honeypot checker work on BSC?',
+            answer:
+              'Yes. Pick BNB Chain, paste the 0x contract, and run the same token scam checker used on Ethereum.',
+          },
+          {
+            question: 'Is the token scam checker free?',
+            answer:
+              'Yes. No signup. You get a shareable report URL for any supported chain.',
+          },
+        ]),
+      );
+      add(crumbs(['Home', '/'], ['Tools', '/tools'], ['Honeypot Checker', '/tools/scam-check']));
       break;
 
     case '/tools/unlocks':
       add(
         webApplication({
-          name: 'Token Unlock Calendar',
-          description: 'Upcoming token unlocks with USD values and supply impact.',
+          name: 'Token Unlock Schedule',
+          description: 'Token unlock calendar with USD cliffs, percent of float, and vesting dates.',
           url: abs('/tools/unlocks'),
-          features: ['Unlock schedule', 'USD estimates'],
+          features: ['Token unlock schedule', 'Token unlock calendar', 'Vesting cliffs'],
         }),
       );
-      add(crumbs(['Home', '/'], ['Tools', '/tools'], ['Unlocks', '/tools/unlocks']));
+      add(
+        faqPage([
+          {
+            question: 'What is a token unlock schedule?',
+            answer:
+              'A calendar of when locked tokens become transferable — team, investor and ecosystem cliffs, with USD value and percent of circulating supply.',
+          },
+          {
+            question: 'Is this a token unlock calendar like TokenUnlocks?',
+            answer:
+              'Yes in function. CoinsClarity uses DefiLlama emissions data, filterable by week, month or $10M+ unlocks. Free, no account.',
+          },
+        ]),
+      );
+      add(crumbs(['Home', '/'], ['Tools', '/tools'], ['Token Unlock Schedule', '/tools/unlocks']));
       break;
 
     case '/compare':

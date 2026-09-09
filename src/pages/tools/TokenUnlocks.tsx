@@ -149,14 +149,18 @@ const TokenUnlocksPage: React.FC = () => {
     <>
       <CoinsNavbar />
       <Helmet>
-        <title>Crypto Token Unlock Calendar — Live Vesting Schedule | CoinsClarity</title>
+        <title>Token Unlock Schedule — Crypto Unlock Calendar | CoinsClarity</title>
         <meta
           name="description"
-          content="Live token unlock calendar for 200+ crypto projects. See upcoming cliffs, unlock value in USD, percentage of circulating supply, and why it matters for price."
+          content="Token unlock schedule for 200+ coins. Live token unlock calendar with USD cliffs, % of float, and vesting dates. Alternative to TokenUnlocks.app."
+        />
+        <meta
+          name="keywords"
+          content="token unlocks, token unlock schedule, token unlock calendar, token vesting schedule, crypto unlocks, tokenunlocks"
         />
         <link rel="canonical" href="https://www.coinsclarity.com/tools/unlocks" />
-        <meta property="og:title" content="Crypto Token Unlock Calendar — Live Schedule" />
-        <meta property="og:description" content="Upcoming token unlocks across 200+ projects, with USD values and supply impact." />
+        <meta property="og:title" content="Token Unlock Schedule — Crypto Unlock Calendar" />
+        <meta property="og:description" content="Upcoming token unlocks: USD value, supply impact, and countdown." />
       </Helmet>
 
       <div className="tool-shell">
@@ -165,7 +169,7 @@ const TokenUnlocksPage: React.FC = () => {
 
           <header className="tool-head">
             <span className="tool-eyebrow">Schedules</span>
-            <h1 className="tool-title">Token Unlock Calendar</h1>
+            <h1 className="tool-title">Token Unlock Schedule</h1>
             <p className="tool-tagline">
               Upcoming token unlocks across 200+ crypto projects, ranked by USD value and percentage of circulating supply.
               Live data from DefiLlama, refreshed every 5 minutes.
@@ -295,6 +299,12 @@ const TokenUnlocksPage: React.FC = () => {
 
           {/* ── Long-form prose for SEO + AdSense ── */}
           <section className="tool-prose">
+            <h2>Token unlock calendar vs TokenUnlocks.app</h2>
+            <p>
+              This token unlock schedule pulls the same DefiLlama emissions feed most trackers use. Filter by week, month,
+              or $10M+ cliffs. Search a ticker. No account. Use it as a token unlock calendar before a vest hits the tape.
+            </p>
+
             <h2>Why token unlocks matter</h2>
             <p>
               A "token unlock" is the moment when previously-locked supply becomes transferable. Most crypto projects launch

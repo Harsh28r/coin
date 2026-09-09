@@ -203,9 +203,9 @@ const PressRelease: React.FC = () => {
       }}
     >
       <Helmet>
-        <title>Press Releases | CoinsClarity</title>
-        <meta name="description" content="Latest announcements and press releases across crypto." />
-        <link rel="canonical" href={`${window.location.origin}/press-news`} />
+        <title>Crypto Press Releases Today — Official Announcements | CoinsClarity</title>
+        <meta name="description" content="Official crypto press releases and announcements — listings, partnerships, launches. Curated, not a wire dump." />
+        <link rel="canonical" href="https://www.coinsclarity.com/press-news" />
       </Helmet>
       <div className="d-flex justify-content-between align-items-center mb-4">
         <div>
@@ -218,9 +218,9 @@ const PressRelease: React.FC = () => {
               color: 'var(--text)'
             }}
           >
-            Press Releases
+            Crypto Press Releases
           </h4>
-          <small style={{ color: 'var(--text)' }}>Latest announcements and updates across crypto</small>
+          <small style={{ color: 'var(--text)' }}>Official announcements — listings, partnerships, launches</small>
           {isTranslating && (
             <small className="text-muted d-block mt-1">
               🔄 Translating press releases to {currentLanguage === 'hi' ? 'Hindi' : 

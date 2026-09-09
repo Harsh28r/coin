@@ -567,9 +567,30 @@ const CoinDetail: React.FC = () => {
     );
   }
 
+  if (!coinId || coinId === 'undefined' || coinId === 'null') {
+    return (
+      <div className="cd-shell">
+        <Helmet>
+          <meta name="robots" content="noindex, follow" />
+          <link rel="canonical" href={`${SITE_URL}/`} />
+        </Helmet>
+        <div className="cd-container cd-empty">
+          <h1>Coin not found</h1>
+          <p>That market URL is invalid.</p>
+          <button className="cd-btn cd-btn--ghost" onClick={() => navigate('/')}>
+            <ArrowLeft size={16} /> Back home
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   if (!coin) {
     return (
       <div className="cd-shell">
+        <Helmet>
+          <meta name="robots" content="noindex, follow" />
+        </Helmet>
         <div className="cd-container cd-empty">
           <h1>Couldn't find “{coinId}”.</h1>
           <p>{error || 'CoinGecko returned no data for this asset.'}</p>
@@ -586,10 +607,10 @@ const CoinDetail: React.FC = () => {
   return (
     <div className="cd-shell">
       <Helmet>
-        <title>{`${String(coin.name || coinId || 'Asset')} (${String(coin.symbol || '').toUpperCase()}) Price, Chart & Market Cap | CoinsClarity`}</title>
+        <title>{`${String(coin.name || coinId)} Price Today — ${String(coin.symbol || '').toUpperCase()} Chart & Market Cap`}</title>
         <meta
           name="description"
-          content={`Live ${String(coin.name || coinId || 'crypto')} (${String(coin.symbol || '').toUpperCase()}) price, chart and market data on CoinsClarity.`}
+          content={`${String(coin.name)} (${String(coin.symbol || '').toUpperCase()}) price today, live chart and market cap. Compare, news and desk outlook on CoinsClarity.`}
         />
         <link rel="canonical" href={`${SITE_URL}/coin/${coinId}`} />
         <meta name="robots" content="index, follow, max-image-preview:large" />
@@ -650,7 +671,7 @@ const CoinDetail: React.FC = () => {
             />
             <div className="cd-hero__meta">
               <h1 className="cd-hero__name">
-                {coin.name}
+                {coin.name} Price
                 <span className="cd-hero__symbol">{coin.symbol?.toUpperCase()}</span>
               </h1>
               {coin.market_cap_rank ? <span className="cd-hero__rank">Rank #{coin.market_cap_rank}</span> : null}

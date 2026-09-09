@@ -198,7 +198,7 @@ const CoinTicker: React.FC<CoinTickerProps> = ({ fixed = true, top = 60, height 
                   transition: 'all 0.2s ease'
                 }}
                 title={`Click to view ${coin.name} details`}
-                onClick={() => navigate(`/coin/${coin.id}`)}
+                onClick={() => coin.id && navigate(`/coin/${coin.id}`)}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.background = 'rgba(59, 130, 246, 0.1)';
                   e.currentTarget.style.transform = 'scale(1.02)';

@@ -15,7 +15,8 @@ import {
 import CoinsNavbar from '../Components/navbar';
 import Footer from '../Components/footer';
 import JsonLd from '../Components/JsonLd';
-import { breadcrumbList, SITE_URL } from '../utils/jsonLd';
+import { breadcrumbList, faqPage, SITE_URL } from '../utils/jsonLd';
+import { buildOutlookFaqs, predictionSeoTitle } from '../utils/outlookFaq';
 import { fetchPriceOutlook, generatePriceOutlook, type PriceOutlookPost } from '../services/priceOutlookApi';
 import { resolveImageSrc, handleImageError } from '../utils/cryptoImages';
 import { authorPath } from '../config/authors';
@@ -93,15 +94,17 @@ const PredictionDetail: React.FC = () => {
   }, [load]);
 
   const outlook = post?.outlook;
-  const title =
+  const rawTitle =
     post?.title ||
     `${(outlook?.coinName || coinId).replace(/^\w/, (c) => c.toUpperCase())} price outlook`;
+  const title = predictionSeoTitle(rawTitle, outlook);
+  const faqs = useMemo(() => buildOutlookFaqs(outlook, coinId), [outlook, coinId]);
   const desc =
     outlook?.stanceSummary ||
     post?.excerpt ||
-    `CoinsClarity Markets Desk outlook for ${outlook?.coinName || coinId} — scenarios, catalysts, and risks through ${outlook?.horizon || '2030'}.`;
+    `${outlook?.coinName || coinId} price prediction — scenarios, catalysts, and risks through ${outlook?.horizon || '2030'}.`;
 
-  const canonical = `${typeof window !== 'undefined' ? window.location.origin : SITE_URL}/prediction/${coinId}`;
+  const canonical = `${SITE_URL}/prediction/${coinId}`;
 
   const jsonLd = useMemo(() => {
     if (!post) return null;
@@ -136,7 +139,7 @@ const PredictionDetail: React.FC = () => {
   return (
     <div className="po-page">
       <Helmet>
-        <title>{title} — CoinsClarity Markets Desk</title>
+        <title>{title}</title>
         <meta name="description" content={desc.slice(0, 160)} />
         <meta
           name="keywords"
@@ -156,6 +159,7 @@ const PredictionDetail: React.FC = () => {
         <JsonLd
           data={[
             jsonLd,
+            ...(faqs.length ? [faqPage(faqs)] : []),
             breadcrumbList([
               { name: 'Home', url: SITE_URL },
               { name: 'Price Predictions', url: `${SITE_URL}/predictions` },
@@ -334,6 +338,18 @@ const PredictionDetail: React.FC = () => {
                 dangerouslySetInnerHTML={{ __html: post.content || '' }}
               />
             </article>
+
+            {faqs.length > 0 && (
+              <section className="po-faq" aria-labelledby="po-faq-h">
+                <h2 id="po-faq-h">{outlook?.coinName || coinId} price prediction FAQ</h2>
+                {faqs.map((f) => (
+                  <div key={f.question}>
+                    <h3>{f.question}</h3>
+                    <p>{f.answer}</p>
+                  </div>
+                ))}
+              </section>
+            )}
 
             <section className="po-method">
               <h2>How we build this</h2>

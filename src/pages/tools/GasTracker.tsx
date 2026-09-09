@@ -152,14 +152,18 @@ const GasTrackerPage: React.FC = () => {
     <>
       <CoinsNavbar />
       <Helmet>
-        <title>Live Crypto Gas Tracker — ETH, Polygon, Arbitrum, Base &amp; more | CoinsClarity</title>
+        <title>ETH Gas Tracker — Polygon, Arbitrum, Base &amp; BSC Gwei | CoinsClarity</title>
         <meta
           name="description"
-          content="Live gas prices for Ethereum, Polygon, Arbitrum, Optimism, Base and BNB Chain. Updated every 30 seconds with USD cost estimates for transfers, swaps and NFT mints."
+          content="Live ETH gas tracker plus Polygon gas tracker, Arbitrum gas fees, Base gas tracker and BSC gwei. USD cost for transfers, swaps and NFT mints. Updates every 30 seconds."
+        />
+        <meta
+          name="keywords"
+          content="eth gas tracker, polygon gas tracker, arbitrum gas fees tracker, base gas tracker, ethereum gas tracker, bsc gwei, gas tracker"
         />
         <link rel="canonical" href="https://www.coinsclarity.com/tools/gas" />
-        <meta property="og:title" content="Live Multi-Chain Gas Tracker" />
-        <meta property="og:description" content="Real-time ETH, Polygon, Arbitrum, Optimism, Base and BNB gas fees with USD estimates." />
+        <meta property="og:title" content="ETH Gas Tracker — Polygon, Arbitrum, Base, BSC" />
+        <meta property="og:description" content="Live Ethereum, Polygon, Arbitrum, Base and BNB gas fees in gwei and USD." />
       </Helmet>
 
       <div className="tool-shell">
@@ -168,10 +172,9 @@ const GasTrackerPage: React.FC = () => {
 
           <header className="tool-head">
             <span className="tool-eyebrow">On-chain</span>
-            <h1 className="tool-title">Crypto Gas Tracker</h1>
+            <h1 className="tool-title">ETH Gas Tracker</h1>
             <p className="tool-tagline">
-              Live gas prices across six major chains, refreshed every 30 seconds. Read in gwei, priced in USD — no wallet
-              connect, no email.
+              Ethereum gas tracker plus Polygon, Arbitrum, Base, Optimism and BSC gwei — live, in USD. No wallet. No email.
             </p>
             <button className="tool-refresh" onClick={load} disabled={loading}>
               <RefreshCcw size={14} className={loading ? 'spin' : ''} /> {loading ? 'Updating…' : 'Refresh now'}
@@ -231,6 +234,13 @@ const GasTrackerPage: React.FC = () => {
           </div>
 
           <section className="tool-prose">
+            <h2>Polygon gas tracker, Arbitrum gas fees, Base gas tracker</h2>
+            <p>
+              Same page, six RPCs. Polygon gas tracker reads polygon-rpc. Arbitrum gas fees tracker hits arb1. Base gas
+              tracker uses mainnet.base.org. BSC gwei comes from the public Binance seed. ETH gas tracker is eth.llamarpc.
+              Standard is live <code>eth_gasPrice</code>; slow is ~85%; fast is ~125%.
+            </p>
+
             <h2>What is gas and why does it cost so much?</h2>
             <p>
               Gas is the fee you pay validators to include your transaction in a block. On Ethereum and most EVM-compatible

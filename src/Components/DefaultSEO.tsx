@@ -33,9 +33,14 @@ const DefaultSEO: React.FC = () => {
           'Exclusive crypto news stories and curated insights. Dive deeper into what matters with full crypto articles, analysis and highlights.',
       },
       '/press-news': {
-        title: 'Crypto Press Releases & Official Announcements | CoinsClarity',
+        title: 'Crypto Press Releases Today — Official Announcements | CoinsClarity',
         description:
-          'Official crypto press releases and announcements curated from top sources. Stay informed on crypto launches, partnerships and updates.',
+          'Official crypto press releases — listings, partnerships and launches. Curated announcements, not a wire dump.',
+      },
+      '/compare': {
+        title: 'Compare Crypto — Market Cap & Price Comparison | CoinsClarity',
+        description:
+          'Compare cryptocurrencies side-by-side: price, market cap, supply and returns. Free crypto compare tool.',
       },
       '/learn': {
         title: 'Learn Cryptocurrency: Complete Guides & How-To Tutorials | CoinsClarity',
@@ -53,9 +58,19 @@ const DefaultSEO: React.FC = () => {
           'Professional crypto trading tools: profit calculator, DCA calculator, RSI scanner, funding rates, arbitrage checker, liquidation calculator, staking APY comparison. 100% free.',
       },
       '/tools/scam-check': {
-        title: 'Free Crypto Token Scam & Honeypot Checker | CoinsClarity',
+        title: 'Honeypot Checker — Free Token Scam Checker (ETH, BSC) | CoinsClarity',
         description:
-          'Free honeypot checker and token scam audit. Paste any contract to detect rugs, honeypots, hidden owners, mint backdoors and blacklist risks across Ethereum, BNB, Polygon and more.',
+          'Free honeypot checker and token scam checker for ETH, BSC, Polygon and Base. Detect rugs, hidden owners and mint backdoors.',
+      },
+      '/tools/gas': {
+        title: 'ETH Gas Tracker — Polygon, Arbitrum, Base & BSC Gwei | CoinsClarity',
+        description:
+          'Live ETH gas tracker plus Polygon, Arbitrum, Base and BSC gwei with USD transfer and swap costs.',
+      },
+      '/tools/unlocks': {
+        title: 'Token Unlock Schedule — Crypto Unlock Calendar | CoinsClarity',
+        description:
+          'Token unlock schedule and vesting calendar for 200+ coins. USD cliffs, percent of float, countdown.',
       },
       '/arbitrage': {
         title: 'Triangular Arbitrage Calculator | Free Crypto Tool | CoinsClarity',
@@ -73,9 +88,9 @@ const DefaultSEO: React.FC = () => {
           'Latest AI and machine learning developments in cryptocurrency. Track AI crypto projects, research, and innovations.',
       },
       '/predictions': {
-        title: 'Crypto Price Outlooks & Market Predictions | CoinsClarity',
+        title: 'Crypto Price Predictions 2026 — Bitcoin, Ethereum & Altcoins',
         description:
-          'Desk-written price outlooks for Bitcoin, Ethereum, Solana and top altcoins. Catalysts, levels, and risk — not wire copy.',
+          'Bitcoin, Ethereum, Solana and altcoin price predictions with desk scenario ranges, catalysts and risks. Updated outlooks, not wire copy.',
       },
       '/live': {
         title: 'Live Crypto News Desk | CoinsClarity',
