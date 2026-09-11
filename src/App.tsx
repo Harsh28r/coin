@@ -17,6 +17,7 @@ import { Analytics } from '@vercel/analytics/react';
 import useAdSenseControl from './Components/AdSenseControl';
 import FloatingAIChat from './Components/FloatingAIChat';
 import NewsletterModal from './Components/NewsletterModal';
+import InstallAppBanner from './Components/InstallAppBanner';
 
 // Route components — lazy loaded so each page ships in its own chunk
 const LandingPage = lazy(() => import('./pages/Landing'));
@@ -117,6 +118,7 @@ const SiteChrome: React.FC = () => {
       <BackToTop />
       <FloatingAIChat />
       <NewsletterModal />
+      <InstallAppBanner />
     </>
   );
 };

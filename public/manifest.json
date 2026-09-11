@@ -1,13 +1,67 @@
 {
   "short_name": "CoinsClarity",
-  "name": "CoinsClarity",
+  "name": "CoinsClarity — Crypto Tools",
+  "description": "Crypto news, gas tracker, USDT/INR P2P, funding rates, price alerts and portfolio.",
   "icons": [
-    { "src": "logo3.png", "type": "image/png", "sizes": "64x64 32x32 24x24 16x16" },
-    { "src": "logo3.png", "type": "image/png", "sizes": "192x192" },
-    { "src": "logo3.png", "type": "image/png", "sizes": "512x512" }
+    {
+      "src": "favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "logo192.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any"
+    },
+    {
+      "src": "logo512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any"
+    },
+    {
+      "src": "logo512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "maskable"
+    }
   ],
-  "start_url": ".",
+  "start_url": "/?utm_source=pwa",
+  "scope": "/",
   "display": "standalone",
-  "theme_color": "#000000",
-  "background_color": "#ffffff"
+  "orientation": "portrait-primary",
+  "theme_color": "#0b1220",
+  "background_color": "#0b1220",
+  "categories": ["finance", "news", "utilities"],
+  "lang": "en",
+  "dir": "ltr",
+  "prefer_related_applications": false,
+  "shortcuts": [
+    {
+      "name": "USDT INR P2P",
+      "short_name": "P2P",
+      "description": "Live USDT/INR P2P board",
+      "url": "/tools/p2p?utm_source=pwa_shortcut",
+      "icons": [{ "src": "logo192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Gas Tracker",
+      "short_name": "Gas",
+      "url": "/tools/gas?utm_source=pwa_shortcut",
+      "icons": [{ "src": "logo192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Price Alerts",
+      "short_name": "Alerts",
+      "url": "/alerts?utm_source=pwa_shortcut",
+      "icons": [{ "src": "logo192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Funding Rates",
+      "short_name": "Funding",
+      "url": "/tools/funding?utm_source=pwa_shortcut",
+      "icons": [{ "src": "logo192.png", "sizes": "192x192" }]
+    }
+  ]
 }
