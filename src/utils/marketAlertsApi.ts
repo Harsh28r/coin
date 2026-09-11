@@ -56,9 +56,10 @@ export async function createPriceAlert(body: {
   channel: 'email' | 'telegram' | 'web';
   email?: string;
   chatId?: number;
-  kind?: 'price' | 'unlock';
+  kind?: 'price' | 'unlock' | 'p2p';
   unlockLabel?: string;
   unlockTs?: number;
+  upiOnly?: boolean;
 }): Promise<{ ok: boolean; data?: PriceAlertRow; error?: string }> {
   const res = await apiFetch('/api/alerts', {
     method: 'POST',
@@ -119,30 +120,43 @@ export async function fetchFundingRates(): Promise<FundingRow[]> {
 }
 
 export type P2PAd = {
+  source?: string;
   price: number;
   available: number;
   minFiat: number;
   maxFiat: number;
   merchant: string;
   methods: string[];
+  hasUpi?: boolean;
   url: string;
 };
 
 export type P2PBoard = {
   asset: string;
   fiat: string;
+  upiOnly?: boolean;
   mid: number | null;
   bestBuy: number | null;
   bestSell: number | null;
   spreadPct: number | null;
+  exchangeInr?: number | null;
+  exchangeSource?: string | null;
+  premiumBuyPct?: number | null;
+  premiumSellPct?: number | null;
+  sources?: Record<string, { buy: number; sell: number }>;
   buy: P2PAd[];
   sell: P2PAd[];
   disclaimer: string;
   updatedAt: string;
 };
 
-export async function fetchP2PBoard(asset = 'USDT', fiat = 'INR'): Promise<P2PBoard> {
-  const res = await apiFetch(`/api/tools/p2p?asset=${asset}&fiat=${fiat}`);
+export async function fetchP2PBoard(
+  asset = 'USDT',
+  fiat = 'INR',
+  upiOnly = false,
+): Promise<P2PBoard> {
+  const q = `asset=${asset}&fiat=${fiat}${upiOnly ? '&upi=1' : ''}`;
+  const res = await apiFetch(`/api/tools/p2p?${q}`);
   const data = await res.json();
   if (!res.ok || !data.success) throw new Error(data.error || 'P2P unavailable');
   return data as P2PBoard;

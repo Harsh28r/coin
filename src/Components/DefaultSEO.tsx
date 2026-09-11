@@ -102,9 +102,9 @@ const DefaultSEO: React.FC = () => {
           'Live perpetual funding rates for BTC, ETH, SOL and more. 8h rate, annualized, mark price.',
       },
       '/tools/p2p': {
-        title: 'USDT INR P2P Rate — Binance P2P Buy & Sell | CoinsClarity',
+        title: 'USDT INR P2P Rate — UPI Buy & Sell Board | CoinsClarity',
         description:
-          'Live USDT/INR P2P rates from Binance. Best buy and sell ads for India.',
+          'Live USDT/INR P2P with UPI filter, premium vs exchange INR, Binance + OKX ads. Free India P2P board.',
       },
       '/tools/liquidations': {
         title: 'Crypto Liquidation Levels — BTC ETH Cascade Map | CoinsClarity',
