@@ -41,7 +41,7 @@ const Footer: React.FC = () => {
       <Container style={{ maxWidth: 1280, padding: '0 24px' }}>
         <Row className="gy-4 mb-4">
           {/* Brand */}
-          <Col lg={3} md={6}>
+          <Col lg={2} md={6}>
             <img
               src="/logo3.png"
               alt="CoinsClarity"
@@ -87,14 +87,24 @@ const Footer: React.FC = () => {
           </Col>
 
           <Col lg={2} md={3} sm={6}>
+            <span className="cc-footer__heading">Tools</span>
+            <a href="/tools/gas/polygon" className="cc-footer__link">Polygon gas tracker</a>
+            <a href="/tools/gas/arbitrum" className="cc-footer__link">Arbitrum gas fees tracker</a>
+            <a href="/tools/gas/base" className="cc-footer__link">Base gas tracker</a>
+            <a href="/tools/gas" className="cc-footer__link">ETH gas tracker</a>
+            <a href="/tools/scam-check" className="cc-footer__link">Honeypot checker</a>
+            <a href="/tools/unlocks" className="cc-footer__link">Token unlock schedule</a>
+            <a href="/tools/fear-greed" className="cc-footer__link">Fear &amp; Greed</a>
+            <a href="/compare" className="cc-footer__link">Compare crypto</a>
+          </Col>
+
+          <Col lg={2} md={3} sm={6}>
             <span className="cc-footer__heading">News</span>
             <a href="/exclusive-news" className="cc-footer__link">Exclusive</a>
             <a href="/All-Trending-news" className="cc-footer__link">Trending</a>
-            <a href="/press-news" className="cc-footer__link">Press Releases</a>
             <a href="/ai-news" className="cc-footer__link">AI News</a>
             <a href="/listings" className="cc-footer__link">Listings</a>
             <a href="/beyond-the-headlines" className="cc-footer__link">Beyond the Headlines</a>
-            <a href="/predictions" className="cc-footer__link">Price Predictions</a>
             <a href="/live" className="cc-footer__link">LIVE Coverage</a>
             <a href="/partners/coinpedia" className="cc-footer__link">Partner: Coinpedia</a>
           </Col>
@@ -116,7 +126,7 @@ const Footer: React.FC = () => {
             <p className="cc-footer__note">We may earn a commission when you use these links.</p>
           </Col>
 
-          <Col lg={3} md={12}>
+          <Col lg={2} md={12}>
             <span className="cc-footer__heading">The Edge — Daily Brief</span>
             <p className="cc-footer__tagline" style={{ marginBottom: 14 }}>
               Top crypto stories, market movers, and editorial insight delivered every morning. Free.

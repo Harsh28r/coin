@@ -21,6 +21,7 @@ const DYNAMIC_PREFIXES = [
   '/prediction/',
   '/live/',
   '/tools/scam-check/',
+  '/tools/gas/',
 ];
 
 function isDynamicRoute(pathname: string): boolean {
@@ -410,12 +411,12 @@ export function getJsonLdForRoute(pathname: string): JsonLdObject[] {
           {
             question: 'Where can I find a Polygon gas tracker?',
             answer:
-              'The Polygon row on /tools/gas reads polygon-rpc every 30 seconds and shows slow, standard and fast gwei plus USD.',
+              'Open /tools/gas/polygon — dedicated Polygon gas tracker with live POL gwei and USD every 30 seconds.',
           },
           {
             question: 'Does this include an Arbitrum gas fees tracker and Base gas tracker?',
             answer:
-              'Yes. Arbitrum One and Base have their own RPC readings on the same gas tracker page.',
+              'Yes. /tools/gas/arbitrum and /tools/gas/base are dedicated pages for those L2s.',
           },
         ]),
       );

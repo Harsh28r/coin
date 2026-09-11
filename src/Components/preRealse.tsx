@@ -205,6 +205,7 @@ const PressRelease: React.FC = () => {
       <Helmet>
         <title>Crypto Press Releases Today — Official Announcements | CoinsClarity</title>
         <meta name="description" content="Official crypto press releases and announcements — listings, partnerships, launches. Curated, not a wire dump." />
+        <meta name="robots" content="noindex, follow" />
         <link rel="canonical" href="https://www.coinsclarity.com/press-news" />
       </Helmet>
       <div className="d-flex justify-content-between align-items-center mb-4">

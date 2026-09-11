@@ -183,6 +183,7 @@ function App() {
                   <Route path="/tools" element={<CryptoTools />} />
                   <Route path="/tools/fear-greed" element={<FearGreedPage />} />
                   <Route path="/tools/gas" element={<GasTrackerPage />} />
+                  <Route path="/tools/gas/:chain" element={<GasTrackerPage />} />
                   <Route path="/tools/scam-check" element={<ScamCheckPage />} />
                   <Route path="/tools/scam-check/:chainId/:address" element={<ScamCheckPage />} />
                   <Route path="/tools/unlocks" element={<TokenUnlocksPage />} />

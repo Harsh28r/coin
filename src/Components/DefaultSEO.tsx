@@ -7,8 +7,8 @@ import { SITE_URL } from '../utils/jsonLd';
 
 const DefaultSEO: React.FC = () => {
   const location = useLocation();
-  // Always emit production www canonicals — never preview/localhost/apex variants.
-  const url = `${SITE_URL}${location.pathname}${location.search}`;
+  // Always emit production www canonicals — never preview/localhost/apex/?utm variants.
+  const url = `${SITE_URL}${location.pathname}`;
 
   const { title, description } = useMemo(() => {
     const map: Record<string, { title: string; description: string }> = {
@@ -66,6 +66,30 @@ const DefaultSEO: React.FC = () => {
         title: 'ETH Gas Tracker — Polygon, Arbitrum, Base & BSC Gwei | CoinsClarity',
         description:
           'Live ETH gas tracker plus Polygon, Arbitrum, Base and BSC gwei with USD transfer and swap costs.',
+      },
+      '/tools/gas/ethereum': {
+        title: 'ETH Gas Tracker — Live Ethereum Gwei & USD Fees | CoinsClarity',
+        description: 'Live Ethereum gas tracker in gwei and USD for transfers, swaps and NFT mints.',
+      },
+      '/tools/gas/polygon': {
+        title: 'Polygon Gas Tracker — Live POL Gwei & USD Fees | CoinsClarity',
+        description: 'Live Polygon gas tracker for POL gwei and USD transfer, swap and NFT mint costs.',
+      },
+      '/tools/gas/arbitrum': {
+        title: 'Arbitrum Gas Fees Tracker — Live Arb Gwei & USD | CoinsClarity',
+        description: 'Live Arbitrum gas fees tracker with gwei and USD estimates on Arbitrum One.',
+      },
+      '/tools/gas/base': {
+        title: 'Base Gas Tracker — Live Base Gwei & USD Fees | CoinsClarity',
+        description: 'Live Base gas tracker for Base L2 gwei and USD costs on transfers, swaps and mints.',
+      },
+      '/tools/gas/optimism': {
+        title: 'Optimism Gas Tracker — Live OP Gwei & USD Fees | CoinsClarity',
+        description: 'Live Optimism gas tracker with gwei and USD estimates for common transactions.',
+      },
+      '/tools/gas/bsc': {
+        title: 'BSC Gas Tracker — BNB Chain Gwei & USD Fees | CoinsClarity',
+        description: 'Live BNB Chain gas tracker with gwei and USD costs for transfers, swaps and mints.',
       },
       '/tools/unlocks': {
         title: 'Token Unlock Schedule — Crypto Unlock Calendar | CoinsClarity',
@@ -131,6 +155,9 @@ const DefaultSEO: React.FC = () => {
     <Helmet>
       <title>{title}</title>
       <meta name="description" content={description} />
+      {location.pathname === '/press-news' && (
+        <meta name="robots" content="noindex, follow" />
+      )}
       <link rel="canonical" href={url} />
       <link rel="alternate" hrefLang="en" href={url} />
       <link rel="alternate" hrefLang="x-default" href={url} />

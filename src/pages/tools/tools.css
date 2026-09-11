@@ -244,6 +244,42 @@
 }
 
 /* ── Gas Tracker specific ────────────────────────────────────── */
+.gas-chain-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 24px;
+}
+.gas-chain-nav a {
+  font-size: 13px;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border, #e5e7eb);
+  color: var(--text-muted, #525866);
+  text-decoration: none;
+}
+.gas-chain-nav a:hover,
+.gas-chain-nav a.is-active {
+  color: var(--text, #111);
+  border-color: var(--accent, #e85d2c);
+  background: rgba(232, 93, 44, 0.06);
+}
+.gas-card-link {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+.gas-card--featured {
+  max-width: 420px;
+}
+.gas-faq {
+  margin-bottom: 16px;
+}
+.gas-faq h3 {
+  font-size: 1.05rem;
+  margin: 0 0 6px;
+}
 .gas-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
