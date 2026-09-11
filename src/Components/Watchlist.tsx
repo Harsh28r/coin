@@ -111,6 +111,9 @@ const Watchlist: React.FC = () => {
           )}
         </div>
         <div className="d-flex gap-2">
+          <Button variant="outline-warning" size="sm" onClick={() => navigate('/alerts')}>
+            Price alerts
+          </Button>
           <Button
             variant="outline-secondary"
             size="sm"

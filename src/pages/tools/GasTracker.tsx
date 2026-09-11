@@ -390,6 +390,26 @@ const GasTrackerPage: React.FC = () => {
               <RefreshCcw size={14} className={loading ? 'spin' : ''} />{' '}
               {loading ? 'Updating…' : 'Refresh now'}
             </button>
+            <button
+              type="button"
+              className="tool-refresh"
+              style={{ marginLeft: 8 }}
+              onClick={() => {
+                const focusId = focused?.id;
+                const r = focusId ? readings[focusId] : readings.ethereum;
+                const label = focused ? seo.h1 : 'ETH Gas Tracker';
+                const gwei = r ? fmtGwei(r.standard) : '—';
+                const text = `${label}: ${gwei} gwei (standard) · ${canonical}`;
+                if (navigator.share) {
+                  navigator.share({ title: label, text, url: canonical }).catch(() => {});
+                } else {
+                  navigator.clipboard?.writeText(text);
+                  window.alert('Copied gas snapshot link');
+                }
+              }}
+            >
+              Share
+            </button>
           </header>
 
           <nav className="gas-chain-nav" aria-label="Gas tracker by chain">

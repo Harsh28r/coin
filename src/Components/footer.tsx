@@ -92,10 +92,12 @@ const Footer: React.FC = () => {
             <a href="/tools/gas/arbitrum" className="cc-footer__link">Arbitrum gas fees tracker</a>
             <a href="/tools/gas/base" className="cc-footer__link">Base gas tracker</a>
             <a href="/tools/gas" className="cc-footer__link">ETH gas tracker</a>
+            <a href="/tools/funding" className="cc-footer__link">Funding rates</a>
+            <a href="/tools/p2p" className="cc-footer__link">USDT INR P2P rate</a>
             <a href="/tools/scam-check" className="cc-footer__link">Honeypot checker</a>
             <a href="/tools/unlocks" className="cc-footer__link">Token unlock schedule</a>
-            <a href="/tools/fear-greed" className="cc-footer__link">Fear &amp; Greed</a>
-            <a href="/compare" className="cc-footer__link">Compare crypto</a>
+            <a href="/alerts" className="cc-footer__link">Price alerts</a>
+            <a href="/portfolio" className="cc-footer__link">Portfolio tracker</a>
           </Col>
 
           <Col lg={2} md={3} sm={6}>

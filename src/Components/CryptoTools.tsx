@@ -200,10 +200,15 @@ const CryptoTools: React.FC = () => {
               {[
                 { to: '/tools/fear-greed',  emoji: '📈', title: 'Fear & Greed Index',  dek: 'Live crypto sentiment gauge with 30-day history.' },
                 { to: '/tools/gas',         emoji: '⛽', title: 'Multi-chain Gas Tracker', dek: 'Live gas across ETH, Polygon, Arbitrum, Base, Optimism, BNB.' },
+                { to: '/tools/p2p',         emoji: '🇮🇳', title: 'USDT INR P2P Rate', dek: 'Live Binance P2P buy/sell board for India.' },
+                { to: '/tools/funding',     emoji: '📊', title: 'Funding Rates', dek: 'Perp funding + annualized for BTC, ETH, SOL…' },
                 { to: '/tools/scam-check',  emoji: '🛡️', title: 'Scam & Honeypot Checker', dek: 'Paste any token contract — get a 10-point security audit.' },
                 { to: '/tools/unlocks',     emoji: '🗓️', title: 'Token Unlock Calendar', dek: 'Upcoming cliffs across 200+ projects.' },
+                { to: '/alerts',            emoji: '🔔', title: 'Price Alerts', dek: 'Email or Telegram when price hits your level.' },
+                { to: '/portfolio',         emoji: '💼', title: 'Portfolio (INR)', dek: 'Track holdings in USD and INR.' },
                 { to: '/predictions',       emoji: '🔭', title: 'Price Predictions', dek: 'Markets Desk scenario maps — catalysts, risks, multi-year ranges.' },
                 { to: '/compare',           emoji: '⚖️', title: 'Compare Coins',  dek: 'Side-by-side fundamentals for any two cryptos.' },
+                { to: '/tools/liquidations', emoji: '💥', title: 'Liquidation Levels', dek: 'Estimated long/short cascade clusters.' },
               ].map(t => (
                 <div key={t.to} className="col-6 col-md-4 col-lg-3 col-xl">
                   <Link

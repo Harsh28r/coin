@@ -5,6 +5,7 @@ import { ArrowLeft, RefreshCcw, AlertTriangle, CalendarClock, ExternalLink, Sear
 import CoinsNavbar from '../../Components/navbar';
 import Footer from '../../Components/footer';
 import AdSenseSlot from '../../Components/AdSenseSlot';
+import { createPriceAlert } from '../../utils/marketAlertsApi';
 import './tools.css';
 
 interface UnlockEvent {
@@ -256,6 +257,7 @@ const TokenUnlocksPage: React.FC = () => {
                     <th className="num">Unlock value</th>
                     <th className="num">% of float</th>
                     <th>Category</th>
+                    <th></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -283,6 +285,32 @@ const TokenUnlocksPage: React.FC = () => {
                         {e.pctOfFloat.toFixed(2)}%
                       </td>
                       <td>{e.category || '—'}</td>
+                      <td>
+                        <button
+                          type="button"
+                          className="tool-refresh"
+                          title="Email alert 24h before unlock"
+                          onClick={async () => {
+                            const email = window.prompt('Email for unlock alert (24h before cliff):');
+                            if (!email) return;
+                            const out = await createPriceAlert({
+                              coinId: e.defillamaSlug || e.symbol.toLowerCase(),
+                              symbol: e.symbol,
+                              name: e.name,
+                              target: e.unlockUSD,
+                              direction: 'above',
+                              channel: 'email',
+                              email,
+                              kind: 'unlock',
+                              unlockLabel: `${e.symbol} unlock ${fmtUsd(e.unlockUSD)}`,
+                              unlockTs: e.unlockTs,
+                            });
+                            window.alert(out.ok ? 'Unlock alert saved.' : out.error || 'Failed');
+                          }}
+                        >
+                          Alert
+                        </button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>

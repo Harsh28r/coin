@@ -96,6 +96,28 @@ const DefaultSEO: React.FC = () => {
         description:
           'Token unlock schedule and vesting calendar for 200+ coins. USD cliffs, percent of float, countdown.',
       },
+      '/tools/funding': {
+        title: 'Crypto Funding Rates — BTC ETH Perpetual Funding | CoinsClarity',
+        description:
+          'Live perpetual funding rates for BTC, ETH, SOL and more. 8h rate, annualized, mark price.',
+      },
+      '/tools/p2p': {
+        title: 'USDT INR P2P Rate — Binance P2P Buy & Sell | CoinsClarity',
+        description:
+          'Live USDT/INR P2P rates from Binance. Best buy and sell ads for India.',
+      },
+      '/tools/liquidations': {
+        title: 'Crypto Liquidation Levels — BTC ETH Cascade Map | CoinsClarity',
+        description: 'Estimated long/short liquidation clusters for BTC, ETH and SOL.',
+      },
+      '/alerts': {
+        title: 'Crypto Price Alerts — Email & Telegram | CoinsClarity',
+        description: 'Free crypto price alerts by email or Telegram when coins cross your target.',
+      },
+      '/portfolio': {
+        title: 'Crypto Portfolio Tracker — USD & INR | CoinsClarity',
+        description: 'Track crypto holdings with live USD and INR values. Free portfolio tracker.',
+      },
       '/arbitrage': {
         title: 'Triangular Arbitrage Calculator | Free Crypto Tool | CoinsClarity',
         description:

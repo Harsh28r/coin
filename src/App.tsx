@@ -54,6 +54,11 @@ const GasTrackerPage = lazy(() => import('./pages/tools/GasTracker'));
 const ScamCheckPage = lazy(() => import('./pages/tools/ScamCheck'));
 const CompareCoinsPage = lazy(() => import('./pages/tools/CompareCoins'));
 const TokenUnlocksPage = lazy(() => import('./pages/tools/TokenUnlocks'));
+const FundingPage = lazy(() => import('./pages/tools/Funding'));
+const P2PPage = lazy(() => import('./pages/tools/P2P'));
+const LiquidationsPage = lazy(() => import('./pages/tools/Liquidations'));
+const AlertsPage = lazy(() => import('./pages/Alerts'));
+const PortfolioPage = lazy(() => import('./pages/Portfolio'));
 const DailyDigestArchive = lazy(() => import('./pages/DailyDigest'));
 const TrendingDeskArchive = lazy(() => import('./pages/TrendingDesk'));
 const AiAgentsArchive = lazy(() => import('./pages/AiAgents'));
@@ -187,6 +192,11 @@ function App() {
                   <Route path="/tools/scam-check" element={<ScamCheckPage />} />
                   <Route path="/tools/scam-check/:chainId/:address" element={<ScamCheckPage />} />
                   <Route path="/tools/unlocks" element={<TokenUnlocksPage />} />
+                  <Route path="/tools/funding" element={<FundingPage />} />
+                  <Route path="/tools/p2p" element={<P2PPage />} />
+                  <Route path="/tools/liquidations" element={<LiquidationsPage />} />
+                  <Route path="/alerts" element={<AlertsPage />} />
+                  <Route path="/portfolio" element={<PortfolioPage />} />
                   <Route path="/compare" element={<CompareCoinsPage />} />
                   <Route path="/compare/:slug" element={<CompareCoinsPage />} />
                   <Route path="*" element={<NotFound />} />
