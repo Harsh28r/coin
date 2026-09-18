@@ -36,6 +36,77 @@ const CHAINS = [
   { id: '43114', label: 'Avalanche', scanner: 'https://snowtrace.io/token/' },
 ];
 
+const chainLabel = (id: string) => CHAINS.find((c) => c.id === id)?.label || id;
+
+type FetchTokenResult =
+  | { ok: true; data: any; chain: string }
+  | { ok: false; error: string; goplusCode?: number };
+
+async function fetchTokenSecurity(chainId: string, address: string): Promise<FetchTokenResult> {
+  const bases = buildRssBackendBasesFromEnv();
+  let lastErr = 'Security API unavailable';
+
+  for (const raw of bases) {
+    const base = raw.replace(/\/$/, '');
+    try {
+      const res = await fetch(
+        `${base}/api/tools/scam-check?chain=${encodeURIComponent(chainId)}&address=${encodeURIComponent(address)}`,
+        { signal: AbortSignal.timeout(15000) },
+      );
+      const json = await res.json().catch(() => ({}));
+      if (res.ok && json?.success && json?.data) {
+        return { ok: true, data: json.data, chain: chainId };
+      }
+      if (json?.goplusCode === 2007 || /not contract/i.test(String(json?.error || ''))) {
+        return { ok: false, error: 'not_contract', goplusCode: 2007 };
+      }
+      lastErr = json?.error || `HTTP ${res.status}`;
+    } catch (e: any) {
+      lastErr = e?.message || 'network';
+    }
+  }
+
+  // Direct GoPlus fallback (www CORS only)
+  try {
+    const url = `https://api.gopluslabs.io/api/v1/token_security/${chainId}?contract_addresses=${address}`;
+    const res = await fetch(url, { signal: AbortSignal.timeout(12000) });
+    const json = await res.json().catch(() => ({}));
+    if (json?.code === 2007 || json?.result == null) {
+      return { ok: false, error: 'not_contract', goplusCode: Number(json?.code) || 2007 };
+    }
+    const result = json?.result || {};
+    const data =
+      result[address] ||
+      result[Object.keys(result).find((k) => k.toLowerCase() === address) || ''];
+    if (data && Object.keys(data).length) {
+      return { ok: true, data, chain: chainId };
+    }
+    lastErr = json?.message || 'empty result';
+  } catch {
+    /* keep lastErr */
+  }
+
+  return { ok: false, error: lastErr };
+}
+
+/** If the picked chain has no token, probe other EVM chains (Binance-peg ETH lives on BSC, etc.). */
+async function fetchTokenSecurityWithFallback(
+  preferredChain: string,
+  address: string,
+): Promise<FetchTokenResult & { switchedFrom?: string }> {
+  const primary = await fetchTokenSecurity(preferredChain, address);
+  if (primary.ok) return primary;
+
+  const others = CHAINS.map((c) => c.id).filter((id) => id !== preferredChain);
+  for (const id of others) {
+    const hit = await fetchTokenSecurity(id, address);
+    if (hit.ok) {
+      return { ...hit, switchedFrom: preferredChain };
+    }
+  }
+  return primary;
+}
+
 const isAddr = (s: string) => /^0x[a-fA-F0-9]{40}$/.test(s.trim());
 const isChainId = (s?: string) => !!s && CHAINS.some((c) => c.id === s);
 
@@ -159,6 +230,7 @@ const ScamCheckPage: React.FC = () => {
   const [verdict, setVerdict] = useState<VerdictResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
   const reportPath =
@@ -172,6 +244,7 @@ const ScamCheckPage: React.FC = () => {
       const nextAddr = (overrideAddr ?? addr).trim().toLowerCase();
       const nextChain = overrideChain ?? chain;
       setError(null);
+      setNotice(null);
       setVerdict(null);
       if (!isAddr(nextAddr)) {
         setError('Please enter a valid 0x… contract address (42 chars).');
@@ -183,55 +256,24 @@ const ScamCheckPage: React.FC = () => {
       }
       setLoading(true);
       try {
-        const bases = buildRssBackendBasesFromEnv();
-        let data: any = null;
-        let lastErr: string | null = null;
-
-        for (const raw of bases) {
-          const base = raw.replace(/\/$/, '');
-          try {
-            const res = await fetch(
-              `${base}/api/tools/scam-check?chain=${encodeURIComponent(nextChain)}&address=${encodeURIComponent(nextAddr)}`,
-              { signal: AbortSignal.timeout(15000) },
-            );
-            const json = await res.json().catch(() => ({}));
-            if (res.ok && json?.success && json?.data) {
-              data = json.data;
-              break;
-            }
-            lastErr = json?.error || `HTTP ${res.status}`;
-          } catch (e: any) {
-            lastErr = e?.message || 'network';
-          }
-        }
-
-        // Fallback: direct GoPlus (only works on www CORS allowlist)
-        if (!data) {
-          try {
-            const url = `https://api.gopluslabs.io/api/v1/token_security/${nextChain}?contract_addresses=${nextAddr}`;
-            const res = await fetch(url, { signal: AbortSignal.timeout(12000) });
-            if (!res.ok) throw new Error('api');
-            const json = await res.json();
-            const result = json?.result || {};
-            data =
-              result[nextAddr] ||
-              result[Object.keys(result).find((k) => k.toLowerCase() === nextAddr) || ''];
-          } catch {
-            /* keep lastErr */
-          }
-        }
-
-        if (!data || !Object.keys(data).length) {
+        const found = await fetchTokenSecurityWithFallback(nextChain, nextAddr);
+        if (!found.ok) {
           setError(
-            lastErr
-              ? `No data returned (${lastErr}). Confirm the address is a token on this chain.`
-              : 'No data returned. The address may not be a token contract on this chain.',
+            found.goplusCode === 2007 || found.error === 'not_contract'
+              ? `Not a token contract on ${chainLabel(nextChain)} (or any supported chain). Check the address / network.`
+              : `No data returned (${found.error}). Confirm the address is a token on this chain.`,
           );
           return;
         }
-        setVerdict(evaluate(data));
+        if (found.switchedFrom) {
+          setChain(found.chain);
+          setNotice(
+            `Not found on ${chainLabel(found.switchedFrom)} — auto-scanned on ${chainLabel(found.chain)} (this address is a token there).`,
+          );
+        }
+        setVerdict(evaluate(found.data));
         if (syncUrl) {
-          navigate(`/tools/scam-check/${nextChain}/${nextAddr}`, { replace: true });
+          navigate(`/tools/scam-check/${found.chain}/${nextAddr}`, { replace: true });
         }
       } catch {
         setError('Could not reach the security API. Try again in a moment.');
@@ -351,6 +393,11 @@ const ScamCheckPage: React.FC = () => {
           </div>
 
           {error && <div className="tool-warn">{error}</div>}
+          {notice && (
+            <div className="tool-warn" style={{ borderColor: '#86efac', background: 'rgba(34,197,94,0.08)', color: '#166534' }}>
+              {notice}
+            </div>
+          )}
 
           {verdict && (
             <>
