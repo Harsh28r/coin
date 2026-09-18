@@ -42,17 +42,47 @@ type FetchTokenResult =
   | { ok: true; data: any; chain: string }
   | { ok: false; error: string; goplusCode?: number };
 
-async function fetchTokenSecurity(chainId: string, address: string): Promise<FetchTokenResult> {
+/** Direct GoPlus — CORS allows www / apex / localhost. Prefer this; backends lag behind deploys. */
+async function fetchGoPlusDirect(chainId: string, address: string): Promise<FetchTokenResult> {
+  const url = `https://api.gopluslabs.io/api/v1/token_security/${chainId}?contract_addresses=${address}`;
+  const res = await fetch(url, { signal: AbortSignal.timeout(12000) });
+  const json = await res.json().catch(() => ({}));
+  if (json?.code === 2007) {
+    return { ok: false, error: 'not_contract', goplusCode: 2007 };
+  }
+  const result = json?.result;
+  if (result == null || typeof result !== 'object') {
+    return { ok: false, error: 'not_contract', goplusCode: Number(json?.code) || 2007 };
+  }
+  const data =
+    result[address] ||
+    result[Object.keys(result).find((k) => k.toLowerCase() === address) || ''];
+  if (data && Object.keys(data).length) {
+    return { ok: true, data, chain: chainId };
+  }
+  // Empty `{}` = not a token on this chain (GoPlus code 1)
+  return { ok: false, error: 'not_contract', goplusCode: Number(json?.code) || 1 };
+}
+
+async function fetchViaProxy(chainId: string, address: string): Promise<FetchTokenResult> {
   const bases = buildRssBackendBasesFromEnv();
   let lastErr = 'Security API unavailable';
 
   for (const raw of bases) {
     const base = raw.replace(/\/$/, '');
+    // Skip known-dead Vercel mirror — FUNCTION_INVOCATION_FAILED + no CORS on 500
+    if (base.includes('c-back-seven.vercel.app')) continue;
     try {
       const res = await fetch(
         `${base}/api/tools/scam-check?chain=${encodeURIComponent(chainId)}&address=${encodeURIComponent(address)}`,
-        { signal: AbortSignal.timeout(15000) },
+        { signal: AbortSignal.timeout(8000) },
       );
+      // Express "Cannot GET" HTML when route not deployed yet
+      const ct = res.headers.get('content-type') || '';
+      if (!ct.includes('application/json')) {
+        lastErr = `HTTP ${res.status}`;
+        continue;
+      }
       const json = await res.json().catch(() => ({}));
       if (res.ok && json?.success && json?.data) {
         return { ok: true, data: json.data, chain: chainId };
@@ -65,31 +95,19 @@ async function fetchTokenSecurity(chainId: string, address: string): Promise<Fet
       lastErr = e?.message || 'network';
     }
   }
-
-  // Direct GoPlus fallback (www CORS only)
-  try {
-    const url = `https://api.gopluslabs.io/api/v1/token_security/${chainId}?contract_addresses=${address}`;
-    const res = await fetch(url, { signal: AbortSignal.timeout(12000) });
-    const json = await res.json().catch(() => ({}));
-    if (json?.code === 2007 || json?.result == null) {
-      return { ok: false, error: 'not_contract', goplusCode: Number(json?.code) || 2007 };
-    }
-    const result = json?.result || {};
-    const data =
-      result[address] ||
-      result[Object.keys(result).find((k) => k.toLowerCase() === address) || ''];
-    if (data && Object.keys(data).length) {
-      return { ok: true, data, chain: chainId };
-    }
-    lastErr = json?.message || 'empty result';
-  } catch {
-    /* keep lastErr */
-  }
-
   return { ok: false, error: lastErr };
 }
 
-/** If the picked chain has no token, probe other EVM chains (Binance-peg ETH lives on BSC, etc.). */
+async function fetchTokenSecurity(chainId: string, address: string): Promise<FetchTokenResult> {
+  try {
+    return await fetchGoPlusDirect(chainId, address);
+  } catch {
+    /* CORS / network — try our proxy */
+  }
+  return fetchViaProxy(chainId, address);
+}
+
+/** If the picked chain has no token, probe other EVM chains in parallel (Binance-peg ETH → BSC, etc.). */
 async function fetchTokenSecurityWithFallback(
   preferredChain: string,
   address: string,
@@ -98,11 +116,18 @@ async function fetchTokenSecurityWithFallback(
   if (primary.ok) return primary;
 
   const others = CHAINS.map((c) => c.id).filter((id) => id !== preferredChain);
-  for (const id of others) {
-    const hit = await fetchTokenSecurity(id, address);
-    if (hit.ok) {
-      return { ...hit, switchedFrom: preferredChain };
-    }
+  const hits = await Promise.all(
+    others.map(async (id) => {
+      try {
+        return await fetchTokenSecurity(id, address);
+      } catch {
+        return { ok: false as const, error: 'network' };
+      }
+    }),
+  );
+  const found = hits.find((h) => h.ok);
+  if (found && found.ok) {
+    return { ...found, switchedFrom: preferredChain };
   }
   return primary;
 }
