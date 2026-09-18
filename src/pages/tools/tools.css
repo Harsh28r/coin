@@ -510,7 +510,7 @@
 
 .sc-stats {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 10px;
   margin-bottom: 20px;
 }
@@ -876,7 +876,6 @@
   .cmp-vs { font-size: 1.2rem; }
   .sc-input-row { flex-direction: column; }
   .sc-stats { grid-template-columns: repeat(2, 1fr); }
-  .sc-stat--desktop { display: none; }
   .sc-input-row .sc-paste { display: none; }
   .cmp-table { font-size: 12px; }
   .cmp-table th, .cmp-table td { padding: 10px 12px; }

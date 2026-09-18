@@ -72,6 +72,7 @@
   padding: 0;
   display: grid;
   gap: 10px;
+  grid-template-columns: repeat(2, 1fr);
 }
 
 @media (min-width: 720px) {

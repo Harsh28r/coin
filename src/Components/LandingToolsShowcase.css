@@ -69,13 +69,13 @@
 
 .lts__grid {
   display: grid;
-  gap: 14px;
-  grid-template-columns: 1fr;
+  gap: 10px;
+  grid-template-columns: repeat(2, 1fr);
 }
 
 @media (min-width: 640px) {
   .lts__grid {
-    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
   }
 }
 
@@ -99,7 +99,7 @@
   flex-direction: column;
   align-items: flex-start;
   text-align: left;
-  padding: 1.25rem 1.35rem;
+  padding: 0.85rem 0.9rem;
   border-radius: 14px;
   text-decoration: none;
   color: inherit;
@@ -112,6 +112,13 @@
     box-shadow 0.22s ease,
     background 0.22s ease;
   outline: none;
+  min-width: 0;
+}
+
+@media (min-width: 640px) {
+  .lts__card {
+    padding: 1.25rem 1.35rem;
+  }
 }
 
 .lts__card:hover {
@@ -126,27 +133,46 @@
 }
 
 .lts__icon {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 0.85rem;
-  font-size: 1.35rem;
+  margin-bottom: 0.55rem;
+  font-size: 1.1rem;
   background: linear-gradient(135deg, rgba(251, 146, 60, 0.2) 0%, rgba(232, 93, 44, 0.08) 100%);
   border: 1px solid rgba(251, 146, 60, 0.25);
 }
 
+@media (min-width: 640px) {
+  .lts__icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    margin-bottom: 0.85rem;
+    font-size: 1.35rem;
+  }
+}
+
 .lts__cardTitle {
-  font-size: 1.05rem;
+  font-size: 0.88rem;
   font-weight: 700;
   color: #f1f5f9;
-  margin: 0 0 0.35rem;
+  margin: 0 0 0.25rem;
   letter-spacing: -0.02em;
+  line-height: 1.25;
+}
+
+@media (min-width: 640px) {
+  .lts__cardTitle {
+    font-size: 1.05rem;
+    margin: 0 0 0.35rem;
+  }
 }
 
 .lts__cardDek {
+  display: none;
   font-size: 0.82rem;
   line-height: 1.45;
   color: #94a3b8;
@@ -154,9 +180,15 @@
   flex: 1;
 }
 
+@media (min-width: 640px) {
+  .lts__cardDek {
+    display: block;
+  }
+}
+
 .lts__arrow {
-  margin-top: 1rem;
-  font-size: 0.72rem;
+  margin-top: 0.65rem;
+  font-size: 0.65rem;
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -164,6 +196,13 @@
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
+}
+
+@media (min-width: 640px) {
+  .lts__arrow {
+    margin-top: 1rem;
+    font-size: 0.72rem;
+  }
 }
 
 .lts__card:hover .lts__arrow {
