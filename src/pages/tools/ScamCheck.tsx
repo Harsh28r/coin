@@ -718,13 +718,14 @@ const ScamCheckPage: React.FC = () => {
 
               <div className="sc-stats">
                 {[
-                  { k: 'Buy tax', v: verdict.details.buyTax != null ? `${verdict.details.buyTax}%` : '—' },
-                  { k: 'Sell tax', v: verdict.details.sellTax != null ? `${verdict.details.sellTax}%` : '—' },
+                  { k: 'Buy tax', v: verdict.details.buyTax != null ? `${verdict.details.buyTax}%` : '—', mobile: true },
+                  { k: 'Sell tax', v: verdict.details.sellTax != null ? `${verdict.details.sellTax}%` : '—', mobile: true },
                   {
                     k: 'Holders',
                     v: verdict.details.holderCount
                       ? Number(verdict.details.holderCount).toLocaleString()
                       : '—',
+                    mobile: true,
                   },
                   {
                     k: 'On DEX',
@@ -734,6 +735,7 @@ const ScamCheckPage: React.FC = () => {
                         : verdict.details.isInDex === false
                           ? 'No'
                           : '—',
+                    mobile: true,
                   },
                   {
                     k: 'Owner %',
@@ -744,13 +746,15 @@ const ScamCheckPage: React.FC = () => {
                       if (Number.isNaN(n)) return '—';
                       return `${(n <= 1 ? n * 100 : n).toFixed(2)}%`;
                     })(),
+                    mobile: false,
                   },
                   {
                     k: 'LP holders',
                     v: verdict.details.lpHolderCount || '—',
+                    mobile: false,
                   },
                 ].map((s) => (
-                  <div key={s.k} className="sc-stat">
+                  <div key={s.k} className={`sc-stat${s.mobile ? '' : ' sc-stat--desktop'}`}>
                     <div className="sc-stat__k">{s.k}</div>
                     <div className="sc-stat__v">{s.v}</div>
                   </div>
