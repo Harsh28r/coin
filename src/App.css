@@ -729,6 +729,26 @@ img { max-width: 100%; height: auto; }
   .cc-grid-2 { grid-template-columns: 1fr; }
 }
 
+/* Homepage Beyond the Headlines — only 4 cards on mobile (2×2) */
+@media (max-width: 575.98px) {
+  .cc-indepth-home .cc-indepth-home__extra {
+    display: none !important;
+  }
+  .cc-indepth-home .cc-news-card .card-text {
+    display: none;
+  }
+  .cc-indepth-home .cc-news-card .card-title {
+    font-size: 0.88rem;
+    -webkit-line-clamp: 3;
+  }
+  .cc-indepth-home .cc-news-card .card-body {
+    padding: 12px;
+  }
+  .cc-indepth-home .cc-news-card img {
+    height: 110px;
+  }
+}
+
 /* ============================================================
    RESPONSIVE
    ============================================================ */

@@ -57,7 +57,7 @@ const InDepthNews: React.FC = () => {
 			try {
 				// Use fallback chain: /backend proxy → mirrors → camify
 				const bases = buildRssBackendBases(API_BASE_URL);
-				const paths = ['fetch-all-rss?limit=24', 'fetch-beincrypto-rss?limit=16', 'fetch-coindesk-rss?limit=16'];
+				const paths = ['fetch-all-rss?limit=8', 'fetch-beincrypto-rss?limit=8', 'fetch-coindesk-rss?limit=8'];
 				let loaded: any[] | null = null;
 				outer: for (const base of bases) {
 					for (const p of paths) {
@@ -123,7 +123,7 @@ const InDepthNews: React.FC = () => {
 
 			{error && <Alert variant="warning" className="mb-3" style={{ borderRadius: 10, fontSize: 14 }}>{error}</Alert>}
 
-			<Row xs={1} sm={2} md={3} lg={4} className="g-3">
+			<Row xs={2} sm={2} md={3} lg={4} className="g-3 cc-indepth-home">
 				{loading ? (
 					Array.from({ length: 4 }).map((_, idx) => (
 						<Col key={idx}>
@@ -137,9 +137,9 @@ const InDepthNews: React.FC = () => {
 						</Col>
 					))
 				) : (
-					(Array.isArray(displayList) ? displayList : []).map((item: InDepthItem, idx: number) => {
+					(Array.isArray(displayList) ? displayList : []).slice(0, 8).map((item: InDepthItem, idx: number) => {
 						return (
-							<Col key={idx}>
+							<Col key={idx} className={idx >= 4 ? 'cc-indepth-home__extra' : undefined}>
 								<div
 									className="cc-news-card h-100"
 									onClick={() => handleOpen(item)}
