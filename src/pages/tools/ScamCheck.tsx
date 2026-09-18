@@ -5,6 +5,7 @@ import { ArrowLeft, Check, Copy, HelpCircle, ShieldAlert, ShieldCheck, ShieldX, 
 import CoinsNavbar from '../../Components/navbar';
 import Footer from '../../Components/footer';
 import { SITE_URL } from '../../utils/jsonLd';
+import { buildRssBackendBasesFromEnv } from '../../utils/rssBackendBases';
 import './tools.css';
 
 interface CheckRow {
@@ -182,13 +183,50 @@ const ScamCheckPage: React.FC = () => {
       }
       setLoading(true);
       try {
-        const url = `https://api.gopluslabs.io/api/v1/token_security/${nextChain}?contract_addresses=${nextAddr}`;
-        const res = await fetch(url, { signal: AbortSignal.timeout(10000) });
-        if (!res.ok) throw new Error('api');
-        const json = await res.json();
-        const data = json?.result?.[nextAddr];
+        const bases = buildRssBackendBasesFromEnv();
+        let data: any = null;
+        let lastErr: string | null = null;
+
+        for (const raw of bases) {
+          const base = raw.replace(/\/$/, '');
+          try {
+            const res = await fetch(
+              `${base}/api/tools/scam-check?chain=${encodeURIComponent(nextChain)}&address=${encodeURIComponent(nextAddr)}`,
+              { signal: AbortSignal.timeout(15000) },
+            );
+            const json = await res.json().catch(() => ({}));
+            if (res.ok && json?.success && json?.data) {
+              data = json.data;
+              break;
+            }
+            lastErr = json?.error || `HTTP ${res.status}`;
+          } catch (e: any) {
+            lastErr = e?.message || 'network';
+          }
+        }
+
+        // Fallback: direct GoPlus (only works on www CORS allowlist)
+        if (!data) {
+          try {
+            const url = `https://api.gopluslabs.io/api/v1/token_security/${nextChain}?contract_addresses=${nextAddr}`;
+            const res = await fetch(url, { signal: AbortSignal.timeout(12000) });
+            if (!res.ok) throw new Error('api');
+            const json = await res.json();
+            const result = json?.result || {};
+            data =
+              result[nextAddr] ||
+              result[Object.keys(result).find((k) => k.toLowerCase() === nextAddr) || ''];
+          } catch {
+            /* keep lastErr */
+          }
+        }
+
         if (!data || !Object.keys(data).length) {
-          setError('No data returned. The address may not be a token contract on this chain.');
+          setError(
+            lastErr
+              ? `No data returned (${lastErr}). Confirm the address is a token on this chain.`
+              : 'No data returned. The address may not be a token contract on this chain.',
+          );
           return;
         }
         setVerdict(evaluate(data));
