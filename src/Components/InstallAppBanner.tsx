@@ -33,7 +33,7 @@ const InstallAppBanner: React.FC = () => {
       return;
     }
 
-    const on bip = (e: Event) => {
+    const onbip = (e: Event) => {
       e.preventDefault();
       setDeferred(e as BeforeInstallPromptEvent);
       setVisible(true);
