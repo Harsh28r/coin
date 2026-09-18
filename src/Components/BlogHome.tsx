@@ -75,7 +75,7 @@ const BlogHome: React.FC = () => {
             <p className="bh-kicker">CoinsClarity Editorial</p>
             <h1 className="bh-title">The Blog</h1>
             <p className="bh-tagline">
-              Long-form analysis, market commentary, and operator notes from the crypto frontier.{' '}
+              Morning briefs and market notes from the desk — written like we cover the tape every day, not like a chatbot.{' '}
               <Link to="/daily-digest" className="bh-digest-link">
                 Daily digest →
               </Link>
