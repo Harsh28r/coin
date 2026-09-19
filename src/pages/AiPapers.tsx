@@ -21,70 +21,33 @@ export type AiPaper = {
 };
 
 async function fetchPapers(limit = 20, q?: string): Promise<AiPaper[]> {
-  const bases = buildRssBackendBasesFromEnv();
   const qs = new URLSearchParams({ limit: String(limit) });
   if (q?.trim()) qs.set('q', q.trim());
-  let lastErr: unknown;
-  for (const raw of bases) {
+
+  // 1) Same-origin Vercel function (deploys with frontend — no camify wait)
+  const endpoints = [`/api/ai-papers?${qs}`];
+
+  // 2) Backend failover once camify/render catch up
+  for (const raw of buildRssBackendBasesFromEnv()) {
     const base = raw.replace(/\/$/, '');
+    if (base.includes('c-back-seven.vercel.app')) continue;
+    endpoints.push(`${base}/api/ai-papers?${qs}`);
+  }
+
+  let lastErr: unknown;
+  for (const url of endpoints) {
     try {
-      const res = await fetch(`${base}/api/ai-papers?${qs}`, {
-        signal: AbortSignal.timeout(20000),
-      });
+      const res = await fetch(url, { signal: AbortSignal.timeout(20000) });
       if (!res.ok) continue;
       const json = await res.json();
-      if (json?.success && Array.isArray(json.papers)) return json.papers;
+      if (json?.success && Array.isArray(json.papers) && json.papers.length) {
+        return json.papers;
+      }
     } catch (e) {
       lastErr = e;
     }
   }
-  // Direct arXiv fallback if backends lag (browser CORS may block — try anyway)
-  try {
-    const query =
-      q?.trim() ||
-      '(cat:cs.AI OR cat:cs.LG OR cat:cs.CL OR cat:cs.CV OR all:blockchain OR all:cryptocurrency)';
-    const url =
-      `https://export.arxiv.org/api/query?search_query=${encodeURIComponent(query)}` +
-      `&sortBy=submittedDate&sortOrder=descending&start=0&max_results=${limit}`;
-    const res = await fetch(url, { signal: AbortSignal.timeout(20000) });
-    if (res.ok) {
-      const xml = await res.text();
-      return parseAtomClient(xml);
-    }
-  } catch {
-    /* ignore */
-  }
   throw lastErr || new Error('Could not load papers');
-}
-
-/** Minimal client-side Atom parse for fallback */
-function parseAtomClient(xml: string): AiPaper[] {
-  const doc = new DOMParser().parseFromString(xml, 'application/xml');
-  const entries = Array.from(doc.getElementsByTagName('entry'));
-  return entries.map((el) => {
-    const text = (tag: string) => el.getElementsByTagName(tag)[0]?.textContent?.replace(/\s+/g, ' ').trim() || '';
-    const idRaw = text('id');
-    const m = idRaw.match(/arxiv\.org\/abs\/([0-9.]+)/i);
-    const id = m?.[1] || idRaw.split('/').pop() || '';
-    const authors = Array.from(el.getElementsByTagName('author')).map(
-      (a) => a.getElementsByTagName('name')[0]?.textContent?.trim() || '',
-    ).filter(Boolean);
-    const categories = Array.from(el.getElementsByTagName('category'))
-      .map((c) => c.getAttribute('term') || '')
-      .filter(Boolean)
-      .slice(0, 8);
-    return {
-      id,
-      title: text('title'),
-      authors,
-      abstract: text('summary'),
-      published: text('published'),
-      categories,
-      absUrl: `https://arxiv.org/abs/${id}`,
-      pdfUrl: `https://arxiv.org/pdf/${id}.pdf`,
-      source: 'arXiv',
-    };
-  });
 }
 
 const AiPapersPage: React.FC = () => {

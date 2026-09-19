@@ -11,12 +11,15 @@ const LandingAiPapers: React.FC = () => {
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const bases = buildRssBackendBasesFromEnv();
-      for (const raw of bases) {
+      const urls = [
+        '/api/ai-papers?limit=4',
+        ...buildRssBackendBasesFromEnv()
+          .filter((b) => !b.includes('c-back-seven.vercel.app'))
+          .map((b) => `${b.replace(/\/$/, '')}/api/ai-papers?limit=4`),
+      ];
+      for (const url of urls) {
         try {
-          const res = await fetch(`${raw.replace(/\/$/, '')}/api/ai-papers?limit=4`, {
-            signal: AbortSignal.timeout(15000),
-          });
+          const res = await fetch(url, { signal: AbortSignal.timeout(15000) });
           if (!res.ok) continue;
           const json = await res.json();
           if (!cancelled && json?.success && Array.isArray(json.papers)) {
