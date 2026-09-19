@@ -24,8 +24,8 @@ async function fetchPapers(limit = 20, q?: string): Promise<AiPaper[]> {
   const qs = new URLSearchParams({ limit: String(limit) });
   if (q?.trim()) qs.set('q', q.trim());
 
-  // 1) Same-origin Vercel function (deploys with frontend — no camify wait)
-  const endpoints = [`/api/ai-papers?${qs}`];
+  // 1) Same-origin proxy (Vercel function via /papers-feed rewrite)
+  const endpoints = [`/papers-feed?${qs}`, `/api/ai-papers?${qs}`];
 
   // 2) Backend failover once camify/render catch up
   for (const raw of buildRssBackendBasesFromEnv()) {

@@ -12,6 +12,7 @@ const LandingAiPapers: React.FC = () => {
     let cancelled = false;
     (async () => {
       const urls = [
+        `/papers-feed?limit=4`,
         '/api/ai-papers?limit=4',
         ...buildRssBackendBasesFromEnv()
           .filter((b) => !b.includes('c-back-seven.vercel.app'))
