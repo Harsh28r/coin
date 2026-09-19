@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { ArrowLeft, RefreshCw, ChevronDown } from 'lucide-react';
 import CoinsNavbar from '../Components/navbar';
@@ -49,7 +49,7 @@ const PricePage: React.FC = () => {
     [coin],
   );
 
-  const load = async () => {
+  const load = useCallback(async () => {
     if (!coin) return;
     setLoading(true);
     try {
@@ -57,13 +57,13 @@ const PricePage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [coin]);
 
   useEffect(() => {
     load();
     const id = setInterval(load, 60_000);
     return () => clearInterval(id);
-  }, [coinId]);
+  }, [load]);
 
   if (!coin) {
     return (

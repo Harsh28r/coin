@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, RefreshCw, ChevronDown } from 'lucide-react';
 import CoinsNavbar from '../Components/navbar';
@@ -46,13 +46,12 @@ const EtfFlowsPage: React.FC = () => {
     keywords: ['Bitcoin ETF flows', 'BTC ETF inflow', 'spot bitcoin ETF', 'IBIT FLOW'],
   });
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true);
     try {
       const mkt = await fetchCoinMarket('bitcoin');
       setBtc(mkt);
 
-      // Best-effort public aggregators — page stays useful if they fail
       let loaded = false;
       try {
         const r = await fetch('https://api.llama.fi/etfs/overview', {
@@ -88,11 +87,11 @@ const EtfFlowsPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     load();
-  }, []);
+  }, [load]);
 
   return (
     <div className="seo-page">
