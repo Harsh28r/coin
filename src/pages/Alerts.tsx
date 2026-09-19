@@ -62,7 +62,7 @@ const AlertsPage: React.FC = () => {
       setMsg(out.error || 'Failed');
       return;
     }
-    setMsg('Alert saved. We check about every 2 minutes.');
+    setMsg(out.warning || 'Alert saved. We check about every 2 minutes.');
     setTarget('');
     refresh();
   };

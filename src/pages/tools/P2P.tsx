@@ -69,7 +69,11 @@ const P2PPage: React.FC = () => {
       upiOnly,
     });
     setAlertBusy(false);
-    setAlertMsg(out.ok ? 'Premium alert saved — we check ~every 2 min.' : out.error || 'Failed');
+    setAlertMsg(
+      out.ok
+        ? out.warning || 'Alert saved.'
+        : out.error || 'Failed',
+    );
   };
 
   const titleAsset = asset === 'USDT' ? 'USDT INR P2P Rate' : `${asset} INR P2P Rate`;
