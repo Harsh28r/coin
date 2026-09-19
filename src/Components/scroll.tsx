@@ -12,24 +12,18 @@ import 'react-loading-skeleton/dist/skeleton.css'; // Import skeleton CSS
 import { useLanguage } from '../context/LanguageContext';
 import CoinTicker from './CoinTicker';
 import SubscriptionManagement from './SubscriptionManagement';
-// Import Firebase
-import { initializeApp } from 'firebase/app';
-import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, getAdditionalUserInfo, User } from 'firebase/auth';
+import {
+  GoogleAuthProvider,
+  signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
+  getAdditionalUserInfo,
+  User,
+} from 'firebase/auth';
 import { buildRssBackendBasesFromEnv, joinBackendPath } from '../utils/rssBackendBases';
+import { getFirebaseAuth } from '../utils/firebase';
 
-// Initialize Firebase using environment variables
-const firebaseConfig = {
-  apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
-  authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.REACT_APP_FIREBASE_APP_ID,
-  measurementId: process.env.REACT_APP_FIREBASE_MEASUREMENT_ID
-};
-
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
+const auth = getFirebaseAuth();
 
 // Define the expected structure of the response data
 interface CryptoData {
@@ -203,6 +197,7 @@ export const ScrollingStats = () => {
 
   // Complete redirect-based sign-in if needed
   useEffect(() => {
+    if (!auth) return;
     let mounted = true;
     getRedirectResult(auth)
       .then((result) => {
@@ -238,6 +233,10 @@ export const ScrollingStats = () => {
   }, [scrollingStats.length]);
 
   const handleUserClick = async () => {
+    if (!auth) {
+      alert('Sign-in is temporarily unavailable. Please try again later.');
+      return;
+    }
     const provider = new GoogleAuthProvider();
     try {
       const result = await signInWithPopup(auth, provider);
@@ -264,6 +263,7 @@ export const ScrollingStats = () => {
   };
 
   const handleLogout = async () => {
+    if (!auth) return;
     try {
       await auth.signOut();
       setUser(null);

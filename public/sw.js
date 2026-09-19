@@ -1,8 +1,6 @@
 /* CoinsClarity PWA service worker — cache shell + network-first for API/nav */
-const CACHE = 'cc-shell-v1';
+const CACHE = 'cc-shell-v2';
 const PRECACHE = [
-  '/',
-  '/index.html',
   '/manifest.json',
   '/favicon.ico',
   '/favicon-96x96.png',
