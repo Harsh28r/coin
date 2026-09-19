@@ -15,6 +15,9 @@ const DYNAMIC_PREFIXES = [
   '/news/',
   '/blog/',
   '/coin/',
+  '/price/',
+  '/in/',
+  '/etf/',
   '/airdrop/',
   '/today/',
   '/events/',
@@ -22,10 +25,16 @@ const DYNAMIC_PREFIXES = [
   '/live/',
   '/tools/scam-check/',
   '/tools/gas/',
+  '/tools/profit-calculator',
+  '/tools/dca-calculator',
+  '/tools/staking-calculator',
+  '/tools/liquidation-calculator',
+  '/tools/crypto-tax-calculator',
 ];
 
 function isDynamicRoute(pathname: string): boolean {
   if (pathname === '/blog') return false;
+  if (pathname === '/in' || pathname === '/etf/bitcoin-flows') return true;
   return DYNAMIC_PREFIXES.some((p) => pathname.startsWith(p));
 }
 

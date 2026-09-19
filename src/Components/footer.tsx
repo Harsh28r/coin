@@ -96,12 +96,18 @@ const Footer: React.FC = () => {
             <a href="/tools/p2p" className="cc-footer__link">USDT INR P2P rate</a>
             <a href="/tools/scam-check" className="cc-footer__link">Honeypot checker</a>
             <a href="/tools/unlocks" className="cc-footer__link">Token unlock schedule</a>
+            <a href="/tools/profit-calculator" className="cc-footer__link">Profit calculator</a>
+            <a href="/tools/crypto-tax-calculator" className="cc-footer__link">India tax calculator</a>
+            <a href="/tools/liquidation-calculator" className="cc-footer__link">Liq calculator</a>
             <a href="/alerts" className="cc-footer__link">Price alerts</a>
             <a href="/portfolio" className="cc-footer__link">Portfolio tracker</a>
           </Col>
 
           <Col lg={2} md={3} sm={6}>
             <span className="cc-footer__heading">News</span>
+            <a href="/price/bitcoin" className="cc-footer__link">Bitcoin price</a>
+            <a href="/etf/bitcoin-flows" className="cc-footer__link">BTC ETF flows</a>
+            <a href="/in" className="cc-footer__link">India crypto guides</a>
             <a href="/exclusive-news" className="cc-footer__link">Exclusive</a>
             <a href="/All-Trending-news" className="cc-footer__link">Trending</a>
             <a href="/ai-news" className="cc-footer__link">AI News</a>

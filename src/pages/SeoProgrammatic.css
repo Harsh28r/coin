@@ -301,3 +301,235 @@
   color: #475569;
   max-width: 70ch;
 }
+
+.seo-muted {
+  font-size: 0.8rem;
+  color: #64748b;
+  margin: -0.75rem 0 1.25rem;
+}
+
+.seo-h2 {
+  margin: 1.75rem 0 0.85rem;
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.seo-card {
+  background: #fff;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 14px;
+  padding: 1.15rem 1.25rem;
+  margin-bottom: 1.25rem;
+}
+
+.seo-label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #475569;
+  margin-bottom: 0.75rem;
+}
+
+.seo-input {
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  border-radius: 10px;
+  padding: 0.65rem 0.75rem;
+  font-size: 1rem;
+  color: #0f172a;
+  background: #fafaf9;
+}
+
+.seo-convert-out {
+  margin: 0.5rem 0 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.seo-links-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 1.25rem 0 1.75rem;
+}
+
+.seo-links-row a {
+  display: inline-flex;
+  padding: 0.45rem 0.85rem;
+  border-radius: 999px;
+  background: #fff;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  color: #0f172a;
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.seo-links-row a:hover {
+  border-color: #ea580c;
+  color: #c2410c;
+}
+
+.seo-chip-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.seo-chip-list a {
+  display: inline-block;
+  padding: 0.35rem 0.7rem;
+  border-radius: 8px;
+  background: rgba(234, 88, 12, 0.08);
+  color: #c2410c;
+  font-weight: 700;
+  font-size: 0.8rem;
+  text-decoration: none;
+}
+
+.seo-guide-grid {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 1.5rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 12px;
+}
+
+.seo-guide-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 1rem 1.1rem;
+  background: #fff;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 14px;
+  text-decoration: none;
+  color: inherit;
+  min-height: 140px;
+}
+
+.seo-guide-card:hover {
+  border-color: rgba(234, 88, 12, 0.35);
+}
+
+.seo-guide-card__eye {
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #c2410c;
+}
+
+.seo-guide-card__title {
+  font-size: 0.98rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #0f172a;
+}
+
+.seo-guide-card__desc {
+  font-size: 0.82rem;
+  color: #64748b;
+  line-height: 1.45;
+}
+
+.seo-prose p {
+  margin: 0 0 0.85rem;
+  font-size: 1rem;
+  line-height: 1.65;
+  color: #334155;
+  max-width: 70ch;
+}
+
+.seo-faq {
+  margin-top: 0.5rem;
+}
+
+.seo-faq__item button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  text-align: left;
+  background: #fff;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-bottom: none;
+  padding: 0.95rem 1rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #0f172a;
+  cursor: pointer;
+}
+
+.seo-faq__item:first-child button {
+  border-radius: 12px 12px 0 0;
+}
+
+.seo-faq__item:last-child button {
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 0 0 12px 12px;
+}
+
+.seo-faq__item.is-open:last-child button {
+  border-radius: 0;
+  border-bottom: none;
+}
+
+.seo-faq__item p {
+  margin: 0;
+  padding: 0 1rem 1rem;
+  background: #fff;
+  border-left: 1px solid rgba(15, 23, 42, 0.08);
+  border-right: 1px solid rgba(15, 23, 42, 0.08);
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+  font-size: 0.92rem;
+  line-height: 1.6;
+  color: #475569;
+}
+
+.seo-faq__item:last-child.is-open p {
+  border-radius: 0 0 12px 12px;
+}
+
+.seo-refresh {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  background: #fff;
+  border-radius: 999px;
+  padding: 0.4rem 0.85rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.seo-etf-list {
+  margin: 0;
+  padding-left: 1.1rem;
+  color: #334155;
+  line-height: 1.6;
+}
+
+.seo-calc {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.seo-error {
+  padding-top: 4rem;
+  text-align: center;
+}
+
+@keyframes seo-spin {
+  to { transform: rotate(360deg); }
+}
+.spin { animation: seo-spin 0.8s linear infinite; }
+

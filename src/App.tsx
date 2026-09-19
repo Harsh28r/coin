@@ -77,6 +77,13 @@ const CoinNewsHub = lazy(() => import('./pages/CoinNewsHub'));
 const WhyCoinToday = lazy(() => import('./pages/WhyCoinToday'));
 const EventKindHub = lazy(() => import('./pages/EventKindHub'));
 const MarketMoversPage = lazy(() => import('./pages/MarketMoversPage'));
+const PricePage = lazy(() => import('./pages/PricePage'));
+const IndiaHub = lazy(() => import('./pages/IndiaDesk'));
+const IndiaGuidePage = lazy(() =>
+  import('./pages/IndiaDesk').then((m) => ({ default: m.IndiaGuidePage })),
+);
+const CalculatorPage = lazy(() => import('./pages/CalculatorPage'));
+const EtfFlowsPage = lazy(() => import('./pages/EtfFlows'));
 const EmbedFearGreed = lazy(() => import('./pages/embed/EmbedFearGreed'));
 const EmbedArb = lazy(() => import('./pages/embed/EmbedArb'));
 
@@ -175,7 +182,11 @@ function App() {
                   <Route path="/coin/:coinId/news" element={<CoinNewsHub />} />
                   <Route path="/today/why-is-:coinId-up" element={<WhyCoinToday />} />
                   <Route path="/today/why-is-:coinId-down" element={<WhyCoinToday />} />
+                  <Route path="/price/:coinId" element={<PricePage />} />
                   <Route path="/coin/:coinId" element={<CoinDetail />} />
+                  <Route path="/in/:slug" element={<IndiaGuidePage />} />
+                  <Route path="/in" element={<IndiaHub />} />
+                  <Route path="/etf/bitcoin-flows" element={<EtfFlowsPage />} />
                   <Route path="/main-dashboard" element={<AdminGate><   MainDashboard/></AdminGate>} /> 
                   {/* <Route path="/press-release-detail" element={<PressReleaseDetail />} /> */}
                   <Route path="/search" element={<SearchPage />} />
@@ -199,6 +210,7 @@ function App() {
                   <Route path="/tools/funding" element={<FundingPage />} />
                   <Route path="/tools/p2p" element={<P2PPage />} />
                   <Route path="/tools/liquidations" element={<LiquidationsPage />} />
+                  <Route path="/tools/:slug" element={<CalculatorPage />} />
                   <Route path="/alerts" element={<AlertsPage />} />
                   <Route path="/portfolio" element={<PortfolioPage />} />
                   <Route path="/compare" element={<CompareCoinsPage />} />
