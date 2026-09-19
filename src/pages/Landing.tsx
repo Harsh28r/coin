@@ -1,154 +1,79 @@
 import React from 'react';
 import { Newspaper } from 'lucide-react';
-import CoinsNavbar from '../Components/navbar'
-import EditorialHero from '../Components/EditorialHero'
-import AiAgentsCarousel from '../Components/AiAgentsCarousel'
-import ExclusiveNews from '../Components/ExclusiveNews'
-import MarketPriceAndNews from '../Components/market'
-import TrendingCoins from '../Components/TrendingCoins'
-import CryptoConverter from '../Components/CryptoConverter'
-import MarketStats from '../Components/MarketStats'
-import PressRelease from '../Components/preRealse'
-import BlogSection from '../Components/blog'
-import InDepthNews from '../Components/InDepthNews'
-import Footer from '../Components/footer'
 import { Helmet } from 'react-helmet-async';
-import { ScrollingStats } from '../Components/scroll'
-import NewsListing from '../Components/Listings';
-import AINews from '../Components/AINews';
-import LandingAiPapers from '../Components/LandingAiPapers';
-import AiAgentsDesk from '../Components/AiAgentsDesk';
-import ArbitrageDashboard from './ArbitrageDashboard';
-import CryptoBreakingBanner from '../Components/CryptoBreakingBanner';
-import NewsletterCTA from '../Components/NewsletterCTA';
-import AirdropSection from '../Components/AirdropSection';
-import LandingToolsShowcase from '../Components/LandingToolsShowcase';
-import LandingEditorialStrip from '../Components/LandingEditorialStrip';
+import CoinsNavbar from '../Components/navbar';
+import BrandHero from '../Components/BrandHero';
+import UsdtInrPremium from '../Components/UsdtInrPremium';
+import LandingBrandTools from '../Components/LandingBrandTools';
 import LandingSeoHub from '../Components/LandingSeoHub';
-import CoinpediaPartner from '../Components/CoinpediaPartner';
-import LandingLiveStrip from '../Components/LandingLiveStrip';
+import ExclusiveNews from '../Components/ExclusiveNews';
+import MarketPriceAndNews from '../Components/market';
+import InDepthNews from '../Components/InDepthNews';
+import BlogSection from '../Components/blog';
+import NewsletterCTA from '../Components/NewsletterCTA';
+import Footer from '../Components/footer';
 import AdSenseSlot from '../Components/AdSenseSlot';
-import AdsterraBannerSlot from '../Components/AdsterraBannerSlot';
-import HighPerformanceFormatSlot from '../Components/HighPerformanceFormatSlot';
+import { SITE_URL } from '../utils/jsonLd';
 
+/**
+ * Brand-first landing — India desk wedge.
+ * Above fold: brand hero → USDT/INR premium → 3 tools → SEO hubs.
+ * News / markets sit below so `/` reads as a product, not a dump.
+ */
 const LandingPage: React.FC = () => {
   return (
     <div className="LandingPage">
       <div className="content-wrapper" style={{ background: 'var(--bg)' }}>
         <Helmet>
-          <title>CoinsClarity - Crypto News, Listings, Markets</title>
-          <meta name="description" content="Real-time crypto news with full articles, new listings, and market insights. Read everything on-platform in your language." />
-          <meta name="218eb9409bbc8f9e005400f6e6a7ed5ddfc4b5ac" content="218eb9409bbc8f9e005400f6e6a7ed5ddfc4b5ac" />
-          <meta name="keywords" content="crypto news, bitcoin news, ethereum news, coin listings, market analysis, arbitrage, ai crypto news" />
-          <link rel="canonical" href={`${window.location.origin}/`} />
+          <title>CoinsClarity — INR Rates, Scam Checks & Clear Markets</title>
+          <meta
+            name="description"
+            content="Live USDT/INR P2P rates, token scam checks, and gas trackers for Indian crypto traders. Clear markets — CoinsClarity."
+          />
+          <meta
+            name="keywords"
+            content="USDT INR, crypto India, P2P rate, scam check, ethereum gas, bitcoin price India"
+          />
+          <link rel="canonical" href={`${SITE_URL}/`} />
           <meta property="og:type" content="website" />
-          <meta property="og:title" content="CoinsClarity — Crypto News, Listings, Markets" />
-          <meta property="og:description" content="Real-time crypto news with full articles, new listings, and market insights." />
-          <meta property="og:url" content={`${window.location.origin}/`} />
-          <meta property="og:image" content={`${window.location.origin}/image.png`} />
+          <meta property="og:title" content="CoinsClarity — INR Rates, Scam Checks & Clear Markets" />
+          <meta
+            property="og:description"
+            content="Live USDT/INR premium, P2P board, and security tools for Indian traders."
+          />
+          <meta property="og:url" content={`${SITE_URL}/`} />
+          <meta property="og:image" content={`${SITE_URL}/image.png`} />
+          <meta property="og:image:width" content="1200" />
+          <meta property="og:image:height" content="628" />
           <meta property="og:site_name" content="CoinsClarity" />
           <meta name="twitter:card" content="summary_large_image" />
-          <meta name="twitter:title" content="CoinsClarity — Crypto News, Listings, Markets" />
-          <meta name="twitter:description" content="Real-time crypto news with full articles, new listings, and market insights." />
-          <meta name="twitter:image" content={`${window.location.origin}/image.png`} />
+          <meta name="twitter:title" content="CoinsClarity — INR Rates, Scam Checks & Clear Markets" />
+          <meta
+            name="twitter:description"
+            content="Live USDT/INR premium, P2P board, and security tools for Indian traders."
+          />
+          <meta name="twitter:image" content={`${SITE_URL}/image.png`} />
         </Helmet>
 
-        {/* Sticky nav */}
         <CoinsNavbar />
 
-        {/* Breaking banner + price ticker */}
-        <CryptoBreakingBanner />
-        <ScrollingStats />
-
-        {/* Hero — editorial magazine layout */}
-        <EditorialHero />
-
-        {/* SEO hub — ranking entry points */}
+        {/* —— First composition —— */}
+        <BrandHero />
+        <UsdtInrPremium />
+        <LandingBrandTools />
         <LandingSeoHub />
 
-        {/* AI agents carousel — trending keyword filings */}
-        <AiAgentsCarousel />
-
-        {/* Advertisement Space */}
         <div style={{ maxWidth: 1280, margin: '0 auto', padding: '0 20px' }}>
           <AdSenseSlot placement="landing-a" size="leaderboard" lazy />
         </div>
 
-        {/* Exclusive News */}
+        {/* —— Below fold: markets & desk —— */}
         <ExclusiveNews />
-
-        {/* Official partner — Coinpedia (mid-page, full articles on-platform) */}
-        <CoinpediaPartner limit={6} />
-
-        {/* LIVE desk threads */}
-        <LandingLiveStrip />
-
-        {/* Market prices + charts */}
         <MarketPriceAndNews />
-
-        {/* Market Stats Overview */}
-        <MarketStats />
-
-        {/* Advertisement Space */}
-        <div style={{ maxWidth: 1280, margin: '0 auto', padding: '0 20px' }}>
-          <AdSenseSlot placement="landing-b" size="leaderboard" lazy />
-        </div>
-
-        <div style={{ maxWidth: 1280, margin: '0 auto', padding: '0 20px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
-          <AdsterraBannerSlot lazy width={300} height={250} />
-          <HighPerformanceFormatSlot lazy width={300} height={250} />
-        </div>
-
-        {/* Crypto Converter Tool */}
-        <CryptoConverter />
-
-        {/* Free tools — bento strip */}
-        <LandingToolsShowcase />
-
-        {/* AI Agents desks (middle) */}
-        <AiAgentsDesk />
-
-        {/* AI News (RSS / MIT AI feeds) */}
-        <AINews />
-
-        {/* Daily AI research papers (arXiv full abstract + PDF) */}
-        <LandingAiPapers />
-
-        {/* Trending Coins */}
-        <TrendingCoins />
-
-        {/* Press Releases */}
-        <PressRelease />
-
-        {/* Advertisement Space */}
-        <div style={{ maxWidth: 1280, margin: '0 auto', padding: '0 20px' }}>
-          <AdSenseSlot placement="landing-c" size="leaderboard" lazy />
-        </div>
-
-        {/* In-depth News */}
         <InDepthNews />
-
-        {/* Listings */}
-        <NewsListing />
-
-        {/* Arbitrage scanner */}
-        <ArbitrageDashboard />
-
-        {/* Blog */}
         <BlogSection />
-
-        {/* New Airdrops (RSS: Airdrop Alert) */}
-        <AirdropSection />
-
-        <LandingEditorialStrip />
-
-        {/* Newsletter CTA */}
         <NewsletterCTA />
 
-        {/* Daily — 4 news teasers */}
-        {/* <DailyNewsSection /> */}
-
-        {/* Our platforms — Daily (India news) */}
         <div
           className="daily-cta-strip"
           style={{
@@ -176,15 +101,15 @@ const LandingPage: React.FC = () => {
               border: '1px solid rgba(255,255,255,0.4)',
             }}
           >
-            ✦ Same team, different beat
+            Same team, different beat
           </span>
           <div style={{ marginBottom: 14 }}>
             <span style={{ fontSize: '1.35rem', fontWeight: 800, letterSpacing: '-0.02em', color: '#ffffff' }}>
-              India + World. One feed. Every day.
+              India news on Daily
             </span>
           </div>
           <p style={{ color: '#ffffff', fontSize: '0.95rem', marginBottom: 18, marginTop: 0 }}>
-            Headlines, current affairs & analysis — no fluff.
+            Current affairs & analysis — separate from the markets desk.
           </p>
           <a
             href="https://daily.coinsclarity.com"
@@ -202,24 +127,13 @@ const LandingPage: React.FC = () => {
               color: '#ffffff',
               fontWeight: 700,
               fontSize: '1rem',
-              transition: 'all 0.2s ease',
-              boxShadow: '0 4px 14px rgba(249, 115, 22, 0.4)',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'translateY(-2px) scale(1.02)';
-              e.currentTarget.style.boxShadow = '0 6px 20px rgba(249, 115, 22, 0.5)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'none';
-              e.currentTarget.style.boxShadow = '0 4px 14px rgba(249, 115, 22, 0.4)';
             }}
           >
-            <Newspaper size={20} style={{ color: '#ffffff' }} />
-            <span style={{ color: '#ffffff' }}>Open Daily</span>
+            <Newspaper size={20} />
+            Open Daily
           </a>
         </div>
 
-        {/* Footer */}
         <Footer />
       </div>
     </div>
