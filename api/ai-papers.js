@@ -81,13 +81,15 @@ module.exports = async function handler(req, res) {
       `?search_query=${encodeURIComponent(query)}` +
       `&sortBy=submittedDate&sortOrder=descending&start=0&max_results=${limit}`;
 
+    const controller = new AbortController();
+    const kill = setTimeout(() => controller.abort(), 18000);
     const upstream = await fetch(url, {
       headers: {
         'User-Agent': 'CoinsClarity/1.0 (ai-papers; https://www.coinsclarity.com)',
         Accept: 'application/atom+xml, application/xml, text/xml',
       },
-      signal: AbortSignal.timeout(18000),
-    });
+      signal: controller.signal,
+    }).finally(() => clearTimeout(kill));
     if (!upstream.ok) {
       return res.status(502).json({
         success: false,

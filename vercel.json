@@ -59,7 +59,10 @@
       "source": "/backend/:path*",
       "destination": "https://camify.fun.coinsclarity.com/:path*"
     },
-    { "source": "/(.*)", "destination": "/index.html" }
+    {
+      "source": "/((?!api/).*)",
+      "destination": "/index.html"
+    }
   ],
   "functions": {
     "api/**/*.js": {
