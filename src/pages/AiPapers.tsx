@@ -24,10 +24,7 @@ async function fetchPapers(limit = 20, q?: string): Promise<AiPaper[]> {
   const qs = new URLSearchParams({ limit: String(limit) });
   if (q?.trim()) qs.set('q', q.trim());
 
-  // 1) Same-origin proxy (Vercel function via /papers-feed rewrite)
-  const endpoints = [`/papers-feed?${qs}`, `/api/ai-papers?${qs}`];
-
-  // 2) Backend failover once camify/render catch up
+  const endpoints: string[] = [];
   for (const raw of buildRssBackendBasesFromEnv()) {
     const base = raw.replace(/\/$/, '');
     if (base.includes('c-back-seven.vercel.app')) continue;
@@ -37,7 +34,7 @@ async function fetchPapers(limit = 20, q?: string): Promise<AiPaper[]> {
   let lastErr: unknown;
   for (const url of endpoints) {
     try {
-      const res = await fetch(url, { signal: AbortSignal.timeout(20000) });
+      const res = await fetch(url, { signal: AbortSignal.timeout(12000) });
       if (!res.ok) continue;
       const json = await res.json();
       if (json?.success && Array.isArray(json.papers) && json.papers.length) {
@@ -48,7 +45,7 @@ async function fetchPapers(limit = 20, q?: string): Promise<AiPaper[]> {
     }
   }
 
-  // 3) Browser CORS bypass via allorigins (last resort if Vercel fn / camify down)
+  // CORS-safe arXiv pull (works without camify / Vercel fn)
   try {
     const query =
       q?.trim() ||
