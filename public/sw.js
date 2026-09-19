@@ -1,6 +1,16 @@
 /* CoinsClarity PWA service worker — cache shell + network-first for API/nav */
 const CACHE = 'cc-shell-v1';
-const PRECACHE = ['/', '/index.html', '/manifest.json', '/logo192.png', '/logo512.png'];
+const PRECACHE = [
+  '/',
+  '/index.html',
+  '/manifest.json',
+  '/favicon.ico',
+  '/favicon-96x96.png',
+  '/apple-touch-icon.png',
+  '/logo192.png',
+  '/logo512.png',
+  '/logo-square.png',
+];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(

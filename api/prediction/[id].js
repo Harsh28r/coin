@@ -43,7 +43,7 @@ module.exports = async function handler(req, res) {
     String(rawDesc)
       .replace(/<[^>]*>/g, '')
       .slice(0, 160) || title;
-  const image = post?.imageUrl || post?.image || `${SITE}/logo3.png`;
+  const image = post?.imageUrl || post?.image || `${SITE}/image.png`;
   const url = `${SITE}/prediction/${coinId}`;
   const date = post?.date ? new Date(post.date).toISOString() : new Date().toISOString();
 
@@ -64,7 +64,7 @@ module.exports = async function handler(req, res) {
     publisher: {
       '@type': 'Organization',
       name: 'CoinsClarity',
-      logo: { '@type': 'ImageObject', url: `${SITE}/logo3.png` },
+      logo: { '@type': 'ImageObject', url: `${SITE}/logo-square.png`, width: 512, height: 512 },
     },
     mainEntityOfPage: url,
     about: {
@@ -83,7 +83,7 @@ module.exports = async function handler(req, res) {
   <meta name="robots" content="index, follow, max-image-preview:large">
   <meta name="author" content="${escape(post?.author || 'Elena Vasquez')}">
   <link rel="canonical" href="${url}">
-  <link rel="icon" href="${SITE}/logo3.png">
+  <link rel="icon" href="${SITE}/favicon.ico">
   <meta property="og:type" content="article">
   <meta property="og:site_name" content="CoinsClarity">
   <meta property="og:title" content="${escape(title)}">

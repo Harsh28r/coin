@@ -45,12 +45,12 @@ const LandingPage: React.FC = () => {
           <meta property="og:title" content="CoinsClarity — Crypto News, Listings, Markets" />
           <meta property="og:description" content="Real-time crypto news with full articles, new listings, and market insights." />
           <meta property="og:url" content={`${window.location.origin}/`} />
-          <meta property="og:image" content={`${window.location.origin}/logo3.png`} />
+          <meta property="og:image" content={`${window.location.origin}/image.png`} />
           <meta property="og:site_name" content="CoinsClarity" />
           <meta name="twitter:card" content="summary_large_image" />
           <meta name="twitter:title" content="CoinsClarity — Crypto News, Listings, Markets" />
           <meta name="twitter:description" content="Real-time crypto news with full articles, new listings, and market insights." />
-          <meta name="twitter:image" content={`${window.location.origin}/logo3.png`} />
+          <meta name="twitter:image" content={`${window.location.origin}/image.png`} />
         </Helmet>
 
         {/* Sticky nav */}

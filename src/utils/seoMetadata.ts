@@ -32,7 +32,7 @@ export function buildSeoMeta(input: SeoMetaInput): SeoMeta {
   const canonical = input.canonical || `${SITE_URL}${input.path.startsWith('/') ? input.path : `/${input.path}`}`;
   const title = input.title.includes(SITE_NAME) ? input.title : `${input.title} | ${SITE_NAME}`;
   const description = clamp(input.description.replace(/\s+/g, ' ').trim(), 160);
-  const image = input.image || `${SITE_URL}/logo3.png`;
+  const image = input.image || `${SITE_URL}/image.png`;
 
   return {
     title,

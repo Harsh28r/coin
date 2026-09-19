@@ -131,14 +131,14 @@ const CryptoTools: React.FC = () => {
         <meta property="og:title" content="Free Crypto Trading Tools & Calculators | CoinsClarity" />
         <meta property="og:description" content="10+ professional crypto trading tools: RSI scanner, funding rates, arbitrage checker, liquidation heatmap, staking APY comparison. 100% free." />
         <meta property="og:url" content={`${window.location.origin}/tools`} />
-        <meta property="og:image" content={`${window.location.origin}/logo3.png`} />
+        <meta property="og:image" content={`${window.location.origin}/image.png`} />
         <meta property="og:site_name" content="CoinsClarity" />
         
         {/* Twitter */}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="Free Crypto Trading Tools | CoinsClarity" />
         <meta name="twitter:description" content="Professional crypto calculators & trading tools. RSI scanner, funding rates, arbitrage, staking APY. Free forever." />
-        <meta name="twitter:image" content={`${window.location.origin}/logo3.png`} />
+        <meta name="twitter:image" content={`${window.location.origin}/image.png`} />
         
         {/* Additional SEO */}
         <meta name="keywords" content="crypto calculator, bitcoin profit calculator, DCA calculator, crypto arbitrage, funding rates, RSI scanner, liquidation calculator, staking APY, gas tracker, crypto tools free" />

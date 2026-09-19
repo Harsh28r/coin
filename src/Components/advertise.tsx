@@ -138,9 +138,9 @@ const Advertise: React.FC = () => {
           content="Partner with CoinsClarity — editorial crypto media for traders and builders."
         />
         <meta property="og:url" content={`${window.location.origin}/advertise`} />
-        <meta property="og:image" content={`${window.location.origin}/logo3.png`} />
+        <meta property="og:image" content={`${window.location.origin}/image.png`} />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:image" content={`${window.location.origin}/logo3.png`} />
+        <meta name="twitter:image" content={`${window.location.origin}/image.png`} />
         <meta name="robots" content="index, follow" />
       </Helmet>
 

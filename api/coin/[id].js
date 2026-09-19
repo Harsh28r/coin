@@ -24,7 +24,7 @@ module.exports = async function handler(req, res) {
     const desc =
       coin?.description?.en?.replace(/<[^>]*>/g, '').slice(0, 160) ||
       `Live ${name} (${symbol}) price, chart, market cap, and trading data on CoinsClarity.`;
-    const image = coin?.image?.large || coin?.image?.small || `${SITE}/logo3.png`;
+    const image = coin?.image?.large || coin?.image?.small || `${SITE}/image.png`;
     const url = `${SITE}/coin/${id}`;
     const title = `${name} (${symbol}) Price, Chart & Market Cap`;
 
@@ -49,7 +49,7 @@ module.exports = async function handler(req, res) {
   <meta name="description" content="${escape(desc)}">
   <meta name="robots" content="index, follow">
   <link rel="canonical" href="${url}">
-  <link rel="icon" href="${SITE}/logo3.png">
+  <link rel="icon" href="${SITE}/favicon.ico">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="CoinsClarity">
   <meta property="og:title" content="${escape(title)}">

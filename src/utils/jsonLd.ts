@@ -2,7 +2,11 @@
 
 export const SITE_URL = 'https://www.coinsclarity.com';
 export const SITE_NAME = 'CoinsClarity';
-export const SITE_LOGO = `${SITE_URL}/logo3.png`;
+/** Square brand mark for schema / knowledge panel (Google requires square logo). */
+export const SITE_LOGO = `${SITE_URL}/logo-square.png`;
+/** Wide wordmark for UI chrome only — do not use as favicon/schema logo. */
+export const SITE_WORDMARK = `${SITE_URL}/logo3.png`;
+export const SITE_OG_IMAGE = `${SITE_URL}/image.png`;
 
 export type JsonLdObject = Record<string, unknown>;
 
@@ -10,7 +14,7 @@ export const organization = (): JsonLdObject => ({
   '@type': 'Organization',
   name: SITE_NAME,
   url: SITE_URL,
-  logo: SITE_LOGO,
+  logo: { '@type': 'ImageObject', url: SITE_LOGO, width: 512, height: 512 },
 });
 
 export const publisher = (): JsonLdObject => ({

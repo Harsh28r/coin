@@ -46,7 +46,7 @@ module.exports = async function handler(req, res) {
       article?.content?.substring(0, 160) ||
       'Real-time crypto news, listings, and market data.'
     ).replace(/<[^>]*>/g, '');
-    const image = article?.image_url || article?.imageUrl || `${SITE}/logo3.png`;
+    const image = article?.image_url || article?.imageUrl || `${SITE}/image.png`;
     const url = `${SITE}/news/${id}`;
 
     const html = `<!DOCTYPE html>
@@ -57,7 +57,7 @@ module.exports = async function handler(req, res) {
   <meta name="description" content="${escape(description)}">
   <meta name="robots" content="noindex, follow">
   <link rel="canonical" href="${escape(article?.link || url)}">
-  <link rel="icon" href="${SITE}/logo3.png">
+  <link rel="icon" href="${SITE}/favicon.ico">
   <meta property="og:type" content="article">
   <meta property="og:site_name" content="CoinsClarity">
   <meta property="og:title" content="${escape(title)}">

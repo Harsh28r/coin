@@ -18,7 +18,7 @@ const Disclaimer: React.FC = () => {
         <meta property="og:title" content="Disclaimer | CoinsClarity" />
         <meta property="og:description" content="Important legal disclaimer: CoinsClarity content is for informational purposes only, not financial advice. Cryptocurrency investments carry significant risk." />
         <meta property="og:url" content={`${window.location.origin}/disclaimer`} />
-        <meta property="og:image" content={`${window.location.origin}/logo3.png`} />
+        <meta property="og:image" content={`${window.location.origin}/image.png`} />
         
         {/* Twitter */}
         <meta name="twitter:card" content="summary_large_image" />

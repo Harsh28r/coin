@@ -57,7 +57,7 @@ const ArbitrageCheckerPage: React.FC = () => {
         <meta property="og:title" content="Triangular Arbitrage Calculator | CoinsClarity" />
         <meta property="og:description" content="Free crypto arbitrage calculator. Check triangular arbitrage opportunities across BTC, ETH, USDT and more. Live prices, instant results." />
         <meta property="og:url" content={`${window.location.origin}/arbitrage`} />
-        <meta property="og:image" content={`${window.location.origin}/logo3.png`} />
+        <meta property="og:image" content={`${window.location.origin}/image.png`} />
         
         {/* Twitter */}
         <meta name="twitter:card" content="summary_large_image" />

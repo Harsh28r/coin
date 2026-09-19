@@ -124,7 +124,7 @@ const PredictionDetail: React.FC = () => {
       publisher: {
         '@type': 'Organization',
         name: 'CoinsClarity',
-        logo: { '@type': 'ImageObject', url: `${SITE_URL}/logo3.png` },
+        logo: { '@type': 'ImageObject', url: `${SITE_URL}/logo-square.png`, width: 512, height: 512 },
       },
       image: post.imageUrl,
       mainEntityOfPage: canonical,

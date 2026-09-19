@@ -31,6 +31,16 @@ Disallow: /admin
 Disallow: /main-dashboard
 Disallow: /api/
 
+# Brand assets must stay crawlable for Google favicon / knowledge panel
+Allow: /favicon.ico
+Allow: /favicon.svg
+Allow: /favicon-96x96.png
+Allow: /apple-touch-icon.png
+Allow: /logo-square.png
+Allow: /logo192.png
+Allow: /logo512.png
+Allow: /image.png
+
 User-agent: Mediapartners-Google
 Allow: /
 

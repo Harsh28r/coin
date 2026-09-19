@@ -93,7 +93,7 @@ const LiveDetail: React.FC = () => {
               publisher: {
                 '@type': 'Organization',
                 name: 'CoinsClarity',
-                logo: { '@type': 'ImageObject', url: `${SITE_URL}/logo3.png` },
+                logo: { '@type': 'ImageObject', url: `${SITE_URL}/logo-square.png`, width: 512, height: 512 },
               },
               coverageStartTime: thread.startedAt || thread.createdAt,
               coverageEndTime: thread.endedAt || undefined,
