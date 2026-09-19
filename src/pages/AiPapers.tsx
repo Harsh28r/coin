@@ -47,7 +47,62 @@ async function fetchPapers(limit = 20, q?: string): Promise<AiPaper[]> {
       lastErr = e;
     }
   }
+
+  // 3) Browser CORS bypass via allorigins (last resort if Vercel fn / camify down)
+  try {
+    const query =
+      q?.trim() ||
+      '(cat:cs.AI OR cat:cs.LG OR cat:cs.CL OR cat:cs.CV OR all:blockchain OR all:cryptocurrency)';
+    const arxiv =
+      `https://export.arxiv.org/api/query?search_query=${encodeURIComponent(query)}` +
+      `&sortBy=submittedDate&sortOrder=descending&start=0&max_results=${limit}`;
+    const res = await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(arxiv)}`, {
+      signal: AbortSignal.timeout(25000),
+    });
+    if (res.ok) {
+      const xml = await res.text();
+      const papers = parseAtomClient(xml);
+      if (papers.length) return papers;
+    }
+  } catch (e) {
+    lastErr = e;
+  }
+
   throw lastErr || new Error('Could not load papers');
+}
+
+/** Minimal client-side Atom parse for CORS-proxy fallback */
+function parseAtomClient(xml: string): AiPaper[] {
+  const doc = new DOMParser().parseFromString(xml, 'application/xml');
+  const entries = Array.from(doc.getElementsByTagName('entry'));
+  return entries
+    .map((el) => {
+      const text = (tag: string) =>
+        el.getElementsByTagName(tag)[0]?.textContent?.replace(/\s+/g, ' ').trim() || '';
+      const idRaw = text('id');
+      const m = idRaw.match(/arxiv\.org\/abs\/([0-9.]+)/i);
+      const id = m?.[1] || idRaw.split('/').pop()?.replace(/v\d+$/, '') || '';
+      if (!id) return null;
+      const authors = Array.from(el.getElementsByTagName('author'))
+        .map((a) => a.getElementsByTagName('name')[0]?.textContent?.trim() || '')
+        .filter(Boolean);
+      const categories = Array.from(el.getElementsByTagName('category'))
+        .map((c) => c.getAttribute('term') || '')
+        .filter(Boolean)
+        .slice(0, 8);
+      return {
+        id,
+        title: text('title'),
+        authors,
+        abstract: text('summary'),
+        published: text('published'),
+        categories,
+        absUrl: `https://arxiv.org/abs/${id}`,
+        pdfUrl: `https://arxiv.org/pdf/${id}.pdf`,
+        source: 'arXiv',
+      } as AiPaper;
+    })
+    .filter(Boolean) as AiPaper[];
 }
 
 const AiPapersPage: React.FC = () => {
