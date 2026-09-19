@@ -82,7 +82,7 @@ module.exports = async function handler(req, res) {
       `&sortBy=submittedDate&sortOrder=descending&start=0&max_results=${limit}`;
 
     const controller = new AbortController();
-    const kill = setTimeout(() => controller.abort(), 18000);
+    const kill = setTimeout(() => controller.abort(), 8000);
     const upstream = await fetch(url, {
       headers: {
         'User-Agent': 'CoinsClarity/1.0 (ai-papers; https://www.coinsclarity.com)',
