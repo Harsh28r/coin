@@ -62,6 +62,7 @@ const AlertsPage = lazy(() => import('./pages/Alerts'));
 const PortfolioPage = lazy(() => import('./pages/Portfolio'));
 const DailyDigestArchive = lazy(() => import('./pages/DailyDigest'));
 const TrendingDeskArchive = lazy(() => import('./pages/TrendingDesk'));
+const AiPapersPage = lazy(() => import('./pages/AiPapers'));
 const AiAgentsArchive = lazy(() => import('./pages/AiAgents'));
 const PredictionsHub = lazy(() => import('./pages/Predictions'));
 const PredictionDetail = lazy(() => import('./pages/PredictionDetail'));
@@ -144,6 +145,7 @@ function App() {
                   <Route path="/" element={<LandingPage />} />
                   <Route path="/daily-digest" element={<DailyDigestArchive />} />
                   <Route path="/trending-desk" element={<TrendingDeskArchive />} />
+                  <Route path="/ai-papers" element={<AiPapersPage />} />
                   <Route path="/ai-agents" element={<AiAgentsArchive />} />
                   <Route path="/predictions" element={<PredictionsHub />} />
                   <Route path="/prediction/:coinId" element={<PredictionDetail />} />

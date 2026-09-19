@@ -16,6 +16,7 @@ import { Helmet } from 'react-helmet-async';
 import { ScrollingStats } from '../Components/scroll'
 import NewsListing from '../Components/Listings';
 import AINews from '../Components/AINews';
+import LandingAiPapers from '../Components/LandingAiPapers';
 import AiAgentsDesk from '../Components/AiAgentsDesk';
 import ArbitrageDashboard from './ArbitrageDashboard';
 import CryptoBreakingBanner from '../Components/CryptoBreakingBanner';
@@ -109,6 +110,9 @@ const LandingPage: React.FC = () => {
 
         {/* AI News (RSS / MIT AI feeds) */}
         <AINews />
+
+        {/* Daily AI research papers (arXiv full abstract + PDF) */}
+        <LandingAiPapers />
 
         {/* Trending Coins */}
         <TrendingCoins />

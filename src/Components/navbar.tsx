@@ -165,6 +165,7 @@ const CoinsNavbar: React.FC = () => {
                 <NavDropdown.Item as={NavLink} to="/All-Trending-news" onClick={handleNavItemClick}>Trending</NavDropdown.Item>
                 <NavDropdown.Item as={NavLink} to="/press-news" onClick={handleNavItemClick}>Press Releases</NavDropdown.Item>
                 <NavDropdown.Item as={NavLink} to="/ai-news" onClick={handleNavItemClick}>AI News</NavDropdown.Item>
+                <NavDropdown.Item as={NavLink} to="/ai-papers" onClick={handleNavItemClick}>AI Research Papers</NavDropdown.Item>
                 <NavDropdown.Divider />
                 <NavDropdown.Item as={NavLink} to="/beyond-the-headlines" onClick={handleNavItemClick}>Beyond the Headlines</NavDropdown.Item>
                 <NavDropdown.Item as={NavLink} to="/predictions" onClick={handleNavItemClick}>Price Predictions</NavDropdown.Item>

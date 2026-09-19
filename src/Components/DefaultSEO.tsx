@@ -133,6 +133,11 @@ const DefaultSEO: React.FC = () => {
         description:
           'Latest AI and machine learning developments in cryptocurrency. Track AI crypto projects, research, and innovations.',
       },
+      '/ai-papers': {
+        title: 'Daily AI Research Papers — Full Abstracts & PDFs | CoinsClarity',
+        description:
+          'Fresh arXiv AI and tech papers every day with full abstracts, authors, and PDF downloads. ML, NLP, CV, crypto research.',
+      },
       '/predictions': {
         title: 'Crypto Price Predictions 2026 — Bitcoin, Ethereum & Altcoins',
         description:

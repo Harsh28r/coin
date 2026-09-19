@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { TrendingUp, Newspaper, Calendar, BookOpen } from 'lucide-react';
+import { TrendingUp, Newspaper, BookOpen, FileText } from 'lucide-react';
 import './LandingSeoHub.css';
 
 const HUBS = [
@@ -9,7 +9,7 @@ const HUBS = [
   { to: '/coin/bitcoin/news', label: 'Bitcoin news hub', sub: 'Live BTC headlines', icon: Newspaper },
   { to: '/coin/ethereum/news', label: 'Ethereum news hub', sub: 'Live ETH headlines', icon: Newspaper },
   { to: '/coin/solana/news', label: 'Solana news hub', sub: 'SOL coverage', icon: Newspaper },
-  { to: '/events/etf', label: 'ETF events', sub: 'SEC & spot ETF', icon: Calendar },
+  { to: '/ai-papers', label: 'AI research papers', sub: 'Full abstracts + PDFs', icon: FileText },
   { to: '/daily-digest', label: 'Daily digest', sub: 'Noon IST brief', icon: BookOpen },
   { to: '/trending-desk', label: 'Trending desk', sub: 'What moved markets', icon: BookOpen },
 ];

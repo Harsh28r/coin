@@ -105,6 +105,7 @@ const Footer: React.FC = () => {
             <a href="/exclusive-news" className="cc-footer__link">Exclusive</a>
             <a href="/All-Trending-news" className="cc-footer__link">Trending</a>
             <a href="/ai-news" className="cc-footer__link">AI News</a>
+            <a href="/ai-papers" className="cc-footer__link">AI Research Papers</a>
             <a href="/listings" className="cc-footer__link">Listings</a>
             <a href="/beyond-the-headlines" className="cc-footer__link">Beyond the Headlines</a>
             <a href="/live" className="cc-footer__link">LIVE Coverage</a>
