@@ -35,7 +35,8 @@
     "react-scripts": "5.0.1",
     "typescript": "^4.9.5",
     "web-vitals": "^2.1.4",
-    "xml2js": "^0.6.2"
+    "xml2js": "^0.6.2",
+    "cross-env": "^7.0.3"
   },
   "scripts": {
     "start": "react-scripts start",
@@ -68,7 +69,6 @@
     "@types/react": "^18.3.16",
     "@types/react-bootstrap": "^0.32.37",
     "@types/react-dom": "^18.3.5",
-    "@types/xml2js": "^0.4.14",
-    "cross-env": "^7.0.3"
+    "@types/xml2js": "^0.4.14"
   }
 }
