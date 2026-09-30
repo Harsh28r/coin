@@ -40,9 +40,7 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "prebuild": "node scripts/patch-cra-ci.js",
-    "build": "node --max-old-space-size=6144 scripts/build.js",
-    "postinstall": "node scripts/patch-cra-ci.js",
+    "build": "node scripts/build.js",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },

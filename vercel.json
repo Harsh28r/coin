@@ -1,5 +1,5 @@
 {
-  "buildCommand": "node --max-old-space-size=6144 scripts/build.js",
+  "buildCommand": "node scripts/build.js",
   "outputDirectory": "build",
   "framework": "create-react-app",
   "redirects": [
