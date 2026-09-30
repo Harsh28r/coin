@@ -32,7 +32,18 @@ export function buildInternalLinks(opts: {
   const links: InternalLink[] = [];
 
   for (const coin of coins) {
-    links.push({ href: `/coin/${coin.id}`, label: `${coin.name} chart`, kind: 'coin' });
+    links.push({ href: `/coin/${coin.id}`, label: `${coin.name} price`, kind: 'coin' });
+    links.push({ href: `/coin/${coin.id}/news`, label: `${coin.name} news`, kind: 'news' });
+    links.push({
+      href: `/today/why-is-${coin.id}-up`,
+      label: `Why is ${coin.symbol} up?`,
+      kind: 'why-up',
+    });
+    links.push({
+      href: `/prediction/${coin.id}`,
+      label: `${coin.name} outlook`,
+      kind: 'prediction',
+    });
     if (links.length >= limit) break;
   }
 

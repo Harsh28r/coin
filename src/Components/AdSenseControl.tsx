@@ -27,16 +27,8 @@ const BLOCKED_PREFIXES = [
   '/admin',
 ];
 
-const THIN_PREFIXES = ['/today', '/price', '/prediction', '/predictions'];
-
-const isBlockedPath = (pathname: string): boolean => {
-  if (BLOCKED_PREFIXES.some((p) => pathname === p || pathname.startsWith(p + '/') || pathname.startsWith(p))) {
-    return true;
-  }
-  if (THIN_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`))) return true;
-  if (/^\/coin\/[^/]+\/news\/?$/.test(pathname)) return true;
-  return false;
-};
+const isBlockedPath = (pathname: string): boolean =>
+  BLOCKED_PREFIXES.some((p) => pathname === p || pathname.startsWith(p + '/') || pathname.startsWith(p));
 
 const ensureScriptLoaded = (): void => {
   if (typeof document === 'undefined') return;

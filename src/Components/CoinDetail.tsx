@@ -700,20 +700,20 @@ const CoinDetail: React.FC = () => {
               }}
               variant="button"
             />
-            <Link to="/trending-desk" className="cd-btn cd-btn--outlook">
-              <LineChart size={16} /> Search trends
+            <Link to={`/prediction/${coin.id}`} className="cd-btn cd-btn--outlook">
+              <LineChart size={16} /> Desk outlook
             </Link>
           </div>
         </header>
 
         {/* DESK OUTLOOK TEASER */}
-        <Link to="/trending-desk" className="cd-outlook-teaser">
+        <Link to={`/prediction/${coin.id}`} className="cd-outlook-teaser">
           <div className="cd-outlook-teaser__text">
-            <span className="cd-outlook-teaser__eyebrow">Google Trends</span>
-            <strong>What people are searching today</strong>
-            <span>One desk column on the finance query that is actually trending</span>
+            <span className="cd-outlook-teaser__eyebrow">Markets Desk</span>
+            <strong>{coin.name} price outlook</strong>
+            <span>Scenario map · catalysts · risks — original analysis, not scraped wire</span>
           </div>
-          <span className="cd-outlook-teaser__cta">Read the desk →</span>
+          <span className="cd-outlook-teaser__cta">Read prediction →</span>
         </Link>
 
         {/* PERFORMANCE STRIP */}
@@ -864,18 +864,18 @@ const CoinDetail: React.FC = () => {
             <h3>Links</h3>
             <ul>
               <li>
-                <Link to="/trending-desk">
-                  <TrendingUp size={16} /> <span>Search trends</span>
+                <Link to={`/coin/${coinId}/news`}>
+                  <LineChart size={16} /> <span>{coin.symbol?.toUpperCase()} news hub</span>
                 </Link>
               </li>
               <li>
-                <Link to="/etf/bitcoin-flows">
-                  <LineChart size={16} /> <span>BTC ETF flows</span>
+                <Link to={`/today/why-is-${coinId}-up`}>
+                  <TrendingUp size={16} /> <span>Why is {coin.symbol?.toUpperCase()} up?</span>
                 </Link>
               </li>
               <li>
-                <Link to="/in">
-                  <LineChart size={16} /> <span>India desk</span>
+                <Link to={`/prediction/${coinId}`}>
+                  <LineChart size={16} /> <span>Price outlook</span>
                 </Link>
               </li>
               {homepage && (

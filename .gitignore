@@ -25,5 +25,3 @@ yarn-error.log*
 coinsclarity-indexing.env
 .vercel
 .env*
-!.env.example
-!.env.production

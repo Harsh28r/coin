@@ -80,7 +80,7 @@ module.exports = async function handler(req, res) {
   <meta charset="UTF-8">
   <title>${escape(title)}</title>
   <meta name="description" content="${escape(description)}">
-  <meta name="robots" content="noindex, follow">
+  <meta name="robots" content="index, follow, max-image-preview:large">
   <meta name="author" content="${escape(post?.author || 'Elena Vasquez')}">
   <link rel="canonical" href="${url}">
   <link rel="icon" href="${SITE}/favicon.ico">

@@ -61,7 +61,7 @@ export const INDIA_GUIDES: IndiaGuide[] = [
     ctaLinks: [
       { to: '/tools/p2p', label: 'Live USDT/INR P2P board' },
       { to: '/tools/scam-check', label: 'Token scam checker' },
-      { to: '/coin/tether', label: 'USDT chart' },
+      { to: '/price/tether', label: 'USDT price page' },
     ],
   },
   {
@@ -169,7 +169,7 @@ export const INDIA_GUIDES: IndiaGuide[] = [
       },
     ],
     ctaLinks: [
-      { to: '/coin/bitcoin', label: 'Bitcoin chart' },
+      { to: '/price/bitcoin', label: 'Bitcoin price' },
       { to: '/tools/p2p', label: 'USDT/INR P2P' },
       { to: '/tools/scam-check', label: 'Scam checker' },
     ],
@@ -267,7 +267,7 @@ export const INDIA_GUIDES: IndiaGuide[] = [
     ctaLinks: [
       { to: '/tools/p2p', label: 'Compare USDT rates' },
       { to: '/tools/scam-check', label: 'Scam checker' },
-      { to: '/coin/bitcoin', label: 'BTC chart' },
+      { to: '/price/bitcoin', label: 'BTC price' },
     ],
   },
   {
@@ -419,7 +419,7 @@ export const CALCULATORS: CalcDef[] = [
       },
     ],
     related: [
-      { to: '/coin/bitcoin', label: 'BTC chart' },
+      { to: '/price/bitcoin', label: 'BTC price' },
       { to: '/tools/profit-calculator', label: 'Profit calculator' },
     ],
   },
@@ -439,7 +439,7 @@ export const CALCULATORS: CalcDef[] = [
     ],
     related: [
       { to: '/tools/profit-calculator', label: 'Profit calculator' },
-      { to: '/coin/ethereum', label: 'ETH chart' },
+      { to: '/price/ethereum', label: 'ETH price' },
     ],
   },
   {

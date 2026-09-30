@@ -183,11 +183,11 @@ const EtfFlowsPage: React.FC = () => {
         </section>
 
         <section className="seo-links-row">
-          <Link to="/coin/bitcoin">BTC chart</Link>
-          <Link to="/trending-desk">Search trends</Link>
+          <Link to="/price/bitcoin">BTC price page</Link>
+          <Link to="/today/why-is-bitcoin-up">Why is BTC up?</Link>
           <Link to="/tools/funding">Funding rates</Link>
           <Link to="/tools/liquidations">Liquidations</Link>
-          <Link to="/in">India desk</Link>
+          <Link to="/prediction/bitcoin">BTC outlook</Link>
         </section>
 
         <section className="seo-faq">

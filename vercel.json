@@ -1,5 +1,5 @@
 {
-  "buildCommand": "node scripts/build.js",
+  "buildCommand": "npm run build",
   "outputDirectory": "build",
   "framework": "create-react-app",
   "redirects": [
@@ -72,6 +72,7 @@
   ],
   "functions": {
     "api/**/*.js": {
+      "memory": 128,
       "maxDuration": 10
     }
   }

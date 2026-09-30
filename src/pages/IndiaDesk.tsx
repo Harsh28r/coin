@@ -64,7 +64,7 @@ export const IndiaHub: React.FC = () => {
         <section className="seo-links-row">
           <Link to="/tools/p2p">USDT/INR P2P</Link>
           <Link to="/tools/scam-check">Scam-check</Link>
-          <Link to="/coin/bitcoin">BTC chart</Link>
+          <Link to="/price/bitcoin">BTC price</Link>
           <Link to="/tools/crypto-tax-calculator">Tax calculator</Link>
         </section>
       </main>

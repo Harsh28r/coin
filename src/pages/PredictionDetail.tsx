@@ -145,7 +145,7 @@ const PredictionDetail: React.FC = () => {
           name="keywords"
           content={`${outlook?.coinName || coinId} price prediction, ${outlook?.symbol || ''} outlook, crypto analysis, ${outlook?.horizon || '2026-2030'}`}
         />
-        <meta name="robots" content="noindex, follow" />
+        <meta name="robots" content="index, follow" />
         <link rel="canonical" href={canonical} />
         <meta property="og:type" content="article" />
         <meta property="og:title" content={title} />

@@ -101,7 +101,7 @@ const PredictionsHub: React.FC = () => {
           content="crypto price predictions, bitcoin price prediction, bitcoin outlook, ethereum price prediction, cryptocurrency predictions, crypto outlook"
         />
         <link rel="canonical" href={`${SITE_URL}/predictions`} />
-        <meta name="robots" content="noindex, follow" />
+        <meta name="robots" content="index, follow" />
         <meta property="og:title" content={seoTitle} />
         <meta property="og:description" content={seoDesc} />
         <meta property="og:url" content={`${SITE_URL}/predictions`} />
