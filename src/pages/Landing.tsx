@@ -25,6 +25,7 @@ import AirdropSection from '../Components/AirdropSection';
 import LandingToolsShowcase from '../Components/LandingToolsShowcase';
 import LandingEditorialStrip from '../Components/LandingEditorialStrip';
 import LandingSeoHub from '../Components/LandingSeoHub';
+import GoogleTrendsStrip from '../Components/GoogleTrendsStrip';
 import CoinpediaPartner from '../Components/CoinpediaPartner';
 import LandingLiveStrip from '../Components/LandingLiveStrip';
 import AdSenseSlot from '../Components/AdSenseSlot';
@@ -65,6 +66,7 @@ const LandingPage: React.FC = () => {
 
         {/* SEO hub — ranking entry points */}
         <LandingSeoHub />
+        <GoogleTrendsStrip />
 
         {/* AI agents carousel — trending keyword filings */}
         <AiAgentsCarousel />
