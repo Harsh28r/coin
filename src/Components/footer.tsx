@@ -105,7 +105,8 @@ const Footer: React.FC = () => {
 
           <Col lg={2} md={3} sm={6}>
             <span className="cc-footer__heading">News</span>
-            <a href="/price/bitcoin" className="cc-footer__link">Bitcoin price</a>
+            <a href="/coin/bitcoin" className="cc-footer__link">Bitcoin chart</a>
+            <a href="/trending-desk" className="cc-footer__link">Search trends</a>
             <a href="/etf/bitcoin-flows" className="cc-footer__link">BTC ETF flows</a>
             <a href="/in" className="cc-footer__link">India crypto guides</a>
             <a href="/exclusive-news" className="cc-footer__link">Exclusive</a>

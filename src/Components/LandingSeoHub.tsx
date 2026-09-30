@@ -6,12 +6,12 @@ import './LandingSeoHub.css';
 const HUBS = [
   { to: '/in', label: 'Crypto in India', sub: 'USDT, tax, scams', icon: BookOpen },
   { to: '/tools/p2p', label: 'USDT/INR P2P', sub: 'Live spreads', icon: Newspaper },
-  { to: '/price/bitcoin', label: 'Bitcoin price', sub: 'USD + INR', icon: TrendingUp },
+  { to: '/coin/bitcoin', label: 'Bitcoin chart', sub: 'Live price', icon: TrendingUp },
   { to: '/etf/bitcoin-flows', label: 'BTC ETF flows', sub: 'Spot demand', icon: TrendingUp },
   { to: '/tools/scam-check', label: 'Scam checker', sub: 'Before you ape', icon: FileText },
   { to: '/in/buy-usdt', label: 'How to buy USDT', sub: 'UPI & P2P guide', icon: BookOpen },
   { to: '/tools/crypto-tax-calculator', label: 'India tax calc', sub: 'Flat 30% estimate', icon: FileText },
-  { to: '/today/why-is-bitcoin-up', label: 'Why is BTC up?', sub: 'Catalysts today', icon: TrendingUp },
+  { to: '/trending-desk', label: 'Search trends', sub: 'Google Trends desk', icon: TrendingUp },
 ];
 
 /** Homepage SEO internal-link hub — ranks cluster entry points */

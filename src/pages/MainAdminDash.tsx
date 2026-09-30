@@ -851,7 +851,7 @@ const MainDashboard: React.FC = () => {
       <div className="p-3 border-top mt-4">
         <h4 className="mb-3">Trending Desk</h4>
         <p className="text-muted small mb-2">
-          Publishes <code>trending-desk-YYYY-MM-DD</code> (CoinGecko trending + RSS + HF). Example:{' '}
+          Publishes <code>trending-desk-YYYY-MM-DD</code> from the top finance query on Google Trends (IN + US daily RSS). Skips the day if nothing market-related is trending. Example:{' '}
           <a href="https://www.coinsclarity.com/blog/trending-desk-2026-05-09" target="_blank" rel="noopener noreferrer">
             trending-desk-2026-05-09
           </a>

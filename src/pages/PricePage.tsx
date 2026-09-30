@@ -38,6 +38,7 @@ const PricePage: React.FC = () => {
             title: `${coin.name} Price Today (USD & INR) — ${coin.symbol} Live Chart`,
             description: `Live ${coin.name} (${coin.symbol}) price, 24h change, market cap, and INR estimate. FAQ, converters, and links to news & tools on CoinsClarity.`,
             path: `/price/${coin.id}`,
+            robots: 'noindex, follow',
             keywords: [
               `${coin.name} price`,
               `${coin.symbol} price today`,
@@ -96,7 +97,7 @@ const PricePage: React.FC = () => {
     },
     {
       question: `Why is ${coin.symbol} moving today?`,
-      answer: `Open the why-is-${coin.symbol}-up/down desks for catalysts, or the ${coin.name} news hub for headlines.`,
+      answer: `Use the ${coin.name} chart and the trending desk. CoinsClarity writes when a finance query is actually on Google Trends.`,
     },
     {
       question: `Is this financial advice?`,
@@ -193,8 +194,8 @@ const PricePage: React.FC = () => {
         <section className="seo-links-row">
           <Link to={`/coin/${coin.id}`}>Full chart</Link>
           <Link to={`/coin/${coin.id}/news`}>{coin.symbol} news</Link>
-          <Link to={`/today/why-is-${coin.id}-up`}>Why up?</Link>
-          <Link to={`/today/why-is-${coin.id}-down`}>Why down?</Link>
+          <Link to={`/coin/${coin.id}`}>Full chart</Link>
+          <Link to="/trending-desk">Search trends</Link>
           <Link to="/tools/p2p">USDT/INR P2P</Link>
           <Link to="/in/how-to-buy-bitcoin">Buy in India</Link>
         </section>
@@ -217,7 +218,7 @@ const PricePage: React.FC = () => {
           <ul className="seo-chip-list">
             {TOP_COINS.slice(0, 16).map((c) => (
               <li key={c.id}>
-                <Link to={`/price/${c.id}`}>{c.symbol}</Link>
+                <Link to={`/coin/${c.id}`}>{c.symbol}</Link>
               </li>
             ))}
           </ul>

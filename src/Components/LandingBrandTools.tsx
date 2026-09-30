@@ -55,7 +55,7 @@ const LandingBrandTools: React.FC = () => (
         {' · '}
         <Link to="/in">India guides</Link>
         {' · '}
-        <Link to="/price/bitcoin">BTC price</Link>
+        <Link to="/trending-desk">Search trends</Link>
       </p>
     </div>
   </section>

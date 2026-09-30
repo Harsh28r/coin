@@ -6,6 +6,7 @@ import BrandHero from '../Components/BrandHero';
 import UsdtInrPremium from '../Components/UsdtInrPremium';
 import LandingBrandTools from '../Components/LandingBrandTools';
 import LandingSeoHub from '../Components/LandingSeoHub';
+import GoogleTrendsStrip from '../Components/GoogleTrendsStrip';
 import ExclusiveNews from '../Components/ExclusiveNews';
 import MarketPriceAndNews from '../Components/market';
 import InDepthNews from '../Components/InDepthNews';
@@ -62,6 +63,7 @@ const LandingPage: React.FC = () => {
         <UsdtInrPremium />
         <LandingBrandTools />
         <LandingSeoHub />
+        <GoogleTrendsStrip />
 
         <div style={{ maxWidth: 1280, margin: '0 auto', padding: '0 20px' }}>
           <AdSenseSlot placement="landing-a" size="leaderboard" lazy />

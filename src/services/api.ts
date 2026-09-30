@@ -102,6 +102,31 @@ export const updatePost = async (post: BlogPost): Promise<BlogPost> => {
   throw lastErr;
 };
 
+export type GoogleTrend = {
+  name: string;
+  traffic?: string;
+  volume?: number | null;
+  tweet_volume?: number | null;
+  geo?: string;
+  rank?: number;
+  writable?: boolean;
+  url?: string;
+  category?: string;
+};
+
+export async function fetchGoogleTrends(): Promise<GoogleTrend[] | null> {
+  for (const base of getFallbackBases()) {
+    try {
+      const res = await axios.get(joinBackendPath(base, '/x/trending'), { timeout: 8000 });
+      const data = res.data as { success?: boolean; data?: GoogleTrend[] };
+      if (data?.success && Array.isArray(data.data)) return data.data;
+    } catch {
+      /* next base */
+    }
+  }
+  return null;
+}
+
 export const deletePost = async (id: string): Promise<void> => {
   const paths = [`/posts/${id}`, `/api/posts/${id}`];
   let lastErr: any;

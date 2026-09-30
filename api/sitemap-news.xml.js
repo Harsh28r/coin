@@ -35,7 +35,7 @@ module.exports = async function handler(req, res) {
     }
 
     // Desk archives — high crawl priority
-    for (const path of ['/daily-digest', '/trending-desk', '/predictions', '/live', '/blog']) {
+    for (const path of ['/daily-digest', '/trending-desk', '/live', '/blog', '/in']) {
       urls.push(xmlUrl(`${SITE}${path}`, { lastmod: today, changefreq: 'daily', priority: '0.9' }));
     }
 

@@ -73,6 +73,7 @@ export function coinNewsMeta(coin: CoinEntry): SeoMeta {
     title: `${coin.name} (${coin.symbol}) News Today — Latest Headlines & Price Impact`,
     description: `Live ${coin.name} news, breaking headlines, ETF and listing updates, and price catalysts. Updated hourly on CoinsClarity.`,
     path: `/coin/${coin.id}/news`,
+    robots: 'noindex, follow',
     keywords: [
       `${coin.name} news`,
       `${coin.symbol} news today`,
@@ -89,6 +90,7 @@ export function whyCoinMeta(coin: CoinEntry, direction: 'up' | 'down'): SeoMeta 
     title: `Why Is ${coin.name} ${verb} Today? ${coin.symbol} Price Catalysts Explained`,
     description: `Why is ${coin.name} ${action} today? See live ${coin.symbol} price moves, breaking news catalysts, ETF flows, and trader sentiment — updated in real time.`,
     path: `/today/why-is-${coin.id}-${direction}`,
+    robots: 'noindex, follow',
     keywords: [
       `why is ${coin.name} ${direction}`,
       `why is ${coin.symbol} ${action}`,
