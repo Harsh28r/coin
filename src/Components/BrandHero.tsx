@@ -6,7 +6,12 @@ import './BrandHero.css';
 /** First-viewport brand composition — not a news dashboard */
 const BrandHero: React.FC = () => (
   <section className="bh" aria-label="CoinsClarity">
-    <div className="bh-bg" aria-hidden />
+    <div className="bh-bg" aria-hidden>
+      <div
+        className="bh-bg__photo"
+        style={{ backgroundImage: `url(${process.env.PUBLIC_URL || ''}/image.png)` }}
+      />
+    </div>
     <div className="bh-inner">
       <p className="bh-brand">CoinsClarity</p>
       <h1 className="bh-headline">
