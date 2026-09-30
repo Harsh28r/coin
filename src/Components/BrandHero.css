@@ -12,25 +12,13 @@
 .bh-bg {
   position: absolute;
   inset: 0;
+  background:
+    linear-gradient(120deg, rgba(11, 18, 32, 0.2) 0%, rgba(11, 18, 32, 0.85) 55%, #0b1220 100%),
+    radial-gradient(1000px 480px at 78% 18%, rgba(234, 88, 12, 0.28), transparent 58%),
+    radial-gradient(700px 420px at 8% 90%, rgba(30, 64, 175, 0.22), transparent 50%),
+    var(--bh-photo) center / cover no-repeat;
   transform: scale(1.02);
   animation: bh-drift 18s ease-in-out infinite alternate;
-}
-
-.bh-bg__photo {
-  position: absolute;
-  inset: 0;
-  background-size: cover;
-  background-position: center 35%;
-}
-
-.bh-bg::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background:
-    linear-gradient(120deg, rgba(11, 18, 32, 0.35) 0%, rgba(11, 18, 32, 0.88) 55%, #0b1220 100%),
-    radial-gradient(1000px 480px at 78% 18%, rgba(234, 88, 12, 0.28), transparent 58%),
-    radial-gradient(700px 420px at 8% 90%, rgba(30, 64, 175, 0.22), transparent 50%);
   pointer-events: none;
 }
 
