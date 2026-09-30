@@ -2,6 +2,9 @@
   "name": "my-bootstrap-app",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": "22.x"
+  },
   "dependencies": {
     "@fontsource/inter": "^5.1.0",
     "@fortawesome/free-solid-svg-icons": "^6.7.1",
