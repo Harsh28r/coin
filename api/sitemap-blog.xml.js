@@ -15,9 +15,8 @@ module.exports = async function handler(req, res) {
     xml = xml
       .replace(/https:\/\/coinsclarity\.com\//g, 'https://www.coinsclarity.com/')
       .replace(/http:\/\/coinsclarity\.com\//g, 'https://www.coinsclarity.com/')
-      .replace(
-        /https:\/\/www\.coinsclarity\.com\/blog\/price-outlook-([^<]+)/g,
-        'https://www.coinsclarity.com/prediction/$1',
+      .replace(/<url>\s*[\s\S]*?<\/url>/g, (block) =>
+        /\/prediction\/|price-outlook-|\/price\/|\/today\/why-is-/.test(block) ? '' : block,
       );
 
     res.setHeader('Content-Type', 'application/xml; charset=utf-8');

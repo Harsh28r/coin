@@ -144,13 +144,13 @@ const MarketMoversPage: React.FC = () => {
         <section className="seo-section">
           <h2>Related hubs</h2>
           <div className="seo-hub-grid">
-            <Link to="/today/why-is-bitcoin-up" className="seo-hub-card">
-              <strong>Why BTC up</strong>
-              <span>Today movers</span>
+            <Link to="/coin/bitcoin" className="seo-hub-card">
+              <strong>Bitcoin chart</strong>
+              <span>Live price</span>
             </Link>
-            <Link to="/today/why-is-ethereum-up" className="seo-hub-card">
-              <strong>Why ETH up</strong>
-              <span>Today movers</span>
+            <Link to="/coin/ethereum" className="seo-hub-card">
+              <strong>Ethereum chart</strong>
+              <span>Live price</span>
             </Link>
             <Link to="/events/etf" className="seo-hub-card">
               <strong>ETF events</strong>

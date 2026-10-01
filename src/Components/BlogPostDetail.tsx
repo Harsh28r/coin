@@ -183,7 +183,7 @@ const BlogPostDetail: React.FC = () => {
   // Canonical UX: price outlooks live on /prediction/:coinId (editorial layout).
   useEffect(() => {
     if (isPriceOutlook && outlookCoinId) {
-      navigate(`/prediction/${outlookCoinId}`, { replace: true });
+      navigate(`/coin/${outlookCoinId}`, { replace: true });
     }
   }, [isPriceOutlook, outlookCoinId, navigate]);
 

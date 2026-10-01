@@ -117,7 +117,7 @@ const AuthorProfile: React.FC<{ author: DeskAuthor }> = ({ author }) => {
   const postHref = (p: BlogPost) => {
     if (p.outlook?.coinId || (p.slug || '').startsWith('price-outlook-')) {
       const id = p.outlook?.coinId || String(p.slug).replace(/^price-outlook-/, '');
-      return `/prediction/${id}`;
+      return `/coin/${id}`;
     }
     return getBlogUrl(p);
   };

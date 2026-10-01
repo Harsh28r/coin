@@ -4,11 +4,11 @@ import { TrendingUp, Newspaper, BookOpen, FileText } from 'lucide-react';
 import './LandingSeoHub.css';
 
 const HUBS = [
-  { to: '/price/bitcoin', label: 'Bitcoin price', sub: 'USD + INR live', icon: TrendingUp },
+  { to: '/coin/bitcoin', label: 'Bitcoin chart', sub: 'Live price', icon: TrendingUp },
   { to: '/etf/bitcoin-flows', label: 'Bitcoin ETF flows', sub: 'Spot ETF demand', icon: TrendingUp },
   { to: '/in', label: 'Crypto in India', sub: 'USDT, tax, P2P', icon: BookOpen },
-  { to: '/today/why-is-bitcoin-up', label: 'Why is Bitcoin up?', sub: 'BTC movers today', icon: TrendingUp },
-  { to: '/coin/bitcoin/news', label: 'Bitcoin news hub', sub: 'Live BTC headlines', icon: Newspaper },
+  { to: '/trending-desk', label: 'Search trends', sub: 'Google Trends desk', icon: TrendingUp },
+  { to: '/tools/scam-check', label: 'Scam checker', sub: 'Before you ape', icon: FileText },
   { to: '/tools/crypto-tax-calculator', label: 'India tax calculator', sub: 'Flat 30% estimate', icon: FileText },
   { to: '/tools/profit-calculator', label: 'Profit calculator', sub: 'ROI before you exit', icon: FileText },
   { to: '/tools/p2p', label: 'USDT/INR P2P', sub: 'Live spreads', icon: Newspaper },

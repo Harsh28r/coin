@@ -9,13 +9,13 @@ export const getBlogUrl = (post: unknown): string => {
   const key = slug || id;
   if (!key) return '/blog';
   if (slug.startsWith('price-outlook-')) {
-    return `/prediction/${slug.replace(/^price-outlook-/, '')}`;
+    return `/coin/${slug.replace(/^price-outlook-/, '')}`;
   }
   const outlook = p.outlook as { coinId?: string } | undefined;
   const tags = Array.isArray(p.tags) ? (p.tags as string[]) : [];
   if (outlook?.coinId || tags.includes('price-outlook')) {
     const coinId = outlook?.coinId || slug.replace(/^price-outlook-/, '');
-    if (coinId) return `/prediction/${coinId}`;
+    if (coinId) return `/coin/${coinId}`;
   }
   return `/blog/${key}`;
 };

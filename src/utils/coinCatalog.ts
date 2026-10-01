@@ -127,7 +127,7 @@ export function coinNewsPath(id: string): string {
 }
 
 export function whyCoinPath(id: string): string {
-  return `/today/why-is-${id}-up`;
+  return `/coin/${id}`;
 }
 
 export function eventHubPath(slug: string): string {
