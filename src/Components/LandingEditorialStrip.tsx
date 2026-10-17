@@ -60,26 +60,25 @@ const LandingEditorialStrip: React.FC = () => {
   };
 
   return (
-    <section className="les" aria-label="Daily digest and trending desk">
-      <div className="les-inner">
-        <header className="les-head">
-          <h2 className="les-title">On the desk today</h2>
-          <p className="les-sub">
-            Brief at noon IST, trending desk half an hour later, plus{' '}
-            <Link to="/ai-agents">AI Agents</Link> filing every 3 hours off trending keywords.
+    <section className="led" aria-label="Daily digest and trending desk">
+      <div className="led-inner">
+        <header className="led-head">
+          <h2 className="led-title">On the desk today</h2>
+          <p className="led-sub">
+            Noon brief, then an AI market column on a CoinGecko trending coin — filed to the blog.
           </p>
         </header>
 
-        {loading && <p className="les-muted">Loading…</p>}
+        {loading && <p className="led-muted">Loading…</p>}
 
         {!loading && (
-          <div className="les-grid">
-            <article className="les-card">
-              <span className="les-kicker les-kicker--digest">Daily digest</span>
+          <div className="led-grid">
+            <article className="led-card">
+              <span className="led-kicker led-kicker--digest">Daily digest</span>
               {latestDigest ? (
                 <>
-                  <Link to={getBlogUrl(latestDigest)} className="les-card__link">
-                    <div className="les-card__img">
+                  <Link to={getBlogUrl(latestDigest)} className="led-card__link">
+                    <div className="led-card__img">
                       <img
                         src={resolveImageSrc(latestDigest.imageUrl, latestDigest.title, 'blog')}
                         alt=""
@@ -87,24 +86,24 @@ const LandingEditorialStrip: React.FC = () => {
                         onError={(e) => handleImageError(e, latestDigest.title, 'blog')}
                       />
                     </div>
-                    <h3 className="les-card__title">{latestDigest.title}</h3>
-                    <p className="les-dek">{dek(latestDigest)}</p>
+                    <h3 className="led-card__title">{latestDigest.title}</h3>
+                    <p className="led-dek">{dek(latestDigest)}</p>
                   </Link>
-                  <Link to="/daily-digest" className="les-archive">
+                  <Link to="/daily-digest" className="led-archive">
                     All digest editions →
                   </Link>
                 </>
               ) : (
-                <p className="les-empty">No digest edition yet.</p>
+                <p className="led-empty">No digest edition yet.</p>
               )}
             </article>
 
-            <article className="les-card">
-              <span className="les-kicker les-kicker--trend">Trending desk</span>
+            <article className="led-card">
+              <span className="led-kicker led-kicker--trend">Trending desk</span>
               {latestTrend ? (
                 <>
-                  <Link to={getBlogUrl(latestTrend)} className="les-card__link">
-                    <div className="les-card__img">
+                  <Link to={getBlogUrl(latestTrend)} className="led-card__link">
+                    <div className="led-card__img">
                       <img
                         src={resolveImageSrc(latestTrend.imageUrl, latestTrend.title, 'blog')}
                         alt=""
@@ -112,15 +111,15 @@ const LandingEditorialStrip: React.FC = () => {
                         onError={(e) => handleImageError(e, latestTrend.title, 'blog')}
                       />
                     </div>
-                    <h3 className="les-card__title">{latestTrend.title}</h3>
-                    <p className="les-dek">{dek(latestTrend)}</p>
+                    <h3 className="led-card__title">{latestTrend.title}</h3>
+                    <p className="led-dek">{dek(latestTrend)}</p>
                   </Link>
-                  <Link to="/trending-desk" className="les-archive">
+                  <Link to="/trending-desk" className="led-archive">
                     Trending desk archive →
                   </Link>
                 </>
               ) : (
-                <p className="les-empty">No trending desk article yet.</p>
+                <p className="led-empty">No trending desk article yet.</p>
               )}
             </article>
           </div>

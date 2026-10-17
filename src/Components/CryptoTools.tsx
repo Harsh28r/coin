@@ -148,7 +148,7 @@ const CryptoTools: React.FC = () => {
       
       <CoinsNavbar />
       
-      <Container fluid className="py-4" style={{ backgroundColor: '#f8fafc', minHeight: '100vh' }}>
+      <Container fluid className="py-4" style={{ backgroundColor: 'var(--bg, #0b1220)', minHeight: '100vh' }}>
         <Container>
           {/* Header */}
           <div className="text-center mb-4">

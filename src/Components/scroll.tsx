@@ -283,15 +283,26 @@ export const ScrollingStats = () => {
   const userIconSize = isMobile ? '1.4em' : '1.7em';
 
   return (
-    <div style={{ width: '95%', margin: '0 auto', overflow: 'visible' }} className="relative h-12 bg-white rounded-lg d-flex align-items-center">
+    <div
+      style={{
+        width: '100%',
+        maxWidth: 'none',
+        margin: 0,
+        overflow: 'hidden',
+        borderRadius: 0,
+        background: '#0b1220',
+        borderBottom: '1px solid rgba(255,255,255,0.06)',
+      }}
+      className="relative h-12 d-flex align-items-center cc-scroll-ticker"
+    >
       {/* Edge fades */}
       <div style={{
         position: 'absolute', left: 0, top: 0, bottom: 0, width: `${edgeWidth}px`,
-        background: 'linear-gradient(90deg, rgba(255,255,255,1) 0%, rgba(255,255,255,0) 100%)', zIndex: 2
+        background: 'linear-gradient(90deg, #0b1220 0%, rgba(11,18,32,0) 100%)', zIndex: 2
       }} />
       <div style={{
         position: 'absolute', right: 0, top: 0, bottom: 0, width: `${edgeWidth}px`,
-        background: 'linear-gradient(270deg, rgba(255,255,255,1) 0%, rgba(255,255,255,0) 100%)', zIndex: 2
+        background: 'linear-gradient(270deg, #0b1220 0%, rgba(11,18,32,0) 100%)', zIndex: 2
       }} />
 
       {/* Full-width ticker area with slight left padding and space for right controls */}
@@ -303,8 +314,8 @@ export const ScrollingStats = () => {
         <Nav className="flex-nowrap align-items-center justify-content-end">
           <NavDropdown
             title={isMobile
-              ? <i className="fa fa-globe" aria-hidden="true" style={{ fontSize: languageFontSize, color: '#111' }} />
-              : <span className="text-black" style={{ fontSize: languageFontSize }}>{currentLanguage.toUpperCase()}</span>
+              ? <i className="fa fa-globe" aria-hidden="true" style={{ fontSize: languageFontSize, color: '#e2e8f0' }} />
+              : <span style={{ fontSize: languageFontSize, color: '#f8fafc', fontWeight: 600 }}>{currentLanguage.toUpperCase()}</span>
             }
             id="language-dropdown-ticker"
             onSelect={(key) => {
@@ -329,7 +340,7 @@ export const ScrollingStats = () => {
               aria-hidden="true"
               title="Sign in"
               onClick={handleUserClick}
-              style={{ fontSize: userIconSize, cursor: 'pointer', color: '#111' }}
+              style={{ fontSize: userIconSize, cursor: 'pointer', color: '#e2e8f0' }}
             />
           ) : (
             <li
@@ -347,18 +358,18 @@ export const ScrollingStats = () => {
                 onClick={(e) => { e.preventDefault(); toggleProfileCard(); }}
                 style={{ background: 'transparent', border: 'none', padding: 0, display: 'flex', alignItems: 'center' }}
               >
-                <i className="fa fa-user-circle" aria-hidden="true" style={{ fontSize: isMobile ? '1.4em' : '1.6em', color: '#111' }} />
+                <i className="fa fa-user-circle" aria-hidden="true" style={{ fontSize: isMobile ? '1.4em' : '1.6em', color: '#e2e8f0' }} />
               </button>
               {showProfileCard && (
                 <div
                   className="profile-card shadow"
-                  style={{ width: isMobile ? '160px' : '180px', position: 'absolute', top: '100%', right: 0, left: 'auto', background: '#fff', borderRadius: 8, zIndex: 1050 }}
+                  style={{ width: isMobile ? '160px' : '180px', position: 'absolute', top: '100%', right: 0, left: 'auto', background: '#111827', color: '#f8fafc', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, zIndex: 1050 }}
                   onMouseEnter={() => setShowProfileCard(true)}
                   onMouseLeave={() => setShowProfileCard(false)}
                 >
                   <div
                     className="profile-name px-3 py-2"
-                    style={{ fontSize: '0.8em', fontWeight: 600, borderBottom: '1px solid #f2f2f2' }}
+                    style={{ fontSize: '0.8em', fontWeight: 600, borderBottom: '1px solid rgba(255,255,255,0.08)', color: '#f8fafc' }}
                   >
                     {user.displayName || 'User'}
                   </div>

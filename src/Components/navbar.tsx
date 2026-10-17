@@ -22,7 +22,10 @@ const CoinsNavbar: React.FC = () => {
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isScrolled, setIsScrolled] = useState(false);
-  const [theme, setTheme] = useState<'light' | 'dark'>('light');
+  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
+    const saved = localStorage.getItem('cc-theme');
+    return saved === 'light' || saved === 'dark' ? saved : 'dark';
+  });
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -32,19 +35,6 @@ const CoinsNavbar: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    const saved = (localStorage.getItem('cc-theme') as 'light' | 'dark' | null) || 'light';
-    setTheme(saved);
-    document.documentElement.setAttribute('data-theme', saved);
-    document.documentElement.setAttribute('data-bs-theme', saved);
-    document.body.setAttribute('data-theme', saved);
-    document.body.setAttribute('data-bs-theme', saved);
-  }, []);
-
-  useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme);
-    document.documentElement.setAttribute('data-bs-theme', theme);
-    document.body.setAttribute('data-theme', theme);
-    document.body.setAttribute('data-bs-theme', theme);
     localStorage.setItem('cc-theme', theme);
     window.dispatchEvent(new CustomEvent('cc-theme-change', { detail: theme }));
   }, [theme]);

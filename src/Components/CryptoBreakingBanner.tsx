@@ -136,9 +136,10 @@ const CryptoBreakingBanner: React.FC = () => {
   if (hidden || !current) return null;
 
   return (
-    <div style={{ background: hasBreaking ? '#dc2626' : '#111827', color: '#fff', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+    <div style={{ width: '100%', maxWidth: 'none', background: hasBreaking ? '#dc2626' : '#111827', color: '#fff', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
       <div
         style={{
+          width: '100%',
           maxWidth: 1280,
           margin: '0 auto',
           padding: '6px 20px',

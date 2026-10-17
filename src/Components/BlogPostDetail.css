@@ -1,6 +1,6 @@
 .bd-shell {
-  background: var(--bg, #fafafa);
-  color: var(--text, #0a0a0a);
+  background: var(--bg, #0b1220);
+  color: var(--text, #f8fafc);
   min-height: 100vh;
   padding: 28px 0 96px;
 }
@@ -37,6 +37,26 @@
 .bd-header {
   max-width: 780px;
   margin: 0 auto 36px;
+}
+
+.bd-desk-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 20px;
+  margin-top: 16px;
+}
+
+.bd-desk-link {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: #38bdf8;
+  text-decoration: none;
+}
+
+.bd-desk-link:hover {
+  color: #7dd3fc;
+  text-decoration: underline;
 }
 
 .bd-eyebrow {
@@ -110,7 +130,7 @@
   padding: 6px;
   border: 1px solid var(--border, #e5e7eb);
   border-radius: 999px;
-  background: var(--card, #fff);
+  background: var(--card, #111827);
 }
 
 .bd-rail__btn {
@@ -141,7 +161,7 @@
   aspect-ratio: 16 / 9;
   overflow: hidden;
   border-radius: 4px;
-  background: #f3f4f6;
+  background: #0f172a;
 }
 .bd-figure img {
   width: 100%;
@@ -256,7 +276,7 @@
 .bd-related__media {
   aspect-ratio: 16 / 10;
   overflow: hidden;
-  background: #f3f4f6;
+  background: #0f172a;
   border-radius: 4px;
   margin-bottom: 12px;
 }

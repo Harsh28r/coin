@@ -52,10 +52,7 @@ export type AdSenseSlotProps = {
   className?: string;
 };
 
-/**
- * One responsive display unit per mount. Set `REACT_APP_ADSENSE_SLOT_DISPLAY` (and optional per-placement slots)
- * in the CRA env; until then, a dashed placeholder keeps layout stable.
- */
+/** Responsive AdSense unit. Renders nothing until a slot id is configured in env. */
 const AdSenseSlot: React.FC<AdSenseSlotProps> = ({
   placement,
   size = 'leaderboard',
@@ -122,26 +119,10 @@ const AdSenseSlot: React.FC<AdSenseSlotProps> = ({
     };
   }, [shouldShow, slotId, lazy]);
 
-  if (!shouldShow) return null;
+  if (!shouldShow || !slotId) return null;
 
   const sizeClass =
     size === 'in-article' ? 'ad-slot--in-article' : size === 'tools' ? 'ad-slot--tools' : 'ad-slot--leaderboard';
-
-  if (!slotId) {
-    /* Don’t ship the dashed “set env” box on prod — it reads as a broken ad */
-    if (process.env.NODE_ENV === 'production') return null;
-    return (
-      <div
-        ref={wrapRef}
-        className={`ad-slot ad-slot--placeholder ${sizeClass} ${className}`.trim()}
-        data-ad-placeholder={placement}
-        aria-hidden
-      >
-        <span className="ad-slot__label">Advertisement</span>
-        <div className="ad-slot__inner">Ad slot · set REACT_APP_ADSENSE_SLOT_DISPLAY in env</div>
-      </div>
-    );
-  }
 
   return (
     <div ref={wrapRef} className={`ad-slot ${sizeClass} ${className}`.trim()} data-ad-wrap={placement}>

@@ -88,7 +88,7 @@ const AiAgentsCarousel: React.FC = () => {
 
   if (loading) {
     return (
-      <section className="aac" aria-label="AI agents carousel loading">
+      <section className="aac" aria-label="Agents carousel loading">
         <div className="aac-stage">
           <Skeleton height="100%" width="100%" baseColor="#1e293b" highlightColor="#334155" />
         </div>
@@ -99,7 +99,7 @@ const AiAgentsCarousel: React.FC = () => {
   return (
     <section
       className="aac"
-      aria-label="AI agents newsroom carousel"
+      aria-label="Agents newsroom carousel"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
@@ -113,7 +113,7 @@ const AiAgentsCarousel: React.FC = () => {
         <div className="aac-veil" />
         <div className="aac-body">
           <div className="aac-meta">
-            <span className="aac-kicker">AI Agents · {deskFromTags(current.tags)}</span>
+            <span className="aac-kicker">Agents · {deskFromTags(current.tags)}</span>
             <span className="aac-author">{current.author || 'CoinsClarity Desk'}</span>
           </div>
           <button type="button" className="aac-title-btn" onClick={open}>

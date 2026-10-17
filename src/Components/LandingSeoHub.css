@@ -1,9 +1,9 @@
 .lsh {
   padding: 1.75rem 1.25rem 1.5rem;
   background:
-    radial-gradient(900px 280px at 10% 0%, rgba(234, 88, 12, 0.06), transparent 60%),
-    var(--bg, #f7f5f2);
-  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+    radial-gradient(900px 280px at 10% 0%, rgba(249, 115, 22, 0.08), transparent 60%),
+    #0b1220;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .lsh-inner {
@@ -21,7 +21,7 @@
   font-size: clamp(1.2rem, 2.2vw, 1.45rem);
   font-weight: 800;
   letter-spacing: -0.03em;
-  color: var(--text, #0f172a);
+  color: #f8fafc;
 }
 
 .lsh-sub {
@@ -29,7 +29,7 @@
   max-width: 34rem;
   font-size: 0.9rem;
   line-height: 1.45;
-  color: var(--muted, #64748b);
+  color: #94a3b8;
 }
 
 .lsh-grid {
@@ -52,13 +52,14 @@
   flex-direction: column;
   gap: 0.15rem;
   padding: 0.55rem 0.45rem;
-  background: var(--surface, #fff);
-  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: #111827;
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 10px;
   text-decoration: none;
   color: inherit;
-  transition: border-color 0.15s ease, transform 0.15s ease;
+  transition: border-color 0.15s ease, transform 0.15s ease, background 0.15s ease;
   min-width: 0;
+  -webkit-tap-highlight-color: transparent;
 }
 
 @media (min-width: 768px) {
@@ -69,12 +70,14 @@
 }
 
 .lsh-card:hover {
-  border-color: rgba(234, 88, 12, 0.4);
+  border-color: rgba(255, 255, 255, 0.16);
+  background: #0f172a;
   transform: translateY(-1px);
+  color: inherit;
 }
 
 .lsh-icon {
-  color: #c2410c;
+  color: #fb923c;
   margin-bottom: 0.1rem;
   width: 14px;
   height: 14px;
@@ -92,7 +95,7 @@
   font-size: 0.68rem;
   font-weight: 750;
   letter-spacing: -0.01em;
-  color: #0f172a;
+  color: #f8fafc;
   line-height: 1.2;
 }
 

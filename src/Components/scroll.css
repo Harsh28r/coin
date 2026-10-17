@@ -1,6 +1,6 @@
 .ticker-glass {
-	background: var(--card, #fff);
-	border-bottom: 1px solid var(--border, #e5e7eb);
+	background: var(--bg, #0b1220);
+	border-bottom: 1px solid var(--border, rgba(255,255,255,0.08));
 	box-shadow: none;
 }
 
@@ -16,12 +16,12 @@
 
 .ticker-fade-left {
 	left: 0;
-	background: linear-gradient(90deg, var(--card, #fff) 0%, transparent 100%);
+	background: linear-gradient(90deg, var(--bg, #0b1220) 0%, transparent 100%);
 }
 
 .ticker-fade-right {
 	right: 0;
-	background: linear-gradient(270deg, var(--card, #fff) 0%, transparent 100%);
+	background: linear-gradient(270deg, var(--bg, #0b1220) 0%, transparent 100%);
 }
 
 .ticker-pill {
@@ -35,7 +35,7 @@
 }
 
 .ticker-pill:hover {
-	background: var(--surface, #f4f4f5);
+	background: var(--bg-subtle, #0f172a);
 }
 
 @media (max-width: 768px) {

@@ -1,0 +1,106 @@
+.nl-cta {
+  background: linear-gradient(165deg, #111827 0%, #0b1220 100%);
+  padding: 3.5rem 0;
+  margin-top: 2rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.nl-cta__icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #f97316, #fb923c);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 16px rgba(249, 115, 22, 0.28);
+}
+
+.nl-cta__title {
+  color: #f8fafc !important;
+  font-family: var(--font-display, Georgia, serif);
+  font-weight: 800;
+  font-size: clamp(1.5rem, 3vw, 1.85rem);
+  margin-bottom: 12px;
+  letter-spacing: -0.02em;
+}
+
+.nl-cta__dek {
+  color: #94a3b8 !important;
+  font-size: 1.02rem;
+  max-width: 520px;
+  margin: 0 auto 28px;
+  line-height: 1.65;
+  font-weight: 400;
+}
+
+.nl-cta__form {
+  max-width: 460px;
+}
+
+.nl-cta__input {
+  background: #0b1220 !important;
+  border: 1px solid rgba(255, 255, 255, 0.14) !important;
+  border-radius: 12px 0 0 12px !important;
+  color: #f8fafc !important;
+  padding: 14px 18px !important;
+  font-size: 1rem !important;
+  box-shadow: none !important;
+}
+
+.nl-cta__input::placeholder {
+  color: #64748b !important;
+}
+
+.nl-cta__input:focus {
+  border-color: rgba(249, 115, 22, 0.5) !important;
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.12) !important;
+}
+
+.nl-cta__btn {
+  background: linear-gradient(135deg, #f97316, #ea580c) !important;
+  border: none !important;
+  border-radius: 0 12px 12px 0 !important;
+  padding: 14px 22px !important;
+  font-weight: 700 !important;
+  font-size: 0.95rem !important;
+  display: inline-flex !important;
+  align-items: center;
+  gap: 6px;
+  color: #fff !important;
+}
+
+.nl-cta__btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #ea580c, #c2410c) !important;
+}
+
+.nl-cta__btn:disabled {
+  opacity: 0.7;
+}
+
+.nl-cta__note {
+  color: #64748b;
+  font-size: 0.8rem;
+  display: block;
+  margin-top: 12px;
+}
+
+.nl-cta__alert {
+  max-width: 460px;
+  border-radius: 12px;
+  font-size: 0.9rem;
+}
+
+.nl-cta__alert--ok {
+  background: rgba(74, 222, 128, 0.12) !important;
+  color: #4ade80 !important;
+  border: 1px solid rgba(74, 222, 128, 0.28) !important;
+}
+
+.nl-cta__alert--err {
+  background: rgba(248, 113, 113, 0.12) !important;
+  color: #f87171 !important;
+  border: 1px solid rgba(248, 113, 113, 0.28) !important;
+}

@@ -1,0 +1,112 @@
+/* CoinsCapture-inspired sticky market pulse strip */
+.mpb {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  width: 100%;
+  background: #0b1220;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  color: #e2e8f0;
+  font-size: 0.78rem;
+}
+
+.mpb__inner {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0.45rem 16px;
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  min-height: 36px;
+}
+
+.mpb__live {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  font-size: 0.68rem;
+  color: #fb923c;
+  text-transform: uppercase;
+}
+
+.mpb__live-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #f97316;
+  box-shadow: 0 0 0 0 rgba(249, 115, 22, 0.55);
+  animation: mpb-pulse 1.6s ease-out infinite;
+}
+
+@keyframes mpb-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(249, 115, 22, 0.5); }
+  70% { box-shadow: 0 0 0 7px rgba(249, 115, 22, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(249, 115, 22, 0); }
+}
+
+.mpb__track {
+  display: flex;
+  align-items: center;
+  gap: 1.15rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  flex: 1;
+  min-width: 0;
+  padding-bottom: 1px;
+}
+
+.mpb__track::-webkit-scrollbar {
+  display: none;
+}
+
+.mpb__item {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  white-space: nowrap;
+  flex: 0 0 auto;
+  text-decoration: none;
+  color: inherit;
+}
+
+.mpb__item--link:hover .mpb__v {
+  text-decoration: underline;
+}
+
+.mpb__k {
+  color: #94a3b8;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 0.65rem;
+}
+
+.mpb__v {
+  font-weight: 800;
+  color: #f8fafc;
+  font-variant-numeric: tabular-nums;
+}
+
+.mpb__v--accent {
+  color: #fb923c;
+}
+
+.mpb__muted {
+  color: #64748b;
+  font-weight: 600;
+}
+
+@media (max-width: 640px) {
+  .mpb__inner {
+    padding: 0.4rem 12px;
+    gap: 0.55rem;
+  }
+
+  .mpb__track {
+    gap: 0.9rem;
+  }
+}

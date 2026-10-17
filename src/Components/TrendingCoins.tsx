@@ -122,14 +122,14 @@ const TrendingCoins: React.FC = () => {
     <section style={{ maxWidth: 1280, margin: '0 auto', padding: '3rem 20px' }}>
       <div style={{ marginBottom: '2rem' }}>
         <div className="d-flex align-items-center justify-content-between mb-3">
-          <h2 style={{ color: '#1e293b', fontWeight: 800, fontSize: '1.75rem', margin: 0 }}>
+          <h2 style={{ color: '#f8fafc', fontWeight: 800, fontSize: '1.75rem', margin: 0 }}>
             Trending Coins
           </h2>
           <Badge bg="primary" style={{ fontSize: '0.75rem', padding: '6px 12px', background: '#f97316', border: 'none' }}>
             Live Prices
           </Badge>
         </div>
-        <p style={{ color: '#64748b', fontSize: '0.95rem', margin: 0 }}>
+        <p style={{ color: '#94a3b8', fontSize: '0.95rem', margin: 0 }}>
           Top cryptocurrencies by 24h price change
         </p>
       </div>
@@ -137,32 +137,33 @@ const TrendingCoins: React.FC = () => {
       <Row className="g-3">
         {trendingCoins.map((coin, index) => {
           const isPositive = coin.price_change_percentage_24h >= 0;
-          const changeColor = isPositive ? '#10b981' : '#ef4444';
+          const changeColor = isPositive ? '#4ade80' : '#f87171';
           
           return (
             <Col key={coin.id || index} xs={12} sm={6} md={4} lg={3}>
               <Card
-                className="h-100 border-0 shadow-sm"
+                className="h-100 border-0"
                 style={{
                   borderRadius: '12px',
                   cursor: 'pointer',
                   transition: 'all 0.3s ease',
-                  background: '#ffffff',
-                  border: '1px solid #e2e8f0',
+                  background: '#111827',
+                  border: '1px solid rgba(255,255,255,0.08)',
+                  WebkitTapHighlightColor: 'transparent',
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.transform = 'translateY(-4px)';
-                  e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.12)';
-                  e.currentTarget.style.borderColor = '#f97316';
+                  e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.35)';
+                  e.currentTarget.style.borderColor = 'rgba(255,255,255,0.16)';
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
-                  e.currentTarget.style.borderColor = '#e2e8f0';
+                  e.currentTarget.style.boxShadow = 'none';
+                  e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)';
                 }}
                 onClick={() => navigate(`/coin/${coin.id}`)}
               >
-                <Card.Body style={{ padding: '1.25rem' }}>
+                <Card.Body style={{ padding: '1.25rem', background: 'transparent' }}>
                   <div className="d-flex align-items-center justify-content-between mb-3">
                     <div className="d-flex align-items-center gap-2">
                       {coin.image && (
@@ -181,10 +182,10 @@ const TrendingCoins: React.FC = () => {
                         />
                       )}
                       <div>
-                        <div style={{ fontWeight: 700, fontSize: '0.9rem', color: '#1e293b' }}>
+                        <div style={{ fontWeight: 700, fontSize: '0.9rem', color: '#f8fafc' }}>
                           {coin.symbol}
                         </div>
-                        <div style={{ fontSize: '0.75rem', color: '#64748b' }}>
+                        <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
                           #{coin.market_cap_rank}
                         </div>
                       </div>
@@ -197,7 +198,7 @@ const TrendingCoins: React.FC = () => {
                   </div>
 
                   <div style={{ marginBottom: '0.5rem' }}>
-                    <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#1e293b' }}>
+                    <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#e2e8f0' }}>
                       {coin.current_price > 0 ? formatPrice(coin.current_price) : '—'}
                     </div>
                   </div>

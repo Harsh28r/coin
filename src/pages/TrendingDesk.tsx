@@ -53,7 +53,7 @@ const TrendingDeskArchive: React.FC = () => {
         <title>Trending desk archive — CoinsClarity</title>
         <meta
           name="description"
-          content="Long-form market columns on what's trending, with wire context. Separate from the three-story digest."
+          content="Automated crypto blog columns on CoinGecko trending coins — AI-written market reads posted to the blog."
         />
         <meta name="robots" content="index, follow" />
         <link rel="canonical" href={`${window.location.origin}/trending-desk`} />
@@ -63,10 +63,9 @@ const TrendingDeskArchive: React.FC = () => {
         <header className="dd-header">
           <h1 className="dd-title">Trending desk</h1>
           <p className="dd-lead">
-            One quality read on what&apos;s moving on the trending screen, grounded in wires and market
-            context. The short three-story brief stays on{' '}
-            <Link to="/daily-digest">daily digest</Link>; editorials stay on{' '}
-            <Link to="/blog">the blog</Link>.
+            Each day the desk picks a hot coin from CoinGecko trending, writes a crypto market column
+            with AI, and posts it to <Link to="/blog">the blog</Link>. Daily three-story brief stays on{' '}
+            <Link to="/daily-digest">daily digest</Link>.
           </p>
         </header>
 

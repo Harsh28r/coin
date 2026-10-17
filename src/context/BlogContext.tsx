@@ -54,7 +54,9 @@ export const BlogProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setLoading(true);
       setError(null);
       
-      const data = await api.fetchPosts({ excludeTag: 'daily-digest,trending-desk,price-outlook,ai-papers' });
+      // Desk coin columns + outlooks stay on /blog. Digests, AI papers, and
+      // old agent filings stay on their own archives.
+      const data = await api.fetchPosts({ excludeTag: 'daily-digest,ai-papers,ai-agent' });
       
       // Validate data structure
       if (!Array.isArray(data)) {

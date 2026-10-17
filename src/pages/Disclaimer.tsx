@@ -30,7 +30,7 @@ const Disclaimer: React.FC = () => {
         <meta name="robots" content="index, follow" />
       </Helmet>
       <Navbar />
-      <div style={{ backgroundColor: '#ffffff', minHeight: '100vh', paddingTop: '100px', color: '#1f2937' }}>
+      <div style={{ backgroundColor: 'var(--bg, #0b1220)', minHeight: '100vh', paddingTop: '100px', color: 'var(--text, #f8fafc)' }}>
         <Container style={{ maxWidth: '900px', padding: '40px 20px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '30px' }}>
             <AlertTriangle size={40} color="#f97316" />
@@ -38,10 +38,10 @@ const Disclaimer: React.FC = () => {
           </div>
           <p style={{ color: '#6b7280', marginBottom: '30px' }}>Last updated: December 17, 2024</p>
           
-          <div style={{ color: '#374151', lineHeight: '1.8' }}>
+          <div style={{ color: 'var(--text-secondary, #cbd5e1)', lineHeight: '1.8' }}>
             {/* Important Notice Box */}
             <div style={{ 
-              backgroundColor: '#fef2f2', 
+              backgroundColor: 'var(--loss-bg, rgba(248,113,113,0.12))', 
               border: '1px solid #fca5a5',
               borderRadius: '12px', 
               padding: '25px', 
@@ -58,7 +58,7 @@ const Disclaimer: React.FC = () => {
             </div>
 
             <section style={{ marginBottom: '30px' }}>
-              <h2 style={{ color: '#1f2937', fontSize: '1.5rem', marginBottom: '15px' }}>No Financial Advice</h2>
+              <h2 style={{ color: 'var(--text-primary, #f8fafc)', fontSize: '1.5rem', marginBottom: '15px' }}>No Financial Advice</h2>
               <p>
                 The information provided on CoinsClarity is for <strong>general informational and educational 
                 purposes only</strong>. It is not intended to be and should not be construed as:
@@ -74,7 +74,7 @@ const Disclaimer: React.FC = () => {
             </section>
 
             <section style={{ marginBottom: '30px' }}>
-              <h2 style={{ color: '#1f2937', fontSize: '1.5rem', marginBottom: '15px' }}>Do Your Own Research (DYOR)</h2>
+              <h2 style={{ color: 'var(--text-primary, #f8fafc)', fontSize: '1.5rem', marginBottom: '15px' }}>Do Your Own Research (DYOR)</h2>
               <p>
                 Before making any investment decisions, you should:
               </p>
@@ -88,7 +88,7 @@ const Disclaimer: React.FC = () => {
             </section>
 
             <section style={{ marginBottom: '30px' }}>
-              <h2 style={{ color: '#1f2937', fontSize: '1.5rem', marginBottom: '15px' }}>No Guarantees</h2>
+              <h2 style={{ color: 'var(--text-primary, #f8fafc)', fontSize: '1.5rem', marginBottom: '15px' }}>No Guarantees</h2>
               <p>
                 CoinsClarity makes no representations or warranties of any kind, express or implied, about:
               </p>
@@ -101,7 +101,7 @@ const Disclaimer: React.FC = () => {
             </section>
 
             <section style={{ marginBottom: '30px' }}>
-              <h2 style={{ color: '#1f2937', fontSize: '1.5rem', marginBottom: '15px' }}>Third-Party Content</h2>
+              <h2 style={{ color: 'var(--text-primary, #f8fafc)', fontSize: '1.5rem', marginBottom: '15px' }}>Third-Party Content</h2>
               <p>
                 Our website may feature news, opinions, and information from third-party sources. We do not 
                 endorse, verify, or guarantee the accuracy of third-party content. Any views expressed by 
@@ -110,7 +110,7 @@ const Disclaimer: React.FC = () => {
             </section>
 
             <section style={{ marginBottom: '30px' }}>
-              <h2 style={{ color: '#1f2937', fontSize: '1.5rem', marginBottom: '15px' }}>Market Data Accuracy</h2>
+              <h2 style={{ color: 'var(--text-primary, #f8fafc)', fontSize: '1.5rem', marginBottom: '15px' }}>Market Data Accuracy</h2>
               <p>
                 Cryptocurrency prices, market data, and statistics displayed on our website are sourced from 
                 third-party providers and may be:
@@ -126,7 +126,7 @@ const Disclaimer: React.FC = () => {
             </section>
 
             <section style={{ marginBottom: '30px' }}>
-              <h2 style={{ color: '#1f2937', fontSize: '1.5rem', marginBottom: '15px' }}>Affiliate Links & Advertising</h2>
+              <h2 style={{ color: 'var(--text-primary, #f8fafc)', fontSize: '1.5rem', marginBottom: '15px' }}>Affiliate Links & Advertising</h2>
               <p>
                 CoinsClarity may contain affiliate links and advertisements. We may receive compensation if 
                 you click on these links or engage with advertisers. This compensation does not influence our 
@@ -136,7 +136,7 @@ const Disclaimer: React.FC = () => {
             </section>
 
             <section style={{ marginBottom: '30px' }}>
-              <h2 style={{ color: '#1f2937', fontSize: '1.5rem', marginBottom: '15px' }}>Regulatory Compliance</h2>
+              <h2 style={{ color: 'var(--text-primary, #f8fafc)', fontSize: '1.5rem', marginBottom: '15px' }}>Regulatory Compliance</h2>
               <p>
                 Cryptocurrency regulations vary by country and jurisdiction. It is your responsibility to 
                 ensure that your activities comply with applicable laws and regulations in your jurisdiction. 
@@ -145,7 +145,7 @@ const Disclaimer: React.FC = () => {
             </section>
 
             <section style={{ marginBottom: '30px' }}>
-              <h2 style={{ color: '#1f2937', fontSize: '1.5rem', marginBottom: '15px' }}>Limitation of Liability</h2>
+              <h2 style={{ color: 'var(--text-primary, #f8fafc)', fontSize: '1.5rem', marginBottom: '15px' }}>Limitation of Liability</h2>
               <p>
                 Under no circumstances shall CoinsClarity, its owners, employees, or affiliates be liable for 
                 any direct, indirect, incidental, special, or consequential damages arising from:
@@ -159,7 +159,7 @@ const Disclaimer: React.FC = () => {
             </section>
 
             <section style={{ marginBottom: '30px' }}>
-              <h2 style={{ color: '#1f2937', fontSize: '1.5rem', marginBottom: '15px' }}>Updates to This Disclaimer</h2>
+              <h2 style={{ color: 'var(--text-primary, #f8fafc)', fontSize: '1.5rem', marginBottom: '15px' }}>Updates to This Disclaimer</h2>
               <p>
                 This disclaimer may be updated periodically. We encourage you to review this page regularly. 
                 Continued use of our website after changes constitutes acceptance of the updated disclaimer.
@@ -168,12 +168,12 @@ const Disclaimer: React.FC = () => {
 
             {/* Acknowledgment Box */}
             <div style={{ 
-              backgroundColor: '#f9fafb', 
+              backgroundColor: 'var(--bg-elevated, #111827)', 
               borderRadius: '12px', 
               padding: '25px',
               borderLeft: '4px solid #f97316'
             }}>
-              <h3 style={{ color: '#1f2937', fontSize: '1.1rem', marginBottom: '10px' }}>
+              <h3 style={{ color: 'var(--text-primary, #f8fafc)', fontSize: '1.1rem', marginBottom: '10px' }}>
                 By using CoinsClarity, you acknowledge that:
               </h3>
               <ul style={{ paddingLeft: '20px', marginBottom: 0, color: '#4b5563' }}>

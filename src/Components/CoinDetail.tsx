@@ -23,6 +23,9 @@ import AdSenseSlot from './AdSenseSlot';
 import AdsterraBannerSlot from './AdsterraBannerSlot';
 import HighPerformanceFormatSlot from './HighPerformanceFormatSlot';
 import { coingeckoV3Url } from '../utils/coingeckoUrl';
+import { resolveCoinGeckoId } from '../utils/coinCatalog';
+import { fetchPosts } from '../services/api';
+import { getBlogUrl } from '../utils/blogUrl';
 import './CoinDetail.css';
 
 type Timeframe = '1D' | '7D' | '30D' | '1Y' | 'MAX';
@@ -316,12 +319,14 @@ const PriceChart: React.FC<PriceChartProps> = ({ data, width, height, timeframe,
 };
 
 const CoinDetail: React.FC = () => {
-  const { coinId } = useParams<{ coinId: string }>();
+  const { coinId: rawCoinId } = useParams<{ coinId: string }>();
+  const coinId = resolveCoinGeckoId(rawCoinId || '');
   const navigate = useNavigate();
   const { currency, formatPrice } = useCurrency();
   const cur = (currency || 'usd').toLowerCase();
 
   const [coin, setCoin] = useState<CoinData | null>(null);
+  const [resolvedId, setResolvedId] = useState(coinId);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [timeframe, setTimeframe] = useState<Timeframe>('30D');
@@ -329,6 +334,7 @@ const CoinDetail: React.FC = () => {
   const [chartLoading, setChartLoading] = useState(false);
   const [chartError, setChartError] = useState<string | null>(null);
   const [showFullDesc, setShowFullDesc] = useState(false);
+  const [trendsDeskHref, setTrendsDeskHref] = useState('/trending-desk');
 
   const chartWrapRef = useRef<HTMLDivElement>(null);
   const [chartSize, setChartSize] = useState({ w: 800, h: 380 });
@@ -379,22 +385,66 @@ const CoinDetail: React.FC = () => {
     throw lastErr || new Error('All endpoints failed');
   }, []);
 
-  // ── Fetch coin data ─────────────────────────────────────────────
+  // ── Fetch coin data (resolve alias / search if direct id fails) ─
   useEffect(() => {
     if (!coinId) return;
     let cancelled = false;
+
+    const coinPath = (id: string) =>
+      `/api/v3/coins/${encodeURIComponent(id)}?localization=false&tickers=false&market_data=true&community_data=false&developer_data=false&sparkline=false`;
+
+    const resolveViaSearch = async (q: string): Promise<string | null> => {
+      try {
+        const data = await fetchJsonResilient(
+          `/api/v3/search?query=${encodeURIComponent(q)}`,
+          5 * 60_000,
+        );
+        const coins = Array.isArray(data?.coins) ? data.coins : [];
+        const exact =
+          coins.find((c: any) => String(c.id).toLowerCase() === q) ||
+          coins.find((c: any) => String(c.symbol).toLowerCase() === q) ||
+          coins.find((c: any) => String(c.name).toLowerCase() === q) ||
+          coins[0];
+        return exact?.id ? String(exact.id) : null;
+      } catch {
+        return null;
+      }
+    };
 
     const run = async () => {
       try {
         setLoading(true);
         setError(null);
-        const path = `/api/v3/coins/${coinId}?localization=false&tickers=false&market_data=true&community_data=false&developer_data=false&sparkline=false`;
-        const data = await fetchJsonResilient(path, 60_000);
-        if (!cancelled) setCoin(data);
+        let id = coinId;
+        try {
+          const data = await fetchJsonResilient(coinPath(id), 60_000);
+          if (!cancelled) {
+            setResolvedId(String(data.id || id));
+            setCoin(data);
+          }
+          return;
+        } catch {
+          /* try search */
+        }
+        const searched = await resolveViaSearch(coinId);
+        if (searched && searched !== id) {
+          id = searched;
+          const data = await fetchJsonResilient(coinPath(id), 60_000);
+          if (!cancelled) {
+            setResolvedId(String(data.id || id));
+            setCoin(data);
+            if (rawCoinId && searched !== rawCoinId.toLowerCase()) {
+              navigate(`/coin/${searched}`, { replace: true });
+            }
+          }
+          return;
+        }
+        throw new Error('not_found');
       } catch (err: any) {
         if (!cancelled) {
           console.error('coin fetch failed', err);
-          setError('Live data unavailable. Showing cached metadata.');
+          setError('Live data unavailable. CoinGecko may be rate-limited — try again in a minute.');
+          setCoin(null);
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -404,16 +454,37 @@ const CoinDetail: React.FC = () => {
     run();
     const id = setInterval(run, 60_000);
     return () => { cancelled = true; clearInterval(id); };
-  }, [coinId, fetchJsonResilient]);
+  }, [coinId, fetchJsonResilient, navigate, rawCoinId]);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetchPosts({ tag: 'trending-desk', limit: 6 })
+      .then((list) => {
+        if (cancelled || !list?.length) return;
+        const latest = [...list].sort((a, b) => {
+          const ta = new Date((a as any).date || 0).getTime();
+          const tb = new Date((b as any).date || 0).getTime();
+          return tb - ta;
+        })[0];
+        if (latest) setTrendsDeskHref(getBlogUrl(latest));
+      })
+      .catch(() => {
+        /* keep archive fallback */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // ── Fetch chart series ──────────────────────────────────────────
   useEffect(() => {
-    if (!coinId) return;
+    const chartId = resolvedId || coinId;
+    if (!chartId || !coin) return;
     let cancelled = false;
 
     const marketChartPath = (vs: string, d: number | 'max', hourly: boolean) => {
       const dStr = d === 'max' ? 'max' : String(d);
-      let p = `/api/v3/coins/${coinId}/market_chart?vs_currency=${encodeURIComponent(vs)}&days=${dStr}`;
+      let p = `/api/v3/coins/${encodeURIComponent(chartId)}/market_chart?vs_currency=${encodeURIComponent(vs)}&days=${dStr}`;
       if (d === 1 && hourly) p += '&interval=hourly';
       return p;
     };
@@ -465,12 +536,13 @@ const CoinDetail: React.FC = () => {
 
     fetchChart();
     return () => { cancelled = true; };
-  }, [coinId, cur, timeframe, fetchJsonResilient]);
+  }, [coinId, resolvedId, coin, cur, timeframe, fetchJsonResilient]);
 
   // Flat reference line when market_chart is empty but we already have spot from /coins/{id}
   useEffect(() => {
-    if (!coinId || chartLoading) return;
-    if (!coin || coin.id !== coinId) return;
+    const id = resolvedId || coinId;
+    if (!id || chartLoading) return;
+    if (!coin || (coin.id && coin.id !== id)) return;
     if (chartData.length > 0) return;
     const spot =
       coin?.market_data?.current_price?.[cur] ?? coin?.market_data?.current_price?.usd;
@@ -481,7 +553,7 @@ const CoinDetail: React.FC = () => {
       { time: now, value: spot },
     ]);
     setChartError('Live chart unavailable — flat line uses latest price.');
-  }, [coin, coinId, cur, chartLoading, chartData.length]);
+  }, [coin, coinId, resolvedId, cur, chartLoading, chartData.length]);
 
   // ── Track chart container size ──────────────────────────────────
   useEffect(() => {
@@ -700,18 +772,17 @@ const CoinDetail: React.FC = () => {
               }}
               variant="button"
             />
-            <Link to="/trending-desk" className="cd-btn cd-btn--outlook">
-              <LineChart size={16} /> Search trends
+            <Link to={trendsDeskHref} className="cd-btn cd-btn--outlook">
+              <LineChart size={16} /> Trending desk
             </Link>
           </div>
         </header>
 
-        {/* DESK OUTLOOK TEASER */}
-        <Link to="/trending-desk" className="cd-outlook-teaser">
+        <Link to={trendsDeskHref} className="cd-outlook-teaser">
           <div className="cd-outlook-teaser__text">
-            <span className="cd-outlook-teaser__eyebrow">Google Trends</span>
-            <strong>What people are searching today</strong>
-            <span>One desk column on the finance query that is actually trending</span>
+            <span className="cd-outlook-teaser__eyebrow">Trending desk</span>
+            <strong>Latest market column</strong>
+            <span>Auto-written from trending searches when the topic is hot enough</span>
           </div>
           <span className="cd-outlook-teaser__cta">Read the desk →</span>
         </Link>
@@ -864,8 +935,8 @@ const CoinDetail: React.FC = () => {
             <h3>Links</h3>
             <ul>
               <li>
-                <Link to="/trending-desk">
-                  <TrendingUp size={16} /> <span>Search trends</span>
+                <Link to={trendsDeskHref}>
+                  <TrendingUp size={16} /> <span>Trending desk</span>
                 </Link>
               </li>
               <li>

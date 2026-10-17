@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Container, Row, Col, Card, Badge, Button } from 'react-bootstrap';
+import { Container, Row, Col, Card, Badge } from 'react-bootstrap';
 import { extractListingNews, ListingItem } from '../utils/listings';
 import { useNavigate } from 'react-router-dom';
 import { defaultPublicBackend } from '../utils/rssBackendBases';
@@ -100,25 +100,52 @@ const NewsListing: React.FC = () => {
             <Row xs={1} md={2} lg={3} className="g-3">
               {arr.map((li, i) => (
                 <Col key={`${li.title}-${i}`}>
-                  <Card className="h-100 border-0 shadow-sm rounded-4">
+                  <Card
+                    className="h-100 border-0 rounded-4"
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => openDetail(li)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        openDetail(li);
+                      }
+                    }}
+                    style={{
+                      background: '#111827',
+                      border: '1px solid rgba(255,255,255,0.08)',
+                      cursor: 'pointer',
+                      WebkitTapHighlightColor: 'transparent',
+                    }}
+                  >
                     {li.image_url && (
-                      <div style={{ width: '100%', height: 160, overflow: 'hidden', background: '#0b0b0b' }}>
+                      <div style={{ width: '100%', height: 160, overflow: 'hidden', background: '#0b1220' }}>
                         <img src={li.image_url} alt={li.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e: any) => { e.currentTarget.style.display = 'none'; }} />
                       </div>
                     )}
-                    <Card.Body>
+                    <Card.Body style={{ background: 'transparent' }}>
                       <div className="d-flex align-items-center justify-content-between mb-2">
                         <div className="d-flex flex-wrap gap-2">
                           {li.coins.slice(0, 4).map(c => (
-                            <Badge bg="light" text="dark" key={c}>{c}</Badge>
+                            <Badge
+                              key={c}
+                              style={{
+                                background: 'rgba(255,255,255,0.08)',
+                                color: '#cbd5e1',
+                                border: '1px solid rgba(255,255,255,0.1)',
+                              }}
+                            >
+                              {c}
+                            </Badge>
                           ))}
                         </div>
-                        {li.exchange && <Badge bg="warning" text="dark">{li.exchange}</Badge>}
+                        {li.exchange && (
+                          <Badge style={{ background: 'rgba(249,115,22,0.15)', color: '#fb923c', border: 'none' }}>
+                            {li.exchange}
+                          </Badge>
+                        )}
                       </div>
-                      <Card.Title style={{ fontSize: '1rem' }}>{li.title}</Card.Title>
-                      <div className="d-flex justify-content-between align-items-center mt-3">
-                        <Button size="sm" variant="outline-primary" onClick={() => openDetail(li)}>Read</Button>
-                      </div>
+                      <Card.Title style={{ fontSize: '1rem', color: '#f8fafc', marginBottom: 0 }}>{li.title}</Card.Title>
                     </Card.Body>
                   </Card>
                 </Col>

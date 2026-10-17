@@ -1,64 +1,69 @@
-.les {
+/* Editorial desk strip — dark market UI (prefix led- to avoid clash with events .les) */
+.led {
   padding: 2.5rem 1.25rem 2rem;
-  background: linear-gradient(180deg, rgba(15, 23, 42, 0.04) 0%, transparent 100%);
-  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+  background: #0b1220;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
-.les-inner {
+.led-inner {
   max-width: 1100px;
   margin: 0 auto;
 }
 
-.les-head {
+.led-head {
   margin-bottom: 1.5rem;
   text-align: center;
 }
 
-.les-title {
+.led-title {
   margin: 0 0 0.35rem;
   font-size: clamp(1.35rem, 2.5vw, 1.65rem);
   font-weight: 800;
   letter-spacing: -0.03em;
-  color: var(--text, #0f172a);
+  color: #f8fafc;
 }
 
-.les-sub {
-  margin: 0;
+.led-sub {
+  margin: 0 auto;
   font-size: 0.95rem;
-  color: var(--muted, #64748b);
+  color: #94a3b8;
   max-width: 36rem;
-  margin-inline: auto;
   line-height: 1.45;
 }
 
-.les-muted {
+.led-sub a {
+  color: #fb923c;
+}
+
+.led-muted {
   text-align: center;
-  color: var(--muted, #64748b);
+  color: #64748b;
   margin: 0;
 }
 
-.les-grid {
+.led-grid {
   display: grid;
   gap: 1.25rem;
   grid-template-columns: 1fr;
 }
 
 @media (min-width: 768px) {
-  .les-grid {
+  .led-grid {
     grid-template-columns: 1fr 1fr;
     gap: 1.5rem;
   }
 }
 
-.les-card {
-  background: var(--surface, #fff);
+.led-card {
+  background: #111827;
   border-radius: 14px;
-  border: 1px solid rgba(15, 23, 42, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   padding: 1.1rem 1.1rem 1rem;
-  box-shadow: 0 8px 28px rgba(15, 23, 42, 0.06);
+  box-shadow: none;
+  color: #e2e8f0;
 }
 
-.les-kicker {
+.led-kicker {
   display: inline-block;
   font-size: 0.68rem;
   font-weight: 700;
@@ -69,81 +74,75 @@
   border-radius: 6px;
 }
 
-.les-kicker--digest {
-  color: #0c4a6e;
+.led-kicker--digest {
+  color: #7dd3fc;
   background: rgba(14, 165, 233, 0.15);
 }
 
-.les-kicker--trend {
-  color: #7c2d12;
-  background: rgba(249, 115, 22, 0.18);
+.led-kicker--trend {
+  color: #fb923c;
+  background: rgba(249, 115, 22, 0.15);
 }
 
-.les-card__link {
+.led-card__link {
   text-decoration: none;
   color: inherit;
   display: block;
 }
 
-.les-card__link:hover .les-card__title {
-  color: #0284c7;
+.led-card__link:hover .led-card__title {
+  color: #fb923c;
 }
 
-.les-card:nth-child(2) .les-card__link:hover .les-card__title {
-  color: #ea580c;
-}
-
-.les-card__img {
+.led-card__img {
   border-radius: 10px;
   overflow: hidden;
   aspect-ratio: 16 / 9;
   margin-bottom: 0.65rem;
-  background: #f1f5f9;
+  background: #0f172a;
 }
 
-.les-card__img img {
+.led-card__img img {
   width: 100%;
   height: 100%;
   object-fit: cover;
   display: block;
 }
 
-.les-card__title {
+.led-card__title {
   margin: 0 0 0.45rem;
   font-size: 1.05rem;
   font-weight: 700;
   line-height: 1.3;
   letter-spacing: -0.02em;
+  color: #f8fafc;
   transition: color 0.15s ease;
 }
 
-.les-dek {
+.led-dek {
   margin: 0;
   font-size: 0.88rem;
   line-height: 1.5;
-  color: var(--muted, #64748b);
+  color: #94a3b8;
 }
 
-.les-archive {
+.led-archive {
   display: inline-block;
   margin-top: 0.85rem;
   font-size: 0.82rem;
   font-weight: 600;
-  color: #0369a1;
+  color: #fb923c;
   text-decoration: none;
 }
 
-.les-card:nth-child(2) .les-archive {
-  color: #c2410c;
-}
-
-.les-archive:hover {
+.led-archive:hover {
   text-decoration: underline;
+  color: #fdba74;
 }
 
-.les-empty {
+.led-empty {
   margin: 0.5rem 0 0;
   font-size: 0.9rem;
-  color: var(--muted, #64748b);
+  color: #64748b;
   line-height: 1.45;
 }

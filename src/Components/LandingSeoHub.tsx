@@ -7,7 +7,7 @@ const HUBS = [
   { to: '/coin/bitcoin', label: 'Bitcoin chart', sub: 'Live price', icon: TrendingUp },
   { to: '/etf/bitcoin-flows', label: 'Bitcoin ETF flows', sub: 'Spot ETF demand', icon: TrendingUp },
   { to: '/in', label: 'Crypto in India', sub: 'USDT, tax, P2P', icon: BookOpen },
-  { to: '/trending-desk', label: 'Search trends', sub: 'Google Trends desk', icon: TrendingUp },
+  { to: '/trending-desk', label: 'Trending desk', sub: 'AI columns from hot topics', icon: TrendingUp },
   { to: '/tools/scam-check', label: 'Scam checker', sub: 'Before you ape', icon: FileText },
   { to: '/tools/crypto-tax-calculator', label: 'India tax calculator', sub: 'Flat 30% estimate', icon: FileText },
   { to: '/tools/profit-calculator', label: 'Profit calculator', sub: 'ROI before you exit', icon: FileText },

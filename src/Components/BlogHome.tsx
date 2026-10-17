@@ -75,13 +75,13 @@ const BlogHome: React.FC = () => {
             <p className="bh-kicker">CoinsClarity Editorial</p>
             <h1 className="bh-title">The Blog</h1>
             <p className="bh-tagline">
-              Morning briefs and market notes from the desk — written like we cover the tape every day, not like a chatbot.{' '}
-              <Link to="/daily-digest" className="bh-digest-link">
-                Daily digest →
-              </Link>
-              {' · '}
+              Market columns auto-written from trending searches, plus desk notes.{' '}
               <Link to="/trending-desk" className="bh-digest-link">
                 Trending desk →
+              </Link>
+              {' · '}
+              <Link to="/daily-digest" className="bh-digest-link">
+                Daily digest →
               </Link>
             </p>
           </div>

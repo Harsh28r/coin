@@ -1,5 +1,5 @@
 import React, { useEffect, lazy, Suspense } from 'react';
-import { BrowserRouter as Router, Route, Routes, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, Navigate, useLocation } from 'react-router-dom';
 import './App.css';
 import './styles/animations.css';
 
@@ -63,7 +63,6 @@ const PortfolioPage = lazy(() => import('./pages/Portfolio'));
 const DailyDigestArchive = lazy(() => import('./pages/DailyDigest'));
 const TrendingDeskArchive = lazy(() => import('./pages/TrendingDesk'));
 const AiPapersPage = lazy(() => import('./pages/AiPapers'));
-const AiAgentsArchive = lazy(() => import('./pages/AiAgents'));
 const PredictionsHub = lazy(() => import('./pages/Predictions'));
 const PredictionDetail = lazy(() => import('./pages/PredictionDetail'));
 const LiveHub = lazy(() => import('./pages/Live'));
@@ -93,6 +92,45 @@ const ScrollToTop: React.FC = () => {
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [location.pathname]);
+  return null;
+};
+
+/** Site-wide dark market canvas — every route, not just landing/news */
+const SiteTheme: React.FC = () => {
+  useEffect(() => {
+    const apply = (theme: 'light' | 'dark') => {
+      const html = document.documentElement;
+      const root = document.getElementById('root');
+      html.setAttribute('data-theme', theme);
+      html.setAttribute('data-bs-theme', theme);
+      document.body.setAttribute('data-theme', theme);
+      document.body.setAttribute('data-bs-theme', theme);
+      const dark = theme !== 'light';
+      html.classList.toggle('ns-dark', dark);
+      html.classList.toggle('landing-cc-active', dark);
+      document.body.classList.toggle('ns-dark', dark);
+      document.body.classList.toggle('landing-cc-active', dark);
+      const bg = dark ? '#0b1220' : '';
+      html.style.backgroundColor = bg;
+      document.body.style.backgroundColor = bg;
+      if (root) root.style.backgroundColor = bg;
+    };
+
+    // One-time migrate: old default was light — site is dark market UI now
+    if (!localStorage.getItem('cc-theme-v2')) {
+      localStorage.setItem('cc-theme', 'dark');
+      localStorage.setItem('cc-theme-v2', '1');
+    }
+    const saved = (localStorage.getItem('cc-theme') as 'light' | 'dark' | null) || 'dark';
+    apply(saved);
+
+    const onChange = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      if (detail === 'light' || detail === 'dark') apply(detail);
+    };
+    window.addEventListener('cc-theme-change', onChange);
+    return () => window.removeEventListener('cc-theme-change', onChange);
+  }, []);
   return null;
 };
 
@@ -140,6 +178,7 @@ function App() {
             <WatchlistProvider>
             <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
               <ScrollToTop />
+              <SiteTheme />
               <AdSenseController />
               <SiteChrome />
               <div className="App">
@@ -153,7 +192,8 @@ function App() {
                   <Route path="/daily-digest" element={<DailyDigestArchive />} />
                   <Route path="/trending-desk" element={<TrendingDeskArchive />} />
                   <Route path="/ai-papers" element={<AiPapersPage />} />
-                  <Route path="/ai-agents" element={<AiAgentsArchive />} />
+                  {/* Old Agents UI → Google Trends desk blog */}
+                  <Route path="/ai-agents" element={<Navigate to="/trending-desk" replace />} />
                   <Route path="/predictions" element={<PredictionsHub />} />
                   <Route path="/prediction/:coinId" element={<PredictionDetail />} />
                   <Route path="/live" element={<LiveHub />} />

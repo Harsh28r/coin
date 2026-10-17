@@ -38,7 +38,24 @@ export const PILLAR_COINS: CatalogCoin[] = [
   { id: 'hedera-hashgraph', name: 'Hedera', symbol: 'HBAR', aliases: ['hbar'] },
   { id: 'injective-protocol', name: 'Injective', symbol: 'INJ', aliases: ['inj'] },
   { id: 'kaspa', name: 'Kaspa', symbol: 'KAS', aliases: ['kas'] },
+  { id: 'zcash', name: 'Zcash', symbol: 'ZEC', aliases: ['zec', 'z-cash'] },
+  { id: 'monero', name: 'Monero', symbol: 'XMR', aliases: ['xmr'] },
+  { id: 'bitcoin-cash', name: 'Bitcoin Cash', symbol: 'BCH', aliases: ['bch'] },
+  { id: 'ethereum-classic', name: 'Ethereum Classic', symbol: 'ETC', aliases: ['etc'] },
+  { id: 'aave', name: 'Aave', symbol: 'AAVE', aliases: ['aave'] },
+  { id: 'maker', name: 'Maker', symbol: 'MKR', aliases: ['mkr'] },
+  { id: 'crypto-com-chain', name: 'Cronos', symbol: 'CRO', aliases: ['cro', 'cronos'] },
+  { id: 'the-open-network', name: 'Toncoin', symbol: 'TON', aliases: ['toncoin'] },
+  { id: 'hyperliquid', name: 'Hyperliquid', symbol: 'HYPE', aliases: ['hype'] },
 ];
+
+/** Map any URL slug / symbol / alias → CoinGecko id when known. */
+export function resolveCoinGeckoId(raw: string): string {
+  const q = String(raw || '').toLowerCase().trim();
+  if (!q) return q;
+  const hit = findCatalogCoin(q);
+  return hit?.id || q;
+}
 
 export const EVENT_HUBS = [
   {

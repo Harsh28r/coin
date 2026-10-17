@@ -166,10 +166,10 @@ const CoinTicker: React.FC<CoinTickerProps> = ({ fixed = true, top = 60, height 
           height: typeof finalHeight === 'number' ? `${finalHeight}px` : finalHeight,
           width: '100%',
           overflow: 'hidden',
-          borderTop: '1px solid rgba(0,0,0,0.06)',
-          borderBottom: '1px solid rgba(0,0,0,0.06)',
-          background: 'white',
-          boxShadow: '0 2px 6px rgba(0,0,0,0.04)'
+          borderTop: '1px solid rgba(255,255,255,0.06)',
+          borderBottom: 'none',
+          background: '#0b1220',
+          boxShadow: 'none'
         }}
       >
         <div className="crypto-ticker" style={{ whiteSpace: 'nowrap', position: 'relative' }}>
@@ -193,18 +193,18 @@ const CoinTicker: React.FC<CoinTickerProps> = ({ fixed = true, top = 60, height 
                   gap: itemGap,
                   padding: itemPadding,
                   borderRadius: '12px',
-                  background: 'rgba(246, 247, 251, 0.6)',
+                  background: 'rgba(255,255,255,0.04)',
                   cursor: 'pointer',
                   transition: 'all 0.2s ease'
                 }}
                 title={`Click to view ${coin.name} details`}
                 onClick={() => coin.id && navigate(`/coin/${coin.id}`)}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.background = 'rgba(59, 130, 246, 0.1)';
+                  e.currentTarget.style.background = 'rgba(249, 115, 22, 0.12)';
                   e.currentTarget.style.transform = 'scale(1.02)';
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.background = 'rgba(246, 247, 251, 0.6)';
+                  e.currentTarget.style.background = 'rgba(255,255,255,0.04)';
                   e.currentTarget.style.transform = 'scale(1)';
                 }}
               >
@@ -215,17 +215,17 @@ const CoinTicker: React.FC<CoinTickerProps> = ({ fixed = true, top = 60, height 
                   style={{ width: imgSize, height: imgSize, borderRadius: 4 }}
                   onError={(e) => { (e.currentTarget as HTMLImageElement).src = ''; }}
                 />
-                <span style={{ fontWeight: 700, fontSize: symbolFontSize, color: '#111827' }}>
+                <span style={{ fontWeight: 700, fontSize: symbolFontSize, color: '#f8fafc' }}>
                   {coin.symbol.toUpperCase()}
                 </span>
-                <span style={{ fontSize: priceFontSize, color: '#4f46e5', fontWeight: 600 }}>
+                <span style={{ fontSize: priceFontSize, color: '#fb923c', fontWeight: 600 }}>
                   {formatCrypto(coin.current_price)}
                 </span>
                 <span
                   style={{
                     fontSize: pctFontSize,
                     fontWeight: 700,
-                    color: coin.price_change_percentage_24h >= 0 ? '#059669' : '#dc2626'
+                    color: coin.price_change_percentage_24h >= 0 ? '#4ade80' : '#f87171'
                   }}
                 >
                   {coin.price_change_percentage_24h >= 0 ? '+' : ''}
@@ -250,7 +250,7 @@ const CoinTicker: React.FC<CoinTickerProps> = ({ fixed = true, top = 60, height 
         }
         
         .ticker-item:hover {
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
         }
       `}</style>
     </>

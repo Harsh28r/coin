@@ -1,9 +1,9 @@
 .lls {
   margin: 2rem 0;
   padding: 1.75rem 0;
-  background: linear-gradient(180deg, rgba(220, 38, 38, 0.04), transparent 70%);
-  border-top: 1px solid rgba(220, 38, 38, 0.12);
-  border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+  background: linear-gradient(180deg, rgba(220, 38, 38, 0.08), transparent 70%);
+  border-top: 1px solid rgba(220, 38, 38, 0.2);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .lls-inner {
@@ -28,7 +28,7 @@
   font-size: 0.7rem;
   font-weight: 800;
   letter-spacing: 0.08em;
-  color: #b91c1c;
+  color: #fca5a5;
   margin-bottom: 0.35rem;
 }
 
@@ -51,19 +51,25 @@
   font-size: 1.45rem;
   font-weight: 800;
   letter-spacing: -0.03em;
+  color: #f8fafc;
 }
 
 .lls-dek {
   margin: 0;
-  color: #64748b;
+  color: #94a3b8;
   font-size: 0.9rem;
 }
 
 .lls-all {
   font-weight: 700;
   font-size: 0.88rem;
-  color: #b91c1c;
+  color: #fca5a5;
   text-decoration: none;
+}
+
+.lls-all:hover {
+  color: #fecaca;
+  text-decoration: underline;
 }
 
 .lls-grid {
@@ -84,17 +90,28 @@
   flex-direction: column;
   gap: 6px;
   padding: 1rem 1.05rem;
-  background: #fff;
-  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: #111827;
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 12px;
   text-decoration: none;
-  color: inherit;
-  transition: border-color 0.15s ease, transform 0.15s ease;
+  color: #f8fafc;
+  -webkit-tap-highlight-color: transparent;
+  transition: border-color 0.15s ease, transform 0.15s ease, background 0.15s ease;
 }
 
 .lls-card:hover {
-  border-color: rgba(220, 38, 38, 0.4);
+  border-color: rgba(255, 255, 255, 0.16);
+  background: #0f172a;
   transform: translateY(-2px);
+  color: #f8fafc;
+}
+
+.lls-card:active,
+.lls-card:focus-visible {
+  outline: none;
+  transform: none;
+  border-color: rgba(255, 255, 255, 0.14);
+  background: #0f172a;
 }
 
 .lls-status {
@@ -102,19 +119,20 @@
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: #64748b;
+  color: #94a3b8;
 }
 
-.lls-status.is-live { color: #b91c1c; }
+.lls-status.is-live { color: #f87171; }
 
 .lls-card strong {
   font-size: 0.95rem;
   letter-spacing: -0.02em;
   line-height: 1.3;
+  color: #f8fafc;
 }
 
 .lls-meta {
   font-size: 0.75rem;
-  color: #94a3b8;
+  color: #64748b;
   font-weight: 600;
 }

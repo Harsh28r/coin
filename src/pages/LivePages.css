@@ -4,10 +4,10 @@
 .au-page {
   min-height: 100vh;
   background:
-    radial-gradient(1000px 420px at 0% -5%, rgba(220, 38, 38, 0.07), transparent 55%),
-    radial-gradient(900px 400px at 100% 0%, rgba(15, 23, 42, 0.04), transparent 50%),
-    var(--bg, #f7f5f2);
-  color: var(--text, #0f172a);
+    radial-gradient(1000px 420px at 0% -5%, rgba(220, 38, 38, 0.12), transparent 55%),
+    radial-gradient(900px 400px at 100% 0%, rgba(249, 115, 22, 0.06), transparent 50%),
+    #0b1220;
+  color: #f8fafc;
 }
 
 .lv-main,
@@ -65,9 +65,26 @@
 
 .lv-lead {
   margin: 0 0 1.25rem;
-  color: #475569;
+  color: #94a3b8;
   line-height: 1.55;
   max-width: 40rem;
+}
+
+.lv-section {
+  margin-top: 2rem;
+}
+.lv-section__title {
+  margin: 0 0 0.35rem;
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #f8fafc;
+}
+.lv-section__dek {
+  margin: 0 0 1rem;
+  font-size: 0.85rem;
+  color: #64748b;
+  line-height: 1.45;
 }
 
 .lv-meta {
@@ -200,17 +217,33 @@
 }
 .lv-hub-card {
   display: block;
+  width: 100%;
+  text-align: left;
   text-decoration: none;
   color: inherit;
-  background: #fff;
-  border: 1px solid rgba(15, 23, 42, 0.08);
+  font: inherit;
+  cursor: pointer;
+  background: #111827;
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 14px;
   padding: 1.15rem 1.2rem;
-  transition: transform 0.15s ease, border-color 0.15s ease;
+  appearance: none;
+  -webkit-appearance: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease;
 }
-.lv-hub-card:hover {
+.lv-hub-card:hover,
+.lv-hub-card:focus-visible {
   transform: translateY(-2px);
-  border-color: rgba(220, 38, 38, 0.35);
+  border-color: rgba(255, 255, 255, 0.16);
+  background: #0f172a;
+  outline: none;
+}
+.lv-hub-card:active {
+  transform: none;
+  background: #0f172a;
+  border-color: rgba(255, 255, 255, 0.14);
+  box-shadow: none;
 }
 .lv-hub-card__top {
   display: flex;
@@ -223,18 +256,19 @@
   margin: 0 0 0.4rem;
   font-size: 1.1rem;
   letter-spacing: -0.02em;
+  color: #f8fafc;
 }
 .lv-hub-card p {
   margin: 0;
   font-size: 0.9rem;
-  color: #64748b;
+  color: #94a3b8;
   line-height: 1.45;
 }
 .lv-hub-card__meta {
   margin-top: 0.65rem;
   font-size: 0.75rem;
   font-weight: 600;
-  color: #94a3b8;
+  color: #64748b;
 }
 .lv-filters {
   display: flex;
@@ -243,21 +277,30 @@
   margin-top: 1rem;
 }
 .lv-filter {
-  border: 1px solid rgba(15, 23, 42, 0.12);
-  background: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: #111827;
   border-radius: 8px;
   padding: 6px 12px;
   font-size: 0.8rem;
   font-weight: 700;
   cursor: pointer;
-  color: #334155;
+  color: #cbd5e1;
+  -webkit-tap-highlight-color: transparent;
+}
+.lv-filter:hover {
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #f8fafc;
 }
 .lv-filter.is-active {
-  border-color: #dc2626;
-  background: rgba(220, 38, 38, 0.08);
-  color: #b91c1c;
+  border-color: rgba(220, 38, 38, 0.55);
+  background: rgba(220, 38, 38, 0.14);
+  color: #fca5a5;
 }
-.lv-muted { color: #64748b; }
+.lv-muted { color: #94a3b8; }
+
+.lv-title {
+  color: #f8fafc;
+}
 
 /* Author */
 .au-hero {

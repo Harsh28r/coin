@@ -12,8 +12,8 @@ body {
   font-family: var(--font-body, 'Inter', -apple-system, sans-serif);
   font-size: 0.9375rem;
   line-height: 1.65;
-  color: var(--text, #0a0a0a);
-  background: var(--bg, #faf8f5);
+  color: var(--text, #f8fafc);
+  background: var(--bg, #0b1220);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
@@ -23,6 +23,8 @@ body {
   text-align: left;
   padding: 0;
   margin: 0;
+  width: 100%;
+  max-width: none;
   font-family: var(--font-body, 'Inter', sans-serif);
   overflow-x: hidden;
 }
@@ -95,9 +97,45 @@ a:hover { color: var(--accent-hover, #c44820); }
    SCROLLBAR
    ============================================================ */
 ::-webkit-scrollbar { width: 10px; height: 10px; }
-::-webkit-scrollbar-track { background: var(--bg-subtle, #f3efe9); }
-::-webkit-scrollbar-thumb { background: var(--border-strong, #d6d1c7); border-radius: 999px; border: 2px solid var(--bg-subtle, #f3efe9); }
-::-webkit-scrollbar-thumb:hover { background: var(--text-muted, #737373); }
+::-webkit-scrollbar-track { background: var(--bg-subtle); }
+::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 999px;
+  border: 2px solid var(--bg-subtle);
+}
+::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+html, body { scrollbar-color: var(--border-strong) var(--bg-subtle); }
+
+/* Dark routes: never leave a cream scrollbar gutter on the edge */
+html.ns-dark,
+html.landing-cc-active,
+body.ns-dark,
+body.landing-cc-active {
+  scrollbar-color: #475569 #0b1220 !important;
+}
+html.ns-dark::-webkit-scrollbar,
+html.landing-cc-active::-webkit-scrollbar,
+body.ns-dark::-webkit-scrollbar,
+body.landing-cc-active::-webkit-scrollbar {
+  background: #0b1220 !important;
+}
+html.ns-dark::-webkit-scrollbar-track,
+html.landing-cc-active::-webkit-scrollbar-track,
+body.ns-dark::-webkit-scrollbar-track,
+body.landing-cc-active::-webkit-scrollbar-track,
+html.ns-dark *::-webkit-scrollbar-track,
+html.landing-cc-active *::-webkit-scrollbar-track {
+  background: #0b1220 !important;
+}
+html.ns-dark::-webkit-scrollbar-thumb,
+html.landing-cc-active::-webkit-scrollbar-thumb,
+body.ns-dark::-webkit-scrollbar-thumb,
+body.landing-cc-active::-webkit-scrollbar-thumb,
+html.ns-dark *::-webkit-scrollbar-thumb,
+html.landing-cc-active *::-webkit-scrollbar-thumb {
+  background: #475569 !important;
+  border-color: #0b1220 !important;
+}
 
 /* ============================================================
    LAYOUT — magazine container & section rhythm
@@ -208,10 +246,21 @@ section {
   transition: border-color 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
   cursor: pointer;
   height: 100%;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  outline: none;
 }
 .cc-news-card:hover {
   border-color: var(--border-strong);
   box-shadow: var(--shadow-md);
+}
+.cc-news-card:active,
+.cc-news-card:focus,
+.cc-news-card:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-sm);
+  border-color: var(--border-strong);
+  background: var(--bg-elevated);
 }
 .cc-news-card .cc-news-image,
 .cc-news-card img {
@@ -294,16 +343,28 @@ section {
 }
 .btn-primary,
 .btn.btn-primary {
-  background: var(--text-primary) !important;
-  border: 1px solid var(--text-primary) !important;
-  color: var(--bg-elevated) !important;
+  background: #f97316 !important;
+  border: 1px solid #f97316 !important;
+  color: #fff !important;
 }
 .btn-primary:hover,
 .btn.btn-primary:hover {
-  background: var(--accent) !important;
-  border-color: var(--accent) !important;
+  background: #ea580c !important;
+  border-color: #ea580c !important;
   color: #fff !important;
   transform: translateY(-1px);
+}
+.btn-primary:active,
+.btn.btn-primary:active,
+.btn-primary:focus,
+.btn.btn-primary:focus,
+.btn-primary:focus-visible,
+.btn.btn-primary:focus-visible {
+  background: #c2410c !important;
+  border-color: #c2410c !important;
+  color: #fff !important;
+  box-shadow: none !important;
+  outline: none !important;
 }
 
 .btn-accent {
@@ -581,17 +642,29 @@ img { max-width: 100%; height: auto; }
    DAILY / TRADE STRIPS — kept dark, retuned for editorial palette
    ============================================================ */
 .daily-cta-strip {
-  background: var(--text-primary) !important;
-  color: #fafafa !important;
+  background: #0f172a !important;
+  color: #f8fafc !important;
+  border-top: 1px solid rgba(249, 115, 22, 0.35) !important;
+  border-bottom: 1px solid rgba(249, 115, 22, 0.35) !important;
 }
 .daily-cta-strip *,
 .daily-cta-strip span,
 .daily-cta-strip p,
-.daily-cta-strip a { color: #fafafa !important; }
-.daily-cta-strip a:hover { color: var(--accent) !important; }
+.daily-cta-strip a { color: #f8fafc !important; }
+.daily-cta-strip a.btn,
+.daily-cta-strip a[href*='daily'] {
+  background: #f97316 !important;
+  color: #fff !important;
+}
+.daily-cta-strip a:hover { color: #fdba74 !important; }
 
-.trade-cta-strip { background: var(--text-primary) !important; }
-.trade-cta-strip .trade-cta-label { color: #fafafa !important; }
+.trade-cta-strip {
+  background: linear-gradient(145deg, #0f172a 0%, #111827 100%) !important;
+  color: #f8fafc !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+.trade-cta-strip .trade-cta-label { color: rgba(248, 250, 252, 0.7) !important; }
+.trade-cta-strip p { color: #f8fafc !important; }
 
 /* ============================================================
    AIRDROP DETAIL — retuned

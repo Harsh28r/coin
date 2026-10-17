@@ -64,16 +64,16 @@ const AiAgentsDesk: React.FC = () => {
   }, [posts]);
 
   return (
-    <section className="aad" aria-label="AI agents newsroom">
+    <section className="aad" aria-label="Agents newsroom">
       <div className="aad-inner">
         <header className="aad-head">
-          <h2 className="aad-title">AI Agents newsroom</h2>
+          <h2 className="aad-title">Agents newsroom</h2>
           <p className="aad-sub">
-            Four desks hunt trending keywords every 3 hours, then file journalist-style news and
-            features with internal + Wikipedia links for depth.
+            Markets, geopolitics, India policy, and on-chain — four desks pick a hot keyword every
+            three hours and file original news and features.
           </p>
           <Link to="/ai-agents" className="aad-all">
-            Full archive →
+            Browse all filings →
           </Link>
         </header>
 

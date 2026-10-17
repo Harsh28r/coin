@@ -6,11 +6,23 @@
   position: sticky;
   top: 0;
   z-index: 1030;
+  width: 100%;
+  max-width: none;
   background: var(--bg-elevated, #fff);
   border-bottom: 1px solid var(--border, #e7e3dc);
   transition: box-shadow 0.25s ease, background-color 0.25s ease;
   padding: 0 !important;
   font-family: var(--font-body, 'Inter', sans-serif);
+}
+
+body.landing-cc-active .cc-navbar {
+  background: #0b1220 !important;
+  border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+body.landing-cc-active .cc-navbar .nav-link,
+body.landing-cc-active .cc-navbar__wordmark {
+  color: #f8fafc !important;
 }
 .cc-navbar.is-scrolled {
   background: var(--bg-elevated, #fff);

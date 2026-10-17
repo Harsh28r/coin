@@ -7,7 +7,7 @@ import { blogPosting, breadcrumbList, SITE_URL } from '../utils/jsonLd';
 import { useBlog } from '../context/BlogContext';
 import { format } from 'date-fns';
 import { resolveImageSrc, handleImageError } from '../utils/cryptoImages';
-import { getBlogUrl } from '../utils/blogUrl';
+import { getBlogUrl, getCoinMarketUrl } from '../utils/blogUrl';
 import { splitAfterFirstClosingPTag } from '../utils/splitHtmlAfterFirstPTag';
 import { resolveAuthorFromPost, authorPath } from '../config/authors';
 import { applyInternalLinks, buildInternalLinks } from '../utils/internalLinks';
@@ -180,23 +180,12 @@ const BlogPostDetail: React.FC = () => {
     return Array.isArray(t) && t.includes('price-outlook');
   }, [post]);
 
-  // Canonical UX: price outlooks live on /prediction/:coinId (editorial layout).
-  useEffect(() => {
-    if (isPriceOutlook && outlookCoinId) {
-      navigate(`/coin/${outlookCoinId}`, { replace: true });
-    }
-  }, [isPriceOutlook, outlookCoinId, navigate]);
+  const isTrendsDesk = useMemo(() => {
+    const t = post?.tags;
+    return Array.isArray(t) && (t.includes('trending-desk') || t.includes('google-trends'));
+  }, [post?.tags]);
 
-  if (isPriceOutlook && outlookCoinId) {
-    return (
-      <div className="bd-shell">
-        <div className="bd-container bd-loading">
-          <div className="bd-skel-eyebrow" />
-          <div className="bd-skel-title" />
-        </div>
-      </div>
-    );
-  }
+  const coinMarketHref = useMemo(() => (post ? getCoinMarketUrl(post) : null), [post]);
 
   if (!post) {
     return (
@@ -265,7 +254,13 @@ const BlogPostDetail: React.FC = () => {
         </button>
 
         <header className="bd-header">
-          <span className="bd-eyebrow">{(post as any).category || 'Editorial'}</span>
+          <span className="bd-eyebrow">
+            {isTrendsDesk
+              ? 'Google Trends desk'
+              : isPriceOutlook
+                ? 'Price outlook'
+                : (post as any).category || 'Editorial'}
+          </span>
           <h1 className="bd-title">{post.title}</h1>
           <div className="bd-meta">
             <div className="bd-author">
@@ -288,6 +283,20 @@ const BlogPostDetail: React.FC = () => {
             <span className="bd-dot" aria-hidden>·</span>
             <span className="bd-meta__item"><Clock size={14} /> {minutes} min read</span>
           </div>
+          {(isTrendsDesk || coinMarketHref) && (
+            <div className="bd-desk-links">
+              {isTrendsDesk && (
+                <Link to="/trending-desk" className="bd-desk-link">
+                  All Google Trends columns →
+                </Link>
+              )}
+              {coinMarketHref && (
+                <Link to={coinMarketHref} className="bd-desk-link">
+                  Live chart →
+                </Link>
+              )}
+            </div>
+          )}
         </header>
 
         <div className="bd-layout">

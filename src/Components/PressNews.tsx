@@ -255,23 +255,18 @@ const PresNews: React.FC = () => {
                   </Card.Text>
                   
                   <div className="news-actions">
-                    <a 
-                      href={item.link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="btn btn-primary btn-sm"
-                    >
-                      <i className="fas fa-external-link-alt me-1"></i>
-                      {t('news.readOriginal') || 'Read Original →'}
-                    </a>
-                    
-                    <a 
+                    <a
                       href={`/news/${item.article_id || encodeURIComponent(item.title)}`}
-                      className="btn btn-outline-secondary btn-sm ms-2"
-                      onClick={(e) => { e.preventDefault(); const targetId = item.article_id || encodeURIComponent(item.title); navigate(`/news/${targetId}`, { state: { item: { ...item, content: item.content || item.description || '' } } }); }}
+                      className="btn btn-outline-secondary btn-sm"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        const targetId = item.article_id || encodeURIComponent(item.title);
+                        navigate(`/news/${targetId}`, {
+                          state: { item: { ...item, content: item.content || item.description || '' } },
+                        });
+                      }}
                     >
-                      <i className="fas fa-info-circle me-1"></i>
-                      {t('news.viewSummary') || 'View Summary'}
+                      {t('news.readFullArticle') || 'Read on CoinsClarity'}
                     </a>
                   </div>
                 </Card.Body>

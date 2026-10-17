@@ -102,6 +102,46 @@ const NewsDetail: React.FC = () => {
   const location = useLocation();
   const navState: any = location.state;
 
+  // Full-bleed dark canvas on article pages (kill white gutters + cream figure)
+  useEffect(() => {
+    const html = document.documentElement;
+    const root = document.getElementById('root');
+    const styleEl = document.createElement('style');
+    styleEl.setAttribute('data-ns-dark-fix', '1');
+    styleEl.textContent = `
+      html.ns-dark, body.ns-dark, body.ns-dark #root, body.ns-dark .App {
+        background: #0b1220 !important; background-color: #0b1220 !important;
+        width: 100% !important; max-width: none !important; margin: 0 !important;
+        scrollbar-color: #475569 #0b1220 !important;
+        color-scheme: dark;
+      }
+      html.ns-dark::-webkit-scrollbar-track, body.ns-dark::-webkit-scrollbar-track,
+      html.ns-dark *::-webkit-scrollbar-track, body.ns-dark *::-webkit-scrollbar-track {
+        background: #0b1220 !important;
+      }
+      html.ns-dark::-webkit-scrollbar-thumb, body.ns-dark::-webkit-scrollbar-thumb,
+      html.ns-dark *::-webkit-scrollbar-thumb, body.ns-dark *::-webkit-scrollbar-thumb {
+        background: #475569 !important; border-color: #0b1220 !important;
+      }
+      body.ns-dark .ns-shell { background: #0b1220 !important; width: 100% !important; min-height: 100vh; }
+      body.ns-dark .ns-figure { background: #0f172a !important; }
+    `;
+    document.head.appendChild(styleEl);
+    html.classList.add('ns-dark', 'landing-cc-active');
+    document.body.classList.add('ns-dark', 'landing-cc-active');
+    html.style.backgroundColor = '#0b1220';
+    document.body.style.backgroundColor = '#0b1220';
+    if (root) {
+      root.style.backgroundColor = '#0b1220';
+      root.style.width = '100%';
+      root.style.maxWidth = 'none';
+    }
+    return () => {
+      styleEl.remove();
+      // Keep site-wide dark shell (SiteTheme owns html/body classes)
+    };
+  }, []);
+
   const [newsItem, setNewsItem] = useState<NewsItem | null>(() => {
     const fromState = navState && (navState.item || navState.newsItem);
     if (fromState) return fromState as NewsItem;
@@ -276,7 +316,7 @@ const NewsDetail: React.FC = () => {
         ];
         for (const u of paths) {
           try {
-            const r = await fetch(u, { signal: AbortSignal.timeout(10000) });
+            const r = await fetch(u, { signal: AbortSignal.timeout(18000) });
             if (!r.ok) continue;
             const d = await r.json();
             if (d.success && d.data) {
@@ -423,10 +463,21 @@ const NewsDetail: React.FC = () => {
 
   const looksLikeTruncatedExcerpt = (html?: string): boolean => {
     const text = plainText(html);
-    return (
-      /(?:\.{3,}|…)\s*$/.test(text) ||
-      /\b(?:continue reading|read (?:the )?full (?:article|story)|read more)\s*\.?\s*$/i.test(text)
-    );
+    if (!text) return true;
+    // RSS often ends with […] / [...] / … — must catch bracketed forms too
+    if (/(?:\[…\]|\[\.\.\.\]|\.{3,}|…)\s*$/.test(text)) return true;
+    if (/\b(?:continue reading|read (?:the )?full (?:article|story)|read more)\b/i.test(text)) return true;
+    // Short desk teaser — not a full story (CoinsCapture hosts full body; we must enrich)
+    if (text.length < 900) return true;
+    // Jammed section header mid-sentence (e.g. "...rewards. The Number Explained Binance...")
+    if (
+      /[.!?]\s+(The Number Explained|Key Takeaways|What Happened|Why It Matters|Bottom Line|Market Reaction)\s+[A-Z]/.test(
+        text,
+      )
+    ) {
+      return text.length < 2500;
+    }
+    return false;
   };
 
   const stripFeedPreamble = (value?: string): string =>
@@ -437,11 +488,14 @@ const NewsDetail: React.FC = () => {
       )
       .trim();
 
-  // RSS feeds can truncate at any length, so verify every source article once.
+  // RSS feeds can truncate at any length — enrich when body looks like a teaser.
   const needsFullFetch = (item: NewsItem | null): boolean => {
     if (!item || !item.link || item.link === '#') return false;
     const body = item.contentHtml || item.fullContent || item.content || item.description || '';
-    return !item.fullContentFetched || looksLikeTruncatedExcerpt(body);
+    if (item.fullContentFetched && !looksLikeTruncatedExcerpt(body)) return false;
+    if (looksLikeTruncatedExcerpt(body)) return true;
+    // Already a solid on-platform body (exclusive / full content:encoded)
+    return textLength(body) < 1200;
   };
 
   const mergeFullContent = (
@@ -478,7 +532,7 @@ const NewsDetail: React.FC = () => {
       // Hard cap — never leave "Loading full article…" forever if scrape hangs/404s
       const hardStop = window.setTimeout(() => {
         if (!cancelled) setBgEnriching(false);
-      }, 10000);
+      }, 22000);
       fetchFullContent(item.link)
         .then(full => {
           if (!full || cancelled || !id) return;
@@ -898,17 +952,53 @@ const NewsDetail: React.FC = () => {
     return fromBody || stored || '';
   }, [newsItem?.image_url, newsItem?.contentHtml, newsItem?.fullContent, newsItem?.content]);
 
+  /** Turn jammed RSS plain text into readable paragraphs + section heads (CoinsCapture-style). */
+  const structurePlainArticle = (text: string): string => {
+    let t = text.replace(/\s+/g, ' ').trim();
+    // Title fragment jammed into next sentence: "Domino Theory McGlone laid out…"
+    t = t.replace(
+      /\b([A-Z][A-Za-z0-9'’&-]{2,40}(?:\s+[A-Z][A-Za-z0-9'’&-]{2,40}){0,4})\s+([A-Z][a-z]+)\s+(laid out|said|wrote|posted|argued|noted|added|replied)\b/g,
+      '\n\n@@H@@$1@@/H@@\n\n$2 $3',
+    );
+    // Known CryptoNews-style mid-body headers jammed without breaks
+    const HEADER_RE =
+      /\s+((?:The Number Explained|Key Takeaways|What Happened|Why It Matters|Bottom Line|Market Reaction|What(?:'s| Is) Next|How It Works|The Big Picture|Domino Theory))\s+(?=[A-Z0-9“"'])/g;
+    t = t.replace(HEADER_RE, '\n\n@@H@@$1@@/H@@\n\n');
+    // Sentence boundary → soft paragraph every ~2–3 sentences for long walls of text
+    if (!t.includes('@@H@@') && t.length > 500 && !/\n\n/.test(t)) {
+      t = t.replace(/([.!?])\s+(?=[A-Z])/g, '$1\n\n');
+    }
+    return t
+      .split(/\n{2,}/)
+      .map((chunk) => {
+        const c = chunk.trim();
+        if (!c) return '';
+        const hm = c.match(/^@@H@@(.+)@@\/H@@$/);
+        if (hm) return `<h3 class="ns-section-head">${hm[1]}</h3>`;
+        return `<p>${c.replace(/\n/g, '<br/>')}</p>`;
+      })
+      .filter(Boolean)
+      .join('');
+  };
+
   const getNormalizedContentHtml = (htmlOrText?: string): string => {
     const raw = stripFeedPreamble(stripAppearedFirstOn((htmlOrText || '').trim()));
     if (!raw) return '';
-    const looksLikeHtml = /<[^>]+>/.test(raw);
+    const looksLikeHtml = /<(p|h[1-6]|div|br|li|article|section)\b/i.test(raw);
     // Always pass the *resolved* hero (including the one we promoted from body)
     // so the sanitizer can dedupe it from the article body.
-    if (looksLikeHtml) return sanitizeScrapedHtml(raw, newsItem?.title, heroImage);
-    const paragraphs = raw
-      .split(/\n{2,}/)
-      .map(p => `<p>${p.replace(/\n/g, '<br/>')}</p>`)
-      .join('');
+    if (looksLikeHtml) {
+      let html = sanitizeScrapedHtml(raw, newsItem?.title, heroImage);
+      // If sanitize left a single text blob, restructure
+      const tmp = document.createElement('div');
+      tmp.innerHTML = html;
+      const onlyText = (tmp.textContent || '').trim();
+      if (tmp.querySelectorAll('p, h2, h3').length <= 1 && onlyText.length > 400) {
+        html = structurePlainArticle(onlyText);
+      }
+      return html;
+    }
+    const paragraphs = structurePlainArticle(raw);
     return paragraphs || `<p>${raw}</p>`;
   };
 
@@ -1159,15 +1249,21 @@ const NewsDetail: React.FC = () => {
           </aside>
 
           <article className="ns-article" ref={contentRef}>
-            <figure className="ns-figure">
-              <img
-                src={resolveImageSrc(heroImage, newsItem.title, 'news')}
-                alt={newsItem.title}
-                loading="eager"
-                decoding="async"
-                onError={(e) => handleImageError(e, newsItem.title, 'news')}
-              />
-            </figure>
+            {heroImage && !isFakeImageUrl(heroImage) ? (
+              <figure className="ns-figure">
+                <img
+                  src={resolveImageSrc(heroImage, newsItem.title, 'news')}
+                  alt={newsItem.title}
+                  loading="eager"
+                  decoding="async"
+                  onError={(e) => {
+                    const fig = (e.currentTarget as HTMLImageElement).closest('figure');
+                    if (fig) fig.style.display = 'none';
+                    handleImageError(e, newsItem.title, 'news');
+                  }}
+                />
+              </figure>
+            ) : null}
 
             {(() => {
               const bodyForSummary = stripFeedPreamble(

@@ -59,14 +59,14 @@ const AiAgentsArchive: React.FC = () => {
   return (
     <div className="dd-page">
       <Helmet>
-        <title>AI Agents newsroom — CoinsClarity</title>
+        <title>Agents newsroom — CoinsClarity</title>
         <meta
           name="description"
-          content="Journalist-style crypto news and features from four AI desks: markets, geopolitics, India policy, and on-chain — refreshed from trending keywords every 3 hours."
+          content="Crypto news and features from four desks — markets, geopolitics, India policy, and on-chain — filed from trending keywords every three hours."
         />
         <meta
           name="keywords"
-          content="crypto news, AI journalism, bitcoin analysis, India crypto policy, geopolitics crypto, DeFi news"
+          content="crypto news, bitcoin analysis, India crypto policy, geopolitics crypto, DeFi news"
         />
         <meta name="robots" content="index, follow" />
         <link rel="canonical" href={`${window.location.origin}/ai-agents`} />
@@ -74,11 +74,10 @@ const AiAgentsArchive: React.FC = () => {
       <CoinsNavbar />
       <main className="dd-main">
         <header className="dd-header">
-          <h1 className="dd-title">AI Agents newsroom</h1>
+          <h1 className="dd-title">Agents newsroom</h1>
           <p className="dd-lead">
-            Every three hours the desks scan trending keywords (CoinGecko, wires, web), pick an angle —
-            war risk, India policy, ETF flows, on-chain shocks — and file original news or features with
-            Wikipedia + on-site links. Daily brief stays on{' '}
+            Every three hours the desks scan trending keywords, pick an angle — war risk, India
+            policy, ETF flows, on-chain shocks — and file original news or features. Daily brief on{' '}
             <Link to="/daily-digest">daily digest</Link>; midday column on{' '}
             <Link to="/trending-desk">trending desk</Link>.
           </p>

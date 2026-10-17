@@ -20,7 +20,7 @@ const Terms: React.FC = () => {
         <meta name="robots" content="index, follow" />
       </Helmet>
       <Navbar />
-      <div style={{ backgroundColor: '#ffffff', minHeight: '100vh', paddingTop: '100px', color: '#1f2937' }}>
+      <div style={{ backgroundColor: 'var(--bg, #0b1220)', minHeight: '100vh', paddingTop: '100px', color: 'var(--text, #f8fafc)' }}>
         <Container style={{ maxWidth: '900px', padding: '40px 20px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '30px' }}>
             <FileText size={40} color="#f97316" />
@@ -28,9 +28,9 @@ const Terms: React.FC = () => {
           </div>
           <p style={{ color: '#6b7280', marginBottom: '30px' }}>Last updated: December 17, 2024</p>
           
-          <div style={{ color: '#374151', lineHeight: '1.8' }}>
+          <div style={{ color: 'var(--text-secondary, #cbd5e1)', lineHeight: '1.8' }}>
             <section style={{ marginBottom: '30px' }}>
-              <h2 style={{ color: '#1f2937', fontSize: '1.5rem', marginBottom: '15px' }}>1. Acceptance of Terms</h2>
+              <h2 style={{ color: 'var(--text-primary, #f8fafc)', fontSize: '1.5rem', marginBottom: '15px' }}>1. Acceptance of Terms</h2>
               <p>
                 By accessing and using CoinsClarity ("the Website"), you agree to be bound by these Terms of 
                 Service. If you do not agree to these terms, please do not use our services.
@@ -38,7 +38,7 @@ const Terms: React.FC = () => {
             </section>
 
             <section style={{ marginBottom: '30px' }}>
-              <h2 style={{ color: '#1f2937', fontSize: '1.5rem', marginBottom: '15px' }}>2. Description of Service</h2>
+              <h2 style={{ color: 'var(--text-primary, #f8fafc)', fontSize: '1.5rem', marginBottom: '15px' }}>2. Description of Service</h2>
               <p>
                 CoinsClarity provides cryptocurrency news, market data, educational content, and related 
                 information services. Our services are provided "as is" and we reserve the right to modify, 
@@ -47,9 +47,9 @@ const Terms: React.FC = () => {
             </section>
 
             <section style={{ marginBottom: '30px' }}>
-              <h2 style={{ color: '#1f2937', fontSize: '1.5rem', marginBottom: '15px' }}>3. Not Financial Advice</h2>
+              <h2 style={{ color: 'var(--text-primary, #f8fafc)', fontSize: '1.5rem', marginBottom: '15px' }}>3. Not Financial Advice</h2>
               <div style={{ 
-                backgroundColor: '#fef2f2', 
+                backgroundColor: 'var(--loss-bg, rgba(248,113,113,0.12))', 
                 border: '1px solid #fca5a5',
                 borderRadius: '12px', 
                 padding: '25px', 
@@ -73,7 +73,7 @@ const Terms: React.FC = () => {
             </section>
 
             <section style={{ marginBottom: '30px' }}>
-              <h2 style={{ color: '#1f2937', fontSize: '1.5rem', marginBottom: '15px' }}>4. User Conduct</h2>
+              <h2 style={{ color: 'var(--text-primary, #f8fafc)', fontSize: '1.5rem', marginBottom: '15px' }}>4. User Conduct</h2>
               <p>You agree not to:</p>
               <ul style={{ paddingLeft: '20px', marginTop: '10px' }}>
                 <li>Use our services for any unlawful purpose</li>
@@ -87,7 +87,7 @@ const Terms: React.FC = () => {
             </section>
 
             <section style={{ marginBottom: '30px' }}>
-              <h2 style={{ color: '#1f2937', fontSize: '1.5rem', marginBottom: '15px' }}>5. Intellectual Property</h2>
+              <h2 style={{ color: 'var(--text-primary, #f8fafc)', fontSize: '1.5rem', marginBottom: '15px' }}>5. Intellectual Property</h2>
               <p>
                 All content on CoinsClarity, including text, graphics, logos, and software, is the property of 
                 CoinsClarity or its content providers and is protected by intellectual property laws. You may 
@@ -96,7 +96,7 @@ const Terms: React.FC = () => {
             </section>
 
             <section style={{ marginBottom: '30px' }}>
-              <h2 style={{ color: '#1f2937', fontSize: '1.5rem', marginBottom: '15px' }}>6. Third-Party Content</h2>
+              <h2 style={{ color: 'var(--text-primary, #f8fafc)', fontSize: '1.5rem', marginBottom: '15px' }}>6. Third-Party Content</h2>
               <p>
                 Our website may contain links to third-party websites, advertisements, and content. We do not 
                 control or endorse third-party content and are not responsible for any damages arising from 
@@ -105,7 +105,7 @@ const Terms: React.FC = () => {
             </section>
 
             <section style={{ marginBottom: '30px' }}>
-              <h2 style={{ color: '#1f2937', fontSize: '1.5rem', marginBottom: '15px' }}>7. Accuracy of Information</h2>
+              <h2 style={{ color: 'var(--text-primary, #f8fafc)', fontSize: '1.5rem', marginBottom: '15px' }}>7. Accuracy of Information</h2>
               <p>
                 While we strive to provide accurate and up-to-date information, we make no warranties about 
                 the completeness, reliability, or accuracy of any information on our website. Market data, 
@@ -114,7 +114,7 @@ const Terms: React.FC = () => {
             </section>
 
             <section style={{ marginBottom: '30px' }}>
-              <h2 style={{ color: '#1f2937', fontSize: '1.5rem', marginBottom: '15px' }}>8. Limitation of Liability</h2>
+              <h2 style={{ color: 'var(--text-primary, #f8fafc)', fontSize: '1.5rem', marginBottom: '15px' }}>8. Limitation of Liability</h2>
               <p>
                 To the maximum extent permitted by law, CoinsClarity and its affiliates shall not be liable 
                 for any indirect, incidental, special, consequential, or punitive damages, including but not 
@@ -130,7 +130,7 @@ const Terms: React.FC = () => {
             </section>
 
             <section style={{ marginBottom: '30px' }}>
-              <h2 style={{ color: '#1f2937', fontSize: '1.5rem', marginBottom: '15px' }}>9. Indemnification</h2>
+              <h2 style={{ color: 'var(--text-primary, #f8fafc)', fontSize: '1.5rem', marginBottom: '15px' }}>9. Indemnification</h2>
               <p>
                 You agree to indemnify and hold harmless CoinsClarity, its officers, directors, employees, 
                 and agents from any claims, damages, losses, or expenses arising from your use of our services 
@@ -139,7 +139,7 @@ const Terms: React.FC = () => {
             </section>
 
             <section style={{ marginBottom: '30px' }}>
-              <h2 style={{ color: '#1f2937', fontSize: '1.5rem', marginBottom: '15px' }}>10. Newsletter & Communications</h2>
+              <h2 style={{ color: 'var(--text-primary, #f8fafc)', fontSize: '1.5rem', marginBottom: '15px' }}>10. Newsletter & Communications</h2>
               <p>
                 By subscribing to our newsletter, you consent to receive periodic emails about cryptocurrency 
                 news and updates. You can unsubscribe at any time using the link provided in our emails.
@@ -147,7 +147,7 @@ const Terms: React.FC = () => {
             </section>
 
             <section style={{ marginBottom: '30px' }}>
-              <h2 style={{ color: '#1f2937', fontSize: '1.5rem', marginBottom: '15px' }}>11. Changes to Terms</h2>
+              <h2 style={{ color: 'var(--text-primary, #f8fafc)', fontSize: '1.5rem', marginBottom: '15px' }}>11. Changes to Terms</h2>
               <p>
                 We reserve the right to modify these Terms of Service at any time. Changes will be effective 
                 immediately upon posting. Your continued use of our services after changes constitutes 
@@ -156,7 +156,7 @@ const Terms: React.FC = () => {
             </section>
 
             <section style={{ marginBottom: '30px' }}>
-              <h2 style={{ color: '#1f2937', fontSize: '1.5rem', marginBottom: '15px' }}>12. Governing Law</h2>
+              <h2 style={{ color: 'var(--text-primary, #f8fafc)', fontSize: '1.5rem', marginBottom: '15px' }}>12. Governing Law</h2>
               <p>
                 These Terms of Service shall be governed by and construed in accordance with applicable laws, 
                 without regard to conflict of law principles.
@@ -164,7 +164,7 @@ const Terms: React.FC = () => {
             </section>
 
             <section style={{ marginBottom: '30px' }}>
-              <h2 style={{ color: '#1f2937', fontSize: '1.5rem', marginBottom: '15px' }}>13. Contact</h2>
+              <h2 style={{ color: 'var(--text-primary, #f8fafc)', fontSize: '1.5rem', marginBottom: '15px' }}>13. Contact</h2>
               <p>
                 For questions about these Terms of Service, please contact us at:
               </p>
@@ -177,12 +177,12 @@ const Terms: React.FC = () => {
 
             {/* Acknowledgment Box */}
             <div style={{ 
-              backgroundColor: '#f9fafb', 
+              backgroundColor: 'var(--bg-elevated, #111827)', 
               borderRadius: '12px', 
               padding: '25px',
               borderLeft: '4px solid #f97316'
             }}>
-              <h3 style={{ color: '#1f2937', fontSize: '1.1rem', marginBottom: '10px' }}>
+              <h3 style={{ color: 'var(--text-primary, #f8fafc)', fontSize: '1.1rem', marginBottom: '10px' }}>
                 By using CoinsClarity, you acknowledge that:
               </h3>
               <ul style={{ paddingLeft: '20px', marginBottom: 0, color: '#4b5563' }}>

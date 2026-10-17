@@ -1,7 +1,7 @@
 .gts {
   padding: 1.5rem 1.25rem 1.25rem;
-  background: var(--bg, #f7f5f2);
-  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+  background: var(--bg, #0b1220);
+  border-bottom: 1px solid rgba(148, 163, 184, 0.12);
 }
 
 .gts-inner {
@@ -19,7 +19,7 @@
   font-size: 1.25rem;
   font-weight: 800;
   letter-spacing: -0.03em;
-  color: var(--text, #0f172a);
+  color: var(--text, #f8fafc);
 }
 
 .gts-sub {
@@ -27,7 +27,21 @@
   max-width: 38rem;
   font-size: 0.88rem;
   line-height: 1.45;
-  color: var(--muted, #64748b);
+  color: var(--muted, #94a3b8);
+}
+
+.gts-latest {
+  display: inline-block;
+  margin-top: 0.65rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #38bdf8;
+  text-decoration: none;
+}
+
+.gts-latest:hover {
+  color: #7dd3fc;
+  text-decoration: underline;
 }
 
 .gts-list {
@@ -46,24 +60,24 @@
   padding: 0.75rem 0.85rem;
   border-radius: 12px;
   text-decoration: none;
-  background: #fff;
-  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: rgba(15, 23, 42, 0.65);
+  border: 1px solid rgba(148, 163, 184, 0.14);
   color: inherit;
 }
 
 .gts-row:hover {
-  border-color: rgba(234, 88, 12, 0.45);
+  border-color: rgba(56, 189, 248, 0.45);
 }
 
 .gts-name {
   font-weight: 700;
   font-size: 0.95rem;
-  color: var(--text, #0f172a);
+  color: var(--text, #f8fafc);
 }
 
 .gts-meta {
   font-size: 0.75rem;
-  color: var(--muted, #64748b);
+  color: var(--muted, #94a3b8);
 }
 
 @media (max-width: 800px) {

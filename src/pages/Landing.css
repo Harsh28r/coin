@@ -1,0 +1,89 @@
+/* CoinsCapture-inspired landing shell — dark canvas, orange accent */
+.landing-cc {
+  --bg: #0b1220;
+  --bg-elevated: #111827;
+  --bg-subtle: #0f172a;
+  --surface: #111827;
+  --card: #111827;
+  --card-bg: #111827;
+  --text: #f8fafc;
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --text-tertiary: #64748b;
+  --border: rgba(255, 255, 255, 0.08);
+  --border-subtle: rgba(255, 255, 255, 0.05);
+  --border-strong: rgba(255, 255, 255, 0.14);
+  --accent: #f97316;
+  --accent-hover: #fb923c;
+  --accent-soft: rgba(249, 115, 22, 0.12);
+  --accent-bg: rgba(249, 115, 22, 0.08);
+  --cc-orange: #f97316;
+  background: #0b1220;
+  color: #e2e8f0;
+  min-height: 100vh;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* Kill cream gutters on homepage — body/#root/.App inherit dark while landing is mounted */
+body.landing-cc-active,
+body.landing-cc-active #root,
+body.landing-cc-active .App {
+  background: #0b1220 !important;
+  color: #e2e8f0;
+}
+
+.landing-cc .content-wrapper {
+  background: #0b1220 !important;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* Soften common light cards that still hardcode white */
+.landing-cc .card,
+.landing-cc .Card {
+  background: #111827 !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+  color: #e2e8f0;
+}
+
+/* Kill leftover Bootstrap/light ticker whites on homepage */
+.landing-cc .bg-white,
+.landing-cc .cc-scroll-ticker,
+.landing-cc .crypto-ticker-wrapper {
+  background: #0b1220 !important;
+  background-color: #0b1220 !important;
+  color: #f8fafc !important;
+  box-shadow: none !important;
+}
+
+.landing-cc .text-black {
+  color: #f8fafc !important;
+}
+
+.landing-cc .trade-cta-strip {
+  background: linear-gradient(145deg, #0f172a 0%, #111827 100%) !important;
+  color: #f8fafc !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.landing-cc .trade-cta-strip p,
+.landing-cc .trade-cta-strip .trade-cta-label {
+  color: #f8fafc !important;
+}
+
+.landing-cc h1,
+.landing-cc h2,
+.landing-cc h3,
+.landing-cc h4 {
+  color: #f8fafc;
+}
+
+.landing-cc a:not(.btn):not([class*='cta']) {
+  color: inherit;
+}

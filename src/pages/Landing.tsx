@@ -1,8 +1,7 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Newspaper } from 'lucide-react';
 import CoinsNavbar from '../Components/navbar'
 import EditorialHero from '../Components/EditorialHero'
-import AiAgentsCarousel from '../Components/AiAgentsCarousel'
 import ExclusiveNews from '../Components/ExclusiveNews'
 import MarketPriceAndNews from '../Components/market'
 import TrendingCoins from '../Components/TrendingCoins'
@@ -17,7 +16,6 @@ import { ScrollingStats } from '../Components/scroll'
 import NewsListing from '../Components/Listings';
 import AINews from '../Components/AINews';
 import LandingAiPapers from '../Components/LandingAiPapers';
-import AiAgentsDesk from '../Components/AiAgentsDesk';
 import ArbitrageDashboard from './ArbitrageDashboard';
 import CryptoBreakingBanner from '../Components/CryptoBreakingBanner';
 import NewsletterCTA from '../Components/NewsletterCTA';
@@ -25,17 +23,43 @@ import AirdropSection from '../Components/AirdropSection';
 import LandingToolsShowcase from '../Components/LandingToolsShowcase';
 import LandingEditorialStrip from '../Components/LandingEditorialStrip';
 import LandingSeoHub from '../Components/LandingSeoHub';
-import GoogleTrendsStrip from '../Components/GoogleTrendsStrip';
 import CoinpediaPartner from '../Components/CoinpediaPartner';
 import LandingLiveStrip from '../Components/LandingLiveStrip';
+import LandingEventsStrip from '../Components/LandingEventsStrip';
+import LandingWireStrip from '../Components/LandingWireStrip';
+import MarketPulseBar from '../Components/MarketPulseBar';
 import AdSenseSlot from '../Components/AdSenseSlot';
 import AdsterraBannerSlot from '../Components/AdsterraBannerSlot';
 import HighPerformanceFormatSlot from '../Components/HighPerformanceFormatSlot';
+import './Landing.css';
 
+/**
+ * Landing order mirrors CoinsCapture (REA + live inspect):
+ * pulse bar → nav → LIVE ticker → market overview → hero/exclusive →
+ * events → syndicated wire → press → markets/tools → rest.
+ *
+ * CoinsCapture RSS (public): feed.xml, feed/exclusive.xml, feed/press-release.xml, feed/blog.xml
+ * Syndicated wire they show: Bitcoin News + Blockchain News (we mirror with Bitcoin News + desk RSS).
+ * Market metrics: CoinGecko (no public CoinsCapture API — FAQ says none).
+ */
 const LandingPage: React.FC = () => {
+  // Paint html/body/#root dark full-bleed — kills white left/right gutters
+  useEffect(() => {
+    const html = document.documentElement;
+    const root = document.getElementById('root');
+    html.classList.add('landing-cc-active', 'ns-dark');
+    document.body.classList.add('landing-cc-active', 'ns-dark');
+    html.style.backgroundColor = '#0b1220';
+    document.body.style.backgroundColor = '#0b1220';
+    if (root) root.style.backgroundColor = '#0b1220';
+  }, []);
+
   return (
-    <div className="LandingPage">
-      <div className="content-wrapper" style={{ background: 'var(--bg)' }}>
+    <div
+      className="LandingPage landing-cc"
+      style={{ width: '100%', maxWidth: 'none', margin: 0, background: '#0b1220', minHeight: '100vh' }}
+    >
+      <div className="content-wrapper" style={{ width: '100%', maxWidth: 'none', margin: 0, background: '#0b1220' }}>
         <Helmet>
           <title>CoinsClarity - Crypto News, Listings, Markets</title>
           <meta name="description" content="Real-time crypto news with full articles, new listings, and market insights. Read everything on-platform in your language." />
@@ -54,44 +78,46 @@ const LandingPage: React.FC = () => {
           <meta name="twitter:image" content={`${window.location.origin}/image.png`} />
         </Helmet>
 
-        {/* Sticky nav */}
+        {/* 1) Global pulse — Cryptocurrencies / Cap / Dom / F&G / Season / RSI */}
+        <MarketPulseBar />
+
+        {/* 2) Nav */}
         <CoinsNavbar />
 
-        {/* Breaking banner + price ticker */}
+        {/* 3) LIVE ticker */}
         <CryptoBreakingBanner />
         <ScrollingStats />
 
-        {/* Hero — editorial magazine layout */}
+        {/* 4) Market overview meters (early, like CoinsCapture) */}
+        <MarketStats />
+
+        {/* 5) Hero + exclusive desk */}
         <EditorialHero />
+        <ExclusiveNews />
 
-        {/* SEO hub — ranking entry points */}
-        <LandingSeoHub />
-        <GoogleTrendsStrip />
+        {/* 6) Events radar */}
+        <LandingEventsStrip />
 
-        {/* AI agents carousel — trending keyword filings */}
-        <AiAgentsCarousel />
+        {/* 7) Syndicated wire (Bitcoin News + major RSS — CoinsCapture /news-feeds pattern) */}
+        <LandingWireStrip />
 
-        {/* Advertisement Space */}
+        {/* 8) Press + partner */}
+        <PressRelease />
+        <CoinpediaPartner limit={6} />
+
         <div style={{ maxWidth: 1280, margin: '0 auto', padding: '0 20px' }}>
           <AdSenseSlot placement="landing-a" size="leaderboard" lazy />
         </div>
 
-        {/* Exclusive News */}
-        <ExclusiveNews />
-
-        {/* Official partner — Coinpedia (mid-page, full articles on-platform) */}
-        <CoinpediaPartner limit={6} />
-
-        {/* LIVE desk threads */}
-        <LandingLiveStrip />
-
-        {/* Market prices + charts */}
+        {/* 9) Markets / listings */}
         <MarketPriceAndNews />
+        <TrendingCoins />
+        <NewsListing />
 
-        {/* Market Stats Overview */}
-        <MarketStats />
+        {/* 10) Live desk + SEO utility strips */}
+        <LandingLiveStrip />
+        <LandingSeoHub />
 
-        {/* Advertisement Space */}
         <div style={{ maxWidth: 1280, margin: '0 auto', padding: '0 20px' }}>
           <AdSenseSlot placement="landing-b" size="leaderboard" lazy />
         </div>
@@ -101,56 +127,25 @@ const LandingPage: React.FC = () => {
           <HighPerformanceFormatSlot lazy width={300} height={250} />
         </div>
 
-        {/* Crypto Converter Tool */}
+        {/* 11) Tools */}
         <CryptoConverter />
-
-        {/* Free tools — bento strip */}
         <LandingToolsShowcase />
+        <ArbitrageDashboard />
 
-        {/* AI Agents desks (middle) */}
-        <AiAgentsDesk />
-
-        {/* AI News (RSS / MIT AI feeds) */}
+        {/* 12) Depth / research */}
         <AINews />
-
-        {/* Daily AI research papers (arXiv full abstract + PDF) */}
         <LandingAiPapers />
+        <InDepthNews />
+        <BlogSection />
+        <AirdropSection />
+        <LandingEditorialStrip />
 
-        {/* Trending Coins */}
-        <TrendingCoins />
-
-        {/* Press Releases */}
-        <PressRelease />
-
-        {/* Advertisement Space */}
         <div style={{ maxWidth: 1280, margin: '0 auto', padding: '0 20px' }}>
           <AdSenseSlot placement="landing-c" size="leaderboard" lazy />
         </div>
 
-        {/* In-depth News */}
-        <InDepthNews />
-
-        {/* Listings */}
-        <NewsListing />
-
-        {/* Arbitrage scanner */}
-        <ArbitrageDashboard />
-
-        {/* Blog */}
-        <BlogSection />
-
-        {/* New Airdrops (RSS: Airdrop Alert) */}
-        <AirdropSection />
-
-        <LandingEditorialStrip />
-
-        {/* Newsletter CTA */}
         <NewsletterCTA />
 
-        {/* Daily — 4 news teasers */}
-        {/* <DailyNewsSection /> */}
-
-        {/* Our platforms — Daily (India news) */}
         <div
           className="daily-cta-strip"
           style={{
@@ -221,7 +216,6 @@ const LandingPage: React.FC = () => {
           </a>
         </div>
 
-        {/* Footer */}
         <Footer />
       </div>
     </div>
